@@ -10,7 +10,7 @@ import { version } from "./_version";
 const logger = new Logger(version);
 
 const allowedTransactionKeys: Array<string> = [
-    "accessList", "chainId", "customData", "data", "from", "gasLimit", "gasPrice", "maxFeePerGas", "maxPriorityFeePerGas", "nonce", "to", "type", "value"
+    "accessList", "networkId", "customData", "data", "from", "gasLimit", "gasPrice", "maxFeePerGas", "maxPriorityFeePerGas", "nonce", "to", "type", "value"
 ];
 
 const forwardErrors = [
@@ -25,7 +25,7 @@ const forwardErrors = [
 export interface TypedDataDomain {
     name?: string;
     version?: string;
-    chainId?: BigNumberish;
+    networkId?: BigNumberish;
     verifyingContract?: string;
     salt?: BytesLike;
 };
@@ -126,10 +126,10 @@ export abstract class Signer {
         return await this.provider.sendTransaction(signedTx);
     }
 
-    async getChainId(): Promise<number> {
-        this._checkProvider("getChainId");
+    async getNetworkId(): Promise<number> {
+        this._checkProvider("getNetworkId");
         const network = await this.provider.getNetwork();
-        return network.chainId;
+        return network.networkId;
     }
 
     async getGasPrice(): Promise<BigNumber> {
@@ -305,15 +305,15 @@ export abstract class Signer {
             });
         }
 
-        if (tx.chainId == null) {
-            tx.chainId = this.getChainId();
+        if (tx.networkId == null) {
+            tx.networkId = this.getNetworkId();
         } else {
-            tx.chainId = Promise.all([
-                Promise.resolve(tx.chainId),
-                this.getChainId()
+            tx.networkId = Promise.all([
+                Promise.resolve(tx.networkId),
+                this.getNetworkId()
             ]).then((results) => {
                 if (results[1] !== 0 && results[0] !== results[1]) {
-                    logger.throwArgumentError("chainId address mismatch", "transaction", transaction);
+                    logger.throwArgumentError("networkId address mismatch", "transaction", transaction);
                 }
                 return results[0];
             });

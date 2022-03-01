@@ -76,7 +76,7 @@ function checkNetworks(networks) {
         }
         if (result) {
             // Make sure the network matches the previous networks
-            if (!(result.name === network.name && result.chainId === network.chainId &&
+            if (!(result.name === network.name && result.networkId === network.networkId &&
                 ((result.ensAddress === network.ensAddress) || (result.ensAddress == null && network.ensAddress == null)))) {
                 logger.throwArgumentError("provider mismatch", "networks", networks);
             }

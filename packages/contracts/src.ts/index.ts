@@ -49,7 +49,7 @@ export interface PopulatedTransaction {
 
     data?: string;
     value?: BigNumber;
-    chainId?: number;
+    networkId?: number;
 
     type?: number;
     accessList?: AccessList;
@@ -107,7 +107,7 @@ export interface ContractTransaction extends TransactionResponse {
 ///////////////////////////////
 
 const allowedTransactionKeys: { [ key: string ]: boolean } = {
-    chainId: true, data: true, from: true, gasLimit: true, gasPrice:true, nonce: true, to: true, value: true,
+    networkId: true, data: true, from: true, gasLimit: true, gasPrice:true, nonce: true, to: true, value: true,
     type: true, accessList: true,
     maxFeePerGas: true, maxPriorityFeePerGas: true,
     customData: true

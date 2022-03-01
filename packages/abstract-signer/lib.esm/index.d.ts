@@ -5,7 +5,7 @@ import { Deferrable } from "@ethersproject/properties";
 export interface TypedDataDomain {
     name?: string;
     version?: string;
-    chainId?: BigNumberish;
+    networkId?: BigNumberish;
     verifyingContract?: string;
     salt?: BytesLike;
 }
@@ -33,7 +33,7 @@ export declare abstract class Signer {
     estimateGas(transaction: Deferrable<TransactionRequest>): Promise<BigNumber>;
     call(transaction: Deferrable<TransactionRequest>, blockTag?: BlockTag): Promise<string>;
     sendTransaction(transaction: Deferrable<TransactionRequest>): Promise<TransactionResponse>;
-    getChainId(): Promise<number>;
+    getNetworkId(): Promise<number>;
     getGasPrice(): Promise<BigNumber>;
     getFeeData(): Promise<FeeData>;
     resolveName(name: string): Promise<string>;

@@ -38,7 +38,7 @@ export type UnsignedTransaction = {
 
     data?: BytesLike;
     value?: BigNumberish;
-    chainId?: number;
+    networkId?: number;
 
     // Typed-Transaction features
     type?: number | null;
@@ -63,7 +63,7 @@ export interface Transaction {
 
     data: string;
     value: BigNumber;
-    chainId: number;
+    networkId: number;
 
     r?: string;
     s?: string;
@@ -103,7 +103,7 @@ const transactionFields = [
 ];
 
 const allowedTransactionKeys: { [ key: string ]: boolean } = {
-    chainId: true, data: true, gasLimit: true, gasPrice:true, nonce: true, to: true, type: true, value: true
+    networkId: true, data: true, gasLimit: true, gasPrice:true, nonce: true, to: true, type: true, value: true
 }
 
 export function computeAddress(key: BytesLike | string): string {
@@ -178,7 +178,7 @@ function _serializeEip1559(transaction: UnsignedTransaction, signature?: Signatu
     }
 
     const fields: any = [
-        formatNumber(transaction.chainId || 0, "chainId"),
+        formatNumber(transaction.networkId || 0, "networkId"),
         formatNumber(transaction.nonce || 0, "nonce"),
         formatNumber(transaction.maxPriorityFeePerGas || 0, "maxPriorityFeePerGas"),
         formatNumber(transaction.maxFeePerGas || 0, "maxFeePerGas"),
@@ -201,7 +201,7 @@ function _serializeEip1559(transaction: UnsignedTransaction, signature?: Signatu
 
 function _serializeEip2930(transaction: UnsignedTransaction, signature?: SignatureLike): string {
     const fields: any = [
-        formatNumber(transaction.chainId || 0, "chainId"),
+        formatNumber(transaction.networkId || 0, "networkId"),
         formatNumber(transaction.nonce || 0, "nonce"),
         formatNumber(transaction.gasPrice || 0, "gasPrice"),
         formatNumber(transaction.gasLimit || 0, "gasLimit"),
@@ -249,23 +249,23 @@ function _serialize(transaction: UnsignedTransaction, signature?: SignatureLike)
         raw.push(hexlify(value));
     });
 
-    let chainId = 0;
-    if (transaction.chainId != null) {
-        // A chainId was provided; if non-zero we'll use EIP-155
-        chainId = transaction.chainId;
+    let networkId = 0;
+    if (transaction.networkId != null) {
+        // A networkId was provided; if non-zero we'll use EIP-155
+        networkId = transaction.networkId;
 
-        if (typeof(chainId) !== "number") {
-            logger.throwArgumentError("invalid transaction.chainId", "transaction", transaction);
+        if (typeof(networkId) !== "number") {
+            logger.throwArgumentError("invalid transaction.networkId", "transaction", transaction);
         }
 
     } else if (signature && !isBytesLike(signature) && signature.v > 28) {
-        // No chainId provided, but the signature is signing with EIP-155; derive chainId
-        chainId = Math.floor((signature.v - 35) / 2);
+        // No networkId provided, but the signature is signing with EIP-155; derive networkId
+        networkId = Math.floor((signature.v - 35) / 2);
     }
 
-    // We have an EIP-155 transaction (chainId was specified and non-zero)
-    if (chainId !== 0) {
-        raw.push(hexlify(chainId)); // @TODO: hexValue?
+    // We have an EIP-155 transaction (networkId was specified and non-zero)
+    if (networkId !== 0) {
+        raw.push(hexlify(networkId)); // @TODO: hexValue?
         raw.push("0x");
         raw.push("0x");
     }
@@ -279,20 +279,20 @@ function _serialize(transaction: UnsignedTransaction, signature?: SignatureLike)
     // case that the signTransaction function only adds a v.
     const sig = splitSignature(signature);
 
-    // We pushed a chainId and null r, s on for hashing only; remove those
+    // We pushed a networkId and null r, s on for hashing only; remove those
     let v = 27 + sig.recoveryParam
-    if (chainId !== 0) {
+    if (networkId !== 0) {
         raw.pop();
         raw.pop();
         raw.pop();
-        v += chainId * 2 + 8;
+        v += networkId * 2 + 8;
 
         // If an EIP-155 v (directly or indirectly; maybe _vs) was provided, check it!
         if (sig.v > 28 && sig.v !== v) {
-             logger.throwArgumentError("transaction.chainId/signature.v mismatch", "signature", signature);
+             logger.throwArgumentError("transaction.networkId/signature.v mismatch", "signature", signature);
         }
     } else if (sig.v !== v) {
-         logger.throwArgumentError("transaction.chainId/signature.v mismatch", "signature", signature);
+         logger.throwArgumentError("transaction.networkId/signature.v mismatch", "signature", signature);
     }
 
     raw.push(hexlify(v));
@@ -358,7 +358,7 @@ function _parseEip1559(payload: Uint8Array): Transaction {
     const maxFeePerGas = handleNumber(transaction[3]);
     const tx: Transaction = {
         type:                  2,
-        chainId:               handleNumber(transaction[0]).toNumber(),
+        networkId:               handleNumber(transaction[0]).toNumber(),
         nonce:                 handleNumber(transaction[1]).toNumber(),
         maxPriorityFeePerGas:  maxPriorityFeePerGas,
         maxFeePerGas:          maxFeePerGas,
@@ -389,7 +389,7 @@ function _parseEip2930(payload: Uint8Array): Transaction {
 
     const tx: Transaction = {
         type:       1,
-        chainId:    handleNumber(transaction[0]).toNumber(),
+        networkId:    handleNumber(transaction[0]).toNumber(),
         nonce:      handleNumber(transaction[1]).toNumber(),
         gasPrice:   handleNumber(transaction[2]),
         gasLimit:   handleNumber(transaction[3]),
@@ -424,7 +424,7 @@ function _parse(rawTransaction: Uint8Array): Transaction {
         to:       handleAddress(transaction[3]),
         value:    handleNumber(transaction[4]),
         data:     transaction[5],
-        chainId:  0
+        networkId:  0
     };
 
     // Legacy unsigned transaction
@@ -443,24 +443,24 @@ function _parse(rawTransaction: Uint8Array): Transaction {
 
     if (BigNumber.from(tx.r).isZero() && BigNumber.from(tx.s).isZero()) {
         // EIP-155 unsigned transaction
-        tx.chainId = tx.v;
+        tx.networkId = tx.v;
         tx.v = 0;
 
     } else {
         // Signed Transaction
 
-        tx.chainId = Math.floor((tx.v - 35) / 2);
-        if (tx.chainId < 0) { tx.chainId = 0; }
+        tx.networkId = Math.floor((tx.v - 35) / 2);
+        if (tx.networkId < 0) { tx.networkId = 0; }
 
         let recoveryParam = tx.v - 27;
 
         const raw = transaction.slice(0, 6);
 
-        if (tx.chainId !== 0) {
-            raw.push(hexlify(tx.chainId));
+        if (tx.networkId !== 0) {
+            raw.push(hexlify(tx.networkId));
             raw.push("0x");
             raw.push("0x");
-            recoveryParam -= tx.chainId * 2 + 8;
+            recoveryParam -= tx.networkId * 2 + 8;
         }
 
         const digest = keccak256(RLP.encode(raw));

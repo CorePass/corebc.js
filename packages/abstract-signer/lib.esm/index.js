@@ -13,7 +13,7 @@ import { Logger } from "@ethersproject/logger";
 import { version } from "./_version";
 const logger = new Logger(version);
 const allowedTransactionKeys = [
-    "accessList", "chainId", "customData", "data", "from", "gasLimit", "gasPrice", "maxFeePerGas", "maxPriorityFeePerGas", "nonce", "to", "type", "value"
+    "accessList", "networkId", "customData", "data", "from", "gasLimit", "gasPrice", "maxFeePerGas", "maxPriorityFeePerGas", "nonce", "to", "type", "value"
 ];
 const forwardErrors = [
     Logger.errors.INSUFFICIENT_FUNDS,
@@ -68,11 +68,11 @@ export class Signer {
             return yield this.provider.sendTransaction(signedTx);
         });
     }
-    getChainId() {
+    getNetworkId() {
         return __awaiter(this, void 0, void 0, function* () {
-            this._checkProvider("getChainId");
+            this._checkProvider("getNetworkId");
             const network = yield this.provider.getNetwork();
-            return network.chainId;
+            return network.networkId;
         });
     }
     getGasPrice() {
@@ -243,16 +243,16 @@ export class Signer {
                     });
                 });
             }
-            if (tx.chainId == null) {
-                tx.chainId = this.getChainId();
+            if (tx.networkId == null) {
+                tx.networkId = this.getNetworkId();
             }
             else {
-                tx.chainId = Promise.all([
-                    Promise.resolve(tx.chainId),
-                    this.getChainId()
+                tx.networkId = Promise.all([
+                    Promise.resolve(tx.networkId),
+                    this.getNetworkId()
                 ]).then((results) => {
                     if (results[1] !== 0 && results[0] !== results[1]) {
-                        logger.throwArgumentError("chainId address mismatch", "transaction", transaction);
+                        logger.throwArgumentError("networkId address mismatch", "transaction", transaction);
                     }
                     return results[0];
                 });

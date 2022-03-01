@@ -8874,12 +8874,12 @@
 	var domainFieldTypes = {
 	    name: "string",
 	    version: "string",
-	    chainId: "uint256",
+	    networkId: "uint256",
 	    verifyingContract: "address",
 	    salt: "bytes32"
 	};
 	var domainFieldNames = [
-	    "name", "version", "chainId", "verifyingContract", "salt"
+	    "name", "version", "networkId", "verifyingContract", "salt"
 	];
 	function checkString(key) {
 	    return function (value) {
@@ -8892,12 +8892,12 @@
 	var domainChecks = {
 	    name: checkString("name"),
 	    version: checkString("version"),
-	    chainId: function (value) {
+	    networkId: function (value) {
 	        try {
 	            return lib$2.BigNumber.from(value).toString();
 	        }
 	        catch (error) { }
-	        return logger.throwArgumentError("invalid domain value for \"chainId\"", "domain.chainId", value);
+	        return logger.throwArgumentError("invalid domain value for \"networkId\"", "domain.networkId", value);
 	    },
 	    verifyingContract: function (value) {
 	        try {
@@ -9673,7 +9673,7 @@
 	            this._encodeParams(functionFragment.inputs, values || [])
 	        ]));
 	    };
-	    // Decode the result from a function call (e.g. from eth_call)
+	    // Decode the result from a function call (e.g. from xcb_call)
 	    Interface.prototype.decodeFunctionResult = function (functionFragment, data) {
 	        if (typeof (functionFragment) === "string") {
 	            functionFragment = this.getFunction(functionFragment);
@@ -9723,14 +9723,14 @@
 	            reason: reason
 	        });
 	    };
-	    // Encode the result for a function call (e.g. for eth_call)
+	    // Encode the result for a function call (e.g. for xcb_call)
 	    Interface.prototype.encodeFunctionResult = function (functionFragment, values) {
 	        if (typeof (functionFragment) === "string") {
 	            functionFragment = this.getFunction(functionFragment);
 	        }
 	        return (0, lib$1.hexlify)(this._abiCoder.encode(functionFragment.outputs, values || []));
 	    };
-	    // Create the filter for the event with search criteria (e.g. for eth_filterLog)
+	    // Create the filter for the event with search criteria (e.g. for xcb_filterLog)
 	    Interface.prototype.encodeFilterTopics = function (eventFragment, values) {
 	        var _this = this;
 	        if (typeof (eventFragment) === "string") {
@@ -10285,7 +10285,7 @@
 
 	var logger = new lib.Logger(_version$k.version);
 	var allowedTransactionKeys = [
-	    "accessList", "chainId", "customData", "data", "from", "gasLimit", "gasPrice", "maxFeePerGas", "maxPriorityFeePerGas", "nonce", "to", "type", "value"
+	    "accessList", "networkId", "customData", "data", "from", "gasLimit", "gasPrice", "maxFeePerGas", "maxPriorityFeePerGas", "nonce", "to", "type", "value"
 	];
 	var forwardErrors = [
 	    lib.Logger.errors.INSUFFICIENT_FUNDS,
@@ -10382,17 +10382,17 @@
 	            });
 	        });
 	    };
-	    Signer.prototype.getChainId = function () {
+	    Signer.prototype.getNetworkId = function () {
 	        return __awaiter(this, void 0, void 0, function () {
 	            var network;
 	            return __generator(this, function (_a) {
 	                switch (_a.label) {
 	                    case 0:
-	                        this._checkProvider("getChainId");
+	                        this._checkProvider("getNetworkId");
 	                        return [4 /*yield*/, this.provider.getNetwork()];
 	                    case 1:
 	                        network = _a.sent();
-	                        return [2 /*return*/, network.chainId];
+	                        return [2 /*return*/, network.networkId];
 	                }
 	            });
 	        });
@@ -10596,16 +10596,16 @@
 	                                });
 	                            });
 	                        }
-	                        if (tx.chainId == null) {
-	                            tx.chainId = this.getChainId();
+	                        if (tx.networkId == null) {
+	                            tx.networkId = this.getNetworkId();
 	                        }
 	                        else {
-	                            tx.chainId = Promise.all([
-	                                Promise.resolve(tx.chainId),
-	                                this.getChainId()
+	                            tx.networkId = Promise.all([
+	                                Promise.resolve(tx.networkId),
+	                                this.getNetworkId()
 	                            ]).then(function (results) {
 	                                if (results[1] !== 0 && results[0] !== results[1]) {
-	                                    logger.throwArgumentError("chainId address mismatch", "transaction", transaction);
+	                                    logger.throwArgumentError("networkId address mismatch", "transaction", transaction);
 	                                }
 	                                return results[0];
 	                            });
@@ -14564,7 +14564,7 @@
 	    { name: "data" },
 	];
 	var allowedTransactionKeys = {
-	    chainId: true, data: true, gasLimit: true, gasPrice: true, nonce: true, to: true, type: true, value: true
+	    networkId: true, data: true, gasLimit: true, gasPrice: true, nonce: true, to: true, type: true, value: true
 	};
 	function computeAddress(key) {
 	    var publicKey = (0, lib$d.computePublicKey)(key);
@@ -14634,7 +14634,7 @@
 	        }
 	    }
 	    var fields = [
-	        formatNumber(transaction.chainId || 0, "chainId"),
+	        formatNumber(transaction.networkId || 0, "networkId"),
 	        formatNumber(transaction.nonce || 0, "nonce"),
 	        formatNumber(transaction.maxPriorityFeePerGas || 0, "maxPriorityFeePerGas"),
 	        formatNumber(transaction.maxFeePerGas || 0, "maxFeePerGas"),
@@ -14654,7 +14654,7 @@
 	}
 	function _serializeEip2930(transaction, signature) {
 	    var fields = [
-	        formatNumber(transaction.chainId || 0, "chainId"),
+	        formatNumber(transaction.networkId || 0, "networkId"),
 	        formatNumber(transaction.nonce || 0, "nonce"),
 	        formatNumber(transaction.gasPrice || 0, "gasPrice"),
 	        formatNumber(transaction.gasLimit || 0, "gasLimit"),
@@ -14695,21 +14695,21 @@
 	        }
 	        raw.push((0, lib$1.hexlify)(value));
 	    });
-	    var chainId = 0;
-	    if (transaction.chainId != null) {
-	        // A chainId was provided; if non-zero we'll use EIP-155
-	        chainId = transaction.chainId;
-	        if (typeof (chainId) !== "number") {
-	            logger.throwArgumentError("invalid transaction.chainId", "transaction", transaction);
+	    var networkId = 0;
+	    if (transaction.networkId != null) {
+	        // A networkId was provided; if non-zero we'll use EIP-155
+	        networkId = transaction.networkId;
+	        if (typeof (networkId) !== "number") {
+	            logger.throwArgumentError("invalid transaction.networkId", "transaction", transaction);
 	        }
 	    }
 	    else if (signature && !(0, lib$1.isBytesLike)(signature) && signature.v > 28) {
-	        // No chainId provided, but the signature is signing with EIP-155; derive chainId
-	        chainId = Math.floor((signature.v - 35) / 2);
+	        // No networkId provided, but the signature is signing with EIP-155; derive networkId
+	        networkId = Math.floor((signature.v - 35) / 2);
 	    }
-	    // We have an EIP-155 transaction (chainId was specified and non-zero)
-	    if (chainId !== 0) {
-	        raw.push((0, lib$1.hexlify)(chainId)); // @TODO: hexValue?
+	    // We have an EIP-155 transaction (networkId was specified and non-zero)
+	    if (networkId !== 0) {
+	        raw.push((0, lib$1.hexlify)(networkId)); // @TODO: hexValue?
 	        raw.push("0x");
 	        raw.push("0x");
 	    }
@@ -14720,20 +14720,20 @@
 	    // The splitSignature will ensure the transaction has a recoveryParam in the
 	    // case that the signTransaction function only adds a v.
 	    var sig = (0, lib$1.splitSignature)(signature);
-	    // We pushed a chainId and null r, s on for hashing only; remove those
+	    // We pushed a networkId and null r, s on for hashing only; remove those
 	    var v = 27 + sig.recoveryParam;
-	    if (chainId !== 0) {
+	    if (networkId !== 0) {
 	        raw.pop();
 	        raw.pop();
 	        raw.pop();
-	        v += chainId * 2 + 8;
+	        v += networkId * 2 + 8;
 	        // If an EIP-155 v (directly or indirectly; maybe _vs) was provided, check it!
 	        if (sig.v > 28 && sig.v !== v) {
-	            logger.throwArgumentError("transaction.chainId/signature.v mismatch", "signature", signature);
+	            logger.throwArgumentError("transaction.networkId/signature.v mismatch", "signature", signature);
 	        }
 	    }
 	    else if (sig.v !== v) {
-	        logger.throwArgumentError("transaction.chainId/signature.v mismatch", "signature", signature);
+	        logger.throwArgumentError("transaction.networkId/signature.v mismatch", "signature", signature);
 	    }
 	    raw.push((0, lib$1.hexlify)(v));
 	    raw.push((0, lib$1.stripZeros)((0, lib$1.arrayify)(sig.r)));
@@ -14793,7 +14793,7 @@
 	    var maxFeePerGas = handleNumber(transaction[3]);
 	    var tx = {
 	        type: 2,
-	        chainId: handleNumber(transaction[0]).toNumber(),
+	        networkId: handleNumber(transaction[0]).toNumber(),
 	        nonce: handleNumber(transaction[1]).toNumber(),
 	        maxPriorityFeePerGas: maxPriorityFeePerGas,
 	        maxFeePerGas: maxFeePerGas,
@@ -14819,7 +14819,7 @@
 	    }
 	    var tx = {
 	        type: 1,
-	        chainId: handleNumber(transaction[0]).toNumber(),
+	        networkId: handleNumber(transaction[0]).toNumber(),
 	        nonce: handleNumber(transaction[1]).toNumber(),
 	        gasPrice: handleNumber(transaction[2]),
 	        gasLimit: handleNumber(transaction[3]),
@@ -14849,7 +14849,7 @@
 	        to: handleAddress(transaction[3]),
 	        value: handleNumber(transaction[4]),
 	        data: transaction[5],
-	        chainId: 0
+	        networkId: 0
 	    };
 	    // Legacy unsigned transaction
 	    if (transaction.length === 6) {
@@ -14866,22 +14866,22 @@
 	    tx.s = (0, lib$1.hexZeroPad)(transaction[8], 32);
 	    if (lib$2.BigNumber.from(tx.r).isZero() && lib$2.BigNumber.from(tx.s).isZero()) {
 	        // EIP-155 unsigned transaction
-	        tx.chainId = tx.v;
+	        tx.networkId = tx.v;
 	        tx.v = 0;
 	    }
 	    else {
 	        // Signed Transaction
-	        tx.chainId = Math.floor((tx.v - 35) / 2);
-	        if (tx.chainId < 0) {
-	            tx.chainId = 0;
+	        tx.networkId = Math.floor((tx.v - 35) / 2);
+	        if (tx.networkId < 0) {
+	            tx.networkId = 0;
 	        }
 	        var recoveryParam = tx.v - 27;
 	        var raw = transaction.slice(0, 6);
-	        if (tx.chainId !== 0) {
-	            raw.push((0, lib$1.hexlify)(tx.chainId));
+	        if (tx.networkId !== 0) {
+	            raw.push((0, lib$1.hexlify)(tx.networkId));
 	            raw.push("0x");
 	            raw.push("0x");
-	            recoveryParam -= tx.chainId * 2 + 8;
+	            recoveryParam -= tx.networkId * 2 + 8;
 	        }
 	        var digest = (0, lib$4.keccak256)(RLP.encode(raw));
 	        try {
@@ -15010,7 +15010,7 @@
 	;
 	///////////////////////////////
 	var allowedTransactionKeys = {
-	    chainId: true, data: true, from: true, gasLimit: true, gasPrice: true, nonce: true, to: true, value: true,
+	    networkId: true, data: true, from: true, gasLimit: true, gasPrice: true, nonce: true, to: true, value: true,
 	    type: true, accessList: true,
 	    maxFeePerGas: true, maxPriorityFeePerGas: true,
 	    customData: true
@@ -19331,72 +19331,72 @@
 	    return func;
 	}
 	var homestead = {
-	    chainId: 1,
+	    networkId: 1,
 	    ensAddress: "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e",
 	    name: "homestead",
 	    _defaultProvider: ethDefaultProvider("homestead")
 	};
 	var ropsten = {
-	    chainId: 3,
+	    networkId: 3,
 	    ensAddress: "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e",
 	    name: "ropsten",
 	    _defaultProvider: ethDefaultProvider("ropsten")
 	};
 	var classicMordor = {
-	    chainId: 63,
+	    networkId: 63,
 	    name: "classicMordor",
 	    _defaultProvider: etcDefaultProvider("https://www.ethercluster.com/mordor", "classicMordor")
 	};
 	// See: https://chainlist.org
 	var networks = {
-	    unspecified: { chainId: 0, name: "unspecified" },
+	    unspecified: { networkId: 0, name: "unspecified" },
 	    homestead: homestead,
 	    mainnet: homestead,
-	    morden: { chainId: 2, name: "morden" },
+	    morden: { networkId: 2, name: "morden" },
 	    ropsten: ropsten,
 	    testnet: ropsten,
 	    rinkeby: {
-	        chainId: 4,
+	        networkId: 4,
 	        ensAddress: "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e",
 	        name: "rinkeby",
 	        _defaultProvider: ethDefaultProvider("rinkeby")
 	    },
 	    kovan: {
-	        chainId: 42,
+	        networkId: 42,
 	        name: "kovan",
 	        _defaultProvider: ethDefaultProvider("kovan")
 	    },
 	    goerli: {
-	        chainId: 5,
+	        networkId: 5,
 	        ensAddress: "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e",
 	        name: "goerli",
 	        _defaultProvider: ethDefaultProvider("goerli")
 	    },
-	    kintsugi: { chainId: 1337702, name: "kintsugi" },
+	    kintsugi: { networkId: 1337702, name: "kintsugi" },
 	    // ETC (See: #351)
 	    classic: {
-	        chainId: 61,
+	        networkId: 61,
 	        name: "classic",
 	        _defaultProvider: etcDefaultProvider("https:/\/www.ethercluster.com/etc", "classic")
 	    },
-	    classicMorden: { chainId: 62, name: "classicMorden" },
+	    classicMorden: { networkId: 62, name: "classicMorden" },
 	    classicMordor: classicMordor,
 	    classicTestnet: classicMordor,
 	    classicKotti: {
-	        chainId: 6,
+	        networkId: 6,
 	        name: "classicKotti",
 	        _defaultProvider: etcDefaultProvider("https:/\/www.ethercluster.com/kotti", "classicKotti")
 	    },
-	    xdai: { chainId: 100, name: "xdai" },
-	    matic: { chainId: 137, name: "matic" },
-	    maticmum: { chainId: 80001, name: "maticmum" },
-	    optimism: { chainId: 10, name: "optimism" },
-	    "optimism-kovan": { chainId: 69, name: "optimism-kovan" },
-	    "optimism-goerli": { chainId: 420, name: "optimism-goerli" },
-	    arbitrum: { chainId: 42161, name: "arbitrum" },
-	    "arbitrum-rinkeby": { chainId: 421611, name: "arbitrum-rinkeby" },
-	    bnb: { chainId: 56, name: "bnb" },
-	    bnbt: { chainId: 97, name: "bnbt" },
+	    xdai: { networkId: 100, name: "xdai" },
+	    matic: { networkId: 137, name: "matic" },
+	    maticmum: { networkId: 80001, name: "maticmum" },
+	    optimism: { networkId: 10, name: "optimism" },
+	    "optimism-kovan": { networkId: 69, name: "optimism-kovan" },
+	    "optimism-goerli": { networkId: 420, name: "optimism-goerli" },
+	    arbitrum: { networkId: 42161, name: "arbitrum" },
+	    "arbitrum-rinkeby": { networkId: 421611, name: "arbitrum-rinkeby" },
+	    bnb: { networkId: 56, name: "bnb" },
+	    bnbt: { networkId: 97, name: "bnbt" },
 	};
 	/**
 	 *  getNetwork
@@ -19412,17 +19412,17 @@
 	    if (typeof (network) === "number") {
 	        for (var name_1 in networks) {
 	            var standard_1 = networks[name_1];
-	            if (standard_1.chainId === network) {
+	            if (standard_1.networkId === network) {
 	                return {
 	                    name: standard_1.name,
-	                    chainId: standard_1.chainId,
+	                    networkId: standard_1.networkId,
 	                    ensAddress: (standard_1.ensAddress || null),
 	                    _defaultProvider: (standard_1._defaultProvider || null)
 	                };
 	            }
 	        }
 	        return {
-	            chainId: network,
+	            networkId: network,
 	            name: "unknown"
 	        };
 	    }
@@ -19433,7 +19433,7 @@
 	        }
 	        return {
 	            name: standard_2.name,
-	            chainId: standard_2.chainId,
+	            networkId: standard_2.networkId,
 	            ensAddress: standard_2.ensAddress,
 	            _defaultProvider: (standard_2._defaultProvider || null)
 	        };
@@ -19441,14 +19441,14 @@
 	    var standard = networks[network.name];
 	    // Not a standard network; check that it is a valid network in general
 	    if (!standard) {
-	        if (typeof (network.chainId) !== "number") {
-	            logger.throwArgumentError("invalid network chainId", "network", network);
+	        if (typeof (network.networkId) !== "number") {
+	            logger.throwArgumentError("invalid network networkId", "network", network);
 	        }
 	        return network;
 	    }
-	    // Make sure the chainId matches the expected network chainId (or is 0; disable EIP-155)
-	    if (network.chainId !== 0 && network.chainId !== standard.chainId) {
-	        logger.throwArgumentError("network chainId mismatch", "network", network);
+	    // Make sure the networkId matches the expected network networkId (or is 0; disable EIP-155)
+	    if (network.networkId !== 0 && network.networkId !== standard.networkId) {
+	        logger.throwArgumentError("network networkId mismatch", "network", network);
 	    }
 	    // @TODO: In the next major version add an attach function to a defaultProvider
 	    // class and move the _defaultProvider internal to this file (extend Network)
@@ -19464,7 +19464,7 @@
 	    // Standard Network (allow overriding the ENS address)
 	    return {
 	        name: network.name,
-	        chainId: standard.chainId,
+	        networkId: standard.networkId,
 	        ensAddress: (network.ensAddress || standard.ensAddress || null),
 	        _defaultProvider: defaultProvider
 	    };
@@ -20558,33 +20558,33 @@
 	            transaction.accessList = [];
 	        }
 	        var result = Formatter.check(this.formats.transaction, transaction);
-	        if (transaction.chainId != null) {
-	            var chainId = transaction.chainId;
-	            if ((0, lib$1.isHexString)(chainId)) {
-	                chainId = lib$2.BigNumber.from(chainId).toNumber();
+	        if (transaction.networkId != null) {
+	            var networkId = transaction.networkId;
+	            if ((0, lib$1.isHexString)(networkId)) {
+	                networkId = lib$2.BigNumber.from(networkId).toNumber();
 	            }
-	            result.chainId = chainId;
+	            result.networkId = networkId;
 	        }
 	        else {
-	            var chainId = transaction.networkId;
-	            // geth-etc returns chainId
-	            if (chainId == null && result.v == null) {
-	                chainId = transaction.chainId;
+	            var networkId = transaction.networkId;
+	            // geth-etc returns networkId
+	            if (networkId == null && result.v == null) {
+	                networkId = transaction.networkId;
 	            }
-	            if ((0, lib$1.isHexString)(chainId)) {
-	                chainId = lib$2.BigNumber.from(chainId).toNumber();
+	            if ((0, lib$1.isHexString)(networkId)) {
+	                networkId = lib$2.BigNumber.from(networkId).toNumber();
 	            }
-	            if (typeof (chainId) !== "number" && result.v != null) {
-	                chainId = (result.v - 35) / 2;
-	                if (chainId < 0) {
-	                    chainId = 0;
+	            if (typeof (networkId) !== "number" && result.v != null) {
+	                networkId = (result.v - 35) / 2;
+	                if (networkId < 0) {
+	                    networkId = 0;
 	                }
-	                chainId = parseInt(chainId);
+	                networkId = parseInt(networkId);
 	            }
-	            if (typeof (chainId) !== "number") {
-	                chainId = 0;
+	            if (typeof (networkId) !== "number") {
+	                networkId = 0;
 	            }
-	            result.chainId = chainId;
+	            result.networkId = networkId;
 	        }
 	        // 0x0000... should actually be null
 	        if (result.blockHash && result.blockHash.replace(/0/g, "") === "x") {
@@ -21366,8 +21366,8 @@
 	     *
 	     *  A Promise<Network> that resolves only once the provider is ready.
 	     *
-	     *  Sub-classes that call the super with a network without a chainId
-	     *  MUST set this. Standard named networks have a known chainId.
+	     *  Sub-classes that call the super with a network without a networkId
+	     *  MUST set this. Standard named networks have a known networkId.
 	     *
 	     */
 	    function BaseProvider(network) {
@@ -21720,7 +21720,7 @@
 	                        return [4 /*yield*/, this.detectNetwork()];
 	                    case 2:
 	                        currentNetwork = _a.sent();
-	                        if (!(network.chainId !== currentNetwork.chainId)) return [3 /*break*/, 5];
+	                        if (!(network.networkId !== currentNetwork.networkId)) return [3 /*break*/, 5];
 	                        if (!this.anyNetwork) return [3 /*break*/, 4];
 	                        this._network = currentNetwork;
 	                        // Reset all internal block number guards and caches
@@ -23203,7 +23203,7 @@
 	        if (this._address) {
 	            return Promise.resolve(this._address);
 	        }
-	        return this.provider.send("eth_accounts", []).then(function (accounts) {
+	        return this.provider.send("xcb_accounts", []).then(function (accounts) {
 	            if (accounts.length <= _this._index) {
 	                logger.throwError("unknown account #" + _this._index, lib.Logger.errors.UNSUPPORTED_OPERATION, {
 	                    operation: "getAddress"
@@ -23221,7 +23221,7 @@
 	            }
 	            return address;
 	        });
-	        // The JSON-RPC for eth_sendTransaction uses 90000 gas; if the user
+	        // The JSON-RPC for xcb_sendTransaction uses 90000 gas; if the user
 	        // wishes to use this, it is easy to specify explicitly, otherwise
 	        // we look it up for them.
 	        if (transaction.gasLimit == null) {
@@ -23263,7 +23263,7 @@
 	                tx.from = sender;
 	            }
 	            var hexTx = _this.provider.constructor.hexlifyTransaction(tx, { from: true });
-	            return _this.provider.send("eth_sendTransaction", [hexTx]).then(function (hash) {
+	            return _this.provider.send("xcb_sendTransaction", [hexTx]).then(function (hash) {
 	                return hash;
 	            }, function (error) {
 	                return checkError("sendTransaction", error, hexTx);
@@ -23344,10 +23344,8 @@
 	                        return [4 /*yield*/, this.getAddress()];
 	                    case 1:
 	                        address = _a.sent();
-	                        return [4 /*yield*/, this.provider.send("eth_sign", [address.toLowerCase(), (0, lib$1.hexlify)(data)])];
-	                    case 2: 
-	                    // https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_sign
-	                    return [2 /*return*/, _a.sent()];
+	                        return [4 /*yield*/, this.provider.send("xcb_sign", [address.toLowerCase(), (0, lib$1.hexlify)(data)])];
+	                    case 2: return [2 /*return*/, _a.sent()];
 	                }
 	            });
 	        });
@@ -23366,7 +23364,7 @@
 	                        return [4 /*yield*/, this.getAddress()];
 	                    case 2:
 	                        address = _a.sent();
-	                        return [4 /*yield*/, this.provider.send("eth_signTypedData_v4", [
+	                        return [4 /*yield*/, this.provider.send("xcb_signTypedData_v4", [
 	                                address.toLowerCase(),
 	                                JSON.stringify(lib$9._TypedDataEncoder.getPayload(populated.domain, types, populated.value))
 	                            ])];
@@ -23408,7 +23406,7 @@
 	                gasPrice: null,
 	                data: null,
 	                value: null,
-	                chainId: null,
+	                networkId: null,
 	                confirmations: 0,
 	                from: null,
 	                wait: function (confirmations) { return _this.provider.waitForTransaction(hash, confirmations); }
@@ -23418,7 +23416,7 @@
 	    return UncheckedJsonRpcSigner;
 	}(JsonRpcSigner));
 	var allowedTransactionKeys = {
-	    chainId: true, data: true, gasLimit: true, gasPrice: true, nonce: true, to: true, value: true,
+	    networkId: true, data: true, gasLimit: true, gasPrice: true, nonce: true, to: true, value: true,
 	    type: true, accessList: true,
 	    maxFeePerGas: true, maxPriorityFeePerGas: true
 	};
@@ -23483,19 +23481,19 @@
 	    };
 	    JsonRpcProvider.prototype._uncachedDetectNetwork = function () {
 	        return __awaiter(this, void 0, void 0, function () {
-	            var chainId, error_2, error_3, getNetwork;
+	            var networkId, error_2, error_3, getNetwork;
 	            return __generator(this, function (_a) {
 	                switch (_a.label) {
 	                    case 0: return [4 /*yield*/, timer(0)];
 	                    case 1:
 	                        _a.sent();
-	                        chainId = null;
+	                        networkId = null;
 	                        _a.label = 2;
 	                    case 2:
 	                        _a.trys.push([2, 4, , 9]);
-	                        return [4 /*yield*/, this.send("eth_chainId", [])];
+	                        return [4 /*yield*/, this.send("xcb_networkId", [])];
 	                    case 3:
-	                        chainId = _a.sent();
+	                        networkId = _a.sent();
 	                        return [3 /*break*/, 9];
 	                    case 4:
 	                        error_2 = _a.sent();
@@ -23504,21 +23502,21 @@
 	                        _a.trys.push([5, 7, , 8]);
 	                        return [4 /*yield*/, this.send("net_version", [])];
 	                    case 6:
-	                        chainId = _a.sent();
+	                        networkId = _a.sent();
 	                        return [3 /*break*/, 8];
 	                    case 7:
 	                        error_3 = _a.sent();
 	                        return [3 /*break*/, 8];
 	                    case 8: return [3 /*break*/, 9];
 	                    case 9:
-	                        if (chainId != null) {
+	                        if (networkId != null) {
 	                            getNetwork = (0, lib$3.getStatic)(this.constructor, "getNetwork");
 	                            try {
-	                                return [2 /*return*/, getNetwork(lib$2.BigNumber.from(chainId).toNumber())];
+	                                return [2 /*return*/, getNetwork(lib$2.BigNumber.from(networkId).toNumber())];
 	                            }
 	                            catch (error) {
 	                                return [2 /*return*/, logger.throwError("could not detect network", lib.Logger.errors.NETWORK_ERROR, {
-	                                        chainId: chainId,
+	                                        networkId: networkId,
 	                                        event: "invalidNetwork",
 	                                        serverError: error
 	                                    })];
@@ -23539,7 +23537,7 @@
 	    };
 	    JsonRpcProvider.prototype.listAccounts = function () {
 	        var _this = this;
-	        return this.send("eth_accounts", []).then(function (accounts) {
+	        return this.send("xcb_accounts", []).then(function (accounts) {
 	            return accounts.map(function (a) { return _this.formatter.address(a); });
 	        });
 	    };
@@ -23558,7 +23556,7 @@
 	        });
 	        // We can expand this in the future to any call, but for now these
 	        // are the biggest wins and do not require any serializing parameters.
-	        var cache = (["eth_chainId", "eth_blockNumber"].indexOf(method) >= 0);
+	        var cache = (["xcb_networkId", "xcb_blockNumber"].indexOf(method) >= 0);
 	        if (cache && this._cache[method]) {
 	            return this._cache[method];
 	        }
@@ -23591,44 +23589,44 @@
 	    JsonRpcProvider.prototype.prepareRequest = function (method, params) {
 	        switch (method) {
 	            case "getBlockNumber":
-	                return ["eth_blockNumber", []];
+	                return ["xcb_blockNumber", []];
 	            case "getGasPrice":
-	                return ["eth_gasPrice", []];
+	                return ["xcb_gasPrice", []];
 	            case "getBalance":
-	                return ["eth_getBalance", [getLowerCase(params.address), params.blockTag]];
+	                return ["xcb_getBalance", [getLowerCase(params.address), params.blockTag]];
 	            case "getTransactionCount":
-	                return ["eth_getTransactionCount", [getLowerCase(params.address), params.blockTag]];
+	                return ["xcb_getTransactionCount", [getLowerCase(params.address), params.blockTag]];
 	            case "getCode":
-	                return ["eth_getCode", [getLowerCase(params.address), params.blockTag]];
+	                return ["xcb_getCode", [getLowerCase(params.address), params.blockTag]];
 	            case "getStorageAt":
-	                return ["eth_getStorageAt", [getLowerCase(params.address), params.position, params.blockTag]];
+	                return ["xcb_getStorageAt", [getLowerCase(params.address), params.position, params.blockTag]];
 	            case "sendTransaction":
-	                return ["eth_sendRawTransaction", [params.signedTransaction]];
+	                return ["xcb_sendRawTransaction", [params.signedTransaction]];
 	            case "getBlock":
 	                if (params.blockTag) {
-	                    return ["eth_getBlockByNumber", [params.blockTag, !!params.includeTransactions]];
+	                    return ["xcb_getBlockByNumber", [params.blockTag, !!params.includeTransactions]];
 	                }
 	                else if (params.blockHash) {
-	                    return ["eth_getBlockByHash", [params.blockHash, !!params.includeTransactions]];
+	                    return ["xcb_getBlockByHash", [params.blockHash, !!params.includeTransactions]];
 	                }
 	                return null;
 	            case "getTransaction":
-	                return ["eth_getTransactionByHash", [params.transactionHash]];
+	                return ["xcb_getTransactionByHash", [params.transactionHash]];
 	            case "getTransactionReceipt":
-	                return ["eth_getTransactionReceipt", [params.transactionHash]];
+	                return ["xcb_getTransactionReceipt", [params.transactionHash]];
 	            case "call": {
 	                var hexlifyTransaction = (0, lib$3.getStatic)(this.constructor, "hexlifyTransaction");
-	                return ["eth_call", [hexlifyTransaction(params.transaction, { from: true }), params.blockTag]];
+	                return ["xcb_call", [hexlifyTransaction(params.transaction, { from: true }), params.blockTag]];
 	            }
 	            case "estimateGas": {
 	                var hexlifyTransaction = (0, lib$3.getStatic)(this.constructor, "hexlifyTransaction");
-	                return ["eth_estimateGas", [hexlifyTransaction(params.transaction, { from: true })]];
+	                return ["xcb_estimateGas", [hexlifyTransaction(params.transaction, { from: true })]];
 	            }
 	            case "getLogs":
 	                if (params.filter && params.filter.address != null) {
 	                    params.filter.address = getLowerCase(params.filter.address);
 	                }
-	                return ["eth_getLogs", [params.filter]];
+	                return ["xcb_getLogs", [params.filter]];
 	            default:
 	                break;
 	        }
@@ -23683,11 +23681,11 @@
 	            return;
 	        }
 	        var self = this;
-	        var pendingFilter = this.send("eth_newPendingTransactionFilter", []);
+	        var pendingFilter = this.send("xcb_newPendingTransactionFilter", []);
 	        this._pendingFilter = pendingFilter;
 	        pendingFilter.then(function (filterId) {
 	            function poll() {
-	                self.send("eth_getFilterChanges", [filterId]).then(function (hashes) {
+	                self.send("xcb_getFilterChanges", [filterId]).then(function (hashes) {
 	                    if (self._pendingFilter != pendingFilter) {
 	                        return null;
 	                    }
@@ -23707,7 +23705,7 @@
 	                    });
 	                }).then(function () {
 	                    if (self._pendingFilter != pendingFilter) {
-	                        self.send("eth_uninstallFilter", [filterId]);
+	                        self.send("xcb_uninstallFilter", [filterId]);
 	                        return;
 	                    }
 	                    setTimeout(function () { poll(); }, 0);
@@ -23941,7 +23939,7 @@
 	                    });
 	                }
 	            }
-	            else if (result.method === "eth_subscription") {
+	            else if (result.method === "xcb_subscription") {
 	                // Subscription...
 	                var sub = _this._subs[result.params.subscription];
 	                if (sub) {
@@ -24043,7 +24041,7 @@
 	                        subIdPromise = this._subIds[tag];
 	                        if (subIdPromise == null) {
 	                            subIdPromise = Promise.all(param).then(function (param) {
-	                                return _this.send("eth_subscribe", param);
+	                                return _this.send("xcb_subscribe", param);
 	                            });
 	                            this._subIds[tag] = subIdPromise;
 	                        }
@@ -24136,7 +24134,7 @@
 	                return;
 	            }
 	            delete _this._subs[subId];
-	            _this.send("eth_unsubscribe", [subId]);
+	            _this.send("xcb_unsubscribe", [subId]);
 	        });
 	    };
 	    WebSocketProvider.prototype.destroy = function () {
@@ -24235,7 +24233,7 @@
 	var logger = new lib.Logger(_version$I.version);
 
 	// A StaticJsonRpcProvider is useful when you *know* for certain that
-	// the backend will never change, as it never calls eth_chainId to
+	// the backend will never change, as it never calls xcb_networkId to
 	// verify its backend. However, if the backend does change, the effects
 	// are undefined and may include:
 	// - inconsistent results
@@ -25171,7 +25169,7 @@
 	        }
 	        if (result) {
 	            // Make sure the network matches the previous networks
-	            if (!(result.name === network.name && result.chainId === network.chainId &&
+	            if (!(result.name === network.name && result.networkId === network.networkId &&
 	                ((result.ensAddress === network.ensAddress) || (result.ensAddress == null && network.ensAddress == null)))) {
 	                logger.throwArgumentError("provider mismatch", "networks", networks);
 	            }

@@ -149,7 +149,7 @@ class SandboxPlugin extends Plugin {
 
     run(): Promise<void> {
         console.log(`version: ${ ethers.version }`);
-        console.log(`network: ${ this.network.name } (chainId: ${ this.network.chainId })`);
+        console.log(`network: ${ this.network.name } (netowrkId: ${ this.network.networkId })`);
 
         const filename = resolve(process.cwd(), "./sandbox.js");
         const prompt = (this.provider ? this.network.name: "no-network") + "> ";

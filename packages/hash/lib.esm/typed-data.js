@@ -35,12 +35,12 @@ const hexFalse = hexZeroPad(Zero.toHexString(), 32);
 const domainFieldTypes = {
     name: "string",
     version: "string",
-    chainId: "uint256",
+    networkId: "uint256",
     verifyingContract: "address",
     salt: "bytes32"
 };
 const domainFieldNames = [
-    "name", "version", "chainId", "verifyingContract", "salt"
+    "name", "version", "networkId", "verifyingContract", "salt"
 ];
 function checkString(key) {
     return function (value) {
@@ -53,12 +53,12 @@ function checkString(key) {
 const domainChecks = {
     name: checkString("name"),
     version: checkString("version"),
-    chainId: function (value) {
+    networkId: function (value) {
         try {
             return BigNumber.from(value).toString();
         }
         catch (error) { }
-        return logger.throwArgumentError(`invalid domain value for "chainId"`, "domain.chainId", value);
+        return logger.throwArgumentError(`invalid domain value for "networkId"`, "domain.networkId", value);
     },
     verifyingContract: function (value) {
         try {

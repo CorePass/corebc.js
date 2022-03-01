@@ -12,7 +12,7 @@ export declare type TransactionRequest = {
     gasPrice?: BigNumberish;
     data?: BytesLike;
     value?: BigNumberish;
-    chainId?: number;
+    networkId?: number;
     type?: number;
     accessList?: AccessListish;
     maxPriorityFeePerGas?: BigNumberish;

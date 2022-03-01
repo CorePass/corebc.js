@@ -8000,12 +8000,12 @@ const hexFalse = hexZeroPad(Zero$2.toHexString(), 32);
 const domainFieldTypes = {
     name: "string",
     version: "string",
-    chainId: "uint256",
+    networkId: "uint256",
     verifyingContract: "address",
     salt: "bytes32"
 };
 const domainFieldNames = [
-    "name", "version", "chainId", "verifyingContract", "salt"
+    "name", "version", "networkId", "verifyingContract", "salt"
 ];
 function checkString(key) {
     return function (value) {
@@ -8018,12 +8018,12 @@ function checkString(key) {
 const domainChecks = {
     name: checkString("name"),
     version: checkString("version"),
-    chainId: function (value) {
+    networkId: function (value) {
         try {
             return BigNumber.from(value).toString();
         }
         catch (error) { }
-        return logger$c.throwArgumentError(`invalid domain value for "chainId"`, "domain.chainId", value);
+        return logger$c.throwArgumentError(`invalid domain value for "networkId"`, "domain.networkId", value);
     },
     verifyingContract: function (value) {
         try {
@@ -8692,7 +8692,7 @@ class Interface {
             this._encodeParams(functionFragment.inputs, values || [])
         ]));
     }
-    // Decode the result from a function call (e.g. from eth_call)
+    // Decode the result from a function call (e.g. from xcb_call)
     decodeFunctionResult(functionFragment, data) {
         if (typeof (functionFragment) === "string") {
             functionFragment = this.getFunction(functionFragment);
@@ -8739,14 +8739,14 @@ class Interface {
             errorArgs, errorName, errorSignature, reason
         });
     }
-    // Encode the result for a function call (e.g. for eth_call)
+    // Encode the result for a function call (e.g. for xcb_call)
     encodeFunctionResult(functionFragment, values) {
         if (typeof (functionFragment) === "string") {
             functionFragment = this.getFunction(functionFragment);
         }
         return hexlify(this._abiCoder.encode(functionFragment.outputs, values || []));
     }
-    // Create the filter for the event with search criteria (e.g. for eth_filterLog)
+    // Create the filter for the event with search criteria (e.g. for xcb_filterLog)
     encodeFilterTopics(eventFragment, values) {
         if (typeof (eventFragment) === "string") {
             eventFragment = this.getEvent(eventFragment);
@@ -9117,7 +9117,7 @@ var __awaiter$3 = (window && window.__awaiter) || function (thisArg, _arguments,
 };
 const logger$f = new Logger(version$a);
 const allowedTransactionKeys = [
-    "accessList", "chainId", "customData", "data", "from", "gasLimit", "gasPrice", "maxFeePerGas", "maxPriorityFeePerGas", "nonce", "to", "type", "value"
+    "accessList", "networkId", "customData", "data", "from", "gasLimit", "gasPrice", "maxFeePerGas", "maxPriorityFeePerGas", "nonce", "to", "type", "value"
 ];
 const forwardErrors = [
     Logger.errors.INSUFFICIENT_FUNDS,
@@ -9172,11 +9172,11 @@ class Signer {
             return yield this.provider.sendTransaction(signedTx);
         });
     }
-    getChainId() {
+    getNetworkId() {
         return __awaiter$3(this, void 0, void 0, function* () {
-            this._checkProvider("getChainId");
+            this._checkProvider("getNetworkId");
             const network = yield this.provider.getNetwork();
-            return network.chainId;
+            return network.networkId;
         });
     }
     getGasPrice() {
@@ -9347,16 +9347,16 @@ class Signer {
                     });
                 });
             }
-            if (tx.chainId == null) {
-                tx.chainId = this.getChainId();
+            if (tx.networkId == null) {
+                tx.networkId = this.getNetworkId();
             }
             else {
-                tx.chainId = Promise.all([
-                    Promise.resolve(tx.chainId),
-                    this.getChainId()
+                tx.networkId = Promise.all([
+                    Promise.resolve(tx.networkId),
+                    this.getNetworkId()
                 ]).then((results) => {
                     if (results[1] !== 0 && results[0] !== results[1]) {
-                        logger$f.throwArgumentError("chainId address mismatch", "transaction", transaction);
+                        logger$f.throwArgumentError("networkId address mismatch", "transaction", transaction);
                     }
                     return results[0];
                 });
@@ -13320,7 +13320,7 @@ const transactionFields = [
     { name: "data" },
 ];
 const allowedTransactionKeys$1 = {
-    chainId: true, data: true, gasLimit: true, gasPrice: true, nonce: true, to: true, type: true, value: true
+    networkId: true, data: true, gasLimit: true, gasPrice: true, nonce: true, to: true, type: true, value: true
 };
 function computeAddress(key) {
     const publicKey = computePublicKey(key);
@@ -13386,7 +13386,7 @@ function _serializeEip1559(transaction, signature) {
         }
     }
     const fields = [
-        formatNumber(transaction.chainId || 0, "chainId"),
+        formatNumber(transaction.networkId || 0, "networkId"),
         formatNumber(transaction.nonce || 0, "nonce"),
         formatNumber(transaction.maxPriorityFeePerGas || 0, "maxPriorityFeePerGas"),
         formatNumber(transaction.maxFeePerGas || 0, "maxFeePerGas"),
@@ -13406,7 +13406,7 @@ function _serializeEip1559(transaction, signature) {
 }
 function _serializeEip2930(transaction, signature) {
     const fields = [
-        formatNumber(transaction.chainId || 0, "chainId"),
+        formatNumber(transaction.networkId || 0, "networkId"),
         formatNumber(transaction.nonce || 0, "nonce"),
         formatNumber(transaction.gasPrice || 0, "gasPrice"),
         formatNumber(transaction.gasLimit || 0, "gasLimit"),
@@ -13447,21 +13447,21 @@ function _serialize(transaction, signature) {
         }
         raw.push(hexlify(value));
     });
-    let chainId = 0;
-    if (transaction.chainId != null) {
-        // A chainId was provided; if non-zero we'll use EIP-155
-        chainId = transaction.chainId;
-        if (typeof (chainId) !== "number") {
-            logger$h.throwArgumentError("invalid transaction.chainId", "transaction", transaction);
+    let networkId = 0;
+    if (transaction.networkId != null) {
+        // A networkId was provided; if non-zero we'll use EIP-155
+        networkId = transaction.networkId;
+        if (typeof (networkId) !== "number") {
+            logger$h.throwArgumentError("invalid transaction.networkId", "transaction", transaction);
         }
     }
     else if (signature && !isBytesLike(signature) && signature.v > 28) {
-        // No chainId provided, but the signature is signing with EIP-155; derive chainId
-        chainId = Math.floor((signature.v - 35) / 2);
+        // No networkId provided, but the signature is signing with EIP-155; derive networkId
+        networkId = Math.floor((signature.v - 35) / 2);
     }
-    // We have an EIP-155 transaction (chainId was specified and non-zero)
-    if (chainId !== 0) {
-        raw.push(hexlify(chainId)); // @TODO: hexValue?
+    // We have an EIP-155 transaction (networkId was specified and non-zero)
+    if (networkId !== 0) {
+        raw.push(hexlify(networkId)); // @TODO: hexValue?
         raw.push("0x");
         raw.push("0x");
     }
@@ -13472,20 +13472,20 @@ function _serialize(transaction, signature) {
     // The splitSignature will ensure the transaction has a recoveryParam in the
     // case that the signTransaction function only adds a v.
     const sig = splitSignature(signature);
-    // We pushed a chainId and null r, s on for hashing only; remove those
+    // We pushed a networkId and null r, s on for hashing only; remove those
     let v = 27 + sig.recoveryParam;
-    if (chainId !== 0) {
+    if (networkId !== 0) {
         raw.pop();
         raw.pop();
         raw.pop();
-        v += chainId * 2 + 8;
+        v += networkId * 2 + 8;
         // If an EIP-155 v (directly or indirectly; maybe _vs) was provided, check it!
         if (sig.v > 28 && sig.v !== v) {
-            logger$h.throwArgumentError("transaction.chainId/signature.v mismatch", "signature", signature);
+            logger$h.throwArgumentError("transaction.networkId/signature.v mismatch", "signature", signature);
         }
     }
     else if (sig.v !== v) {
-        logger$h.throwArgumentError("transaction.chainId/signature.v mismatch", "signature", signature);
+        logger$h.throwArgumentError("transaction.networkId/signature.v mismatch", "signature", signature);
     }
     raw.push(hexlify(v));
     raw.push(stripZeros(arrayify(sig.r)));
@@ -13544,7 +13544,7 @@ function _parseEip1559(payload) {
     const maxFeePerGas = handleNumber(transaction[3]);
     const tx = {
         type: 2,
-        chainId: handleNumber(transaction[0]).toNumber(),
+        networkId: handleNumber(transaction[0]).toNumber(),
         nonce: handleNumber(transaction[1]).toNumber(),
         maxPriorityFeePerGas: maxPriorityFeePerGas,
         maxFeePerGas: maxFeePerGas,
@@ -13570,7 +13570,7 @@ function _parseEip2930(payload) {
     }
     const tx = {
         type: 1,
-        chainId: handleNumber(transaction[0]).toNumber(),
+        networkId: handleNumber(transaction[0]).toNumber(),
         nonce: handleNumber(transaction[1]).toNumber(),
         gasPrice: handleNumber(transaction[2]),
         gasLimit: handleNumber(transaction[3]),
@@ -13600,7 +13600,7 @@ function _parse(rawTransaction) {
         to: handleAddress(transaction[3]),
         value: handleNumber(transaction[4]),
         data: transaction[5],
-        chainId: 0
+        networkId: 0
     };
     // Legacy unsigned transaction
     if (transaction.length === 6) {
@@ -13617,22 +13617,22 @@ function _parse(rawTransaction) {
     tx.s = hexZeroPad(transaction[8], 32);
     if (BigNumber.from(tx.r).isZero() && BigNumber.from(tx.s).isZero()) {
         // EIP-155 unsigned transaction
-        tx.chainId = tx.v;
+        tx.networkId = tx.v;
         tx.v = 0;
     }
     else {
         // Signed Transaction
-        tx.chainId = Math.floor((tx.v - 35) / 2);
-        if (tx.chainId < 0) {
-            tx.chainId = 0;
+        tx.networkId = Math.floor((tx.v - 35) / 2);
+        if (tx.networkId < 0) {
+            tx.networkId = 0;
         }
         let recoveryParam = tx.v - 27;
         const raw = transaction.slice(0, 6);
-        if (tx.chainId !== 0) {
-            raw.push(hexlify(tx.chainId));
+        if (tx.networkId !== 0) {
+            raw.push(hexlify(tx.networkId));
             raw.push("0x");
             raw.push("0x");
-            recoveryParam -= tx.chainId * 2 + 8;
+            recoveryParam -= tx.networkId * 2 + 8;
         }
         const digest = keccak256(encode(raw));
         try {
@@ -13684,7 +13684,7 @@ const logger$i = new Logger(version$d);
 ;
 ///////////////////////////////
 const allowedTransactionKeys$2 = {
-    chainId: true, data: true, from: true, gasLimit: true, gasPrice: true, nonce: true, to: true, value: true,
+    networkId: true, data: true, from: true, gasLimit: true, gasPrice: true, nonce: true, to: true, value: true,
     type: true, accessList: true,
     maxFeePerGas: true, maxPriorityFeePerGas: true,
     customData: true
@@ -17355,72 +17355,72 @@ function etcDefaultProvider(url, network) {
     return func;
 }
 const homestead = {
-    chainId: 1,
+    networkId: 1,
     ensAddress: "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e",
     name: "homestead",
     _defaultProvider: ethDefaultProvider("homestead")
 };
 const ropsten = {
-    chainId: 3,
+    networkId: 3,
     ensAddress: "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e",
     name: "ropsten",
     _defaultProvider: ethDefaultProvider("ropsten")
 };
 const classicMordor = {
-    chainId: 63,
+    networkId: 63,
     name: "classicMordor",
     _defaultProvider: etcDefaultProvider("https://www.ethercluster.com/mordor", "classicMordor")
 };
 // See: https://chainlist.org
 const networks = {
-    unspecified: { chainId: 0, name: "unspecified" },
+    unspecified: { networkId: 0, name: "unspecified" },
     homestead: homestead,
     mainnet: homestead,
-    morden: { chainId: 2, name: "morden" },
+    morden: { networkId: 2, name: "morden" },
     ropsten: ropsten,
     testnet: ropsten,
     rinkeby: {
-        chainId: 4,
+        networkId: 4,
         ensAddress: "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e",
         name: "rinkeby",
         _defaultProvider: ethDefaultProvider("rinkeby")
     },
     kovan: {
-        chainId: 42,
+        networkId: 42,
         name: "kovan",
         _defaultProvider: ethDefaultProvider("kovan")
     },
     goerli: {
-        chainId: 5,
+        networkId: 5,
         ensAddress: "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e",
         name: "goerli",
         _defaultProvider: ethDefaultProvider("goerli")
     },
-    kintsugi: { chainId: 1337702, name: "kintsugi" },
+    kintsugi: { networkId: 1337702, name: "kintsugi" },
     // ETC (See: #351)
     classic: {
-        chainId: 61,
+        networkId: 61,
         name: "classic",
         _defaultProvider: etcDefaultProvider("https:/\/www.ethercluster.com/etc", "classic")
     },
-    classicMorden: { chainId: 62, name: "classicMorden" },
+    classicMorden: { networkId: 62, name: "classicMorden" },
     classicMordor: classicMordor,
     classicTestnet: classicMordor,
     classicKotti: {
-        chainId: 6,
+        networkId: 6,
         name: "classicKotti",
         _defaultProvider: etcDefaultProvider("https:/\/www.ethercluster.com/kotti", "classicKotti")
     },
-    xdai: { chainId: 100, name: "xdai" },
-    matic: { chainId: 137, name: "matic" },
-    maticmum: { chainId: 80001, name: "maticmum" },
-    optimism: { chainId: 10, name: "optimism" },
-    "optimism-kovan": { chainId: 69, name: "optimism-kovan" },
-    "optimism-goerli": { chainId: 420, name: "optimism-goerli" },
-    arbitrum: { chainId: 42161, name: "arbitrum" },
-    "arbitrum-rinkeby": { chainId: 421611, name: "arbitrum-rinkeby" },
-    bnb: { chainId: 56, name: "bnb" },
-    bnbt: { chainId: 97, name: "bnbt" },
+    xdai: { networkId: 100, name: "xdai" },
+    matic: { networkId: 137, name: "matic" },
+    maticmum: { networkId: 80001, name: "maticmum" },
+    optimism: { networkId: 10, name: "optimism" },
+    "optimism-kovan": { networkId: 69, name: "optimism-kovan" },
+    "optimism-goerli": { networkId: 420, name: "optimism-goerli" },
+    arbitrum: { networkId: 42161, name: "arbitrum" },
+    "arbitrum-rinkeby": { networkId: 421611, name: "arbitrum-rinkeby" },
+    bnb: { networkId: 56, name: "bnb" },
+    bnbt: { networkId: 97, name: "bnbt" },
 };
 /**
  *  getNetwork
@@ -17436,17 +17436,17 @@ function getNetwork(network) {
     if (typeof (network) === "number") {
         for (const name in networks) {
             const standard = networks[name];
-            if (standard.chainId === network) {
+            if (standard.networkId === network) {
                 return {
                     name: standard.name,
-                    chainId: standard.chainId,
+                    networkId: standard.networkId,
                     ensAddress: (standard.ensAddress || null),
                     _defaultProvider: (standard._defaultProvider || null)
                 };
             }
         }
         return {
-            chainId: network,
+            networkId: network,
             name: "unknown"
         };
     }
@@ -17457,7 +17457,7 @@ function getNetwork(network) {
         }
         return {
             name: standard.name,
-            chainId: standard.chainId,
+            networkId: standard.networkId,
             ensAddress: standard.ensAddress,
             _defaultProvider: (standard._defaultProvider || null)
         };
@@ -17465,14 +17465,14 @@ function getNetwork(network) {
     const standard = networks[network.name];
     // Not a standard network; check that it is a valid network in general
     if (!standard) {
-        if (typeof (network.chainId) !== "number") {
-            logger$q.throwArgumentError("invalid network chainId", "network", network);
+        if (typeof (network.networkId) !== "number") {
+            logger$q.throwArgumentError("invalid network networkId", "network", network);
         }
         return network;
     }
-    // Make sure the chainId matches the expected network chainId (or is 0; disable EIP-155)
-    if (network.chainId !== 0 && network.chainId !== standard.chainId) {
-        logger$q.throwArgumentError("network chainId mismatch", "network", network);
+    // Make sure the networkId matches the expected network networkId (or is 0; disable EIP-155)
+    if (network.networkId !== 0 && network.networkId !== standard.networkId) {
+        logger$q.throwArgumentError("network networkId mismatch", "network", network);
     }
     // @TODO: In the next major version add an attach function to a defaultProvider
     // class and move the _defaultProvider internal to this file (extend Network)
@@ -17488,7 +17488,7 @@ function getNetwork(network) {
     // Standard Network (allow overriding the ENS address)
     return {
         name: network.name,
-        chainId: standard.chainId,
+        networkId: standard.networkId,
         ensAddress: (network.ensAddress || standard.ensAddress || null),
         _defaultProvider: defaultProvider
     };
@@ -18417,33 +18417,33 @@ class Formatter {
             transaction.accessList = [];
         }
         const result = Formatter.check(this.formats.transaction, transaction);
-        if (transaction.chainId != null) {
-            let chainId = transaction.chainId;
-            if (isHexString(chainId)) {
-                chainId = BigNumber.from(chainId).toNumber();
+        if (transaction.networkId != null) {
+            let networkId = transaction.networkId;
+            if (isHexString(networkId)) {
+                networkId = BigNumber.from(networkId).toNumber();
             }
-            result.chainId = chainId;
+            result.networkId = networkId;
         }
         else {
-            let chainId = transaction.networkId;
-            // geth-etc returns chainId
-            if (chainId == null && result.v == null) {
-                chainId = transaction.chainId;
+            let networkId = transaction.networkId;
+            // geth-etc returns networkId
+            if (networkId == null && result.v == null) {
+                networkId = transaction.networkId;
             }
-            if (isHexString(chainId)) {
-                chainId = BigNumber.from(chainId).toNumber();
+            if (isHexString(networkId)) {
+                networkId = BigNumber.from(networkId).toNumber();
             }
-            if (typeof (chainId) !== "number" && result.v != null) {
-                chainId = (result.v - 35) / 2;
-                if (chainId < 0) {
-                    chainId = 0;
+            if (typeof (networkId) !== "number" && result.v != null) {
+                networkId = (result.v - 35) / 2;
+                if (networkId < 0) {
+                    networkId = 0;
                 }
-                chainId = parseInt(chainId);
+                networkId = parseInt(networkId);
             }
-            if (typeof (chainId) !== "number") {
-                chainId = 0;
+            if (typeof (networkId) !== "number") {
+                networkId = 0;
             }
-            result.chainId = chainId;
+            result.networkId = networkId;
         }
         // 0x0000... should actually be null
         if (result.blockHash && result.blockHash.replace(/0/g, "") === "x") {
@@ -19072,8 +19072,8 @@ class BaseProvider extends Provider {
      *
      *  A Promise<Network> that resolves only once the provider is ready.
      *
-     *  Sub-classes that call the super with a network without a chainId
-     *  MUST set this. Standard named networks have a known chainId.
+     *  Sub-classes that call the super with a network without a networkId
+     *  MUST set this. Standard named networks have a known networkId.
      *
      */
     constructor(network) {
@@ -19371,7 +19371,7 @@ class BaseProvider extends Provider {
             // only an external call for backends which can have the underlying
             // network change spontaneously
             const currentNetwork = yield this.detectNetwork();
-            if (network.chainId !== currentNetwork.chainId) {
+            if (network.networkId !== currentNetwork.networkId) {
                 // We are allowing network changes, things can get complex fast;
                 // make sure you know what you are doing if you use "any"
                 if (this.anyNetwork) {
@@ -20431,7 +20431,7 @@ class JsonRpcSigner extends Signer {
         if (this._address) {
             return Promise.resolve(this._address);
         }
-        return this.provider.send("eth_accounts", []).then((accounts) => {
+        return this.provider.send("xcb_accounts", []).then((accounts) => {
             if (accounts.length <= this._index) {
                 logger$u.throwError("unknown account #" + this._index, Logger.errors.UNSUPPORTED_OPERATION, {
                     operation: "getAddress"
@@ -20448,7 +20448,7 @@ class JsonRpcSigner extends Signer {
             }
             return address;
         });
-        // The JSON-RPC for eth_sendTransaction uses 90000 gas; if the user
+        // The JSON-RPC for xcb_sendTransaction uses 90000 gas; if the user
         // wishes to use this, it is easy to specify explicitly, otherwise
         // we look it up for them.
         if (transaction.gasLimit == null) {
@@ -20481,7 +20481,7 @@ class JsonRpcSigner extends Signer {
                 tx.from = sender;
             }
             const hexTx = this.provider.constructor.hexlifyTransaction(tx, { from: true });
-            return this.provider.send("eth_sendTransaction", [hexTx]).then((hash) => {
+            return this.provider.send("xcb_sendTransaction", [hexTx]).then((hash) => {
                 return hash;
             }, (error) => {
                 return checkError("sendTransaction", error, hexTx);
@@ -20528,8 +20528,7 @@ class JsonRpcSigner extends Signer {
         return __awaiter$a(this, void 0, void 0, function* () {
             const data = ((typeof (message) === "string") ? toUtf8Bytes(message) : message);
             const address = yield this.getAddress();
-            // https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_sign
-            return yield this.provider.send("eth_sign", [address.toLowerCase(), hexlify(data)]);
+            return yield this.provider.send("xcb_sign", [address.toLowerCase(), hexlify(data)]);
         });
     }
     _signTypedData(domain, types, value) {
@@ -20539,7 +20538,7 @@ class JsonRpcSigner extends Signer {
                 return this.provider.resolveName(name);
             });
             const address = yield this.getAddress();
-            return yield this.provider.send("eth_signTypedData_v4", [
+            return yield this.provider.send("xcb_signTypedData_v4", [
                 address.toLowerCase(),
                 JSON.stringify(TypedDataEncoder.getPayload(populated.domain, types, populated.value))
             ]);
@@ -20563,7 +20562,7 @@ class UncheckedJsonRpcSigner extends JsonRpcSigner {
                 gasPrice: null,
                 data: null,
                 value: null,
-                chainId: null,
+                networkId: null,
                 confirmations: 0,
                 from: null,
                 wait: (confirmations) => { return this.provider.waitForTransaction(hash, confirmations); }
@@ -20572,7 +20571,7 @@ class UncheckedJsonRpcSigner extends JsonRpcSigner {
     }
 }
 const allowedTransactionKeys$3 = {
-    chainId: true, data: true, gasLimit: true, gasPrice: true, nonce: true, to: true, value: true,
+    networkId: true, data: true, gasLimit: true, gasPrice: true, nonce: true, to: true, value: true,
     type: true, accessList: true,
     maxFeePerGas: true, maxPriorityFeePerGas: true
 };
@@ -20629,24 +20628,24 @@ class JsonRpcProvider extends BaseProvider {
     _uncachedDetectNetwork() {
         return __awaiter$a(this, void 0, void 0, function* () {
             yield timer(0);
-            let chainId = null;
+            let networkId = null;
             try {
-                chainId = yield this.send("eth_chainId", []);
+                networkId = yield this.send("xcb_networkId", []);
             }
             catch (error) {
                 try {
-                    chainId = yield this.send("net_version", []);
+                    networkId = yield this.send("net_version", []);
                 }
                 catch (error) { }
             }
-            if (chainId != null) {
+            if (networkId != null) {
                 const getNetwork = getStatic(this.constructor, "getNetwork");
                 try {
-                    return getNetwork(BigNumber.from(chainId).toNumber());
+                    return getNetwork(BigNumber.from(networkId).toNumber());
                 }
                 catch (error) {
                     return logger$u.throwError("could not detect network", Logger.errors.NETWORK_ERROR, {
-                        chainId: chainId,
+                        networkId: networkId,
                         event: "invalidNetwork",
                         serverError: error
                     });
@@ -20664,7 +20663,7 @@ class JsonRpcProvider extends BaseProvider {
         return this.getSigner(addressOrIndex).connectUnchecked();
     }
     listAccounts() {
-        return this.send("eth_accounts", []).then((accounts) => {
+        return this.send("xcb_accounts", []).then((accounts) => {
             return accounts.map((a) => this.formatter.address(a));
         });
     }
@@ -20682,7 +20681,7 @@ class JsonRpcProvider extends BaseProvider {
         });
         // We can expand this in the future to any call, but for now these
         // are the biggest wins and do not require any serializing parameters.
-        const cache = (["eth_chainId", "eth_blockNumber"].indexOf(method) >= 0);
+        const cache = (["xcb_networkId", "xcb_blockNumber"].indexOf(method) >= 0);
         if (cache && this._cache[method]) {
             return this._cache[method];
         }
@@ -20715,44 +20714,44 @@ class JsonRpcProvider extends BaseProvider {
     prepareRequest(method, params) {
         switch (method) {
             case "getBlockNumber":
-                return ["eth_blockNumber", []];
+                return ["xcb_blockNumber", []];
             case "getGasPrice":
-                return ["eth_gasPrice", []];
+                return ["xcb_gasPrice", []];
             case "getBalance":
-                return ["eth_getBalance", [getLowerCase(params.address), params.blockTag]];
+                return ["xcb_getBalance", [getLowerCase(params.address), params.blockTag]];
             case "getTransactionCount":
-                return ["eth_getTransactionCount", [getLowerCase(params.address), params.blockTag]];
+                return ["xcb_getTransactionCount", [getLowerCase(params.address), params.blockTag]];
             case "getCode":
-                return ["eth_getCode", [getLowerCase(params.address), params.blockTag]];
+                return ["xcb_getCode", [getLowerCase(params.address), params.blockTag]];
             case "getStorageAt":
-                return ["eth_getStorageAt", [getLowerCase(params.address), params.position, params.blockTag]];
+                return ["xcb_getStorageAt", [getLowerCase(params.address), params.position, params.blockTag]];
             case "sendTransaction":
-                return ["eth_sendRawTransaction", [params.signedTransaction]];
+                return ["xcb_sendRawTransaction", [params.signedTransaction]];
             case "getBlock":
                 if (params.blockTag) {
-                    return ["eth_getBlockByNumber", [params.blockTag, !!params.includeTransactions]];
+                    return ["xcb_getBlockByNumber", [params.blockTag, !!params.includeTransactions]];
                 }
                 else if (params.blockHash) {
-                    return ["eth_getBlockByHash", [params.blockHash, !!params.includeTransactions]];
+                    return ["xcb_getBlockByHash", [params.blockHash, !!params.includeTransactions]];
                 }
                 return null;
             case "getTransaction":
-                return ["eth_getTransactionByHash", [params.transactionHash]];
+                return ["xcb_getTransactionByHash", [params.transactionHash]];
             case "getTransactionReceipt":
-                return ["eth_getTransactionReceipt", [params.transactionHash]];
+                return ["xcb_getTransactionReceipt", [params.transactionHash]];
             case "call": {
                 const hexlifyTransaction = getStatic(this.constructor, "hexlifyTransaction");
-                return ["eth_call", [hexlifyTransaction(params.transaction, { from: true }), params.blockTag]];
+                return ["xcb_call", [hexlifyTransaction(params.transaction, { from: true }), params.blockTag]];
             }
             case "estimateGas": {
                 const hexlifyTransaction = getStatic(this.constructor, "hexlifyTransaction");
-                return ["eth_estimateGas", [hexlifyTransaction(params.transaction, { from: true })]];
+                return ["xcb_estimateGas", [hexlifyTransaction(params.transaction, { from: true })]];
             }
             case "getLogs":
                 if (params.filter && params.filter.address != null) {
                     params.filter.address = getLowerCase(params.filter.address);
                 }
-                return ["eth_getLogs", [params.filter]];
+                return ["xcb_getLogs", [params.filter]];
             default:
                 break;
         }
@@ -20800,11 +20799,11 @@ class JsonRpcProvider extends BaseProvider {
             return;
         }
         const self = this;
-        const pendingFilter = this.send("eth_newPendingTransactionFilter", []);
+        const pendingFilter = this.send("xcb_newPendingTransactionFilter", []);
         this._pendingFilter = pendingFilter;
         pendingFilter.then(function (filterId) {
             function poll() {
-                self.send("eth_getFilterChanges", [filterId]).then(function (hashes) {
+                self.send("xcb_getFilterChanges", [filterId]).then(function (hashes) {
                     if (self._pendingFilter != pendingFilter) {
                         return null;
                     }
@@ -20824,7 +20823,7 @@ class JsonRpcProvider extends BaseProvider {
                     });
                 }).then(function () {
                     if (self._pendingFilter != pendingFilter) {
-                        self.send("eth_uninstallFilter", [filterId]);
+                        self.send("xcb_uninstallFilter", [filterId]);
                         return;
                     }
                     setTimeout(function () { poll(); }, 0);
@@ -20989,7 +20988,7 @@ class WebSocketProvider extends JsonRpcProvider {
                     });
                 }
             }
-            else if (result.method === "eth_subscription") {
+            else if (result.method === "xcb_subscription") {
                 // Subscription...
                 const sub = this._subs[result.params.subscription];
                 if (sub) {
@@ -21074,7 +21073,7 @@ class WebSocketProvider extends JsonRpcProvider {
             let subIdPromise = this._subIds[tag];
             if (subIdPromise == null) {
                 subIdPromise = Promise.all(param).then((param) => {
-                    return this.send("eth_subscribe", param);
+                    return this.send("xcb_subscribe", param);
                 });
                 this._subIds[tag] = subIdPromise;
             }
@@ -21160,7 +21159,7 @@ class WebSocketProvider extends JsonRpcProvider {
                 return;
             }
             delete this._subs[subId];
-            this.send("eth_unsubscribe", [subId]);
+            this.send("xcb_unsubscribe", [subId]);
         });
     }
     destroy() {
@@ -21195,7 +21194,7 @@ var __awaiter$c = (window && window.__awaiter) || function (thisArg, _arguments,
 };
 const logger$w = new Logger(version$m);
 // A StaticJsonRpcProvider is useful when you *know* for certain that
-// the backend will never change, as it never calls eth_chainId to
+// the backend will never change, as it never calls xcb_networkId to
 // verify its backend. However, if the backend does change, the effects
 // are undefined and may include:
 // - inconsistent results
@@ -21838,7 +21837,7 @@ function checkNetworks(networks) {
         }
         if (result) {
             // Make sure the network matches the previous networks
-            if (!(result.name === network.name && result.chainId === network.chainId &&
+            if (!(result.name === network.name && result.networkId === network.networkId &&
                 ((result.ensAddress === network.ensAddress) || (result.ensAddress == null && network.ensAddress == null)))) {
                 logger$A.throwArgumentError("provider mismatch", "networks", networks);
             }

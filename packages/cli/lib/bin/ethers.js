@@ -211,7 +211,7 @@ var SandboxPlugin = /** @class */ (function (_super) {
     };
     SandboxPlugin.prototype.run = function () {
         console.log("version: " + ethers_1.ethers.version);
-        console.log("network: " + this.network.name + " (chainId: " + this.network.chainId + ")");
+        console.log("network: " + this.network.name + " (netowrkId: " + this.network.networkId + ")");
         var filename = (0, path_1.resolve)(process.cwd(), "./sandbox.js");
         var prompt = (this.provider ? this.network.name : "no-network") + "> ";
         var evaluate = function (code, context, file, _callback) {

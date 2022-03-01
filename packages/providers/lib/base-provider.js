@@ -635,8 +635,8 @@ var BaseProvider = /** @class */ (function (_super) {
      *
      *  A Promise<Network> that resolves only once the provider is ready.
      *
-     *  Sub-classes that call the super with a network without a chainId
-     *  MUST set this. Standard named networks have a known chainId.
+     *  Sub-classes that call the super with a network without a networkId
+     *  MUST set this. Standard named networks have a known networkId.
      *
      */
     function BaseProvider(network) {
@@ -989,7 +989,7 @@ var BaseProvider = /** @class */ (function (_super) {
                         return [4 /*yield*/, this.detectNetwork()];
                     case 2:
                         currentNetwork = _a.sent();
-                        if (!(network.chainId !== currentNetwork.chainId)) return [3 /*break*/, 5];
+                        if (!(network.networkId !== currentNetwork.networkId)) return [3 /*break*/, 5];
                         if (!this.anyNetwork) return [3 /*break*/, 4];
                         this._network = currentNetwork;
                         // Reset all internal block number guards and caches

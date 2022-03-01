@@ -193,7 +193,7 @@ var JsonRpcSigner = /** @class */ (function (_super) {
         if (this._address) {
             return Promise.resolve(this._address);
         }
-        return this.provider.send("eth_accounts", []).then(function (accounts) {
+        return this.provider.send("xcb_accounts", []).then(function (accounts) {
             if (accounts.length <= _this._index) {
                 logger.throwError("unknown account #" + _this._index, logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
                     operation: "getAddress"
@@ -211,7 +211,7 @@ var JsonRpcSigner = /** @class */ (function (_super) {
             }
             return address;
         });
-        // The JSON-RPC for eth_sendTransaction uses 90000 gas; if the user
+        // The JSON-RPC for xcb_sendTransaction uses 90000 gas; if the user
         // wishes to use this, it is easy to specify explicitly, otherwise
         // we look it up for them.
         if (transaction.gasLimit == null) {
@@ -253,7 +253,7 @@ var JsonRpcSigner = /** @class */ (function (_super) {
                 tx.from = sender;
             }
             var hexTx = _this.provider.constructor.hexlifyTransaction(tx, { from: true });
-            return _this.provider.send("eth_sendTransaction", [hexTx]).then(function (hash) {
+            return _this.provider.send("xcb_sendTransaction", [hexTx]).then(function (hash) {
                 return hash;
             }, function (error) {
                 return checkError("sendTransaction", error, hexTx);
@@ -334,10 +334,8 @@ var JsonRpcSigner = /** @class */ (function (_super) {
                         return [4 /*yield*/, this.getAddress()];
                     case 1:
                         address = _a.sent();
-                        return [4 /*yield*/, this.provider.send("eth_sign", [address.toLowerCase(), (0, bytes_1.hexlify)(data)])];
-                    case 2: 
-                    // https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_sign
-                    return [2 /*return*/, _a.sent()];
+                        return [4 /*yield*/, this.provider.send("xcb_sign", [address.toLowerCase(), (0, bytes_1.hexlify)(data)])];
+                    case 2: return [2 /*return*/, _a.sent()];
                 }
             });
         });
@@ -356,7 +354,7 @@ var JsonRpcSigner = /** @class */ (function (_super) {
                         return [4 /*yield*/, this.getAddress()];
                     case 2:
                         address = _a.sent();
-                        return [4 /*yield*/, this.provider.send("eth_signTypedData_v4", [
+                        return [4 /*yield*/, this.provider.send("xcb_signTypedData_v4", [
                                 address.toLowerCase(),
                                 JSON.stringify(hash_1._TypedDataEncoder.getPayload(populated.domain, types, populated.value))
                             ])];
@@ -398,7 +396,7 @@ var UncheckedJsonRpcSigner = /** @class */ (function (_super) {
                 gasPrice: null,
                 data: null,
                 value: null,
-                chainId: null,
+                networkId: null,
                 confirmations: 0,
                 from: null,
                 wait: function (confirmations) { return _this.provider.waitForTransaction(hash, confirmations); }
@@ -408,7 +406,7 @@ var UncheckedJsonRpcSigner = /** @class */ (function (_super) {
     return UncheckedJsonRpcSigner;
 }(JsonRpcSigner));
 var allowedTransactionKeys = {
-    chainId: true, data: true, gasLimit: true, gasPrice: true, nonce: true, to: true, value: true,
+    networkId: true, data: true, gasLimit: true, gasPrice: true, nonce: true, to: true, value: true,
     type: true, accessList: true,
     maxFeePerGas: true, maxPriorityFeePerGas: true
 };
@@ -473,19 +471,19 @@ var JsonRpcProvider = /** @class */ (function (_super) {
     };
     JsonRpcProvider.prototype._uncachedDetectNetwork = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var chainId, error_2, error_3, getNetwork;
+            var networkId, error_2, error_3, getNetwork;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, timer(0)];
                     case 1:
                         _a.sent();
-                        chainId = null;
+                        networkId = null;
                         _a.label = 2;
                     case 2:
                         _a.trys.push([2, 4, , 9]);
-                        return [4 /*yield*/, this.send("eth_chainId", [])];
+                        return [4 /*yield*/, this.send("xcb_networkId", [])];
                     case 3:
-                        chainId = _a.sent();
+                        networkId = _a.sent();
                         return [3 /*break*/, 9];
                     case 4:
                         error_2 = _a.sent();
@@ -494,21 +492,21 @@ var JsonRpcProvider = /** @class */ (function (_super) {
                         _a.trys.push([5, 7, , 8]);
                         return [4 /*yield*/, this.send("net_version", [])];
                     case 6:
-                        chainId = _a.sent();
+                        networkId = _a.sent();
                         return [3 /*break*/, 8];
                     case 7:
                         error_3 = _a.sent();
                         return [3 /*break*/, 8];
                     case 8: return [3 /*break*/, 9];
                     case 9:
-                        if (chainId != null) {
+                        if (networkId != null) {
                             getNetwork = (0, properties_1.getStatic)(this.constructor, "getNetwork");
                             try {
-                                return [2 /*return*/, getNetwork(bignumber_1.BigNumber.from(chainId).toNumber())];
+                                return [2 /*return*/, getNetwork(bignumber_1.BigNumber.from(networkId).toNumber())];
                             }
                             catch (error) {
                                 return [2 /*return*/, logger.throwError("could not detect network", logger_1.Logger.errors.NETWORK_ERROR, {
-                                        chainId: chainId,
+                                        networkId: networkId,
                                         event: "invalidNetwork",
                                         serverError: error
                                     })];
@@ -529,7 +527,7 @@ var JsonRpcProvider = /** @class */ (function (_super) {
     };
     JsonRpcProvider.prototype.listAccounts = function () {
         var _this = this;
-        return this.send("eth_accounts", []).then(function (accounts) {
+        return this.send("xcb_accounts", []).then(function (accounts) {
             return accounts.map(function (a) { return _this.formatter.address(a); });
         });
     };
@@ -548,7 +546,7 @@ var JsonRpcProvider = /** @class */ (function (_super) {
         });
         // We can expand this in the future to any call, but for now these
         // are the biggest wins and do not require any serializing parameters.
-        var cache = (["eth_chainId", "eth_blockNumber"].indexOf(method) >= 0);
+        var cache = (["xcb_networkId", "xcb_blockNumber"].indexOf(method) >= 0);
         if (cache && this._cache[method]) {
             return this._cache[method];
         }
@@ -581,44 +579,44 @@ var JsonRpcProvider = /** @class */ (function (_super) {
     JsonRpcProvider.prototype.prepareRequest = function (method, params) {
         switch (method) {
             case "getBlockNumber":
-                return ["eth_blockNumber", []];
+                return ["xcb_blockNumber", []];
             case "getGasPrice":
-                return ["eth_gasPrice", []];
+                return ["xcb_gasPrice", []];
             case "getBalance":
-                return ["eth_getBalance", [getLowerCase(params.address), params.blockTag]];
+                return ["xcb_getBalance", [getLowerCase(params.address), params.blockTag]];
             case "getTransactionCount":
-                return ["eth_getTransactionCount", [getLowerCase(params.address), params.blockTag]];
+                return ["xcb_getTransactionCount", [getLowerCase(params.address), params.blockTag]];
             case "getCode":
-                return ["eth_getCode", [getLowerCase(params.address), params.blockTag]];
+                return ["xcb_getCode", [getLowerCase(params.address), params.blockTag]];
             case "getStorageAt":
-                return ["eth_getStorageAt", [getLowerCase(params.address), params.position, params.blockTag]];
+                return ["xcb_getStorageAt", [getLowerCase(params.address), params.position, params.blockTag]];
             case "sendTransaction":
-                return ["eth_sendRawTransaction", [params.signedTransaction]];
+                return ["xcb_sendRawTransaction", [params.signedTransaction]];
             case "getBlock":
                 if (params.blockTag) {
-                    return ["eth_getBlockByNumber", [params.blockTag, !!params.includeTransactions]];
+                    return ["xcb_getBlockByNumber", [params.blockTag, !!params.includeTransactions]];
                 }
                 else if (params.blockHash) {
-                    return ["eth_getBlockByHash", [params.blockHash, !!params.includeTransactions]];
+                    return ["xcb_getBlockByHash", [params.blockHash, !!params.includeTransactions]];
                 }
                 return null;
             case "getTransaction":
-                return ["eth_getTransactionByHash", [params.transactionHash]];
+                return ["xcb_getTransactionByHash", [params.transactionHash]];
             case "getTransactionReceipt":
-                return ["eth_getTransactionReceipt", [params.transactionHash]];
+                return ["xcb_getTransactionReceipt", [params.transactionHash]];
             case "call": {
                 var hexlifyTransaction = (0, properties_1.getStatic)(this.constructor, "hexlifyTransaction");
-                return ["eth_call", [hexlifyTransaction(params.transaction, { from: true }), params.blockTag]];
+                return ["xcb_call", [hexlifyTransaction(params.transaction, { from: true }), params.blockTag]];
             }
             case "estimateGas": {
                 var hexlifyTransaction = (0, properties_1.getStatic)(this.constructor, "hexlifyTransaction");
-                return ["eth_estimateGas", [hexlifyTransaction(params.transaction, { from: true })]];
+                return ["xcb_estimateGas", [hexlifyTransaction(params.transaction, { from: true })]];
             }
             case "getLogs":
                 if (params.filter && params.filter.address != null) {
                     params.filter.address = getLowerCase(params.filter.address);
                 }
-                return ["eth_getLogs", [params.filter]];
+                return ["xcb_getLogs", [params.filter]];
             default:
                 break;
         }
@@ -673,11 +671,11 @@ var JsonRpcProvider = /** @class */ (function (_super) {
             return;
         }
         var self = this;
-        var pendingFilter = this.send("eth_newPendingTransactionFilter", []);
+        var pendingFilter = this.send("xcb_newPendingTransactionFilter", []);
         this._pendingFilter = pendingFilter;
         pendingFilter.then(function (filterId) {
             function poll() {
-                self.send("eth_getFilterChanges", [filterId]).then(function (hashes) {
+                self.send("xcb_getFilterChanges", [filterId]).then(function (hashes) {
                     if (self._pendingFilter != pendingFilter) {
                         return null;
                     }
@@ -697,7 +695,7 @@ var JsonRpcProvider = /** @class */ (function (_super) {
                     });
                 }).then(function () {
                     if (self._pendingFilter != pendingFilter) {
-                        self.send("eth_uninstallFilter", [filterId]);
+                        self.send("xcb_uninstallFilter", [filterId]);
                         return;
                     }
                     setTimeout(function () { poll(); }, 0);

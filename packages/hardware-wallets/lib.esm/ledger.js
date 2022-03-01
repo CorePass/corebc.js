@@ -93,7 +93,7 @@ export class LedgerSigner extends ethers.Signer {
         return __awaiter(this, void 0, void 0, function* () {
             const tx = yield ethers.utils.resolveProperties(transaction);
             const baseTx = {
-                chainId: (tx.chainId || undefined),
+                networkId: (tx.networkId || undefined),
                 data: (tx.data || undefined),
                 gasLimit: (tx.gasLimit || undefined),
                 gasPrice: (tx.gasPrice || undefined),

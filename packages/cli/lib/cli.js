@@ -316,7 +316,7 @@ var WrappedSigner = /** @class */ (function (_super) {
                         info["Data"] = tx.data;
                         info["Gas Limit"] = ethers_1.ethers.BigNumber.from(tx.gasLimit || 0).toString();
                         info["Gas Price"] = (ethers_1.ethers.utils.formatUnits(tx.gasPrice || 0, "gwei") + " gwei"),
-                            info["Chain ID"] = (tx.chainId || 0);
+                            info["Chain ID"] = (tx.networkId || 0);
                         info["Network"] = network.name;
                         dump("Transaction:", info);
                         return [4 /*yield*/, isAllowed(this, "Sign Transaction?")];
@@ -370,7 +370,7 @@ var WrappedSigner = /** @class */ (function (_super) {
                         info["Data"] = tx.data;
                         info["Gas Limit"] = ethers_1.ethers.BigNumber.from(tx.gasLimit || 0).toString();
                         info["Gas Price"] = (ethers_1.ethers.utils.formatUnits(tx.gasPrice || 0, "gwei") + " gwei"),
-                            info["Chain ID"] = (tx.chainId || 0);
+                            info["Chain ID"] = (tx.networkId || 0);
                         info["Network"] = network.name;
                         dump("Transaction:", info);
                         return [4 /*yield*/, isAllowed(this, "Send Transaction?")];
@@ -775,7 +775,7 @@ var Plugin = /** @class */ (function () {
                             ethers_1.ethers.utils.defineReadOnly(_this, "network", Object.freeze(network));
                         }, function (error) {
                             ethers_1.ethers.utils.defineReadOnly(_this, "network", Object.freeze({
-                                chainId: 0,
+                                networkId: 0,
                                 name: "no-network"
                             }));
                         }));

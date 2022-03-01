@@ -76,7 +76,7 @@ var logger = new logger_1.Logger(_version_1.version);
 ;
 ///////////////////////////////
 var allowedTransactionKeys = {
-    chainId: true, data: true, from: true, gasLimit: true, gasPrice: true, nonce: true, to: true, value: true,
+    networkId: true, data: true, from: true, gasLimit: true, gasPrice: true, nonce: true, to: true, value: true,
     type: true, accessList: true,
     maxFeePerGas: true, maxPriorityFeePerGas: true,
     customData: true

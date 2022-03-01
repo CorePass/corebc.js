@@ -560,7 +560,7 @@ describe("Test Typed Transactions", function () {
             equalsNumber(`${name}-nonce`, a.nonce, b.nonce, 0) &&
             allowNull(`${name}-to`, a.to, b.to, equalsData) &&
             equalsNumber(`${name}-value`, a.value, b.value, 0) &&
-            equalsNumber(`${name}-chainId`, a.chainId, b.chainId, 0) &&
+            equalsNumber(`${name}-networkId`, a.networkId, b.networkId, 0) &&
             equalsAccessList(`${name}-accessList`, a.accessList, b.accessList || []);
     }
     function equalsEip1559Transaction(name, a, b) {
@@ -849,7 +849,7 @@ describe("EIP-2930", function () {
             tx: {
                 hash: "0x48bff7b0e603200118a672f7c622ab7d555a28f98938edb8318803eed7ea7395",
                 type: 1,
-                chainId: 3,
+                networkId: 3,
                 nonce: 13,
                 gasPrice: ethers.BigNumber.from("0x65cf89a0"),
                 gasLimit: ethers.BigNumber.from("0x5b68"),
@@ -875,7 +875,7 @@ describe("EIP-2930", function () {
             tx: {
                 hash: "0x1675a417e728fd3562d628d06955ef35b913573d9e417eb4e6a209998499c9d3",
                 type: 1,
-                chainId: 3,
+                networkId: 3,
                 nonce: 14,
                 gasPrice: ethers.BigNumber.from("0x65cf89a0"),
                 gasLimit: ethers.BigNumber.from("0x71ac"),

@@ -281,33 +281,33 @@ export class Formatter {
             transaction.accessList = [];
         }
         const result = Formatter.check(this.formats.transaction, transaction);
-        if (transaction.chainId != null) {
-            let chainId = transaction.chainId;
-            if (isHexString(chainId)) {
-                chainId = BigNumber.from(chainId).toNumber();
+        if (transaction.networkId != null) {
+            let networkId = transaction.networkId;
+            if (isHexString(networkId)) {
+                networkId = BigNumber.from(networkId).toNumber();
             }
-            result.chainId = chainId;
+            result.networkId = networkId;
         }
         else {
-            let chainId = transaction.networkId;
-            // geth-etc returns chainId
-            if (chainId == null && result.v == null) {
-                chainId = transaction.chainId;
+            let networkId = transaction.networkId;
+            // geth-etc returns networkId
+            if (networkId == null && result.v == null) {
+                networkId = transaction.networkId;
             }
-            if (isHexString(chainId)) {
-                chainId = BigNumber.from(chainId).toNumber();
+            if (isHexString(networkId)) {
+                networkId = BigNumber.from(networkId).toNumber();
             }
-            if (typeof (chainId) !== "number" && result.v != null) {
-                chainId = (result.v - 35) / 2;
-                if (chainId < 0) {
-                    chainId = 0;
+            if (typeof (networkId) !== "number" && result.v != null) {
+                networkId = (result.v - 35) / 2;
+                if (networkId < 0) {
+                    networkId = 0;
                 }
-                chainId = parseInt(chainId);
+                networkId = parseInt(networkId);
             }
-            if (typeof (chainId) !== "number") {
-                chainId = 0;
+            if (typeof (networkId) !== "number") {
+                networkId = 0;
             }
-            result.chainId = chainId;
+            result.networkId = networkId;
         }
         // 0x0000... should actually be null
         if (result.blockHash && result.blockHash.replace(/0/g, "") === "x") {

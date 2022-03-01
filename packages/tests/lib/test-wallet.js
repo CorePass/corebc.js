@@ -182,7 +182,7 @@ describe('Test Transaction Signing and Parsing', function () {
             // Legacy signed transaction ecrecover
             assert_1.default.equal(parsedTransaction.from, ethers_1.ethers.utils.getAddress(test.accountAddress), 'computed from');
             // Legacy transaction chain ID
-            assert_1.default.equal(parsedTransaction.chainId, 0, 'parses chainId (legacy)');
+            assert_1.default.equal(parsedTransaction.networkId, 0, 'parses networkId (legacy)');
             // Legacy serializes unsigned transaction
             (function () {
                 var unsignedTx = ethers_1.ethers.utils.serializeTransaction(transaction);
@@ -193,27 +193,27 @@ describe('Test Transaction Signing and Parsing', function () {
             })();
             // EIP155
             // EIP-155 parsing unsigned transaction
-            var parsedUnsignedTransactionChainId5 = ethers_1.ethers.utils.parseTransaction(test.unsignedTransactionChainId5);
-            checkTransaction(parsedUnsignedTransactionChainId5, test);
-            assert_1.default.equal(parsedUnsignedTransactionChainId5.chainId, 5, 'parses chainId (eip155)');
+            var parsedUnsignedTransactionNetworkId5 = ethers_1.ethers.utils.parseTransaction(test.unsignedTransactionNetworkId5);
+            checkTransaction(parsedUnsignedTransactionNetworkId5, test);
+            assert_1.default.equal(parsedUnsignedTransactionNetworkId5.networkId, 5, 'parses networkId (eip155)');
             // EIP-155 fields
-            var parsedTransactionChainId5 = ethers_1.ethers.utils.parseTransaction(test.signedTransactionChainId5);
+            var parsedTransactionNetworkId5 = ethers_1.ethers.utils.parseTransaction(test.signedTransactionNetworkId5);
             ['data', 'from', 'nonce', 'to'].forEach(function (key) {
-                assert_1.default.equal(parsedTransaction[key], parsedTransactionChainId5[key], 'parses ' + key + ' (eip155)');
+                assert_1.default.equal(parsedTransaction[key], parsedTransactionNetworkId5[key], 'parses ' + key + ' (eip155)');
             });
             ['gasLimit', 'gasPrice', 'value'].forEach(function (key) {
-                assert_1.default.ok(parsedTransaction[key].eq(parsedTransactionChainId5[key]), 'parses ' + key + ' (eip155)');
+                assert_1.default.ok(parsedTransaction[key].eq(parsedTransactionNetworkId5[key]), 'parses ' + key + ' (eip155)');
             });
             // EIP-155 chain ID
-            assert_1.default.equal(parsedTransactionChainId5.chainId, 5, 'parses chainId (eip155)');
-            transaction.chainId = 5;
+            assert_1.default.equal(parsedTransactionNetworkId5.networkId, 5, 'parses networkId (eip155)');
+            transaction.networkId = 5;
             (function () {
                 // EIP-155 serialized unsigned transaction
                 var unsignedTx = ethers_1.ethers.utils.serializeTransaction(transaction);
-                assert_1.default.equal(unsignedTx, test.unsignedTransactionChainId5, 'serializes unsigned transaction (eip155) ');
+                assert_1.default.equal(unsignedTx, test.unsignedTransactionNetworkId5, 'serializes unsigned transaction (eip155) ');
                 // EIP-155 signed serialized transaction
                 var signature = signDigest(ethers_1.ethers.utils.keccak256(unsignedTx));
-                assert_1.default.equal(ethers_1.ethers.utils.serializeTransaction(transaction, signature), test.signedTransactionChainId5, 'signs transaction (eip155)');
+                assert_1.default.equal(ethers_1.ethers.utils.serializeTransaction(transaction, signature), test.signedTransactionNetworkId5, 'signs transaction (eip155)');
             })();
         });
     });
@@ -233,12 +233,12 @@ describe('Test Transaction Signing and Parsing', function () {
                                 gasPrice: test.gasPrice,
                                 value: test.value,
                                 nonce: ((test.nonce) === "0x") ? 0 : test.nonce,
-                                chainId: 5
+                                networkId: 5
                             };
                             return [4 /*yield*/, wallet.signTransaction(transaction)];
                         case 1:
                             signedTx = _a.sent();
-                            assert_1.default.equal(signedTx, test.signedTransactionChainId5);
+                            assert_1.default.equal(signedTx, test.signedTransactionNetworkId5);
                             return [2 /*return*/];
                     }
                 });

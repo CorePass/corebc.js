@@ -94,38 +94,38 @@ var Eip1193Bridge = /** @class */ (function (_super) {
                         coerce = function (value) { return value; };
                         _a = method;
                         switch (_a) {
-                            case "eth_gasPrice": return [3 /*break*/, 1];
-                            case "eth_accounts": return [3 /*break*/, 3];
-                            case "eth_blockNumber": return [3 /*break*/, 6];
-                            case "eth_chainId": return [3 /*break*/, 8];
-                            case "eth_getBalance": return [3 /*break*/, 10];
-                            case "eth_getStorageAt": return [3 /*break*/, 12];
-                            case "eth_getTransactionCount": return [3 /*break*/, 13];
-                            case "eth_getBlockTransactionCountByHash": return [3 /*break*/, 15];
-                            case "eth_getBlockTransactionCountByNumber": return [3 /*break*/, 15];
-                            case "eth_getCode": return [3 /*break*/, 17];
-                            case "eth_sendRawTransaction": return [3 /*break*/, 19];
-                            case "eth_call": return [3 /*break*/, 21];
+                            case "xcb_gasPrice": return [3 /*break*/, 1];
+                            case "xcb_accounts": return [3 /*break*/, 3];
+                            case "xcb_blockNumber": return [3 /*break*/, 6];
+                            case "xcb_networkId": return [3 /*break*/, 8];
+                            case "xcb_getBalance": return [3 /*break*/, 10];
+                            case "xcb_getStorageAt": return [3 /*break*/, 12];
+                            case "xcb_getTransactionCount": return [3 /*break*/, 13];
+                            case "xcb_getBlockTransactionCountByHash": return [3 /*break*/, 15];
+                            case "xcb_getBlockTransactionCountByNumber": return [3 /*break*/, 15];
+                            case "xcb_getCode": return [3 /*break*/, 17];
+                            case "xcb_sendRawTransaction": return [3 /*break*/, 19];
+                            case "xcb_call": return [3 /*break*/, 21];
                             case "estimateGas": return [3 /*break*/, 23];
-                            case "eth_getBlockByHash": return [3 /*break*/, 25];
-                            case "eth_getBlockByNumber": return [3 /*break*/, 25];
-                            case "eth_getTransactionByHash": return [3 /*break*/, 29];
-                            case "eth_getTransactionReceipt": return [3 /*break*/, 31];
-                            case "eth_sign": return [3 /*break*/, 33];
-                            case "eth_sendTransaction": return [3 /*break*/, 35];
-                            case "eth_getUncleCountByBlockHash": return [3 /*break*/, 37];
-                            case "eth_getUncleCountByBlockNumber": return [3 /*break*/, 37];
-                            case "eth_getTransactionByBlockHashAndIndex": return [3 /*break*/, 38];
-                            case "eth_getTransactionByBlockNumberAndIndex": return [3 /*break*/, 38];
-                            case "eth_getUncleByBlockHashAndIndex": return [3 /*break*/, 38];
-                            case "eth_getUncleByBlockNumberAndIndex": return [3 /*break*/, 38];
-                            case "eth_newFilter": return [3 /*break*/, 38];
-                            case "eth_newBlockFilter": return [3 /*break*/, 38];
-                            case "eth_newPendingTransactionFilter": return [3 /*break*/, 38];
-                            case "eth_uninstallFilter": return [3 /*break*/, 38];
-                            case "eth_getFilterChanges": return [3 /*break*/, 38];
-                            case "eth_getFilterLogs": return [3 /*break*/, 38];
-                            case "eth_getLogs": return [3 /*break*/, 38];
+                            case "xcb_getBlockByHash": return [3 /*break*/, 25];
+                            case "xcb_getBlockByNumber": return [3 /*break*/, 25];
+                            case "xcb_getTransactionByHash": return [3 /*break*/, 29];
+                            case "xcb_getTransactionReceipt": return [3 /*break*/, 31];
+                            case "xcb_sign": return [3 /*break*/, 33];
+                            case "xcb_sendTransaction": return [3 /*break*/, 35];
+                            case "xcb_getUncleCountByBlockHash": return [3 /*break*/, 37];
+                            case "xcb_getUncleCountByBlockNumber": return [3 /*break*/, 37];
+                            case "xcb_getTransactionByBlockHashAndIndex": return [3 /*break*/, 38];
+                            case "xcb_getTransactionByBlockNumberAndIndex": return [3 /*break*/, 38];
+                            case "xcb_getUncleByBlockHashAndIndex": return [3 /*break*/, 38];
+                            case "xcb_getUncleByBlockNumberAndIndex": return [3 /*break*/, 38];
+                            case "xcb_newFilter": return [3 /*break*/, 38];
+                            case "xcb_newBlockFilter": return [3 /*break*/, 38];
+                            case "xcb_newPendingTransactionFilter": return [3 /*break*/, 38];
+                            case "xcb_uninstallFilter": return [3 /*break*/, 38];
+                            case "xcb_getFilterChanges": return [3 /*break*/, 38];
+                            case "xcb_getFilterLogs": return [3 /*break*/, 38];
+                            case "xcb_getLogs": return [3 /*break*/, 38];
                         }
                         return [3 /*break*/, 39];
                     case 1: return [4 /*yield*/, this.provider.getGasPrice()];
@@ -146,7 +146,7 @@ var Eip1193Bridge = /** @class */ (function (_super) {
                     case 8: return [4 /*yield*/, this.provider.getNetwork()];
                     case 9:
                         result = _b.sent();
-                        return [2 /*return*/, result.chainId];
+                        return [2 /*return*/, result.networkId];
                     case 10: return [4 /*yield*/, this.provider.getBalance(params[0], params[1])];
                     case 11:
                         result = _b.sent();
@@ -195,7 +195,7 @@ var Eip1193Bridge = /** @class */ (function (_super) {
                     case 32: return [2 /*return*/, _b.sent()];
                     case 33:
                         if (!this.signer) {
-                            return [2 /*return*/, throwUnsupported("eth_sign requires an account")];
+                            return [2 /*return*/, throwUnsupported("xcb_sign requires an account")];
                         }
                         return [4 /*yield*/, this.signer.getAddress()];
                     case 34:
@@ -206,7 +206,7 @@ var Eip1193Bridge = /** @class */ (function (_super) {
                         return [2 /*return*/, this.signer.signMessage(ethers_1.ethers.utils.arrayify(params[1]))];
                     case 35:
                         if (!this.signer) {
-                            return [2 /*return*/, throwUnsupported("eth_sendTransaction requires an account")];
+                            return [2 /*return*/, throwUnsupported("xcb_sendTransaction requires an account")];
                         }
                         req = ethers_1.ethers.providers.JsonRpcProvider.hexlifyTransaction(params[0]);
                         return [4 /*yield*/, this.signer.sendTransaction(req)];

@@ -75,8 +75,8 @@ export declare class BaseProvider extends Provider implements EnsProvider {
      *
      *  A Promise<Network> that resolves only once the provider is ready.
      *
-     *  Sub-classes that call the super with a network without a chainId
-     *  MUST set this. Standard named networks have a known chainId.
+     *  Sub-classes that call the super with a network without a networkId
+     *  MUST set this. Standard named networks have a known networkId.
      *
      */
     constructor(network: Networkish | Promise<Network>);

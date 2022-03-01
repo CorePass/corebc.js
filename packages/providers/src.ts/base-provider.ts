@@ -625,8 +625,8 @@ export class BaseProvider extends Provider implements EnsProvider {
      *
      *  A Promise<Network> that resolves only once the provider is ready.
      *
-     *  Sub-classes that call the super with a network without a chainId
-     *  MUST set this. Standard named networks have a known chainId.
+     *  Sub-classes that call the super with a network without a networkId
+     *  MUST set this. Standard named networks have a known networkId.
      *
      */
 
@@ -961,7 +961,7 @@ export class BaseProvider extends Provider implements EnsProvider {
         // only an external call for backends which can have the underlying
         // network change spontaneously
         const currentNetwork = await this.detectNetwork();
-        if (network.chainId !== currentNetwork.chainId) {
+        if (network.networkId !== currentNetwork.networkId) {
 
             // We are allowing network changes, things can get complex fast;
             // make sure you know what you are doing if you use "any"

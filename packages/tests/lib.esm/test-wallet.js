@@ -121,7 +121,7 @@ describe('Test Transaction Signing and Parsing', function () {
             // Legacy signed transaction ecrecover
             assert.equal(parsedTransaction.from, ethers.utils.getAddress(test.accountAddress), 'computed from');
             // Legacy transaction chain ID
-            assert.equal(parsedTransaction.chainId, 0, 'parses chainId (legacy)');
+            assert.equal(parsedTransaction.networkId, 0, 'parses networkId (legacy)');
             // Legacy serializes unsigned transaction
             (function () {
                 let unsignedTx = ethers.utils.serializeTransaction(transaction);
@@ -132,27 +132,27 @@ describe('Test Transaction Signing and Parsing', function () {
             })();
             // EIP155
             // EIP-155 parsing unsigned transaction
-            let parsedUnsignedTransactionChainId5 = ethers.utils.parseTransaction(test.unsignedTransactionChainId5);
-            checkTransaction(parsedUnsignedTransactionChainId5, test);
-            assert.equal(parsedUnsignedTransactionChainId5.chainId, 5, 'parses chainId (eip155)');
+            let parsedUnsignedTransactionNetworkId5 = ethers.utils.parseTransaction(test.unsignedTransactionNetworkId5);
+            checkTransaction(parsedUnsignedTransactionNetworkId5, test);
+            assert.equal(parsedUnsignedTransactionNetworkId5.networkId, 5, 'parses networkId (eip155)');
             // EIP-155 fields
-            let parsedTransactionChainId5 = ethers.utils.parseTransaction(test.signedTransactionChainId5);
+            let parsedTransactionNetworkId5 = ethers.utils.parseTransaction(test.signedTransactionNetworkId5);
             ['data', 'from', 'nonce', 'to'].forEach((key) => {
-                assert.equal(parsedTransaction[key], parsedTransactionChainId5[key], 'parses ' + key + ' (eip155)');
+                assert.equal(parsedTransaction[key], parsedTransactionNetworkId5[key], 'parses ' + key + ' (eip155)');
             });
             ['gasLimit', 'gasPrice', 'value'].forEach((key) => {
-                assert.ok(parsedTransaction[key].eq(parsedTransactionChainId5[key]), 'parses ' + key + ' (eip155)');
+                assert.ok(parsedTransaction[key].eq(parsedTransactionNetworkId5[key]), 'parses ' + key + ' (eip155)');
             });
             // EIP-155 chain ID
-            assert.equal(parsedTransactionChainId5.chainId, 5, 'parses chainId (eip155)');
-            transaction.chainId = 5;
+            assert.equal(parsedTransactionNetworkId5.networkId, 5, 'parses networkId (eip155)');
+            transaction.networkId = 5;
             (function () {
                 // EIP-155 serialized unsigned transaction
                 let unsignedTx = ethers.utils.serializeTransaction(transaction);
-                assert.equal(unsignedTx, test.unsignedTransactionChainId5, 'serializes unsigned transaction (eip155) ');
+                assert.equal(unsignedTx, test.unsignedTransactionNetworkId5, 'serializes unsigned transaction (eip155) ');
                 // EIP-155 signed serialized transaction
                 let signature = signDigest(ethers.utils.keccak256(unsignedTx));
-                assert.equal(ethers.utils.serializeTransaction(transaction, signature), test.signedTransactionChainId5, 'signs transaction (eip155)');
+                assert.equal(ethers.utils.serializeTransaction(transaction, signature), test.signedTransactionNetworkId5, 'signs transaction (eip155)');
             })();
         });
     });
@@ -168,10 +168,10 @@ describe('Test Transaction Signing and Parsing', function () {
                     gasPrice: test.gasPrice,
                     value: test.value,
                     nonce: ((test.nonce) === "0x") ? 0 : test.nonce,
-                    chainId: 5
+                    networkId: 5
                 };
                 const signedTx = yield wallet.signTransaction(transaction);
-                assert.equal(signedTx, test.signedTransactionChainId5);
+                assert.equal(signedTx, test.signedTransactionNetworkId5);
             });
         });
     });

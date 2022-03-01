@@ -92,8 +92,8 @@ export interface SignedTransaction {
     signedTransaction: string
     unsignedTransaction: string;
 
-    signedTransactionChainId5: string
-    unsignedTransactionChainId5: string;
+    signedTransactionNetworkId5: string
+    unsignedTransactionNetworkId5: string;
 
     nonce: number;
     gasLimit: string;
@@ -118,7 +118,7 @@ export interface TypedTransaction {
         nonce: number;
         to: string;
         value: string;
-        chainId: number;
+        networkId: number;
         accessList: Array<{
             address: string,
             storageKeys: Array<string>
@@ -135,7 +135,7 @@ export interface Eip712 {
     domain: {
         name: string;
         version?: string;
-        chainId?: number;
+        networkId?: number;
         verifyingContract?: string;
         salt?: string;
     },

@@ -29,7 +29,7 @@ export interface PopulatedTransaction {
     gasPrice?: BigNumber;
     data?: string;
     value?: BigNumber;
-    chainId?: number;
+    networkId?: number;
     type?: number;
     accessList?: AccessList;
     maxFeePerGas?: BigNumber;

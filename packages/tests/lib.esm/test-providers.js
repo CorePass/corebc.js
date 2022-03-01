@@ -67,7 +67,7 @@ const blockchainData = {
                 v: 38,
                 creates: null,
                 //raw: "0xf8d2808504a817c8008303d090946fc21092da55b392b045ed78f4732bff3c580e2c880186cc6acd4b0000b864f2c298be000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000067269636d6f6f000000000000000000000000000000000000000000000000000026a01e5605197a03e3f0a168f14749168dfeefc44c9228312dacbffdcbbb13263265a0269c3e5b3558267ad91b0a887d51f9f10098771c67b82ea6cb74f29638754f54",
-                chainId: 1
+                networkId: 1
             }
         ],
         transactionReceipts: [
@@ -266,7 +266,7 @@ const blockchainData = {
                 s: "0x27efbab3e6ed30b088ce0a50533364778e101c9e52acf318daec131da64e7758",
                 v: 0,
                 creates: null,
-                chainId: 3
+                networkId: 3
             },
             {
                 hash: "0x1675a417e728fd3562d628d06955ef35b913573d9e417eb4e6a209998499c9d3",
@@ -294,7 +294,7 @@ const blockchainData = {
                 s: "0x4d32dbd9a44a2c5639b8434b823938202f75b0a8459f3fcd9f37b2495b7a66a6",
                 v: 0,
                 creates: null,
-                chainId: 3
+                networkId: 3
             },
             // London Tests (EIP-1559)
             {
@@ -317,7 +317,7 @@ const blockchainData = {
                 s: '0x03f606ad1f12af5876280a34601a4eb3919b797cf3878161e2d24b61d2609846',
                 v: 1,
                 accessList: [],
-                chainId: 3,
+                networkId: 3,
             },
         ],
         transactionReceipts: [
@@ -752,7 +752,7 @@ Object.keys(blockchainData).forEach((network) => {
             to: "0x8ba1f109551bD432803012645Ac136ddd64DBA72",
             gasPrice: 9000000000,
             gasLimit: 21000,
-            chainId: 3,
+            networkId: 3,
             value: 1,
         };
         const wallet = ethers.Wallet.createRandom();

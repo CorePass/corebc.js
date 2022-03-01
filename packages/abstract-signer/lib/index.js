@@ -57,7 +57,7 @@ var logger_1 = require("@ethersproject/logger");
 var _version_1 = require("./_version");
 var logger = new logger_1.Logger(_version_1.version);
 var allowedTransactionKeys = [
-    "accessList", "chainId", "customData", "data", "from", "gasLimit", "gasPrice", "maxFeePerGas", "maxPriorityFeePerGas", "nonce", "to", "type", "value"
+    "accessList", "networkId", "customData", "data", "from", "gasLimit", "gasPrice", "maxFeePerGas", "maxPriorityFeePerGas", "nonce", "to", "type", "value"
 ];
 var forwardErrors = [
     logger_1.Logger.errors.INSUFFICIENT_FUNDS,
@@ -154,17 +154,17 @@ var Signer = /** @class */ (function () {
             });
         });
     };
-    Signer.prototype.getChainId = function () {
+    Signer.prototype.getNetworkId = function () {
         return __awaiter(this, void 0, void 0, function () {
             var network;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        this._checkProvider("getChainId");
+                        this._checkProvider("getNetworkId");
                         return [4 /*yield*/, this.provider.getNetwork()];
                     case 1:
                         network = _a.sent();
-                        return [2 /*return*/, network.chainId];
+                        return [2 /*return*/, network.networkId];
                 }
             });
         });
@@ -368,16 +368,16 @@ var Signer = /** @class */ (function () {
                                 });
                             });
                         }
-                        if (tx.chainId == null) {
-                            tx.chainId = this.getChainId();
+                        if (tx.networkId == null) {
+                            tx.networkId = this.getNetworkId();
                         }
                         else {
-                            tx.chainId = Promise.all([
-                                Promise.resolve(tx.chainId),
-                                this.getChainId()
+                            tx.networkId = Promise.all([
+                                Promise.resolve(tx.networkId),
+                                this.getNetworkId()
                             ]).then(function (results) {
                                 if (results[1] !== 0 && results[0] !== results[1]) {
-                                    logger.throwArgumentError("chainId address mismatch", "transaction", transaction);
+                                    logger.throwArgumentError("networkId address mismatch", "transaction", transaction);
                                 }
                                 return results[0];
                             });

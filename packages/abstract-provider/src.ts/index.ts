@@ -25,7 +25,7 @@ export type TransactionRequest = {
 
     data?: BytesLike,
     value?: BigNumberish,
-    chainId?: number
+    networkId?: number
 
     type?: number;
     accessList?: AccessListish;

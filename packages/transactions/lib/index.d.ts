@@ -17,7 +17,7 @@ export declare type UnsignedTransaction = {
     gasPrice?: BigNumberish;
     data?: BytesLike;
     value?: BigNumberish;
-    chainId?: number;
+    networkId?: number;
     type?: number | null;
     accessList?: AccessListish;
     maxPriorityFeePerGas?: BigNumberish;
@@ -32,7 +32,7 @@ export interface Transaction {
     gasPrice?: BigNumber;
     data: string;
     value: BigNumber;
-    chainId: number;
+    networkId: number;
     r?: string;
     s?: string;
     v?: number;

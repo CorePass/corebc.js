@@ -339,7 +339,7 @@ var Interface = /** @class */ (function () {
             this._encodeParams(functionFragment.inputs, values || [])
         ]));
     };
-    // Decode the result from a function call (e.g. from eth_call)
+    // Decode the result from a function call (e.g. from xcb_call)
     Interface.prototype.decodeFunctionResult = function (functionFragment, data) {
         if (typeof (functionFragment) === "string") {
             functionFragment = this.getFunction(functionFragment);
@@ -389,14 +389,14 @@ var Interface = /** @class */ (function () {
             reason: reason
         });
     };
-    // Encode the result for a function call (e.g. for eth_call)
+    // Encode the result for a function call (e.g. for xcb_call)
     Interface.prototype.encodeFunctionResult = function (functionFragment, values) {
         if (typeof (functionFragment) === "string") {
             functionFragment = this.getFunction(functionFragment);
         }
         return (0, bytes_1.hexlify)(this._abiCoder.encode(functionFragment.outputs, values || []));
     };
-    // Create the filter for the event with search criteria (e.g. for eth_filterLog)
+    // Create the filter for the event with search criteria (e.g. for xcb_filterLog)
     Interface.prototype.encodeFilterTopics = function (eventFragment, values) {
         var _this = this;
         if (typeof (eventFragment) === "string") {

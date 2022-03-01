@@ -185,7 +185,7 @@ var LedgerSigner = /** @class */ (function (_super) {
                     case 1:
                         tx = _a.sent();
                         baseTx = {
-                            chainId: (tx.chainId || undefined),
+                            networkId: (tx.networkId || undefined),
                             data: (tx.data || undefined),
                             gasLimit: (tx.gasLimit || undefined),
                             gasPrice: (tx.gasPrice || undefined),

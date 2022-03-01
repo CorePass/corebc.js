@@ -40,11 +40,11 @@ export class Eip1193Bridge extends EventEmitter {
             }
             let coerce = (value) => value;
             switch (method) {
-                case "eth_gasPrice": {
+                case "xcb_gasPrice": {
                     const result = yield this.provider.getGasPrice();
                     return result.toHexString();
                 }
-                case "eth_accounts": {
+                case "xcb_accounts": {
                     const result = [];
                     if (this.signer) {
                         const address = yield this.signer.getAddress();
@@ -52,37 +52,37 @@ export class Eip1193Bridge extends EventEmitter {
                     }
                     return result;
                 }
-                case "eth_blockNumber": {
+                case "xcb_blockNumber": {
                     return yield this.provider.getBlockNumber();
                 }
-                case "eth_chainId": {
+                case "xcb_networkId": {
                     const result = yield this.provider.getNetwork();
-                    return result.chainId;
+                    return result.networkId;
                 }
-                case "eth_getBalance": {
+                case "xcb_getBalance": {
                     const result = yield this.provider.getBalance(params[0], params[1]);
                     return result.toHexString();
                 }
-                case "eth_getStorageAt": {
+                case "xcb_getStorageAt": {
                     return this.provider.getStorageAt(params[0], params[1], params[2]);
                 }
-                case "eth_getTransactionCount": {
+                case "xcb_getTransactionCount": {
                     const result = yield this.provider.getTransactionCount(params[0], params[1]);
                     return ethers.utils.hexValue(result);
                 }
-                case "eth_getBlockTransactionCountByHash":
-                case "eth_getBlockTransactionCountByNumber": {
+                case "xcb_getBlockTransactionCountByHash":
+                case "xcb_getBlockTransactionCountByNumber": {
                     const result = yield this.provider.getBlock(params[0]);
                     return ethers.utils.hexValue(result.transactions.length);
                 }
-                case "eth_getCode": {
+                case "xcb_getCode": {
                     const result = yield this.provider.getBlock(params[0]);
                     return result;
                 }
-                case "eth_sendRawTransaction": {
+                case "xcb_sendRawTransaction": {
                     return yield this.provider.sendTransaction(params[0]);
                 }
-                case "eth_call": {
+                case "xcb_call": {
                     const req = ethers.providers.JsonRpcProvider.hexlifyTransaction(params[0]);
                     return yield this.provider.call(req, params[1]);
                 }
@@ -95,8 +95,8 @@ export class Eip1193Bridge extends EventEmitter {
                     return result.toHexString();
                 }
                 // @TODO: Transform? No uncles?
-                case "eth_getBlockByHash":
-                case "eth_getBlockByNumber": {
+                case "xcb_getBlockByHash":
+                case "xcb_getBlockByNumber": {
                     if (params[1]) {
                         return yield this.provider.getBlockWithTransactions(params[0]);
                     }
@@ -104,15 +104,15 @@ export class Eip1193Bridge extends EventEmitter {
                         return yield this.provider.getBlock(params[0]);
                     }
                 }
-                case "eth_getTransactionByHash": {
+                case "xcb_getTransactionByHash": {
                     return yield this.provider.getTransaction(params[0]);
                 }
-                case "eth_getTransactionReceipt": {
+                case "xcb_getTransactionReceipt": {
                     return yield this.provider.getTransactionReceipt(params[0]);
                 }
-                case "eth_sign": {
+                case "xcb_sign": {
                     if (!this.signer) {
-                        return throwUnsupported("eth_sign requires an account");
+                        return throwUnsupported("xcb_sign requires an account");
                     }
                     const address = yield this.signer.getAddress();
                     if (address !== ethers.utils.getAddress(params[0])) {
@@ -120,31 +120,31 @@ export class Eip1193Bridge extends EventEmitter {
                     }
                     return this.signer.signMessage(ethers.utils.arrayify(params[1]));
                 }
-                case "eth_sendTransaction": {
+                case "xcb_sendTransaction": {
                     if (!this.signer) {
-                        return throwUnsupported("eth_sendTransaction requires an account");
+                        return throwUnsupported("xcb_sendTransaction requires an account");
                     }
                     const req = ethers.providers.JsonRpcProvider.hexlifyTransaction(params[0]);
                     const tx = yield this.signer.sendTransaction(req);
                     return tx.hash;
                 }
-                case "eth_getUncleCountByBlockHash":
-                case "eth_getUncleCountByBlockNumber":
+                case "xcb_getUncleCountByBlockHash":
+                case "xcb_getUncleCountByBlockNumber":
                     {
                         coerce = ethers.utils.hexValue;
                         break;
                     }
-                case "eth_getTransactionByBlockHashAndIndex":
-                case "eth_getTransactionByBlockNumberAndIndex":
-                case "eth_getUncleByBlockHashAndIndex":
-                case "eth_getUncleByBlockNumberAndIndex":
-                case "eth_newFilter":
-                case "eth_newBlockFilter":
-                case "eth_newPendingTransactionFilter":
-                case "eth_uninstallFilter":
-                case "eth_getFilterChanges":
-                case "eth_getFilterLogs":
-                case "eth_getLogs":
+                case "xcb_getTransactionByBlockHashAndIndex":
+                case "xcb_getTransactionByBlockNumberAndIndex":
+                case "xcb_getUncleByBlockHashAndIndex":
+                case "xcb_getUncleByBlockNumberAndIndex":
+                case "xcb_newFilter":
+                case "xcb_newBlockFilter":
+                case "xcb_newPendingTransactionFilter":
+                case "xcb_uninstallFilter":
+                case "xcb_getFilterChanges":
+                case "xcb_getFilterLogs":
+                case "xcb_getLogs":
                     break;
             }
             // If our provider supports send, maybe it can do a better job?

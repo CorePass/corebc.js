@@ -508,8 +508,8 @@ export class BaseProvider extends Provider {
      *
      *  A Promise<Network> that resolves only once the provider is ready.
      *
-     *  Sub-classes that call the super with a network without a chainId
-     *  MUST set this. Standard named networks have a known chainId.
+     *  Sub-classes that call the super with a network without a networkId
+     *  MUST set this. Standard named networks have a known networkId.
      *
      */
     constructor(network) {
@@ -807,7 +807,7 @@ export class BaseProvider extends Provider {
             // only an external call for backends which can have the underlying
             // network change spontaneously
             const currentNetwork = yield this.detectNetwork();
-            if (network.chainId !== currentNetwork.chainId) {
+            if (network.networkId !== currentNetwork.networkId) {
                 // We are allowing network changes, things can get complex fast;
                 // make sure you know what you are doing if you use "any"
                 if (this.anyNetwork) {

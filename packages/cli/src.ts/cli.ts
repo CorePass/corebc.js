@@ -202,7 +202,7 @@ class WrappedSigner extends ethers.Signer {
         info["Data"] = tx.data;
         info["Gas Limit"] = ethers.BigNumber.from(tx.gasLimit || 0).toString();
         info["Gas Price"] = (ethers.utils.formatUnits(tx.gasPrice || 0, "gwei") + " gwei"),
-        info["Chain ID"] = (tx.chainId || 0);
+        info["Chain ID"] = (tx.networkId || 0);
         info["Network"] = network.name;
 
         dump("Transaction:", info);
@@ -240,7 +240,7 @@ class WrappedSigner extends ethers.Signer {
         info["Data"] = tx.data;
         info["Gas Limit"] = ethers.BigNumber.from(tx.gasLimit || 0).toString();
         info["Gas Price"] = (ethers.utils.formatUnits(tx.gasPrice || 0, "gwei") + " gwei"),
-        info["Chain ID"] = (tx.chainId || 0);
+        info["Chain ID"] = (tx.networkId || 0);
         info["Network"] = network.name;
 
         dump("Transaction:", info);
@@ -655,7 +655,7 @@ export abstract class Plugin {
             ethers.utils.defineReadOnly(this, "network", Object.freeze(network));
         }, (error) => {
             ethers.utils.defineReadOnly(this, "network", Object.freeze({
-                chainId: 0,
+                networkId: 0,
                 name: "no-network"
             }));
         }));

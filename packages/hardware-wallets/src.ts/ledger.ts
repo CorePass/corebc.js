@@ -96,7 +96,7 @@ export class LedgerSigner extends ethers.Signer {
     async signTransaction(transaction: ethers.providers.TransactionRequest): Promise<string> {
         const tx = await ethers.utils.resolveProperties(transaction);
         const baseTx: ethers.utils.UnsignedTransaction = {
-            chainId: (tx.chainId || undefined),
+            networkId: (tx.networkId || undefined),
             data: (tx.data || undefined),
             gasLimit: (tx.gasLimit || undefined),
             gasPrice: (tx.gasPrice || undefined),
