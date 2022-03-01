@@ -21391,7 +21391,7 @@ class CloudflareProvider extends UrlJsonRpcProvider {
             perform: { get: () => super.perform }
         });
         return __awaiter$d(this, void 0, void 0, function* () {
-            // The Cloudflare provider does not support eth_blockNumber,
+            // The Cloudflare provider does not support xcb_blockNumber,
             // so we get the latest block and pull it from that
             if (method === "getBlockNumber") {
                 const block = yield _super.perform.call(this, "getBlock", { blockTag: "latest" });
@@ -21643,9 +21643,9 @@ class EtherscanProvider extends BaseProvider {
         return __awaiter$e(this, void 0, void 0, function* () {
             switch (method) {
                 case "getBlockNumber":
-                    return this.fetch("proxy", { action: "eth_blockNumber" });
+                    return this.fetch("proxy", { action: "xcb_blockNumber" });
                 case "getGasPrice":
-                    return this.fetch("proxy", { action: "eth_gasPrice" });
+                    return this.fetch("proxy", { action: "xcb_gasPrice" });
                 case "getBalance":
                     // Returns base-10 result
                     return this.fetch("account", {
@@ -21655,26 +21655,26 @@ class EtherscanProvider extends BaseProvider {
                     });
                 case "getTransactionCount":
                     return this.fetch("proxy", {
-                        action: "eth_getTransactionCount",
+                        action: "xcb_getTransactionCount",
                         address: params.address,
                         tag: params.blockTag
                     });
                 case "getCode":
                     return this.fetch("proxy", {
-                        action: "eth_getCode",
+                        action: "xcb_getCode",
                         address: params.address,
                         tag: params.blockTag
                     });
                 case "getStorageAt":
                     return this.fetch("proxy", {
-                        action: "eth_getStorageAt",
+                        action: "xcb_getStorageAt",
                         address: params.address,
                         position: params.position,
                         tag: params.blockTag
                     });
                 case "sendTransaction":
                     return this.fetch("proxy", {
-                        action: "eth_sendRawTransaction",
+                        action: "xcb_sendRawTransaction",
                         hex: params.signedTransaction
                     }, true).catch((error) => {
                         return checkError$1("sendTransaction", error, params.signedTransaction);
@@ -21682,7 +21682,7 @@ class EtherscanProvider extends BaseProvider {
                 case "getBlock":
                     if (params.blockTag) {
                         return this.fetch("proxy", {
-                            action: "eth_getBlockByNumber",
+                            action: "xcb_getBlockByNumber",
                             tag: params.blockTag,
                             boolean: (params.includeTransactions ? "true" : "false")
                         });
@@ -21690,12 +21690,12 @@ class EtherscanProvider extends BaseProvider {
                     throw new Error("getBlock by blockHash not implemented");
                 case "getTransaction":
                     return this.fetch("proxy", {
-                        action: "eth_getTransactionByHash",
+                        action: "xcb_getTransactionByHash",
                         txhash: params.transactionHash
                     });
                 case "getTransactionReceipt":
                     return this.fetch("proxy", {
-                        action: "eth_getTransactionReceipt",
+                        action: "xcb_getTransactionReceipt",
                         txhash: params.transactionHash
                     });
                 case "call": {
@@ -21704,7 +21704,7 @@ class EtherscanProvider extends BaseProvider {
                     }
                     const postData = getTransactionPostData(params.transaction);
                     postData.module = "proxy";
-                    postData.action = "eth_call";
+                    postData.action = "xcb_call";
                     try {
                         return yield this.fetch("proxy", postData, true);
                     }
@@ -21715,7 +21715,7 @@ class EtherscanProvider extends BaseProvider {
                 case "estimateGas": {
                     const postData = getTransactionPostData(params.transaction);
                     postData.module = "proxy";
-                    postData.action = "eth_estimateGas";
+                    postData.action = "xcb_estimateGas";
                     try {
                         return yield this.fetch("proxy", postData, true);
                     }

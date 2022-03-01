@@ -24896,8 +24896,8 @@
 	                            case "getEtherPrice": return [3 /*break*/, 26];
 	                        }
 	                        return [3 /*break*/, 28];
-	                    case 1: return [2 /*return*/, this.fetch("proxy", { action: "eth_blockNumber" })];
-	                    case 2: return [2 /*return*/, this.fetch("proxy", { action: "eth_gasPrice" })];
+	                    case 1: return [2 /*return*/, this.fetch("proxy", { action: "xcb_blockNumber" })];
+	                    case 2: return [2 /*return*/, this.fetch("proxy", { action: "xcb_gasPrice" })];
 	                    case 3: 
 	                    // Returns base-10 result
 	                    return [2 /*return*/, this.fetch("account", {
@@ -24906,23 +24906,23 @@
 	                            tag: params.blockTag
 	                        })];
 	                    case 4: return [2 /*return*/, this.fetch("proxy", {
-	                            action: "eth_getTransactionCount",
+	                            action: "xcb_getTransactionCount",
 	                            address: params.address,
 	                            tag: params.blockTag
 	                        })];
 	                    case 5: return [2 /*return*/, this.fetch("proxy", {
-	                            action: "eth_getCode",
+	                            action: "xcb_getCode",
 	                            address: params.address,
 	                            tag: params.blockTag
 	                        })];
 	                    case 6: return [2 /*return*/, this.fetch("proxy", {
-	                            action: "eth_getStorageAt",
+	                            action: "xcb_getStorageAt",
 	                            address: params.address,
 	                            position: params.position,
 	                            tag: params.blockTag
 	                        })];
 	                    case 7: return [2 /*return*/, this.fetch("proxy", {
-	                            action: "eth_sendRawTransaction",
+	                            action: "xcb_sendRawTransaction",
 	                            hex: params.signedTransaction
 	                        }, true).catch(function (error) {
 	                            return checkError("sendTransaction", error, params.signedTransaction);
@@ -24930,18 +24930,18 @@
 	                    case 8:
 	                        if (params.blockTag) {
 	                            return [2 /*return*/, this.fetch("proxy", {
-	                                    action: "eth_getBlockByNumber",
+	                                    action: "xcb_getBlockByNumber",
 	                                    tag: params.blockTag,
 	                                    boolean: (params.includeTransactions ? "true" : "false")
 	                                })];
 	                        }
 	                        throw new Error("getBlock by blockHash not implemented");
 	                    case 9: return [2 /*return*/, this.fetch("proxy", {
-	                            action: "eth_getTransactionByHash",
+	                            action: "xcb_getTransactionByHash",
 	                            txhash: params.transactionHash
 	                        })];
 	                    case 10: return [2 /*return*/, this.fetch("proxy", {
-	                            action: "eth_getTransactionReceipt",
+	                            action: "xcb_getTransactionReceipt",
 	                            txhash: params.transactionHash
 	                        })];
 	                    case 11:
@@ -24950,7 +24950,7 @@
 	                        }
 	                        postData = getTransactionPostData(params.transaction);
 	                        postData.module = "proxy";
-	                        postData.action = "eth_call";
+	                        postData.action = "xcb_call";
 	                        _c.label = 12;
 	                    case 12:
 	                        _c.trys.push([12, 14, , 15]);
@@ -24962,7 +24962,7 @@
 	                    case 15:
 	                        postData = getTransactionPostData(params.transaction);
 	                        postData.module = "proxy";
-	                        postData.action = "eth_estimateGas";
+	                        postData.action = "xcb_estimateGas";
 	                        _c.label = 16;
 	                    case 16:
 	                        _c.trys.push([16, 18, , 19]);
