@@ -13,23 +13,23 @@ export declare enum TransactionTypes {
 export declare type UnsignedTransaction = {
     to?: string;
     nonce?: number;
-    gasLimit?: BigNumberish;
-    gasPrice?: BigNumberish;
+    energyLimit?: BigNumberish;
+    energyPrice?: BigNumberish;
     data?: BytesLike;
     value?: BigNumberish;
     networkId?: number;
     type?: number | null;
     accessList?: AccessListish;
-    maxPriorityFeePerGas?: BigNumberish;
-    maxFeePerGas?: BigNumberish;
+    maxPriorityFeePerEnergy?: BigNumberish;
+    maxFeePerEnergy?: BigNumberish;
 };
 export interface Transaction {
     hash?: string;
     to?: string;
     from?: string;
     nonce: number;
-    gasLimit: BigNumber;
-    gasPrice?: BigNumber;
+    energyLimit: BigNumber;
+    energyPrice?: BigNumber;
     data: string;
     value: BigNumber;
     networkId: number;
@@ -38,8 +38,8 @@ export interface Transaction {
     v?: number;
     type?: number | null;
     accessList?: AccessList;
-    maxPriorityFeePerGas?: BigNumber;
-    maxFeePerGas?: BigNumber;
+    maxPriorityFeePerEnergy?: BigNumber;
+    maxFeePerEnergy?: BigNumber;
 }
 export declare function computeAddress(key: BytesLike | string): string;
 export declare function recoverAddress(digest: BytesLike, signature: SignatureLike): string;

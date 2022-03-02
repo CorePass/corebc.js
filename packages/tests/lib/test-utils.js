@@ -606,7 +606,7 @@ describe("Test Typed Transactions", function () {
     function equalsCommonTransaction(name, a, b) {
         return equalsNumber(name + "-type", a.type, b.type, 0) &&
             equalsData(name + "-data", a.data, b.data, "0x") &&
-            equalsNumber(name + "-gasLimit", a.gasLimit, b.gasLimit, 0) &&
+            equalsNumber(name + "-energyLimit", a.energyLimit, b.energyLimit, 0) &&
             equalsNumber(name + "-nonce", a.nonce, b.nonce, 0) &&
             allowNull(name + "-to", a.to, b.to, equalsData) &&
             equalsNumber(name + "-value", a.value, b.value, 0) &&
@@ -614,12 +614,12 @@ describe("Test Typed Transactions", function () {
             equalsAccessList(name + "-accessList", a.accessList, b.accessList || []);
     }
     function equalsEip1559Transaction(name, a, b) {
-        return equalsNumber(name + "-maxPriorityFeePerGas", a.maxPriorityFeePerGas, b.maxPriorityFeePerGas, 0) &&
-            equalsNumber(name + "-maxFeePerGas", a.maxFeePerGas, b.maxFeePerGas, 0) &&
+        return equalsNumber(name + "-maxPriorityFeePerEnergy", a.maxPriorityFeePerEnergy, b.maxPriorityFeePerEnergy, 0) &&
+            equalsNumber(name + "-maxFeePerEnergy", a.maxFeePerEnergy, b.maxFeePerEnergy, 0) &&
             equalsCommonTransaction(name, a, b);
     }
     function equalsEip2930Transaction(name, a, b) {
-        return equalsNumber(name + "-gasPrice", a.gasPrice, b.gasPrice, 0) &&
+        return equalsNumber(name + "-energyPrice", a.energyPrice, b.energyPrice, 0) &&
             equalsCommonTransaction(name, a, b);
     }
     function equalsTransaction(name, a, b) {
@@ -917,8 +917,8 @@ describe("EIP-2930", function () {
                 type: 1,
                 networkId: 3,
                 nonce: 13,
-                gasPrice: ethers_1.ethers.BigNumber.from("0x65cf89a0"),
-                gasLimit: ethers_1.ethers.BigNumber.from("0x5b68"),
+                energyPrice: ethers_1.ethers.BigNumber.from("0x65cf89a0"),
+                energyLimit: ethers_1.ethers.BigNumber.from("0x5b68"),
                 to: "0x32162F3581E88a5f62e8A61892B42C46E2c18f7b",
                 value: ethers_1.ethers.BigNumber.from("0"),
                 data: "0x",
@@ -943,8 +943,8 @@ describe("EIP-2930", function () {
                 type: 1,
                 networkId: 3,
                 nonce: 14,
-                gasPrice: ethers_1.ethers.BigNumber.from("0x65cf89a0"),
-                gasLimit: ethers_1.ethers.BigNumber.from("0x71ac"),
+                energyPrice: ethers_1.ethers.BigNumber.from("0x65cf89a0"),
+                energyLimit: ethers_1.ethers.BigNumber.from("0x71ac"),
                 to: "0x32162F3581E88a5f62e8A61892B42C46E2c18f7b",
                 value: ethers_1.ethers.BigNumber.from("0"),
                 data: "0x",

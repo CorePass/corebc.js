@@ -462,22 +462,22 @@ class SweepPlugin extends Plugin {
     }
     run() {
         return __awaiter(this, void 0, void 0, function* () {
-            let { balance, gasPrice, code } = yield ethers.utils.resolveProperties({
+            let { balance, energyPrice, code } = yield ethers.utils.resolveProperties({
                 balance: this.provider.getBalance(this.accounts[0].getAddress()),
-                gasPrice: (this.gasPrice || this.provider.getGasPrice()),
+                energyPrice: (this.energyPrice || this.provider.getEnergyPrice()),
                 code: this.provider.getCode(this.toAddress)
             });
             if (code !== "0x") {
                 this.throwError("Cannot sweep to a contract address");
             }
-            let maxSpendable = balance.sub(gasPrice.mul(21000));
+            let maxSpendable = balance.sub(energyPrice.mul(21000));
             if (maxSpendable.lte(0)) {
                 this.throwError("Insufficient funds to sweep");
             }
             yield this.accounts[0].sendTransaction({
                 to: this.toAddress,
-                gasLimit: 21000,
-                gasPrice: gasPrice,
+                energyLimit: 21000,
+                energyPrice: energyPrice,
                 value: maxSpendable
             });
         });

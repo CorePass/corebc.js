@@ -187,8 +187,8 @@ var LedgerSigner = /** @class */ (function (_super) {
                         baseTx = {
                             networkId: (tx.networkId || undefined),
                             data: (tx.data || undefined),
-                            gasLimit: (tx.gasLimit || undefined),
-                            gasPrice: (tx.gasPrice || undefined),
+                            energyLimit: (tx.energyLimit || undefined),
+                            energyPrice: (tx.energyPrice || undefined),
                             nonce: (tx.nonce ? ethers_1.ethers.BigNumber.from(tx.nonce).toNumber() : undefined),
                             to: (tx.to || undefined),
                             value: (tx.value || undefined),

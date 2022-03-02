@@ -43,8 +43,8 @@ export declare abstract class Plugin {
     mnemonicPassword: boolean;
     mnemonicPath: string;
     _xxxMnemonicPasswordHard: boolean;
-    gasLimit: ethers.BigNumber;
-    gasPrice: ethers.BigNumber;
+    energyLimit: ethers.BigNumber;
+    energyPrice: ethers.BigNumber;
     nonce: number;
     yes: boolean;
     wait: boolean;

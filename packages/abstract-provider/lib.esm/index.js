@@ -76,23 +76,23 @@ export class Provider {
     }
     getFeeData() {
         return __awaiter(this, void 0, void 0, function* () {
-            const { block, gasPrice } = yield resolveProperties({
+            const { block, energyPrice } = yield resolveProperties({
                 block: this.getBlock("latest"),
-                gasPrice: this.getGasPrice().catch((error) => {
+                energyPrice: this.getEnergyPrice().catch((error) => {
                     // @TODO: Why is this now failing on Calaveras?
                     //console.log(error);
                     return null;
                 })
             });
-            let maxFeePerGas = null, maxPriorityFeePerGas = null;
-            if (block && block.baseFeePerGas) {
+            let maxFeePerEnergy = null, maxPriorityFeePerEnergy = null;
+            if (block && block.baseFeePerEnergy) {
                 // We may want to compute this more accurately in the future,
                 // using the formula "check if the base fee is correct".
                 // See: https://eips.ethereum.org/EIPS/eip-1559
-                maxPriorityFeePerGas = BigNumber.from("2500000000");
-                maxFeePerGas = block.baseFeePerGas.mul(2).add(maxPriorityFeePerGas);
+                maxPriorityFeePerEnergy = BigNumber.from("2500000000");
+                maxFeePerEnergy = block.baseFeePerEnergy.mul(2).add(maxPriorityFeePerEnergy);
             }
-            return { maxFeePerGas, maxPriorityFeePerGas, gasPrice };
+            return { maxFeePerEnergy, maxPriorityFeePerEnergy, energyPrice };
         });
     }
     // Alias for "on"

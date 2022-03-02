@@ -15,10 +15,10 @@ import { version } from "./_version";
 const logger = new Logger(version);
 
 export interface Overrides {
-    gasLimit?: BigNumberish | Promise<BigNumberish>;
-    gasPrice?: BigNumberish | Promise<BigNumberish>;
-    maxFeePerGas?: BigNumberish | Promise<BigNumberish>;
-    maxPriorityFeePerGas?: BigNumberish | Promise<BigNumberish>;
+    energyLimit?: BigNumberish | Promise<BigNumberish>;
+    energyPrice?: BigNumberish | Promise<BigNumberish>;
+    maxFeePerEnergy?: BigNumberish | Promise<BigNumberish>;
+    maxPriorityFeePerEnergy?: BigNumberish | Promise<BigNumberish>;
     nonce?: BigNumberish | Promise<BigNumberish>;
     type?: number;
     accessList?: AccessListish;
@@ -44,8 +44,8 @@ export interface PopulatedTransaction {
     from?: string;
     nonce?: number;
 
-    gasLimit?: BigNumber;
-    gasPrice?: BigNumber;
+    energyLimit?: BigNumber;
+    energyPrice?: BigNumber;
 
     data?: string;
     value?: BigNumber;
@@ -54,8 +54,8 @@ export interface PopulatedTransaction {
     type?: number;
     accessList?: AccessList;
 
-    maxFeePerGas?: BigNumber;
-    maxPriorityFeePerGas?: BigNumber;
+    maxFeePerEnergy?: BigNumber;
+    maxPriorityFeePerEnergy?: BigNumber;
 
     customData?: Record<string, any>;
 };
@@ -107,9 +107,9 @@ export interface ContractTransaction extends TransactionResponse {
 ///////////////////////////////
 
 const allowedTransactionKeys: { [ key: string ]: boolean } = {
-    networkId: true, data: true, from: true, gasLimit: true, gasPrice:true, nonce: true, to: true, value: true,
+    networkId: true, data: true, from: true, energyLimit: true, energyPrice:true, nonce: true, to: true, value: true,
     type: true, accessList: true,
-    maxFeePerGas: true, maxPriorityFeePerGas: true,
+    maxFeePerEnergy: true, maxPriorityFeePerEnergy: true,
     customData: true
 }
 
@@ -233,18 +233,18 @@ async function populateTransaction(contract: Contract, fragment: FunctionFragmen
 
     // Populate simple overrides
     if (ro.nonce != null) { tx.nonce = BigNumber.from(ro.nonce).toNumber(); }
-    if (ro.gasLimit != null) { tx.gasLimit = BigNumber.from(ro.gasLimit); }
-    if (ro.gasPrice != null) { tx.gasPrice = BigNumber.from(ro.gasPrice); }
-    if (ro.maxFeePerGas != null) { tx.maxFeePerGas = BigNumber.from(ro.maxFeePerGas); }
-    if (ro.maxPriorityFeePerGas != null) { tx.maxPriorityFeePerGas = BigNumber.from(ro.maxPriorityFeePerGas); }
+    if (ro.energyLimit != null) { tx.energyLimit = BigNumber.from(ro.energyLimit); }
+    if (ro.energyPrice != null) { tx.energyPrice = BigNumber.from(ro.energyPrice); }
+    if (ro.maxFeePerEnergy != null) { tx.maxFeePerEnergy = BigNumber.from(ro.maxFeePerEnergy); }
+    if (ro.maxPriorityFeePerEnergy != null) { tx.maxPriorityFeePerEnergy = BigNumber.from(ro.maxPriorityFeePerEnergy); }
     if (ro.from != null) { tx.from = ro.from; }
 
     if (ro.type != null) { tx.type = ro.type; }
     if (ro.accessList != null) { tx.accessList = accessListify(ro.accessList); }
 
-    // If there was no "gasLimit" override, but the ABI specifies a default, use it
-    if (tx.gasLimit == null && fragment.gas != null) {
-        // Compute the intrinsic gas cost for this transaction
+    // If there was no "energyLimit" override, but the ABI specifies a default, use it
+    if (tx.energyLimit == null && fragment.energy != null) {
+        // Compute the intrinsic energy cost for this transaction
         // @TODO: This is based on the yellow paper as of Petersburg; this is something
         // we may wish to parameterize in v6 as part of the Network object. Since this
         // is always a non-nil to address, we can ignore G_create, but may wish to add
@@ -255,7 +255,7 @@ async function populateTransaction(contract: Contract, fragment: FunctionFragmen
             intrinsic += 4;
             if (bytes[i]) { intrinsic += 64; }
         }
-        tx.gasLimit = BigNumber.from(fragment.gas).add(intrinsic);
+        tx.energyLimit = BigNumber.from(fragment.energy).add(intrinsic);
     }
 
     // Populate "value" override
@@ -276,16 +276,16 @@ async function populateTransaction(contract: Contract, fragment: FunctionFragmen
 
     // Remove the overrides
     delete overrides.nonce;
-    delete overrides.gasLimit;
-    delete overrides.gasPrice;
+    delete overrides.energyLimit;
+    delete overrides.energyPrice;
     delete overrides.from;
     delete overrides.value;
 
     delete overrides.type;
     delete overrides.accessList;
 
-    delete overrides.maxFeePerGas;
-    delete overrides.maxPriorityFeePerGas;
+    delete overrides.maxFeePerEnergy;
+    delete overrides.maxPriorityFeePerEnergy;
 
     delete overrides.customData;
 
@@ -314,12 +314,12 @@ function buildEstimate(contract: Contract, fragment: FunctionFragment): Contract
     return async function(...args: Array<any>): Promise<BigNumber> {
         if (!signerOrProvider) {
             logger.throwError("estimate require a provider or signer", Logger.errors.UNSUPPORTED_OPERATION, {
-                operation: "estimateGas"
+                operation: "estimateEnergy"
             })
         }
 
         const tx = await populateTransaction(contract, fragment, args);
-        return await signerOrProvider.estimateGas(tx);
+        return await signerOrProvider.estimateEnergy(tx);
     };
 }
 
@@ -628,7 +628,7 @@ export class BaseContract {
     readonly functions: { [ name: string ]: ContractFunction };
 
     readonly callStatic: { [ name: string ]: ContractFunction };
-    readonly estimateGas: { [ name: string ]: ContractFunction<BigNumber> };
+    readonly estimateEnergy: { [ name: string ]: ContractFunction<BigNumber> };
     readonly populateTransaction: { [ name: string ]: ContractFunction<PopulatedTransaction> };
 
     readonly filters: { [ name: string ]: (...args: Array<any>) => EventFilter };
@@ -669,7 +669,7 @@ export class BaseContract {
         }
 
         defineReadOnly(this, "callStatic", { });
-        defineReadOnly(this, "estimateGas", { });
+        defineReadOnly(this, "estimateEnergy", { });
         defineReadOnly(this, "functions", { });
         defineReadOnly(this, "populateTransaction", { });
 
@@ -760,8 +760,8 @@ export class BaseContract {
                 defineReadOnly(this.populateTransaction, signature, buildPopulate(this, fragment));
             }
 
-            if (this.estimateGas[signature] == null) {
-                defineReadOnly(this.estimateGas, signature, buildEstimate(this, fragment));
+            if (this.estimateEnergy[signature] == null) {
+                defineReadOnly(this.estimateEnergy, signature, buildEstimate(this, fragment));
             }
         });
 
@@ -794,8 +794,8 @@ export class BaseContract {
                 defineReadOnly(this.populateTransaction, name, this.populateTransaction[signature]);
             }
 
-            if (this.estimateGas[name] == null) {
-                defineReadOnly(this.estimateGas, name, this.estimateGas[signature]);
+            if (this.estimateEnergy[name] == null) {
+                defineReadOnly(this.estimateEnergy, name, this.estimateEnergy[signature]);
             }
         });
     }

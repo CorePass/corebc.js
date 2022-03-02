@@ -94,7 +94,7 @@ var Eip1193Bridge = /** @class */ (function (_super) {
                         coerce = function (value) { return value; };
                         _a = method;
                         switch (_a) {
-                            case "xcb_gasPrice": return [3 /*break*/, 1];
+                            case "xcb_energyPrice": return [3 /*break*/, 1];
                             case "xcb_accounts": return [3 /*break*/, 3];
                             case "xcb_blockNumber": return [3 /*break*/, 6];
                             case "xcb_networkId": return [3 /*break*/, 8];
@@ -106,7 +106,7 @@ var Eip1193Bridge = /** @class */ (function (_super) {
                             case "xcb_getCode": return [3 /*break*/, 17];
                             case "xcb_sendRawTransaction": return [3 /*break*/, 19];
                             case "xcb_call": return [3 /*break*/, 21];
-                            case "estimateGas": return [3 /*break*/, 23];
+                            case "estimateEnergy": return [3 /*break*/, 23];
                             case "xcb_getBlockByHash": return [3 /*break*/, 25];
                             case "xcb_getBlockByNumber": return [3 /*break*/, 25];
                             case "xcb_getTransactionByHash": return [3 /*break*/, 29];
@@ -128,7 +128,7 @@ var Eip1193Bridge = /** @class */ (function (_super) {
                             case "xcb_getLogs": return [3 /*break*/, 38];
                         }
                         return [3 /*break*/, 39];
-                    case 1: return [4 /*yield*/, this.provider.getGasPrice()];
+                    case 1: return [4 /*yield*/, this.provider.getEnergyPrice()];
                     case 2:
                         result = _b.sent();
                         return [2 /*return*/, result.toHexString()];
@@ -176,10 +176,10 @@ var Eip1193Bridge = /** @class */ (function (_super) {
                     case 22: return [2 /*return*/, _b.sent()];
                     case 23:
                         if (params[1] && params[1] !== "latest") {
-                            throwUnsupported("estimateGas does not support blockTag");
+                            throwUnsupported("estimateEnergy does not support blockTag");
                         }
                         req = ethers_1.ethers.providers.JsonRpcProvider.hexlifyTransaction(params[0]);
-                        return [4 /*yield*/, this.provider.estimateGas(req)];
+                        return [4 /*yield*/, this.provider.estimateEnergy(req)];
                     case 24:
                         result = _b.sent();
                         return [2 /*return*/, result.toHexString()];

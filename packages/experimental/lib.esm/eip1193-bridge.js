@@ -40,8 +40,8 @@ export class Eip1193Bridge extends EventEmitter {
             }
             let coerce = (value) => value;
             switch (method) {
-                case "xcb_gasPrice": {
-                    const result = yield this.provider.getGasPrice();
+                case "xcb_energyPrice": {
+                    const result = yield this.provider.getEnergyPrice();
                     return result.toHexString();
                 }
                 case "xcb_accounts": {
@@ -86,12 +86,12 @@ export class Eip1193Bridge extends EventEmitter {
                     const req = ethers.providers.JsonRpcProvider.hexlifyTransaction(params[0]);
                     return yield this.provider.call(req, params[1]);
                 }
-                case "estimateGas": {
+                case "estimateEnergy": {
                     if (params[1] && params[1] !== "latest") {
-                        throwUnsupported("estimateGas does not support blockTag");
+                        throwUnsupported("estimateEnergy does not support blockTag");
                     }
                     const req = ethers.providers.JsonRpcProvider.hexlifyTransaction(params[0]);
-                    const result = yield this.provider.estimateGas(req);
+                    const result = yield this.provider.estimateEnergy(req);
                     return result.toHexString();
                 }
                 // @TODO: Transform? No uncles?

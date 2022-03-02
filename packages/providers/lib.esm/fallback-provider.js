@@ -200,7 +200,7 @@ function getProcessFunc(provider, method, params) {
                 }
                 return provider._highestBlockNumber;
             };
-        case "getGasPrice":
+        case "getEnergyPrice":
             // Return the middle (round index up) value, similar to median
             // but do not average even entries and choose the higher.
             // Malicious actors must compromise 50% of the nodes to lie.
@@ -221,7 +221,7 @@ function getProcessFunc(provider, method, params) {
         case "getCode":
         case "getStorageAt":
         case "call":
-        case "estimateGas":
+        case "estimateEnergy":
         case "getLogs":
             break;
         // We drop the confirmations from transactions as it is approximate
@@ -300,7 +300,7 @@ function getRunner(config, currentBlockNumber, method, params) {
         let provider = config.provider;
         switch (method) {
             case "getBlockNumber":
-            case "getGasPrice":
+            case "getEnergyPrice":
                 return provider[method]();
             case "getEtherPrice":
                 if (provider.getEtherPrice) {
@@ -325,7 +325,7 @@ function getRunner(config, currentBlockNumber, method, params) {
                 }
                 return provider[(params.includeTransactions ? "getBlockWithTransactions" : "getBlock")](params.blockTag || params.blockHash);
             case "call":
-            case "estimateGas":
+            case "estimateEnergy":
                 if (params.blockTag && isHexString(params.blockTag)) {
                     provider = yield waitForSync(config, currentBlockNumber);
                 }

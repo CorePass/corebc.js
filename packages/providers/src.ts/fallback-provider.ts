@@ -249,7 +249,7 @@ function getProcessFunc(provider: FallbackProvider, method: string, params: { [ 
                 return provider._highestBlockNumber;
             };
 
-        case "getGasPrice":
+        case "getEnergyPrice":
             // Return the middle (round index up) value, similar to median
             // but do not average even entries and choose the higher.
             // Malicious actors must compromise 50% of the nodes to lie.
@@ -272,7 +272,7 @@ function getProcessFunc(provider: FallbackProvider, method: string, params: { [ 
         case "getCode":
         case "getStorageAt":
         case "call":
-        case "estimateGas":
+        case "estimateEnergy":
         case "getLogs":
             break;
 
@@ -352,7 +352,7 @@ async function getRunner(config: RunningConfig, currentBlockNumber: number, meth
 
     switch (method) {
         case "getBlockNumber":
-        case "getGasPrice":
+        case "getEnergyPrice":
             return provider[method]();
         case "getEtherPrice":
             if ((<any>provider).getEtherPrice) {
@@ -377,7 +377,7 @@ async function getRunner(config: RunningConfig, currentBlockNumber: number, meth
             }
             return provider[(params.includeTransactions ? "getBlockWithTransactions": "getBlock")](params.blockTag || params.blockHash);
         case "call":
-        case "estimateGas":
+        case "estimateEnergy":
             if (params.blockTag && isHexString(params.blockTag)) {
                 provider = await waitForSync(config, currentBlockNumber)
             }

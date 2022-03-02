@@ -3588,7 +3588,7 @@ var ErrorCode;
     //  - errorArgs?: The EIP848 error parameters
     //  - reason: The reason (only for EIP848 "Error(string)")
     ErrorCode["CALL_EXCEPTION"] = "CALL_EXCEPTION";
-    // Insufficient funds (< value + gasLimit * gasPrice)
+    // Insufficient funds (< value + energyLimit * energyPrice)
     //   - transaction: the transaction attempted
     ErrorCode["INSUFFICIENT_FUNDS"] = "INSUFFICIENT_FUNDS";
     // Nonce has already been used
@@ -3597,10 +3597,10 @@ var ErrorCode;
     // The replacement fee for the transaction is too low
     //   - transaction: the transaction attempted
     ErrorCode["REPLACEMENT_UNDERPRICED"] = "REPLACEMENT_UNDERPRICED";
-    // The gas limit could not be estimated
-    //   - transaction: the transaction passed to estimateGas
+    // The energy limit could not be estimated
+    //   - transaction: the transaction passed to estimateEnergy
     ErrorCode["UNPREDICTABLE_GAS_LIMIT"] = "UNPREDICTABLE_GAS_LIMIT";
-    // The transaction was replaced by one with a higher gas price
+    // The transaction was replaced by one with a higher energy price
     //   - reason: "cancelled", "replaced" or "repriced"
     //   - cancelled: true if reason == "cancelled" or reason == "replaced")
     //   - hash: original transaction hash
@@ -5447,17 +5447,17 @@ class EventFragment extends Fragment {
         return (value && value._isFragment && value.type === "event");
     }
 }
-function parseGas(value, params) {
-    params.gas = null;
+function parseEnergy(value, params) {
+    params.energy = null;
     let comps = value.split("@");
     if (comps.length !== 1) {
         if (comps.length > 2) {
             logger$4.throwArgumentError("invalid human-readable ABI signature", "value", value);
         }
         if (!comps[1].match(/^[0-9]+$/)) {
-            logger$4.throwArgumentError("invalid human-readable ABI signature gas", "value", value);
+            logger$4.throwArgumentError("invalid human-readable ABI signature energy", "value", value);
         }
-        params.gas = BigNumber.from(comps[1]);
+        params.energy = BigNumber.from(comps[1]);
         return comps[0];
     }
     return value;
@@ -5559,7 +5559,7 @@ class ConstructorFragment extends Fragment {
                 type: "constructor",
                 stateMutability: ((this.stateMutability !== "nonpayable") ? this.stateMutability : undefined),
                 payable: this.payable,
-                gas: (this.gas ? this.gas.toNumber() : undefined),
+                energy: (this.energy ? this.energy.toNumber() : undefined),
                 inputs: this.inputs.map((input) => JSON.parse(input.format(format)))
             });
         }
@@ -5597,13 +5597,13 @@ class ConstructorFragment extends Fragment {
             inputs: (value.inputs ? value.inputs.map(ParamType.fromObject) : []),
             payable: state.payable,
             stateMutability: state.stateMutability,
-            gas: (value.gas ? BigNumber.from(value.gas) : null)
+            energy: (value.energy ? BigNumber.from(value.energy) : null)
         };
         return new ConstructorFragment(_constructorGuard$2, params);
     }
     static fromString(value) {
         let params = { type: "constructor" };
-        value = parseGas(value, params);
+        value = parseEnergy(value, params);
         let parens = value.match(regexParen);
         if (!parens || parens[1].trim() !== "constructor") {
             logger$4.throwArgumentError("invalid constructor string", "value", value);
@@ -5631,7 +5631,7 @@ class FunctionFragment extends ConstructorFragment {
                 constant: this.constant,
                 stateMutability: ((this.stateMutability !== "nonpayable") ? this.stateMutability : undefined),
                 payable: this.payable,
-                gas: (this.gas ? this.gas.toNumber() : undefined),
+                energy: (this.energy ? this.energy.toNumber() : undefined),
                 inputs: this.inputs.map((input) => JSON.parse(input.format(format))),
                 outputs: this.outputs.map((output) => JSON.parse(output.format(format))),
             });
@@ -5653,8 +5653,8 @@ class FunctionFragment extends ConstructorFragment {
             if (this.outputs && this.outputs.length) {
                 result += "returns (" + this.outputs.map((output) => output.format(format)).join(", ") + ") ";
             }
-            if (this.gas != null) {
-                result += "@" + this.gas.toString() + " ";
+            if (this.energy != null) {
+                result += "@" + this.energy.toString() + " ";
             }
         }
         return result.trim();
@@ -5681,13 +5681,13 @@ class FunctionFragment extends ConstructorFragment {
             outputs: (value.outputs ? value.outputs.map(ParamType.fromObject) : []),
             payable: state.payable,
             stateMutability: state.stateMutability,
-            gas: (value.gas ? BigNumber.from(value.gas) : null)
+            energy: (value.energy ? BigNumber.from(value.energy) : null)
         };
         return new FunctionFragment(_constructorGuard$2, params);
     }
     static fromString(value) {
         let params = { type: "function" };
-        value = parseGas(value, params);
+        value = parseEnergy(value, params);
         let comps = value.split(" returns ");
         if (comps.length > 2) {
             logger$4.throwArgumentError("invalid function string", "value", value);
@@ -9071,23 +9071,23 @@ class Provider {
     }
     getFeeData() {
         return __awaiter$2(this, void 0, void 0, function* () {
-            const { block, gasPrice } = yield resolveProperties({
+            const { block, energyPrice } = yield resolveProperties({
                 block: this.getBlock("latest"),
-                gasPrice: this.getGasPrice().catch((error) => {
+                energyPrice: this.getEnergyPrice().catch((error) => {
                     // @TODO: Why is this now failing on Calaveras?
                     //console.log(error);
                     return null;
                 })
             });
-            let maxFeePerGas = null, maxPriorityFeePerGas = null;
-            if (block && block.baseFeePerGas) {
+            let maxFeePerEnergy = null, maxPriorityFeePerEnergy = null;
+            if (block && block.baseFeePerEnergy) {
                 // We may want to compute this more accurately in the future,
                 // using the formula "check if the base fee is correct".
                 // See: https://eips.ethereum.org/EIPS/eip-1559
-                maxPriorityFeePerGas = BigNumber.from("2500000000");
-                maxFeePerGas = block.baseFeePerGas.mul(2).add(maxPriorityFeePerGas);
+                maxPriorityFeePerEnergy = BigNumber.from("2500000000");
+                maxFeePerEnergy = block.baseFeePerEnergy.mul(2).add(maxPriorityFeePerEnergy);
             }
-            return { maxFeePerGas, maxPriorityFeePerGas, gasPrice };
+            return { maxFeePerEnergy, maxPriorityFeePerEnergy, energyPrice };
         });
     }
     // Alias for "on"
@@ -9117,7 +9117,7 @@ var __awaiter$3 = (window && window.__awaiter) || function (thisArg, _arguments,
 };
 const logger$f = new Logger(version$a);
 const allowedTransactionKeys = [
-    "accessList", "networkId", "customData", "data", "from", "gasLimit", "gasPrice", "maxFeePerGas", "maxPriorityFeePerGas", "nonce", "to", "type", "value"
+    "accessList", "networkId", "customData", "data", "from", "energyLimit", "energyPrice", "maxFeePerEnergy", "maxPriorityFeePerEnergy", "nonce", "to", "type", "value"
 ];
 const forwardErrors = [
     Logger.errors.INSUFFICIENT_FUNDS,
@@ -9147,12 +9147,12 @@ class Signer {
             return yield this.provider.getTransactionCount(this.getAddress(), blockTag);
         });
     }
-    // Populates "from" if unspecified, and estimates the gas for the transaction
-    estimateGas(transaction) {
+    // Populates "from" if unspecified, and estimates the energy for the transaction
+    estimateEnergy(transaction) {
         return __awaiter$3(this, void 0, void 0, function* () {
-            this._checkProvider("estimateGas");
+            this._checkProvider("estimateEnergy");
             const tx = yield resolveProperties(this.checkTransaction(transaction));
-            return yield this.provider.estimateGas(tx);
+            return yield this.provider.estimateEnergy(tx);
         });
     }
     // Populates "from" if unspecified, and calls with the transaction
@@ -9179,10 +9179,10 @@ class Signer {
             return network.networkId;
         });
     }
-    getGasPrice() {
+    getEnergyPrice() {
         return __awaiter$3(this, void 0, void 0, function* () {
-            this._checkProvider("getGasPrice");
-            return yield this.provider.getGasPrice();
+            this._checkProvider("getEnergyPrice");
+            return yield this.provider.getEnergyPrice();
         });
     }
     getFeeData() {
@@ -9204,7 +9204,7 @@ class Signer {
     // - returns a COPY (safe to mutate the result)
     // By default called from: (overriding these prevents it)
     //   - call
-    //   - estimateGas
+    //   - estimateEnergy
     //   - populateTransaction (and therefor sendTransaction)
     checkTransaction(transaction) {
         for (const key in transaction) {
@@ -9236,7 +9236,7 @@ class Signer {
     //   - sendTransaction
     //
     // Notes:
-    //  - We allow gasPrice for EIP-1559 as long as it matches maxFeePerGas
+    //  - We allow energyPrice for EIP-1559 as long as it matches maxFeePerEnergy
     populateTransaction(transaction) {
         return __awaiter$3(this, void 0, void 0, function* () {
             const tx = yield resolveProperties(this.checkTransaction(transaction));
@@ -9255,22 +9255,22 @@ class Signer {
                 tx.to.catch((error) => { });
             }
             // Do not allow mixing pre-eip-1559 and eip-1559 properties
-            const hasEip1559 = (tx.maxFeePerGas != null || tx.maxPriorityFeePerGas != null);
-            if (tx.gasPrice != null && (tx.type === 2 || hasEip1559)) {
-                logger$f.throwArgumentError("eip-1559 transaction do not support gasPrice", "transaction", transaction);
+            const hasEip1559 = (tx.maxFeePerEnergy != null || tx.maxPriorityFeePerEnergy != null);
+            if (tx.energyPrice != null && (tx.type === 2 || hasEip1559)) {
+                logger$f.throwArgumentError("eip-1559 transaction do not support energyPrice", "transaction", transaction);
             }
             else if ((tx.type === 0 || tx.type === 1) && hasEip1559) {
-                logger$f.throwArgumentError("pre-eip-1559 transaction do not support maxFeePerGas/maxPriorityFeePerGas", "transaction", transaction);
+                logger$f.throwArgumentError("pre-eip-1559 transaction do not support maxFeePerEnergy/maxPriorityFeePerEnergy", "transaction", transaction);
             }
-            if ((tx.type === 2 || tx.type == null) && (tx.maxFeePerGas != null && tx.maxPriorityFeePerGas != null)) {
+            if ((tx.type === 2 || tx.type == null) && (tx.maxFeePerEnergy != null && tx.maxPriorityFeePerEnergy != null)) {
                 // Fully-formed EIP-1559 transaction (skip getFeeData)
                 tx.type = 2;
             }
             else if (tx.type === 0 || tx.type === 1) {
                 // Explicit Legacy or EIP-2930 transaction
-                // Populate missing gasPrice
-                if (tx.gasPrice == null) {
-                    tx.gasPrice = this.getGasPrice();
+                // Populate missing energyPrice
+                if (tx.energyPrice == null) {
+                    tx.energyPrice = this.getEnergyPrice();
                 }
             }
             else {
@@ -9278,29 +9278,29 @@ class Signer {
                 const feeData = yield this.getFeeData();
                 if (tx.type == null) {
                     // We need to auto-detect the intended type of this transaction...
-                    if (feeData.maxFeePerGas != null && feeData.maxPriorityFeePerGas != null) {
+                    if (feeData.maxFeePerEnergy != null && feeData.maxPriorityFeePerEnergy != null) {
                         // The network supports EIP-1559!
                         // Upgrade transaction from null to eip-1559
                         tx.type = 2;
-                        if (tx.gasPrice != null) {
-                            // Using legacy gasPrice property on an eip-1559 network,
-                            // so use gasPrice as both fee properties
-                            const gasPrice = tx.gasPrice;
-                            delete tx.gasPrice;
-                            tx.maxFeePerGas = gasPrice;
-                            tx.maxPriorityFeePerGas = gasPrice;
+                        if (tx.energyPrice != null) {
+                            // Using legacy energyPrice property on an eip-1559 network,
+                            // so use energyPrice as both fee properties
+                            const energyPrice = tx.energyPrice;
+                            delete tx.energyPrice;
+                            tx.maxFeePerEnergy = energyPrice;
+                            tx.maxPriorityFeePerEnergy = energyPrice;
                         }
                         else {
                             // Populate missing fee data
-                            if (tx.maxFeePerGas == null) {
-                                tx.maxFeePerGas = feeData.maxFeePerGas;
+                            if (tx.maxFeePerEnergy == null) {
+                                tx.maxFeePerEnergy = feeData.maxFeePerEnergy;
                             }
-                            if (tx.maxPriorityFeePerGas == null) {
-                                tx.maxPriorityFeePerGas = feeData.maxPriorityFeePerGas;
+                            if (tx.maxPriorityFeePerEnergy == null) {
+                                tx.maxPriorityFeePerEnergy = feeData.maxPriorityFeePerEnergy;
                             }
                         }
                     }
-                    else if (feeData.gasPrice != null) {
+                    else if (feeData.energyPrice != null) {
                         // Network doesn't support EIP-1559...
                         // ...but they are trying to use EIP-1559 properties
                         if (hasEip1559) {
@@ -9309,8 +9309,8 @@ class Signer {
                             });
                         }
                         // Populate missing fee data
-                        if (tx.gasPrice == null) {
-                            tx.gasPrice = feeData.gasPrice;
+                        if (tx.energyPrice == null) {
+                            tx.energyPrice = feeData.energyPrice;
                         }
                         // Explicitly set untyped transaction to legacy
                         tx.type = 0;
@@ -9325,23 +9325,23 @@ class Signer {
                 else if (tx.type === 2) {
                     // Explicitly using EIP-1559
                     // Populate missing fee data
-                    if (tx.maxFeePerGas == null) {
-                        tx.maxFeePerGas = feeData.maxFeePerGas;
+                    if (tx.maxFeePerEnergy == null) {
+                        tx.maxFeePerEnergy = feeData.maxFeePerEnergy;
                     }
-                    if (tx.maxPriorityFeePerGas == null) {
-                        tx.maxPriorityFeePerGas = feeData.maxPriorityFeePerGas;
+                    if (tx.maxPriorityFeePerEnergy == null) {
+                        tx.maxPriorityFeePerEnergy = feeData.maxPriorityFeePerEnergy;
                     }
                 }
             }
             if (tx.nonce == null) {
                 tx.nonce = this.getTransactionCount("pending");
             }
-            if (tx.gasLimit == null) {
-                tx.gasLimit = this.estimateGas(tx).catch((error) => {
+            if (tx.energyLimit == null) {
+                tx.energyLimit = this.estimateEnergy(tx).catch((error) => {
                     if (forwardErrors.indexOf(error.code) >= 0) {
                         throw error;
                     }
-                    return logger$f.throwError("cannot estimate gas; transaction may fail or may require manual gas limit", Logger.errors.UNPREDICTABLE_GAS_LIMIT, {
+                    return logger$f.throwError("cannot estimate energy; transaction may fail or may require manual energy limit", Logger.errors.UNPREDICTABLE_GAS_LIMIT, {
                         error: error,
                         tx: tx
                     });
@@ -13313,14 +13313,14 @@ function handleNumber(value) {
 // Legacy Transaction Fields
 const transactionFields = [
     { name: "nonce", maxLength: 32, numeric: true },
-    { name: "gasPrice", maxLength: 32, numeric: true },
-    { name: "gasLimit", maxLength: 32, numeric: true },
+    { name: "energyPrice", maxLength: 32, numeric: true },
+    { name: "energyLimit", maxLength: 32, numeric: true },
     { name: "to", length: 20 },
     { name: "value", maxLength: 32, numeric: true },
     { name: "data" },
 ];
 const allowedTransactionKeys$1 = {
-    networkId: true, data: true, gasLimit: true, gasPrice: true, nonce: true, to: true, type: true, value: true
+    networkId: true, data: true, energyLimit: true, energyPrice: true, nonce: true, to: true, type: true, value: true
 };
 function computeAddress(key) {
     const publicKey = computePublicKey(key);
@@ -13373,24 +13373,24 @@ function formatAccessList(value) {
     return accessListify(value).map((set) => [set.address, set.storageKeys]);
 }
 function _serializeEip1559(transaction, signature) {
-    // If there is an explicit gasPrice, make sure it matches the
+    // If there is an explicit energyPrice, make sure it matches the
     // EIP-1559 fees; otherwise they may not understand what they
     // think they are setting in terms of fee.
-    if (transaction.gasPrice != null) {
-        const gasPrice = BigNumber.from(transaction.gasPrice);
-        const maxFeePerGas = BigNumber.from(transaction.maxFeePerGas || 0);
-        if (!gasPrice.eq(maxFeePerGas)) {
-            logger$h.throwArgumentError("mismatch EIP-1559 gasPrice != maxFeePerGas", "tx", {
-                gasPrice, maxFeePerGas
+    if (transaction.energyPrice != null) {
+        const energyPrice = BigNumber.from(transaction.energyPrice);
+        const maxFeePerEnergy = BigNumber.from(transaction.maxFeePerEnergy || 0);
+        if (!energyPrice.eq(maxFeePerEnergy)) {
+            logger$h.throwArgumentError("mismatch EIP-1559 energyPrice != maxFeePerEnergy", "tx", {
+                energyPrice, maxFeePerEnergy
             });
         }
     }
     const fields = [
         formatNumber(transaction.networkId || 0, "networkId"),
         formatNumber(transaction.nonce || 0, "nonce"),
-        formatNumber(transaction.maxPriorityFeePerGas || 0, "maxPriorityFeePerGas"),
-        formatNumber(transaction.maxFeePerGas || 0, "maxFeePerGas"),
-        formatNumber(transaction.gasLimit || 0, "gasLimit"),
+        formatNumber(transaction.maxPriorityFeePerEnergy || 0, "maxPriorityFeePerEnergy"),
+        formatNumber(transaction.maxFeePerEnergy || 0, "maxFeePerEnergy"),
+        formatNumber(transaction.energyLimit || 0, "energyLimit"),
         ((transaction.to != null) ? getAddress(transaction.to) : "0x"),
         formatNumber(transaction.value || 0, "value"),
         (transaction.data || "0x"),
@@ -13408,8 +13408,8 @@ function _serializeEip2930(transaction, signature) {
     const fields = [
         formatNumber(transaction.networkId || 0, "networkId"),
         formatNumber(transaction.nonce || 0, "nonce"),
-        formatNumber(transaction.gasPrice || 0, "gasPrice"),
-        formatNumber(transaction.gasLimit || 0, "gasLimit"),
+        formatNumber(transaction.energyPrice || 0, "energyPrice"),
+        formatNumber(transaction.energyLimit || 0, "energyLimit"),
         ((transaction.to != null) ? getAddress(transaction.to) : "0x"),
         formatNumber(transaction.value || 0, "value"),
         (transaction.data || "0x"),
@@ -13540,16 +13540,16 @@ function _parseEip1559(payload) {
     if (transaction.length !== 9 && transaction.length !== 12) {
         logger$h.throwArgumentError("invalid component count for transaction type: 2", "payload", hexlify(payload));
     }
-    const maxPriorityFeePerGas = handleNumber(transaction[2]);
-    const maxFeePerGas = handleNumber(transaction[3]);
+    const maxPriorityFeePerEnergy = handleNumber(transaction[2]);
+    const maxFeePerEnergy = handleNumber(transaction[3]);
     const tx = {
         type: 2,
         networkId: handleNumber(transaction[0]).toNumber(),
         nonce: handleNumber(transaction[1]).toNumber(),
-        maxPriorityFeePerGas: maxPriorityFeePerGas,
-        maxFeePerGas: maxFeePerGas,
-        gasPrice: null,
-        gasLimit: handleNumber(transaction[4]),
+        maxPriorityFeePerEnergy: maxPriorityFeePerEnergy,
+        maxFeePerEnergy: maxFeePerEnergy,
+        energyPrice: null,
+        energyLimit: handleNumber(transaction[4]),
         to: handleAddress(transaction[5]),
         value: handleNumber(transaction[6]),
         data: transaction[7],
@@ -13572,8 +13572,8 @@ function _parseEip2930(payload) {
         type: 1,
         networkId: handleNumber(transaction[0]).toNumber(),
         nonce: handleNumber(transaction[1]).toNumber(),
-        gasPrice: handleNumber(transaction[2]),
-        gasLimit: handleNumber(transaction[3]),
+        energyPrice: handleNumber(transaction[2]),
+        energyLimit: handleNumber(transaction[3]),
         to: handleAddress(transaction[4]),
         value: handleNumber(transaction[5]),
         data: transaction[6],
@@ -13595,8 +13595,8 @@ function _parse(rawTransaction) {
     }
     const tx = {
         nonce: handleNumber(transaction[0]).toNumber(),
-        gasPrice: handleNumber(transaction[1]),
-        gasLimit: handleNumber(transaction[2]),
+        energyPrice: handleNumber(transaction[1]),
+        energyLimit: handleNumber(transaction[2]),
         to: handleAddress(transaction[3]),
         value: handleNumber(transaction[4]),
         data: transaction[5],
@@ -13684,9 +13684,9 @@ const logger$i = new Logger(version$d);
 ;
 ///////////////////////////////
 const allowedTransactionKeys$2 = {
-    networkId: true, data: true, from: true, gasLimit: true, gasPrice: true, nonce: true, to: true, value: true,
+    networkId: true, data: true, from: true, energyLimit: true, energyPrice: true, nonce: true, to: true, value: true,
     type: true, accessList: true,
-    maxFeePerGas: true, maxPriorityFeePerGas: true,
+    maxFeePerEnergy: true, maxPriorityFeePerEnergy: true,
     customData: true
 };
 function resolveName(resolver, nameOrPromise) {
@@ -13793,17 +13793,17 @@ function populateTransaction(contract, fragment, args) {
         if (ro.nonce != null) {
             tx.nonce = BigNumber.from(ro.nonce).toNumber();
         }
-        if (ro.gasLimit != null) {
-            tx.gasLimit = BigNumber.from(ro.gasLimit);
+        if (ro.energyLimit != null) {
+            tx.energyLimit = BigNumber.from(ro.energyLimit);
         }
-        if (ro.gasPrice != null) {
-            tx.gasPrice = BigNumber.from(ro.gasPrice);
+        if (ro.energyPrice != null) {
+            tx.energyPrice = BigNumber.from(ro.energyPrice);
         }
-        if (ro.maxFeePerGas != null) {
-            tx.maxFeePerGas = BigNumber.from(ro.maxFeePerGas);
+        if (ro.maxFeePerEnergy != null) {
+            tx.maxFeePerEnergy = BigNumber.from(ro.maxFeePerEnergy);
         }
-        if (ro.maxPriorityFeePerGas != null) {
-            tx.maxPriorityFeePerGas = BigNumber.from(ro.maxPriorityFeePerGas);
+        if (ro.maxPriorityFeePerEnergy != null) {
+            tx.maxPriorityFeePerEnergy = BigNumber.from(ro.maxPriorityFeePerEnergy);
         }
         if (ro.from != null) {
             tx.from = ro.from;
@@ -13814,9 +13814,9 @@ function populateTransaction(contract, fragment, args) {
         if (ro.accessList != null) {
             tx.accessList = accessListify(ro.accessList);
         }
-        // If there was no "gasLimit" override, but the ABI specifies a default, use it
-        if (tx.gasLimit == null && fragment.gas != null) {
-            // Compute the intrinsic gas cost for this transaction
+        // If there was no "energyLimit" override, but the ABI specifies a default, use it
+        if (tx.energyLimit == null && fragment.energy != null) {
+            // Compute the intrinsic energy cost for this transaction
             // @TODO: This is based on the yellow paper as of Petersburg; this is something
             // we may wish to parameterize in v6 as part of the Network object. Since this
             // is always a non-nil to address, we can ignore G_create, but may wish to add
@@ -13829,7 +13829,7 @@ function populateTransaction(contract, fragment, args) {
                     intrinsic += 64;
                 }
             }
-            tx.gasLimit = BigNumber.from(fragment.gas).add(intrinsic);
+            tx.energyLimit = BigNumber.from(fragment.energy).add(intrinsic);
         }
         // Populate "value" override
         if (ro.value) {
@@ -13847,14 +13847,14 @@ function populateTransaction(contract, fragment, args) {
         }
         // Remove the overrides
         delete overrides.nonce;
-        delete overrides.gasLimit;
-        delete overrides.gasPrice;
+        delete overrides.energyLimit;
+        delete overrides.energyPrice;
         delete overrides.from;
         delete overrides.value;
         delete overrides.type;
         delete overrides.accessList;
-        delete overrides.maxFeePerGas;
-        delete overrides.maxPriorityFeePerGas;
+        delete overrides.maxFeePerEnergy;
+        delete overrides.maxPriorityFeePerEnergy;
         delete overrides.customData;
         // Make sure there are no stray overrides, which may indicate a
         // typo or using an unsupported key.
@@ -13879,11 +13879,11 @@ function buildEstimate(contract, fragment) {
         return __awaiter$4(this, void 0, void 0, function* () {
             if (!signerOrProvider) {
                 logger$i.throwError("estimate require a provider or signer", Logger.errors.UNSUPPORTED_OPERATION, {
-                    operation: "estimateGas"
+                    operation: "estimateEnergy"
                 });
             }
             const tx = yield populateTransaction(contract, fragment, args);
-            return yield signerOrProvider.estimateGas(tx);
+            return yield signerOrProvider.estimateEnergy(tx);
         });
     };
 }
@@ -14152,7 +14152,7 @@ class BaseContract {
             logger$i.throwArgumentError("invalid signer or provider", "signerOrProvider", signerOrProvider);
         }
         defineReadOnly(this, "callStatic", {});
-        defineReadOnly(this, "estimateGas", {});
+        defineReadOnly(this, "estimateEnergy", {});
         defineReadOnly(this, "functions", {});
         defineReadOnly(this, "populateTransaction", {});
         defineReadOnly(this, "filters", {});
@@ -14236,8 +14236,8 @@ class BaseContract {
             if (this.populateTransaction[signature] == null) {
                 defineReadOnly(this.populateTransaction, signature, buildPopulate(this, fragment));
             }
-            if (this.estimateGas[signature] == null) {
-                defineReadOnly(this.estimateGas, signature, buildEstimate(this, fragment));
+            if (this.estimateEnergy[signature] == null) {
+                defineReadOnly(this.estimateEnergy, signature, buildEstimate(this, fragment));
             }
         });
         Object.keys(uniqueNames).forEach((name) => {
@@ -14265,8 +14265,8 @@ class BaseContract {
             if (this.populateTransaction[name] == null) {
                 defineReadOnly(this.populateTransaction, name, this.populateTransaction[signature]);
             }
-            if (this.estimateGas[name] == null) {
-                defineReadOnly(this.estimateGas, name, this.estimateGas[signature]);
+            if (this.estimateEnergy[name] == null) {
+                defineReadOnly(this.estimateEnergy, name, this.estimateEnergy[signature]);
             }
         });
     }
@@ -14920,7 +14920,7 @@ class Wordlist {
 }
 
 "use strict";
-const words = "AbandonAbilityAbleAboutAboveAbsentAbsorbAbstractAbsurdAbuseAccessAccidentAccountAccuseAchieveAcidAcousticAcquireAcrossActActionActorActressActualAdaptAddAddictAddressAdjustAdmitAdultAdvanceAdviceAerobicAffairAffordAfraidAgainAgeAgentAgreeAheadAimAirAirportAisleAlarmAlbumAlcoholAlertAlienAllAlleyAllowAlmostAloneAlphaAlreadyAlsoAlterAlwaysAmateurAmazingAmongAmountAmusedAnalystAnchorAncientAngerAngleAngryAnimalAnkleAnnounceAnnualAnotherAnswerAntennaAntiqueAnxietyAnyApartApologyAppearAppleApproveAprilArchArcticAreaArenaArgueArmArmedArmorArmyAroundArrangeArrestArriveArrowArtArtefactArtistArtworkAskAspectAssaultAssetAssistAssumeAsthmaAthleteAtomAttackAttendAttitudeAttractAuctionAuditAugustAuntAuthorAutoAutumnAverageAvocadoAvoidAwakeAwareAwayAwesomeAwfulAwkwardAxisBabyBachelorBaconBadgeBagBalanceBalconyBallBambooBananaBannerBarBarelyBargainBarrelBaseBasicBasketBattleBeachBeanBeautyBecauseBecomeBeefBeforeBeginBehaveBehindBelieveBelowBeltBenchBenefitBestBetrayBetterBetweenBeyondBicycleBidBikeBindBiologyBirdBirthBitterBlackBladeBlameBlanketBlastBleakBlessBlindBloodBlossomBlouseBlueBlurBlushBoardBoatBodyBoilBombBoneBonusBookBoostBorderBoringBorrowBossBottomBounceBoxBoyBracketBrainBrandBrassBraveBreadBreezeBrickBridgeBriefBrightBringBriskBroccoliBrokenBronzeBroomBrotherBrownBrushBubbleBuddyBudgetBuffaloBuildBulbBulkBulletBundleBunkerBurdenBurgerBurstBusBusinessBusyButterBuyerBuzzCabbageCabinCableCactusCageCakeCallCalmCameraCampCanCanalCancelCandyCannonCanoeCanvasCanyonCapableCapitalCaptainCarCarbonCardCargoCarpetCarryCartCaseCashCasinoCastleCasualCatCatalogCatchCategoryCattleCaughtCauseCautionCaveCeilingCeleryCementCensusCenturyCerealCertainChairChalkChampionChangeChaosChapterChargeChaseChatCheapCheckCheeseChefCherryChestChickenChiefChildChimneyChoiceChooseChronicChuckleChunkChurnCigarCinnamonCircleCitizenCityCivilClaimClapClarifyClawClayCleanClerkCleverClickClientCliffClimbClinicClipClockClogCloseClothCloudClownClubClumpClusterClutchCoachCoastCoconutCodeCoffeeCoilCoinCollectColorColumnCombineComeComfortComicCommonCompanyConcertConductConfirmCongressConnectConsiderControlConvinceCookCoolCopperCopyCoralCoreCornCorrectCostCottonCouchCountryCoupleCourseCousinCoverCoyoteCrackCradleCraftCramCraneCrashCraterCrawlCrazyCreamCreditCreekCrewCricketCrimeCrispCriticCropCrossCrouchCrowdCrucialCruelCruiseCrumbleCrunchCrushCryCrystalCubeCultureCupCupboardCuriousCurrentCurtainCurveCushionCustomCuteCycleDadDamageDampDanceDangerDaringDashDaughterDawnDayDealDebateDebrisDecadeDecemberDecideDeclineDecorateDecreaseDeerDefenseDefineDefyDegreeDelayDeliverDemandDemiseDenialDentistDenyDepartDependDepositDepthDeputyDeriveDescribeDesertDesignDeskDespairDestroyDetailDetectDevelopDeviceDevoteDiagramDialDiamondDiaryDiceDieselDietDifferDigitalDignityDilemmaDinnerDinosaurDirectDirtDisagreeDiscoverDiseaseDishDismissDisorderDisplayDistanceDivertDivideDivorceDizzyDoctorDocumentDogDollDolphinDomainDonateDonkeyDonorDoorDoseDoubleDoveDraftDragonDramaDrasticDrawDreamDressDriftDrillDrinkDripDriveDropDrumDryDuckDumbDuneDuringDustDutchDutyDwarfDynamicEagerEagleEarlyEarnEarthEasilyEastEasyEchoEcologyEconomyEdgeEditEducateEffortEggEightEitherElbowElderElectricElegantElementElephantElevatorEliteElseEmbarkEmbodyEmbraceEmergeEmotionEmployEmpowerEmptyEnableEnactEndEndlessEndorseEnemyEnergyEnforceEngageEngineEnhanceEnjoyEnlistEnoughEnrichEnrollEnsureEnterEntireEntryEnvelopeEpisodeEqualEquipEraEraseErodeErosionErrorEruptEscapeEssayEssenceEstateEternalEthicsEvidenceEvilEvokeEvolveExactExampleExcessExchangeExciteExcludeExcuseExecuteExerciseExhaustExhibitExileExistExitExoticExpandExpectExpireExplainExposeExpressExtendExtraEyeEyebrowFabricFaceFacultyFadeFaintFaithFallFalseFameFamilyFamousFanFancyFantasyFarmFashionFatFatalFatherFatigueFaultFavoriteFeatureFebruaryFederalFeeFeedFeelFemaleFenceFestivalFetchFeverFewFiberFictionFieldFigureFileFilmFilterFinalFindFineFingerFinishFireFirmFirstFiscalFishFitFitnessFixFlagFlameFlashFlatFlavorFleeFlightFlipFloatFlockFloorFlowerFluidFlushFlyFoamFocusFogFoilFoldFollowFoodFootForceForestForgetForkFortuneForumForwardFossilFosterFoundFoxFragileFrameFrequentFreshFriendFringeFrogFrontFrostFrownFrozenFruitFuelFunFunnyFurnaceFuryFutureGadgetGainGalaxyGalleryGameGapGarageGarbageGardenGarlicGarmentGasGaspGateGatherGaugeGazeGeneralGeniusGenreGentleGenuineGestureGhostGiantGiftGiggleGingerGiraffeGirlGiveGladGlanceGlareGlassGlideGlimpseGlobeGloomGloryGloveGlowGlueGoatGoddessGoldGoodGooseGorillaGospelGossipGovernGownGrabGraceGrainGrantGrapeGrassGravityGreatGreenGridGriefGritGroceryGroupGrowGruntGuardGuessGuideGuiltGuitarGunGymHabitHairHalfHammerHamsterHandHappyHarborHardHarshHarvestHatHaveHawkHazardHeadHealthHeartHeavyHedgehogHeightHelloHelmetHelpHenHeroHiddenHighHillHintHipHireHistoryHobbyHockeyHoldHoleHolidayHollowHomeHoneyHoodHopeHornHorrorHorseHospitalHostHotelHourHoverHubHugeHumanHumbleHumorHundredHungryHuntHurdleHurryHurtHusbandHybridIceIconIdeaIdentifyIdleIgnoreIllIllegalIllnessImageImitateImmenseImmuneImpactImposeImproveImpulseInchIncludeIncomeIncreaseIndexIndicateIndoorIndustryInfantInflictInformInhaleInheritInitialInjectInjuryInmateInnerInnocentInputInquiryInsaneInsectInsideInspireInstallIntactInterestIntoInvestInviteInvolveIronIslandIsolateIssueItemIvoryJacketJaguarJarJazzJealousJeansJellyJewelJobJoinJokeJourneyJoyJudgeJuiceJumpJungleJuniorJunkJustKangarooKeenKeepKetchupKeyKickKidKidneyKindKingdomKissKitKitchenKiteKittenKiwiKneeKnifeKnockKnowLabLabelLaborLadderLadyLakeLampLanguageLaptopLargeLaterLatinLaughLaundryLavaLawLawnLawsuitLayerLazyLeaderLeafLearnLeaveLectureLeftLegLegalLegendLeisureLemonLendLengthLensLeopardLessonLetterLevelLiarLibertyLibraryLicenseLifeLiftLightLikeLimbLimitLinkLionLiquidListLittleLiveLizardLoadLoanLobsterLocalLockLogicLonelyLongLoopLotteryLoudLoungeLoveLoyalLuckyLuggageLumberLunarLunchLuxuryLyricsMachineMadMagicMagnetMaidMailMainMajorMakeMammalManManageMandateMangoMansionManualMapleMarbleMarchMarginMarineMarketMarriageMaskMassMasterMatchMaterialMathMatrixMatterMaximumMazeMeadowMeanMeasureMeatMechanicMedalMediaMelodyMeltMemberMemoryMentionMenuMercyMergeMeritMerryMeshMessageMetalMethodMiddleMidnightMilkMillionMimicMindMinimumMinorMinuteMiracleMirrorMiseryMissMistakeMixMixedMixtureMobileModelModifyMomMomentMonitorMonkeyMonsterMonthMoonMoralMoreMorningMosquitoMotherMotionMotorMountainMouseMoveMovieMuchMuffinMuleMultiplyMuscleMuseumMushroomMusicMustMutualMyselfMysteryMythNaiveNameNapkinNarrowNastyNationNatureNearNeckNeedNegativeNeglectNeitherNephewNerveNestNetNetworkNeutralNeverNewsNextNiceNightNobleNoiseNomineeNoodleNormalNorthNoseNotableNoteNothingNoticeNovelNowNuclearNumberNurseNutOakObeyObjectObligeObscureObserveObtainObviousOccurOceanOctoberOdorOffOfferOfficeOftenOilOkayOldOliveOlympicOmitOnceOneOnionOnlineOnlyOpenOperaOpinionOpposeOptionOrangeOrbitOrchardOrderOrdinaryOrganOrientOriginalOrphanOstrichOtherOutdoorOuterOutputOutsideOvalOvenOverOwnOwnerOxygenOysterOzonePactPaddlePagePairPalacePalmPandaPanelPanicPantherPaperParadeParentParkParrotPartyPassPatchPathPatientPatrolPatternPausePavePaymentPeacePeanutPearPeasantPelicanPenPenaltyPencilPeoplePepperPerfectPermitPersonPetPhonePhotoPhrasePhysicalPianoPicnicPicturePiecePigPigeonPillPilotPinkPioneerPipePistolPitchPizzaPlacePlanetPlasticPlatePlayPleasePledgePluckPlugPlungePoemPoetPointPolarPolePolicePondPonyPoolPopularPortionPositionPossiblePostPotatoPotteryPovertyPowderPowerPracticePraisePredictPreferPreparePresentPrettyPreventPricePridePrimaryPrintPriorityPrisonPrivatePrizeProblemProcessProduceProfitProgramProjectPromoteProofPropertyProsperProtectProudProvidePublicPuddingPullPulpPulsePumpkinPunchPupilPuppyPurchasePurityPurposePursePushPutPuzzlePyramidQualityQuantumQuarterQuestionQuickQuitQuizQuoteRabbitRaccoonRaceRackRadarRadioRailRainRaiseRallyRampRanchRandomRangeRapidRareRateRatherRavenRawRazorReadyRealReasonRebelRebuildRecallReceiveRecipeRecordRecycleReduceReflectReformRefuseRegionRegretRegularRejectRelaxReleaseReliefRelyRemainRememberRemindRemoveRenderRenewRentReopenRepairRepeatReplaceReportRequireRescueResembleResistResourceResponseResultRetireRetreatReturnReunionRevealReviewRewardRhythmRibRibbonRiceRichRideRidgeRifleRightRigidRingRiotRippleRiskRitualRivalRiverRoadRoastRobotRobustRocketRomanceRoofRookieRoomRoseRotateRoughRoundRouteRoyalRubberRudeRugRuleRunRunwayRuralSadSaddleSadnessSafeSailSaladSalmonSalonSaltSaluteSameSampleSandSatisfySatoshiSauceSausageSaveSayScaleScanScareScatterSceneSchemeSchoolScienceScissorsScorpionScoutScrapScreenScriptScrubSeaSearchSeasonSeatSecondSecretSectionSecuritySeedSeekSegmentSelectSellSeminarSeniorSenseSentenceSeriesServiceSessionSettleSetupSevenShadowShaftShallowShareShedShellSheriffShieldShiftShineShipShiverShockShoeShootShopShortShoulderShoveShrimpShrugShuffleShySiblingSickSideSiegeSightSignSilentSilkSillySilverSimilarSimpleSinceSingSirenSisterSituateSixSizeSkateSketchSkiSkillSkinSkirtSkullSlabSlamSleepSlenderSliceSlideSlightSlimSloganSlotSlowSlushSmallSmartSmileSmokeSmoothSnackSnakeSnapSniffSnowSoapSoccerSocialSockSodaSoftSolarSoldierSolidSolutionSolveSomeoneSongSoonSorrySortSoulSoundSoupSourceSouthSpaceSpareSpatialSpawnSpeakSpecialSpeedSpellSpendSphereSpiceSpiderSpikeSpinSpiritSplitSpoilSponsorSpoonSportSpotSpraySpreadSpringSpySquareSqueezeSquirrelStableStadiumStaffStageStairsStampStandStartStateStaySteakSteelStemStepStereoStickStillStingStockStomachStoneStoolStoryStoveStrategyStreetStrikeStrongStruggleStudentStuffStumbleStyleSubjectSubmitSubwaySuccessSuchSuddenSufferSugarSuggestSuitSummerSunSunnySunsetSuperSupplySupremeSureSurfaceSurgeSurpriseSurroundSurveySuspectSustainSwallowSwampSwapSwarmSwearSweetSwiftSwimSwingSwitchSwordSymbolSymptomSyrupSystemTableTackleTagTailTalentTalkTankTapeTargetTaskTasteTattooTaxiTeachTeamTellTenTenantTennisTentTermTestTextThankThatThemeThenTheoryThereTheyThingThisThoughtThreeThriveThrowThumbThunderTicketTideTigerTiltTimberTimeTinyTipTiredTissueTitleToastTobaccoTodayToddlerToeTogetherToiletTokenTomatoTomorrowToneTongueTonightToolToothTopTopicToppleTorchTornadoTortoiseTossTotalTouristTowardTowerTownToyTrackTradeTrafficTragicTrainTransferTrapTrashTravelTrayTreatTreeTrendTrialTribeTrickTriggerTrimTripTrophyTroubleTruckTrueTrulyTrumpetTrustTruthTryTubeTuitionTumbleTunaTunnelTurkeyTurnTurtleTwelveTwentyTwiceTwinTwistTwoTypeTypicalUglyUmbrellaUnableUnawareUncleUncoverUnderUndoUnfairUnfoldUnhappyUniformUniqueUnitUniverseUnknownUnlockUntilUnusualUnveilUpdateUpgradeUpholdUponUpperUpsetUrbanUrgeUsageUseUsedUsefulUselessUsualUtilityVacantVacuumVagueValidValleyValveVanVanishVaporVariousVastVaultVehicleVelvetVendorVentureVenueVerbVerifyVersionVeryVesselVeteranViableVibrantViciousVictoryVideoViewVillageVintageViolinVirtualVirusVisaVisitVisualVitalVividVocalVoiceVoidVolcanoVolumeVoteVoyageWageWagonWaitWalkWallWalnutWantWarfareWarmWarriorWashWaspWasteWaterWaveWayWealthWeaponWearWeaselWeatherWebWeddingWeekendWeirdWelcomeWestWetWhaleWhatWheatWheelWhenWhereWhipWhisperWideWidthWifeWildWillWinWindowWineWingWinkWinnerWinterWireWisdomWiseWishWitnessWolfWomanWonderWoodWoolWordWorkWorldWorryWorthWrapWreckWrestleWristWriteWrongYardYearYellowYouYoungYouthZebraZeroZoneZoo";
+const words = "AbandonAbilityAbleAboutAboveAbsentAbsorbAbstractAbsurdAbuseAccessAccidentAccountAccuseAchieveAcidAcousticAcquireAcrossActActionActorActressActualAdaptAddAddictAddressAdjustAdmitAdultAdvanceAdviceAerobicAffairAffordAfraidAgainAgeAgentAgreeAheadAimAirAirportAisleAlarmAlbumAlcoholAlertAlienAllAlleyAllowAlmostAloneAlphaAlreadyAlsoAlterAlwaysAmateurAmazingAmongAmountAmusedAnalystAnchorAncientAngerAngleAngryAnimalAnkleAnnounceAnnualAnotherAnswerAntennaAntiqueAnxietyAnyApartApologyAppearAppleApproveAprilArchArcticAreaArenaArgueArmArmedArmorArmyAroundArrangeArrestArriveArrowArtArtefactArtistArtworkAskAspectAssaultAssetAssistAssumeAsthmaAthleteAtomAttackAttendAttitudeAttractAuctionAuditAugustAuntAuthorAutoAutumnAverageAvocadoAvoidAwakeAwareAwayAwesomeAwfulAwkwardAxisBabyBachelorBaconBadgeBagBalanceBalconyBallBambooBananaBannerBarBarelyBargainBarrelBaseBasicBasketBattleBeachBeanBeautyBecauseBecomeBeefBeforeBeginBehaveBehindBelieveBelowBeltBenchBenefitBestBetrayBetterBetweenBeyondBicycleBidBikeBindBiologyBirdBirthBitterBlackBladeBlameBlanketBlastBleakBlessBlindBloodBlossomBlouseBlueBlurBlushBoardBoatBodyBoilBombBoneBonusBookBoostBorderBoringBorrowBossBottomBounceBoxBoyBracketBrainBrandBrassBraveBreadBreezeBrickBridgeBriefBrightBringBriskBroccoliBrokenBronzeBroomBrotherBrownBrushBubbleBuddyBudgetBuffaloBuildBulbBulkBulletBundleBunkerBurdenBurgerBurstBusBusinessBusyButterBuyerBuzzCabbageCabinCableCactusCageCakeCallCalmCameraCampCanCanalCancelCandyCannonCanoeCanvasCanyonCapableCapitalCaptainCarCarbonCardCargoCarpetCarryCartCaseCashCasinoCastleCasualCatCatalogCatchCategoryCattleCaughtCauseCautionCaveCeilingCeleryCementCensusCenturyCerealCertainChairChalkChampionChangeChaosChapterChargeChaseChatCheapCheckCheeseChefCherryChestChickenChiefChildChimneyChoiceChooseChronicChuckleChunkChurnCigarCinnamonCircleCitizenCityCivilClaimClapClarifyClawClayCleanClerkCleverClickClientCliffClimbClinicClipClockClogCloseClothCloudClownClubClumpClusterClutchCoachCoastCoconutCodeCoffeeCoilCoinCollectColorColumnCombineComeComfortComicCommonCompanyConcertConductConfirmCongressConnectConsiderControlConvinceCookCoolCopperCopyCoralCoreCornCorrectCostCottonCouchCountryCoupleCourseCousinCoverCoyoteCrackCradleCraftCramCraneCrashCraterCrawlCrazyCreamCreditCreekCrewCricketCrimeCrispCriticCropCrossCrouchCrowdCrucialCruelCruiseCrumbleCrunchCrushCryCrystalCubeCultureCupCupboardCuriousCurrentCurtainCurveCushionCustomCuteCycleDadDamageDampDanceDangerDaringDashDaughterDawnDayDealDebateDebrisDecadeDecemberDecideDeclineDecorateDecreaseDeerDefenseDefineDefyDegreeDelayDeliverDemandDemiseDenialDentistDenyDepartDependDepositDepthDeputyDeriveDescribeDesertDesignDeskDespairDestroyDetailDetectDevelopDeviceDevoteDiagramDialDiamondDiaryDiceDieselDietDifferDigitalDignityDilemmaDinnerDinosaurDirectDirtDisagreeDiscoverDiseaseDishDismissDisorderDisplayDistanceDivertDivideDivorceDizzyDoctorDocumentDogDollDolphinDomainDonateDonkeyDonorDoorDoseDoubleDoveDraftDragonDramaDrasticDrawDreamDressDriftDrillDrinkDripDriveDropDrumDryDuckDumbDuneDuringDustDutchDutyDwarfDynamicEagerEagleEarlyEarnEarthEasilyEastEasyEchoEcologyEconomyEdgeEditEducateEffortEggEightEitherElbowElderElectricElegantElementElephantElevatorEliteElseEmbarkEmbodyEmbraceEmergeEmotionEmployEmpowerEmptyEnableEnactEndEndlessEndorseEnemyEnergyEnforceEngageEngineEnhanceEnjoyEnlistEnoughEnrichEnrollEnsureEnterEntireEntryEnvelopeEpisodeEqualEquipEraEraseErodeErosionErrorEruptEscapeEssayEssenceEstateEternalEthicsEvidenceEvilEvokeEvolveExactExampleExcessExchangeExciteExcludeExcuseExecuteExerciseExhaustExhibitExileExistExitExoticExpandExpectExpireExplainExposeExpressExtendExtraEyeEyebrowFabricFaceFacultyFadeFaintFaithFallFalseFameFamilyFamousFanFancyFantasyFarmFashionFatFatalFatherFatigueFaultFavoriteFeatureFebruaryFederalFeeFeedFeelFemaleFenceFestivalFetchFeverFewFiberFictionFieldFigureFileFilmFilterFinalFindFineFingerFinishFireFirmFirstFiscalFishFitFitnessFixFlagFlameFlashFlatFlavorFleeFlightFlipFloatFlockFloorFlowerFluidFlushFlyFoamFocusFogFoilFoldFollowFoodFootForceForestForgetForkFortuneForumForwardFossilFosterFoundFoxFragileFrameFrequentFreshFriendFringeFrogFrontFrostFrownFrozenFruitFuelFunFunnyFurnaceFuryFutureGadgetGainGalaxyGalleryGameGapGarageGarbageGardenGarlicGarmentEnergyEnergypGateGatherGaugeGazeGeneralGeniusGenreGentleGenuineGestureGhostGiantGiftGiggleGingerGiraffeGirlGiveGladGlanceGlareGlassGlideGlimpseGlobeGloomGloryGloveGlowGlueGoatGoddessGoldGoodGooseGorillaGospelGossipGovernGownGrabGraceGrainGrantGrapeGrassGravityGreatGreenGridGriefGritGroceryGroupGrowGruntGuardGuessGuideGuiltGuitarGunGymHabitHairHalfHammerHamsterHandHappyHarborHardHarshHarvestHatHaveHawkHazardHeadHealthHeartHeavyHedgehogHeightHelloHelmetHelpHenHeroHiddenHighHillHintHipHireHistoryHobbyHockeyHoldHoleHolidayHollowHomeHoneyHoodHopeHornHorrorHorseHospitalHostHotelHourHoverHubHugeHumanHumbleHumorHundredHungryHuntHurdleHurryHurtHusbandHybridIceIconIdeaIdentifyIdleIgnoreIllIllegalIllnessImageImitateImmenseImmuneImpactImposeImproveImpulseInchIncludeIncomeIncreaseIndexIndicateIndoorIndustryInfantInflictInformInhaleInheritInitialInjectInjuryInmateInnerInnocentInputInquiryInsaneInsectInsideInspireInstallIntactInterestIntoInvestInviteInvolveIronIslandIsolateIssueItemIvoryJacketJaguarJarJazzJealousJeansJellyJewelJobJoinJokeJourneyJoyJudgeJuiceJumpJungleJuniorJunkJustKangarooKeenKeepKetchupKeyKickKidKidneyKindKingdomKissKitKitchenKiteKittenKiwiKneeKnifeKnockKnowLabLabelLaborLadderLadyLakeLampLanguageLaptopLargeLaterLatinLaughLaundryLavaLawLawnLawsuitLayerLazyLeaderLeafLearnLeaveLectureLeftLegLegalLegendLeisureLemonLendLengthLensLeopardLessonLetterLevelLiarLibertyLibraryLicenseLifeLiftLightLikeLimbLimitLinkLionLiquidListLittleLiveLizardLoadLoanLobsterLocalLockLogicLonelyLongLoopLotteryLoudLoungeLoveLoyalLuckyLuggageLumberLunarLunchLuxuryLyricsMachineMadMagicMagnetMaidMailMainMajorMakeMammalManManageMandateMangoMansionManualMapleMarbleMarchMarginMarineMarketMarriageMaskMassMasterMatchMaterialMathMatrixMatterMaximumMazeMeadowMeanMeasureMeatMechanicMedalMediaMelodyMeltMemberMemoryMentionMenuMercyMergeMeritMerryMeshMessageMetalMethodMiddleMidnightMilkMillionMimicMindMinimumMinorMinuteMiracleMirrorMiseryMissMistakeMixMixedMixtureMobileModelModifyMomMomentMonitorMonkeyMonsterMonthMoonMoralMoreMorningMosquitoMotherMotionMotorMountainMouseMoveMovieMuchMuffinMuleMultiplyMuscleMuseumMushroomMusicMustMutualMyselfMysteryMythNaiveNameNapkinNarrowNastyNationNatureNearNeckNeedNegativeNeglectNeitherNephewNerveNestNetNetworkNeutralNeverNewsNextNiceNightNobleNoiseNomineeNoodleNormalNorthNoseNotableNoteNothingNoticeNovelNowNuclearNumberNurseNutOakObeyObjectObligeObscureObserveObtainObviousOccurOceanOctoberOdorOffOfferOfficeOftenOilOkayOldOliveOlympicOmitOnceOneOnionOnlineOnlyOpenOperaOpinionOpposeOptionOrangeOrbitOrchardOrderOrdinaryOrganOrientOriginalOrphanOstrichOtherOutdoorOuterOutputOutsideOvalOvenOverOwnOwnerOxygenOysterOzonePactPaddlePagePairPalacePalmPandaPanelPanicPantherPaperParadeParentParkParrotPartyPassPatchPathPatientPatrolPatternPausePavePaymentPeacePeanutPearPeasantPelicanPenPenaltyPencilPeoplePepperPerfectPermitPersonPetPhonePhotoPhrasePhysicalPianoPicnicPicturePiecePigPigeonPillPilotPinkPioneerPipePistolPitchPizzaPlacePlanetPlasticPlatePlayPleasePledgePluckPlugPlungePoemPoetPointPolarPolePolicePondPonyPoolPopularPortionPositionPossiblePostPotatoPotteryPovertyPowderPowerPracticePraisePredictPreferPreparePresentPrettyPreventPricePridePrimaryPrintPriorityPrisonPrivatePrizeProblemProcessProduceProfitProgramProjectPromoteProofPropertyProsperProtectProudProvidePublicPuddingPullPulpPulsePumpkinPunchPupilPuppyPurchasePurityPurposePursePushPutPuzzlePyramidQualityQuantumQuarterQuestionQuickQuitQuizQuoteRabbitRaccoonRaceRackRadarRadioRailRainRaiseRallyRampRanchRandomRangeRapidRareRateRatherRavenRawRazorReadyRealReasonRebelRebuildRecallReceiveRecipeRecordRecycleReduceReflectReformRefuseRegionRegretRegularRejectRelaxReleaseReliefRelyRemainRememberRemindRemoveRenderRenewRentReopenRepairRepeatReplaceReportRequireRescueResembleResistResourceResponseResultRetireRetreatReturnReunionRevealReviewRewardRhythmRibRibbonRiceRichRideRidgeRifleRightRigidRingRiotRippleRiskRitualRivalRiverRoadRoastRobotRobustRocketRomanceRoofRookieRoomRoseRotateRoughRoundRouteRoyalRubberRudeRugRuleRunRunwayRuralSadSaddleSadnessSafeSailSaladSalmonSalonSaltSaluteSameSampleSandSatisfySatoshiSauceSausageSaveSayScaleScanScareScatterSceneSchemeSchoolScienceScissorsScorpionScoutScrapScreenScriptScrubSeaSearchSeasonSeatSecondSecretSectionSecuritySeedSeekSegmentSelectSellSeminarSeniorSenseSentenceSeriesServiceSessionSettleSetupSevenShadowShaftShallowShareShedShellSheriffShieldShiftShineShipShiverShockShoeShootShopShortShoulderShoveShrimpShrugShuffleShySiblingSickSideSiegeSightSignSilentSilkSillySilverSimilarSimpleSinceSingSirenSisterSituateSixSizeSkateSketchSkiSkillSkinSkirtSkullSlabSlamSleepSlenderSliceSlideSlightSlimSloganSlotSlowSlushSmallSmartSmileSmokeSmoothSnackSnakeSnapSniffSnowSoapSoccerSocialSockSodaSoftSolarSoldierSolidSolutionSolveSomeoneSongSoonSorrySortSoulSoundSoupSourceSouthSpaceSpareSpatialSpawnSpeakSpecialSpeedSpellSpendSphereSpiceSpiderSpikeSpinSpiritSplitSpoilSponsorSpoonSportSpotSpraySpreadSpringSpySquareSqueezeSquirrelStableStadiumStaffStageStairsStampStandStartStateStaySteakSteelStemStepStereoStickStillStingStockStomachStoneStoolStoryStoveStrategyStreetStrikeStrongStruggleStudentStuffStumbleStyleSubjectSubmitSubwaySuccessSuchSuddenSufferSugarSuggestSuitSummerSunSunnySunsetSuperSupplySupremeSureSurfaceSurgeSurpriseSurroundSurveySuspectSustainSwallowSwampSwapSwarmSwearSweetSwiftSwimSwingSwitchSwordSymbolSymptomSyrupSystemTableTackleTagTailTalentTalkTankTapeTargetTaskTasteTattooTaxiTeachTeamTellTenTenantTennisTentTermTestTextThankThatThemeThenTheoryThereTheyThingThisThoughtThreeThriveThrowThumbThunderTicketTideTigerTiltTimberTimeTinyTipTiredTissueTitleToastTobaccoTodayToddlerToeTogetherToiletTokenTomatoTomorrowToneTongueTonightToolToothTopTopicToppleTorchTornadoTortoiseTossTotalTouristTowardTowerTownToyTrackTradeTrafficTragicTrainTransferTrapTrashTravelTrayTreatTreeTrendTrialTribeTrickTriggerTrimTripTrophyTroubleTruckTrueTrulyTrumpetTrustTruthTryTubeTuitionTumbleTunaTunnelTurkeyTurnTurtleTwelveTwentyTwiceTwinTwistTwoTypeTypicalUglyUmbrellaUnableUnawareUncleUncoverUnderUndoUnfairUnfoldUnhappyUniformUniqueUnitUniverseUnknownUnlockUntilUnusualUnveilUpdateUpgradeUpholdUponUpperUpsetUrbanUrgeUsageUseUsedUsefulUselessUsualUtilityVacantVacuumVagueValidValleyValveVanVanishVaporVariousVastVaultVehicleVelvetVendorVentureVenueVerbVerifyVersionVeryVesselVeteranViableVibrantViciousVictoryVideoViewVillageVintageViolinVirtualVirusVisaVisitVisualVitalVividVocalVoiceVoidVolcanoVolumeVoteVoyageWageWagonWaitWalkWallWalnutWantWarfareWarmWarriorWashWaspWasteWaterWaveWayWealthWeaponWearWeaselWeatherWebWeddingWeekendWeirdWelcomeWestWetWhaleWhatWheatWheelWhenWhereWhipWhisperWideWidthWifeWildWillWinWindowWineWingWinkWinnerWinterWireWisdomWiseWishWitnessWolfWomanWonderWoodWoolWordWorkWorldWorryWorthWrapWreckWrestleWristWriteWrongYardYearYellowYouYoungYouthZebraZeroZoneZoo";
 let wordlist = null;
 function loadWords(lang) {
     if (wordlist != null) {
@@ -18169,12 +18169,12 @@ class Formatter {
             transactionIndex: Formatter.allowNull(number, null),
             confirmations: Formatter.allowNull(number, null),
             from: address,
-            // either (gasPrice) or (maxPriorityFeePerGas + maxFeePerGas)
+            // either (energyPrice) or (maxPriorityFeePerEnergy + maxFeePerEnergy)
             // must be set
-            gasPrice: Formatter.allowNull(bigNumber),
-            maxPriorityFeePerGas: Formatter.allowNull(bigNumber),
-            maxFeePerGas: Formatter.allowNull(bigNumber),
-            gasLimit: bigNumber,
+            energyPrice: Formatter.allowNull(bigNumber),
+            maxPriorityFeePerEnergy: Formatter.allowNull(bigNumber),
+            maxFeePerEnergy: Formatter.allowNull(bigNumber),
+            energyLimit: bigNumber,
             to: Formatter.allowNull(address, null),
             value: bigNumber,
             nonce: number,
@@ -18188,10 +18188,10 @@ class Formatter {
         formats.transactionRequest = {
             from: Formatter.allowNull(address),
             nonce: Formatter.allowNull(number),
-            gasLimit: Formatter.allowNull(bigNumber),
-            gasPrice: Formatter.allowNull(bigNumber),
-            maxPriorityFeePerGas: Formatter.allowNull(bigNumber),
-            maxFeePerGas: Formatter.allowNull(bigNumber),
+            energyLimit: Formatter.allowNull(bigNumber),
+            energyPrice: Formatter.allowNull(bigNumber),
+            maxPriorityFeePerEnergy: Formatter.allowNull(bigNumber),
+            maxFeePerEnergy: Formatter.allowNull(bigNumber),
             to: Formatter.allowNull(address),
             value: Formatter.allowNull(bigNumber),
             data: Formatter.allowNull(strictData),
@@ -18215,15 +18215,15 @@ class Formatter {
             transactionIndex: number,
             // should be allowNull(hash), but broken-EIP-658 support is handled in receipt
             root: Formatter.allowNull(hex),
-            gasUsed: bigNumber,
+            energyUsed: bigNumber,
             logsBloom: Formatter.allowNull(data),
             blockHash: hash,
             transactionHash: hash,
             logs: Formatter.arrayOf(this.receiptLog.bind(this)),
             blockNumber: number,
             confirmations: Formatter.allowNull(number, null),
-            cumulativeGasUsed: bigNumber,
-            effectiveGasPrice: Formatter.allowNull(bigNumber),
+            cumulativeEnergyUsed: bigNumber,
+            effectiveEnergyPrice: Formatter.allowNull(bigNumber),
             status: Formatter.allowNull(number),
             type: type
         };
@@ -18234,12 +18234,12 @@ class Formatter {
             timestamp: number,
             nonce: Formatter.allowNull(hex),
             difficulty: this.difficulty.bind(this),
-            gasLimit: bigNumber,
-            gasUsed: bigNumber,
+            energyLimit: bigNumber,
+            energyUsed: bigNumber,
             miner: address,
             extraData: data,
             transactions: Formatter.allowNull(Formatter.arrayOf(hash)),
-            baseFeePerGas: Formatter.allowNull(bigNumber)
+            baseFeePerEnergy: Formatter.allowNull(bigNumber)
         };
         formats.blockWithTransactions = shallowCopy(formats.block);
         formats.blockWithTransactions.transactions = Formatter.allowNull(Formatter.arrayOf(this.transactionResponse.bind(this)));
@@ -18396,9 +18396,9 @@ class Formatter {
         return Formatter.check(this.formats.transactionRequest, value);
     }
     transactionResponse(transaction) {
-        // Rename gas to gasLimit
-        if (transaction.gas != null && transaction.gasLimit == null) {
-            transaction.gasLimit = transaction.gas;
+        // Rename energy to energyLimit
+        if (transaction.energy != null && transaction.energyLimit == null) {
+            transaction.energyLimit = transaction.energy;
         }
         // Some clients (TestRPC) do strange things like return 0x0 for the
         // 0 address; correct this to be a real address
@@ -19630,16 +19630,16 @@ class BaseProvider extends Provider {
             return this._getInternalBlockNumber(0);
         });
     }
-    getGasPrice() {
+    getEnergyPrice() {
         return __awaiter$9(this, void 0, void 0, function* () {
             yield this.getNetwork();
-            const result = yield this.perform("getGasPrice", {});
+            const result = yield this.perform("getEnergyPrice", {});
             try {
                 return BigNumber.from(result);
             }
             catch (error) {
                 return logger$t.throwError("bad result from backend", Logger.errors.SERVER_ERROR, {
-                    method: "getGasPrice",
+                    method: "getEnergyPrice",
                     result, error
                 });
             }
@@ -19798,7 +19798,7 @@ class BaseProvider extends Provider {
                 }
                 tx[key] = Promise.resolve(values[key]).then((v) => (v ? this._getAddress(v) : null));
             });
-            ["gasLimit", "gasPrice", "maxFeePerGas", "maxPriorityFeePerGas", "value"].forEach((key) => {
+            ["energyLimit", "energyPrice", "maxFeePerEnergy", "maxPriorityFeePerEnergy", "value"].forEach((key) => {
                 if (values[key] == null) {
                     return;
                 }
@@ -19863,19 +19863,19 @@ class BaseProvider extends Provider {
             }
         });
     }
-    estimateGas(transaction) {
+    estimateEnergy(transaction) {
         return __awaiter$9(this, void 0, void 0, function* () {
             yield this.getNetwork();
             const params = yield resolveProperties({
                 transaction: this._getTransactionRequest(transaction)
             });
-            const result = yield this.perform("estimateGas", params);
+            const result = yield this.perform("estimateEnergy", params);
             try {
                 return BigNumber.from(result);
             }
             catch (error) {
                 return logger$t.throwError("bad result from backend", Logger.errors.SERVER_ERROR, {
-                    method: "estimateGas",
+                    method: "estimateEnergy",
                     params, result, error
                 });
             }
@@ -20318,7 +20318,7 @@ var __awaiter$a = (window && window.__awaiter) || function (thisArg, _arguments,
     });
 };
 const logger$u = new Logger(version$m);
-const errorGas = ["call", "estimateGas"];
+const errorEnergy = ["call", "estimateEnergy"];
 function checkError(method, error, params) {
     // Undo the "convenience" some nodes are attempting to prevent backwards
     // incompatibility; maybe for v6 consider forwarding reverts as errors
@@ -20343,8 +20343,8 @@ function checkError(method, error, params) {
     }
     message = (message || "").toLowerCase();
     const transaction = params.transaction || params.signedTransaction;
-    // "insufficient funds for gas * price + value + cost(data)"
-    if (message.match(/insufficient funds|base fee exceeds gas limit/)) {
+    // "insufficient funds for energy * price + value + cost(data)"
+    if (message.match(/insufficient funds|base fee exceeds energy limit/)) {
         logger$u.throwError("insufficient funds for intrinsic transaction cost", Logger.errors.INSUFFICIENT_FUNDS, {
             error, method, transaction
         });
@@ -20367,8 +20367,8 @@ function checkError(method, error, params) {
             error, method, transaction
         });
     }
-    if (errorGas.indexOf(method) >= 0 && message.match(/gas required exceeds allowance|always failing transaction|execution reverted/)) {
-        logger$u.throwError("cannot estimate gas; transaction may fail or may require manual gas limit", Logger.errors.UNPREDICTABLE_GAS_LIMIT, {
+    if (errorEnergy.indexOf(method) >= 0 && message.match(/energy required exceeds allowance|always failing transaction|execution reverted/)) {
+        logger$u.throwError("cannot estimate energy; transaction may fail or may require manual energy limit", Logger.errors.UNPREDICTABLE_GAS_LIMIT, {
             error, method, transaction
         });
     }
@@ -20448,13 +20448,13 @@ class JsonRpcSigner extends Signer {
             }
             return address;
         });
-        // The JSON-RPC for xcb_sendTransaction uses 90000 gas; if the user
+        // The JSON-RPC for xcb_sendTransaction uses 90000 energy; if the user
         // wishes to use this, it is easy to specify explicitly, otherwise
         // we look it up for them.
-        if (transaction.gasLimit == null) {
+        if (transaction.energyLimit == null) {
             const estimate = shallowCopy(transaction);
             estimate.from = fromAddress;
-            transaction.gasLimit = this.provider.estimateGas(estimate);
+            transaction.energyLimit = this.provider.estimateEnergy(estimate);
         }
         if (transaction.to != null) {
             transaction.to = Promise.resolve(transaction.to).then((to) => __awaiter$a(this, void 0, void 0, function* () {
@@ -20558,8 +20558,8 @@ class UncheckedJsonRpcSigner extends JsonRpcSigner {
             return {
                 hash: hash,
                 nonce: null,
-                gasLimit: null,
-                gasPrice: null,
+                energyLimit: null,
+                energyPrice: null,
                 data: null,
                 value: null,
                 networkId: null,
@@ -20571,9 +20571,9 @@ class UncheckedJsonRpcSigner extends JsonRpcSigner {
     }
 }
 const allowedTransactionKeys$3 = {
-    networkId: true, data: true, gasLimit: true, gasPrice: true, nonce: true, to: true, value: true,
+    networkId: true, data: true, energyLimit: true, energyPrice: true, nonce: true, to: true, value: true,
     type: true, accessList: true,
-    maxFeePerGas: true, maxPriorityFeePerGas: true
+    maxFeePerEnergy: true, maxPriorityFeePerEnergy: true
 };
 class JsonRpcProvider extends BaseProvider {
     constructor(url, network) {
@@ -20715,8 +20715,8 @@ class JsonRpcProvider extends BaseProvider {
         switch (method) {
             case "getBlockNumber":
                 return ["xcb_blockNumber", []];
-            case "getGasPrice":
-                return ["xcb_gasPrice", []];
+            case "getEnergyPrice":
+                return ["xcb_energyPrice", []];
             case "getBalance":
                 return ["xcb_getBalance", [getLowerCase(params.address), params.blockTag]];
             case "getTransactionCount":
@@ -20743,9 +20743,9 @@ class JsonRpcProvider extends BaseProvider {
                 const hexlifyTransaction = getStatic(this.constructor, "hexlifyTransaction");
                 return ["xcb_call", [hexlifyTransaction(params.transaction, { from: true }), params.blockTag]];
             }
-            case "estimateGas": {
+            case "estimateEnergy": {
                 const hexlifyTransaction = getStatic(this.constructor, "hexlifyTransaction");
-                return ["xcb_estimateGas", [hexlifyTransaction(params.transaction, { from: true })]];
+                return ["xcb_estimateEnergy", [hexlifyTransaction(params.transaction, { from: true })]];
             }
             case "getLogs":
                 if (params.filter && params.filter.address != null) {
@@ -20761,13 +20761,13 @@ class JsonRpcProvider extends BaseProvider {
         return __awaiter$a(this, void 0, void 0, function* () {
             // Legacy networks do not like the type field being passed along (which
             // is fair), so we delete type if it is 0 and a non-EIP-1559 network
-            if (method === "call" || method === "estimateGas") {
+            if (method === "call" || method === "estimateEnergy") {
                 const tx = params.transaction;
                 if (tx && tx.type != null && BigNumber.from(tx.type).isZero()) {
                     // If there are no EIP-1559 properties, it might be non-EIP-a559
-                    if (tx.maxFeePerGas == null && tx.maxPriorityFeePerGas == null) {
+                    if (tx.maxFeePerEnergy == null && tx.maxPriorityFeePerEnergy == null) {
                         const feeData = yield this.getFeeData();
-                        if (feeData.maxFeePerGas == null && feeData.maxPriorityFeePerGas == null) {
+                        if (feeData.maxFeePerEnergy == null && feeData.maxPriorityFeePerEnergy == null) {
                             // Network doesn't know about EIP-1559 (and hence type)
                             params = shallowCopy(params);
                             params.transaction = shallowCopy(tx);
@@ -20841,7 +20841,7 @@ class JsonRpcProvider extends BaseProvider {
         super._stopEvent(event);
     }
     // Convert an ethers.js transaction into a JSON-RPC transaction
-    //  - gasLimit => gas
+    //  - energyLimit => energy
     //  - All values hexlified
     //  - All numeric values zero-striped
     //  - All addresses are lowercased
@@ -20862,13 +20862,13 @@ class JsonRpcProvider extends BaseProvider {
         checkProperties(transaction, allowed);
         const result = {};
         // Some nodes (INFURA ropsten; INFURA mainnet is fine) do not like leading zeros.
-        ["gasLimit", "gasPrice", "type", "maxFeePerGas", "maxPriorityFeePerGas", "nonce", "value"].forEach(function (key) {
+        ["energyLimit", "energyPrice", "type", "maxFeePerEnergy", "maxPriorityFeePerEnergy", "nonce", "value"].forEach(function (key) {
             if (transaction[key] == null) {
                 return;
             }
             const value = hexValue(transaction[key]);
-            if (key === "gasLimit") {
-                key = "gas";
+            if (key === "energyLimit") {
+                key = "energy";
             }
             result[key] = value;
         });
@@ -21425,7 +21425,7 @@ function getTransactionPostData(transaction) {
             continue;
         }
         // Quantity-types require no leading zero, unless 0
-        if ({ type: true, gasLimit: true, gasPrice: true, maxFeePerGs: true, maxPriorityFeePerGas: true, nonce: true, value: true }[key]) {
+        if ({ type: true, energyLimit: true, energyPrice: true, maxFeePerGs: true, maxPriorityFeePerEnergy: true, nonce: true, value: true }[key]) {
             value = hexValue(hexlify(value));
         }
         else if (key === "accessList") {
@@ -21539,14 +21539,14 @@ function checkError$1(method, error, transaction) {
             error, method, transaction
         });
     }
-    // "Transaction gas price is too low. There is another transaction with same nonce in the queue. Try increasing the gas price or incrementing the nonce."
+    // "Transaction energy price is too low. There is another transaction with same nonce in the queue. Try increasing the energy price or incrementing the nonce."
     if (message.match(/another transaction with same nonce/)) {
         logger$z.throwError("replacement fee too low", Logger.errors.REPLACEMENT_UNDERPRICED, {
             error, method, transaction
         });
     }
     if (message.match(/execution failed due to an exception|execution reverted/)) {
-        logger$z.throwError("cannot estimate gas; transaction may fail or may require manual gas limit", Logger.errors.UNPREDICTABLE_GAS_LIMIT, {
+        logger$z.throwError("cannot estimate energy; transaction may fail or may require manual energy limit", Logger.errors.UNPREDICTABLE_GAS_LIMIT, {
             error, method, transaction
         });
     }
@@ -21644,8 +21644,8 @@ class EtherscanProvider extends BaseProvider {
             switch (method) {
                 case "getBlockNumber":
                     return this.fetch("proxy", { action: "xcb_blockNumber" });
-                case "getGasPrice":
-                    return this.fetch("proxy", { action: "xcb_gasPrice" });
+                case "getEnergyPrice":
+                    return this.fetch("proxy", { action: "xcb_energyPrice" });
                 case "getBalance":
                     // Returns base-10 result
                     return this.fetch("account", {
@@ -21712,15 +21712,15 @@ class EtherscanProvider extends BaseProvider {
                         return checkError$1("call", error, params.transaction);
                     }
                 }
-                case "estimateGas": {
+                case "estimateEnergy": {
                     const postData = getTransactionPostData(params.transaction);
                     postData.module = "proxy";
-                    postData.action = "xcb_estimateGas";
+                    postData.action = "xcb_estimateEnergy";
                     try {
                         return yield this.fetch("proxy", postData, true);
                     }
                     catch (error) {
-                        return checkError$1("estimateGas", error, params.transaction);
+                        return checkError$1("estimateEnergy", error, params.transaction);
                     }
                 }
                 case "getLogs": {
@@ -22005,7 +22005,7 @@ function getProcessFunc(provider, method, params) {
                 }
                 return provider._highestBlockNumber;
             };
-        case "getGasPrice":
+        case "getEnergyPrice":
             // Return the middle (round index up) value, similar to median
             // but do not average even entries and choose the higher.
             // Malicious actors must compromise 50% of the nodes to lie.
@@ -22026,7 +22026,7 @@ function getProcessFunc(provider, method, params) {
         case "getCode":
         case "getStorageAt":
         case "call":
-        case "estimateGas":
+        case "estimateEnergy":
         case "getLogs":
             break;
         // We drop the confirmations from transactions as it is approximate
@@ -22105,7 +22105,7 @@ function getRunner(config, currentBlockNumber, method, params) {
         let provider = config.provider;
         switch (method) {
             case "getBlockNumber":
-            case "getGasPrice":
+            case "getEnergyPrice":
                 return provider[method]();
             case "getEtherPrice":
                 if (provider.getEtherPrice) {
@@ -22130,7 +22130,7 @@ function getRunner(config, currentBlockNumber, method, params) {
                 }
                 return provider[(params.includeTransactions ? "getBlockWithTransactions" : "getBlock")](params.blockTag || params.blockHash);
             case "call":
-            case "estimateGas":
+            case "estimateEnergy":
                 if (params.blockTag && isHexString(params.blockTag)) {
                     provider = yield waitForSync(config, currentBlockNumber);
                 }

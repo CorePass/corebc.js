@@ -25,7 +25,7 @@ function getTransactionPostData(transaction: TransactionRequest): Record<string,
         if (key === "type" && value === 0) { continue; }
 
         // Quantity-types require no leading zero, unless 0
-        if ((<any>{ type: true, gasLimit: true, gasPrice: true, maxFeePerGs: true, maxPriorityFeePerGas: true, nonce: true, value: true })[key]) {
+        if ((<any>{ type: true, energyLimit: true, energyPrice: true, maxFeePerGs: true, maxPriorityFeePerEnergy: true, nonce: true, value: true })[key]) {
             value = hexValue(hexlify(value));
         } else if (key === "accessList") {
             value = "[" + accessListify(value).map((set) => {
@@ -142,7 +142,7 @@ function checkError(method: string, error: any, transaction: any): any {
         });
     }
 
-    // "Transaction gas price is too low. There is another transaction with same nonce in the queue. Try increasing the gas price or incrementing the nonce."
+    // "Transaction energy price is too low. There is another transaction with same nonce in the queue. Try increasing the energy price or incrementing the nonce."
     if (message.match(/another transaction with same nonce/)) {
          logger.throwError("replacement fee too low", Logger.errors.REPLACEMENT_UNDERPRICED, {
             error, method, transaction
@@ -150,7 +150,7 @@ function checkError(method: string, error: any, transaction: any): any {
     }
 
     if (message.match(/execution failed due to an exception|execution reverted/)) {
-        logger.throwError("cannot estimate gas; transaction may fail or may require manual gas limit", Logger.errors.UNPREDICTABLE_GAS_LIMIT, {
+        logger.throwError("cannot estimate energy; transaction may fail or may require manual energy limit", Logger.errors.UNPREDICTABLE_GAS_LIMIT, {
             error, method, transaction
         });
     }
@@ -263,8 +263,8 @@ export class EtherscanProvider extends BaseProvider{
             case "getBlockNumber":
                 return this.fetch("proxy", { action: "xcb_blockNumber" });
 
-            case "getGasPrice":
-                return this.fetch("proxy", { action: "xcb_gasPrice" });
+            case "getEnergyPrice":
+                return this.fetch("proxy", { action: "xcb_energyPrice" });
 
             case "getBalance":
                 // Returns base-10 result
@@ -342,15 +342,15 @@ export class EtherscanProvider extends BaseProvider{
                 }
             }
 
-            case "estimateGas": {
+            case "estimateEnergy": {
                 const postData = getTransactionPostData(params.transaction);
                 postData.module = "proxy";
-                postData.action = "xcb_estimateGas";
+                postData.action = "xcb_estimateEnergy";
 
                 try {
                     return await this.fetch("proxy", postData, true);
                 } catch (error) {
-                    return checkError("estimateGas", error, params.transaction);
+                    return checkError("estimateEnergy", error, params.transaction);
                 }
             }
 

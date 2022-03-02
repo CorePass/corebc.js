@@ -192,8 +192,8 @@ describe("Test Contract Transaction Population", function () {
     it("allows send overrides", function () {
         return __awaiter(this, void 0, void 0, function* () {
             const tx = yield contract.populateTransaction.mint({
-                gasLimit: 150000,
-                gasPrice: 1900000000,
+                energyLimit: 150000,
+                energyPrice: 1900000000,
                 nonce: 5,
                 value: 1234,
                 from: testAddress
@@ -203,8 +203,8 @@ describe("Test Contract Transaction Population", function () {
             assert.equal(tx.data, "0x1249c58b", "data matches");
             assert.equal(tx.to, testAddressCheck, "to address matches");
             assert.equal(tx.nonce, 5, "nonce address matches");
-            assert.ok(tx.gasLimit.eq(150000), "gasLimit matches");
-            assert.ok(tx.gasPrice.eq(1900000000), "gasPrice matches");
+            assert.ok(tx.energyLimit.eq(150000), "energyLimit matches");
+            assert.ok(tx.energyPrice.eq(1900000000), "energyPrice matches");
             assert.ok(tx.value.eq(1234), "value matches");
             assert.equal(tx.from, testAddressCheck, "from address matches");
         });

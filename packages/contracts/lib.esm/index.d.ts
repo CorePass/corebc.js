@@ -5,10 +5,10 @@ import { BigNumber, BigNumberish } from "@ethersproject/bignumber";
 import { BytesLike } from "@ethersproject/bytes";
 import { AccessList, AccessListish } from "@ethersproject/transactions";
 export interface Overrides {
-    gasLimit?: BigNumberish | Promise<BigNumberish>;
-    gasPrice?: BigNumberish | Promise<BigNumberish>;
-    maxFeePerGas?: BigNumberish | Promise<BigNumberish>;
-    maxPriorityFeePerGas?: BigNumberish | Promise<BigNumberish>;
+    energyLimit?: BigNumberish | Promise<BigNumberish>;
+    energyPrice?: BigNumberish | Promise<BigNumberish>;
+    maxFeePerEnergy?: BigNumberish | Promise<BigNumberish>;
+    maxPriorityFeePerEnergy?: BigNumberish | Promise<BigNumberish>;
     nonce?: BigNumberish | Promise<BigNumberish>;
     type?: number;
     accessList?: AccessListish;
@@ -25,15 +25,15 @@ export interface PopulatedTransaction {
     to?: string;
     from?: string;
     nonce?: number;
-    gasLimit?: BigNumber;
-    gasPrice?: BigNumber;
+    energyLimit?: BigNumber;
+    energyPrice?: BigNumber;
     data?: string;
     value?: BigNumber;
     networkId?: number;
     type?: number;
     accessList?: AccessList;
-    maxFeePerGas?: BigNumber;
-    maxPriorityFeePerGas?: BigNumber;
+    maxFeePerEnergy?: BigNumber;
+    maxPriorityFeePerEnergy?: BigNumber;
     customData?: Record<string, any>;
 }
 export declare type EventFilter = {
@@ -84,7 +84,7 @@ export declare class BaseContract {
     readonly callStatic: {
         [name: string]: ContractFunction;
     };
-    readonly estimateGas: {
+    readonly estimateEnergy: {
         [name: string]: ContractFunction<BigNumber>;
     };
     readonly populateTransaction: {

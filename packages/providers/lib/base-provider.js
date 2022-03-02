@@ -1302,7 +1302,7 @@ var BaseProvider = /** @class */ (function (_super) {
             });
         });
     };
-    BaseProvider.prototype.getGasPrice = function () {
+    BaseProvider.prototype.getEnergyPrice = function () {
         return __awaiter(this, void 0, void 0, function () {
             var result;
             return __generator(this, function (_a) {
@@ -1310,7 +1310,7 @@ var BaseProvider = /** @class */ (function (_super) {
                     case 0: return [4 /*yield*/, this.getNetwork()];
                     case 1:
                         _a.sent();
-                        return [4 /*yield*/, this.perform("getGasPrice", {})];
+                        return [4 /*yield*/, this.perform("getEnergyPrice", {})];
                     case 2:
                         result = _a.sent();
                         try {
@@ -1318,7 +1318,7 @@ var BaseProvider = /** @class */ (function (_super) {
                         }
                         catch (error) {
                             return [2 /*return*/, logger.throwError("bad result from backend", logger_1.Logger.errors.SERVER_ERROR, {
-                                    method: "getGasPrice",
+                                    method: "getEnergyPrice",
                                     result: result,
                                     error: error
                                 })];
@@ -1566,7 +1566,7 @@ var BaseProvider = /** @class */ (function (_super) {
                             }
                             tx[key] = Promise.resolve(values[key]).then(function (v) { return (v ? _this._getAddress(v) : null); });
                         });
-                        ["gasLimit", "gasPrice", "maxFeePerGas", "maxPriorityFeePerGas", "value"].forEach(function (key) {
+                        ["energyLimit", "energyPrice", "maxFeePerEnergy", "maxPriorityFeePerEnergy", "value"].forEach(function (key) {
                             if (values[key] == null) {
                                 return;
                             }
@@ -1659,7 +1659,7 @@ var BaseProvider = /** @class */ (function (_super) {
             });
         });
     };
-    BaseProvider.prototype.estimateGas = function (transaction) {
+    BaseProvider.prototype.estimateEnergy = function (transaction) {
         return __awaiter(this, void 0, void 0, function () {
             var params, result;
             return __generator(this, function (_a) {
@@ -1672,7 +1672,7 @@ var BaseProvider = /** @class */ (function (_super) {
                             })];
                     case 2:
                         params = _a.sent();
-                        return [4 /*yield*/, this.perform("estimateGas", params)];
+                        return [4 /*yield*/, this.perform("estimateEnergy", params)];
                     case 3:
                         result = _a.sent();
                         try {
@@ -1680,7 +1680,7 @@ var BaseProvider = /** @class */ (function (_super) {
                         }
                         catch (error) {
                             return [2 /*return*/, logger.throwError("bad result from backend", logger_1.Logger.errors.SERVER_ERROR, {
-                                    method: "estimateGas",
+                                    method: "estimateEnergy",
                                     params: params,
                                     result: result,
                                     error: error

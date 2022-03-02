@@ -107,7 +107,7 @@ export declare class BaseProvider extends Provider implements EnsProvider {
         startBlock: number;
     }): Promise<TransactionReceipt>;
     getBlockNumber(): Promise<number>;
-    getGasPrice(): Promise<BigNumber>;
+    getEnergyPrice(): Promise<BigNumber>;
     getBalance(addressOrName: string | Promise<string>, blockTag?: BlockTag | Promise<BlockTag>): Promise<BigNumber>;
     getTransactionCount(addressOrName: string | Promise<string>, blockTag?: BlockTag | Promise<BlockTag>): Promise<number>;
     getCode(addressOrName: string | Promise<string>, blockTag?: BlockTag | Promise<BlockTag>): Promise<string>;
@@ -117,7 +117,7 @@ export declare class BaseProvider extends Provider implements EnsProvider {
     _getTransactionRequest(transaction: Deferrable<TransactionRequest>): Promise<Transaction>;
     _getFilter(filter: Filter | FilterByBlockHash | Promise<Filter | FilterByBlockHash>): Promise<Filter | FilterByBlockHash>;
     call(transaction: Deferrable<TransactionRequest>, blockTag?: BlockTag | Promise<BlockTag>): Promise<string>;
-    estimateGas(transaction: Deferrable<TransactionRequest>): Promise<BigNumber>;
+    estimateEnergy(transaction: Deferrable<TransactionRequest>): Promise<BigNumber>;
     _getAddress(addressOrName: string | Promise<string>): Promise<string>;
     _getBlock(blockHashOrBlockTag: BlockTag | string | Promise<BlockTag | string>, includeTransactions?: boolean): Promise<Block | BlockWithTransactions>;
     getBlock(blockHashOrBlockTag: BlockTag | string | Promise<BlockTag | string>): Promise<Block>;

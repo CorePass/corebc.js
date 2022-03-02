@@ -647,27 +647,27 @@ var SweepPlugin = /** @class */ (function (_super) {
     };
     SweepPlugin.prototype.run = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var _a, balance, gasPrice, code, maxSpendable;
+            var _a, balance, energyPrice, code, maxSpendable;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0: return [4 /*yield*/, ethers_1.ethers.utils.resolveProperties({
                             balance: this.provider.getBalance(this.accounts[0].getAddress()),
-                            gasPrice: (this.gasPrice || this.provider.getGasPrice()),
+                            energyPrice: (this.energyPrice || this.provider.getEnergyPrice()),
                             code: this.provider.getCode(this.toAddress)
                         })];
                     case 1:
-                        _a = _b.sent(), balance = _a.balance, gasPrice = _a.gasPrice, code = _a.code;
+                        _a = _b.sent(), balance = _a.balance, energyPrice = _a.energyPrice, code = _a.code;
                         if (code !== "0x") {
                             this.throwError("Cannot sweep to a contract address");
                         }
-                        maxSpendable = balance.sub(gasPrice.mul(21000));
+                        maxSpendable = balance.sub(energyPrice.mul(21000));
                         if (maxSpendable.lte(0)) {
                             this.throwError("Insufficient funds to sweep");
                         }
                         return [4 /*yield*/, this.accounts[0].sendTransaction({
                                 to: this.toAddress,
-                                gasLimit: 21000,
-                                gasPrice: gasPrice,
+                                energyLimit: 21000,
+                                energyPrice: energyPrice,
                                 value: maxSpendable
                             })];
                     case 2:

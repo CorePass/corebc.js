@@ -98,8 +98,8 @@ export class LedgerSigner extends ethers.Signer {
         const baseTx: ethers.utils.UnsignedTransaction = {
             networkId: (tx.networkId || undefined),
             data: (tx.data || undefined),
-            gasLimit: (tx.gasLimit || undefined),
-            gasPrice: (tx.gasPrice || undefined),
+            energyLimit: (tx.energyLimit || undefined),
+            energyPrice: (tx.energyPrice || undefined),
             nonce: (tx.nonce ? ethers.BigNumber.from(tx.nonce).toNumber(): undefined),
             to: (tx.to || undefined),
             value: (tx.value || undefined),

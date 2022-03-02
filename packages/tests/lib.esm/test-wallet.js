@@ -74,10 +74,10 @@ describe('Test JSON Wallets', function () {
 describe('Test Transaction Signing and Parsing', function () {
     function checkTransaction(parsedTransaction, test) {
         let transaction = {};
-        ['nonce', 'gasLimit', 'gasPrice', 'to', 'value', 'data'].forEach((key) => {
+        ['nonce', 'energyLimit', 'energyPrice', 'to', 'value', 'data'].forEach((key) => {
             let expected = test[key];
             let value = parsedTransaction[key];
-            if (["gasLimit", "gasPrice", "value"].indexOf(key) >= 0) {
+            if (["energyLimit", "energyPrice", "value"].indexOf(key) >= 0) {
                 assert.ok((ethers.BigNumber.isBigNumber(value)), 'parsed into a big number - ' + key);
                 value = value.toHexString();
                 if (!expected || expected === '0x') {
@@ -140,7 +140,7 @@ describe('Test Transaction Signing and Parsing', function () {
             ['data', 'from', 'nonce', 'to'].forEach((key) => {
                 assert.equal(parsedTransaction[key], parsedTransactionNetworkId5[key], 'parses ' + key + ' (eip155)');
             });
-            ['gasLimit', 'gasPrice', 'value'].forEach((key) => {
+            ['energyLimit', 'energyPrice', 'value'].forEach((key) => {
                 assert.ok(parsedTransaction[key].eq(parsedTransactionNetworkId5[key]), 'parses ' + key + ' (eip155)');
             });
             // EIP-155 chain ID
@@ -164,8 +164,8 @@ describe('Test Transaction Signing and Parsing', function () {
                 const transaction = {
                     to: test.to,
                     data: test.data,
-                    gasLimit: test.gasLimit,
-                    gasPrice: test.gasPrice,
+                    energyLimit: test.energyLimit,
+                    energyPrice: test.energyPrice,
                     value: test.value,
                     nonce: ((test.nonce) === "0x") ? 0 : test.nonce,
                     networkId: 5
@@ -233,8 +233,8 @@ describe('Test Signing Messages', function () {
 describe("Serialize Transactions", function () {
     it("allows odd-length numeric values", function () {
         ethers.utils.serializeTransaction({
-            gasLimit: "0x1",
-            gasPrice: "0x1",
+            energyLimit: "0x1",
+            energyPrice: "0x1",
             value: "0x1"
         });
         //console.log(result);

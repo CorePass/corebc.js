@@ -15,7 +15,7 @@ export interface JsonFragment {
     readonly stateMutability?: string;
     readonly inputs?: ReadonlyArray<JsonFragmentType>;
     readonly outputs?: ReadonlyArray<JsonFragmentType>;
-    readonly gas?: string;
+    readonly energy?: string;
 }
 export declare const FormatTypes: {
     [name: string]: string;
@@ -59,7 +59,7 @@ export declare class EventFragment extends Fragment {
 export declare class ConstructorFragment extends Fragment {
     stateMutability: string;
     payable: boolean;
-    gas?: BigNumber;
+    energy?: BigNumber;
     format(format?: string): string;
     static from(value: ConstructorFragment | JsonFragment | string): ConstructorFragment;
     static fromObject(value: ConstructorFragment | JsonFragment): ConstructorFragment;

@@ -244,7 +244,7 @@ function getProcessFunc(provider, method, params) {
                 }
                 return provider._highestBlockNumber;
             };
-        case "getGasPrice":
+        case "getEnergyPrice":
             // Return the middle (round index up) value, similar to median
             // but do not average even entries and choose the higher.
             // Malicious actors must compromise 50% of the nodes to lie.
@@ -265,7 +265,7 @@ function getProcessFunc(provider, method, params) {
         case "getCode":
         case "getStorageAt":
         case "call":
-        case "estimateGas":
+        case "estimateEnergy":
         case "getLogs":
             break;
         // We drop the confirmations from transactions as it is approximate
@@ -352,7 +352,7 @@ function getRunner(config, currentBlockNumber, method, params) {
                     _a = method;
                     switch (_a) {
                         case "getBlockNumber": return [3 /*break*/, 1];
-                        case "getGasPrice": return [3 /*break*/, 1];
+                        case "getEnergyPrice": return [3 /*break*/, 1];
                         case "getEtherPrice": return [3 /*break*/, 2];
                         case "getBalance": return [3 /*break*/, 3];
                         case "getTransactionCount": return [3 /*break*/, 3];
@@ -360,7 +360,7 @@ function getRunner(config, currentBlockNumber, method, params) {
                         case "getStorageAt": return [3 /*break*/, 6];
                         case "getBlock": return [3 /*break*/, 9];
                         case "call": return [3 /*break*/, 12];
-                        case "estimateGas": return [3 /*break*/, 12];
+                        case "estimateEnergy": return [3 /*break*/, 12];
                         case "getTransaction": return [3 /*break*/, 15];
                         case "getTransactionReceipt": return [3 /*break*/, 15];
                         case "getLogs": return [3 /*break*/, 16];

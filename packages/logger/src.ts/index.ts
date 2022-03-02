@@ -123,7 +123,7 @@ export enum ErrorCode {
     //  - reason: The reason (only for EIP848 "Error(string)")
     CALL_EXCEPTION = "CALL_EXCEPTION",
 
-    // Insufficient funds (< value + gasLimit * gasPrice)
+    // Insufficient funds (< value + energyLimit * energyPrice)
     //   - transaction: the transaction attempted
     INSUFFICIENT_FUNDS = "INSUFFICIENT_FUNDS",
 
@@ -135,11 +135,11 @@ export enum ErrorCode {
     //   - transaction: the transaction attempted
     REPLACEMENT_UNDERPRICED = "REPLACEMENT_UNDERPRICED",
 
-    // The gas limit could not be estimated
-    //   - transaction: the transaction passed to estimateGas
+    // The energy limit could not be estimated
+    //   - transaction: the transaction passed to estimateEnergy
     UNPREDICTABLE_GAS_LIMIT = "UNPREDICTABLE_GAS_LIMIT",
 
-    // The transaction was replaced by one with a higher gas price
+    // The transaction was replaced by one with a higher energy price
     //   - reason: "cancelled", "replaced" or "repriced"
     //   - cancelled: true if reason == "cancelled" or reason == "replaced")
     //   - hash: original transaction hash

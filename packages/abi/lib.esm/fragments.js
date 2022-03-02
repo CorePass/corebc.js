@@ -463,17 +463,17 @@ export class EventFragment extends Fragment {
         return (value && value._isFragment && value.type === "event");
     }
 }
-function parseGas(value, params) {
-    params.gas = null;
+function parseEnergy(value, params) {
+    params.energy = null;
     let comps = value.split("@");
     if (comps.length !== 1) {
         if (comps.length > 2) {
             logger.throwArgumentError("invalid human-readable ABI signature", "value", value);
         }
         if (!comps[1].match(/^[0-9]+$/)) {
-            logger.throwArgumentError("invalid human-readable ABI signature gas", "value", value);
+            logger.throwArgumentError("invalid human-readable ABI signature energy", "value", value);
         }
-        params.gas = BigNumber.from(comps[1]);
+        params.energy = BigNumber.from(comps[1]);
         return comps[0];
     }
     return value;
@@ -575,7 +575,7 @@ export class ConstructorFragment extends Fragment {
                 type: "constructor",
                 stateMutability: ((this.stateMutability !== "nonpayable") ? this.stateMutability : undefined),
                 payable: this.payable,
-                gas: (this.gas ? this.gas.toNumber() : undefined),
+                energy: (this.energy ? this.energy.toNumber() : undefined),
                 inputs: this.inputs.map((input) => JSON.parse(input.format(format)))
             });
         }
@@ -613,13 +613,13 @@ export class ConstructorFragment extends Fragment {
             inputs: (value.inputs ? value.inputs.map(ParamType.fromObject) : []),
             payable: state.payable,
             stateMutability: state.stateMutability,
-            gas: (value.gas ? BigNumber.from(value.gas) : null)
+            energy: (value.energy ? BigNumber.from(value.energy) : null)
         };
         return new ConstructorFragment(_constructorGuard, params);
     }
     static fromString(value) {
         let params = { type: "constructor" };
-        value = parseGas(value, params);
+        value = parseEnergy(value, params);
         let parens = value.match(regexParen);
         if (!parens || parens[1].trim() !== "constructor") {
             logger.throwArgumentError("invalid constructor string", "value", value);
@@ -647,7 +647,7 @@ export class FunctionFragment extends ConstructorFragment {
                 constant: this.constant,
                 stateMutability: ((this.stateMutability !== "nonpayable") ? this.stateMutability : undefined),
                 payable: this.payable,
-                gas: (this.gas ? this.gas.toNumber() : undefined),
+                energy: (this.energy ? this.energy.toNumber() : undefined),
                 inputs: this.inputs.map((input) => JSON.parse(input.format(format))),
                 outputs: this.outputs.map((output) => JSON.parse(output.format(format))),
             });
@@ -669,8 +669,8 @@ export class FunctionFragment extends ConstructorFragment {
             if (this.outputs && this.outputs.length) {
                 result += "returns (" + this.outputs.map((output) => output.format(format)).join(", ") + ") ";
             }
-            if (this.gas != null) {
-                result += "@" + this.gas.toString() + " ";
+            if (this.energy != null) {
+                result += "@" + this.energy.toString() + " ";
             }
         }
         return result.trim();
@@ -697,13 +697,13 @@ export class FunctionFragment extends ConstructorFragment {
             outputs: (value.outputs ? value.outputs.map(ParamType.fromObject) : []),
             payable: state.payable,
             stateMutability: state.stateMutability,
-            gas: (value.gas ? BigNumber.from(value.gas) : null)
+            energy: (value.energy ? BigNumber.from(value.energy) : null)
         };
         return new FunctionFragment(_constructorGuard, params);
     }
     static fromString(value) {
         let params = { type: "function" };
-        value = parseGas(value, params);
+        value = parseEnergy(value, params);
         let comps = value.split(" returns ");
         if (comps.length > 2) {
             logger.throwArgumentError("invalid function string", "value", value);

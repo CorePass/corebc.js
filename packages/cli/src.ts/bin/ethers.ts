@@ -480,9 +480,9 @@ class SweepPlugin extends Plugin {
 
     async run(): Promise<void> {
 
-        let { balance, gasPrice, code } = await ethers.utils.resolveProperties({
+        let { balance, energyPrice, code } = await ethers.utils.resolveProperties({
             balance: this.provider.getBalance(this.accounts[0].getAddress()),
-            gasPrice: (this.gasPrice || this.provider.getGasPrice()),
+            energyPrice: (this.energyPrice || this.provider.getEnergyPrice()),
             code: this.provider.getCode(this.toAddress)
         });
 
@@ -490,15 +490,15 @@ class SweepPlugin extends Plugin {
             this.throwError("Cannot sweep to a contract address");
         }
 
-        let maxSpendable = balance.sub(gasPrice.mul(21000));
+        let maxSpendable = balance.sub(energyPrice.mul(21000));
         if (maxSpendable.lte(0)) {
             this.throwError("Insufficient funds to sweep");
         }
 
         await this.accounts[0].sendTransaction({
             to: this.toAddress,
-            gasLimit: 21000,
-            gasPrice: gasPrice,
+            energyLimit: 21000,
+            energyPrice: energyPrice,
             value: maxSpendable
         });
     }

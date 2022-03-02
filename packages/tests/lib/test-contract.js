@@ -258,8 +258,8 @@ describe("Test Contract Transaction Population", function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, contract.populateTransaction.mint({
-                            gasLimit: 150000,
-                            gasPrice: 1900000000,
+                            energyLimit: 150000,
+                            energyPrice: 1900000000,
                             nonce: 5,
                             value: 1234,
                             from: testAddress
@@ -271,8 +271,8 @@ describe("Test Contract Transaction Population", function () {
                         assert_1.default.equal(tx.data, "0x1249c58b", "data matches");
                         assert_1.default.equal(tx.to, testAddressCheck, "to address matches");
                         assert_1.default.equal(tx.nonce, 5, "nonce address matches");
-                        assert_1.default.ok(tx.gasLimit.eq(150000), "gasLimit matches");
-                        assert_1.default.ok(tx.gasPrice.eq(1900000000), "gasPrice matches");
+                        assert_1.default.ok(tx.energyLimit.eq(150000), "energyLimit matches");
+                        assert_1.default.ok(tx.energyPrice.eq(1900000000), "energyPrice matches");
                         assert_1.default.ok(tx.value.eq(1234), "value matches");
                         assert_1.default.equal(tx.from, testAddressCheck, "from address matches");
                         return [2 /*return*/];

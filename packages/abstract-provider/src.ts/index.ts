@@ -20,8 +20,8 @@ export type TransactionRequest = {
     from?: string,
     nonce?: BigNumberish,
 
-    gasLimit?: BigNumberish,
-    gasPrice?: BigNumberish,
+    energyLimit?: BigNumberish,
+    energyPrice?: BigNumberish,
 
     data?: BytesLike,
     value?: BigNumberish,
@@ -30,8 +30,8 @@ export type TransactionRequest = {
     type?: number;
     accessList?: AccessListish;
 
-    maxPriorityFeePerGas?: BigNumberish;
-    maxFeePerGas?: BigNumberish;
+    maxPriorityFeePerEnergy?: BigNumberish;
+    maxFeePerEnergy?: BigNumberish;
 
     customData?: Record<string, any>;
 }
@@ -68,13 +68,13 @@ export interface _Block {
     difficulty: number;
     _difficulty: BigNumber;
 
-    gasLimit: BigNumber;
-    gasUsed: BigNumber;
+    energyLimit: BigNumber;
+    energyUsed: BigNumber;
 
     miner: string;
     extraData: string;
 
-    baseFeePerGas?: null | BigNumber;
+    baseFeePerEnergy?: null | BigNumber;
 }
 
 export interface Block extends _Block {
@@ -108,24 +108,24 @@ export interface TransactionReceipt {
     contractAddress: string,
     transactionIndex: number,
     root?: string,
-    gasUsed: BigNumber,
+    energyUsed: BigNumber,
     logsBloom: string,
     blockHash: string,
     transactionHash: string,
     logs: Array<Log>,
     blockNumber: number,
     confirmations: number,
-    cumulativeGasUsed: BigNumber,
-    effectiveGasPrice: BigNumber,
+    cumulativeEnergyUsed: BigNumber,
+    effectiveEnergyPrice: BigNumber,
     byzantium: boolean,
     type: number;
     status?: number
 };
 
 export interface FeeData {
-    maxFeePerGas: null | BigNumber;
-    maxPriorityFeePerGas: null | BigNumber;
-    gasPrice: null | BigNumber;
+    maxFeePerEnergy: null | BigNumber;
+    maxPriorityFeePerEnergy: null | BigNumber;
+    energyPrice: null | BigNumber;
 }
 
 export interface EventFilter {
@@ -229,28 +229,28 @@ export abstract class Provider implements OnceBlockable {
 
     // Latest State
     abstract getBlockNumber(): Promise<number>;
-    abstract getGasPrice(): Promise<BigNumber>;
+    abstract getEnergyPrice(): Promise<BigNumber>;
     async getFeeData(): Promise<FeeData> {
-        const { block, gasPrice } = await resolveProperties({
+        const { block, energyPrice } = await resolveProperties({
             block: this.getBlock("latest"),
-            gasPrice: this.getGasPrice().catch((error) => {
+            energyPrice: this.getEnergyPrice().catch((error) => {
                 // @TODO: Why is this now failing on Calaveras?
                 //console.log(error);
                 return null;
             })
         });
 
-        let maxFeePerGas = null, maxPriorityFeePerGas = null;
+        let maxFeePerEnergy = null, maxPriorityFeePerEnergy = null;
 
-        if (block && block.baseFeePerGas) {
+        if (block && block.baseFeePerEnergy) {
             // We may want to compute this more accurately in the future,
             // using the formula "check if the base fee is correct".
             // See: https://eips.ethereum.org/EIPS/eip-1559
-            maxPriorityFeePerGas = BigNumber.from("2500000000");
-            maxFeePerGas = block.baseFeePerGas.mul(2).add(maxPriorityFeePerGas);
+            maxPriorityFeePerEnergy = BigNumber.from("2500000000");
+            maxFeePerEnergy = block.baseFeePerEnergy.mul(2).add(maxPriorityFeePerEnergy);
         }
 
-        return { maxFeePerGas, maxPriorityFeePerGas, gasPrice };
+        return { maxFeePerEnergy, maxPriorityFeePerEnergy, energyPrice };
     }
 
     // Account
@@ -262,7 +262,7 @@ export abstract class Provider implements OnceBlockable {
     // Execution
     abstract sendTransaction(signedTransaction: string | Promise<string>): Promise<TransactionResponse>;
     abstract call(transaction: Deferrable<TransactionRequest>, blockTag?: BlockTag | Promise<BlockTag>): Promise<string>;
-    abstract estimateGas(transaction: Deferrable<TransactionRequest>): Promise<BigNumber>;
+    abstract estimateEnergy(transaction: Deferrable<TransactionRequest>): Promise<BigNumber>;
 
     // Queries
     abstract getBlock(blockHashOrBlockTag: BlockTag | string | Promise<BlockTag | string>): Promise<Block>;

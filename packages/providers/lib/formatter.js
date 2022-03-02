@@ -37,12 +37,12 @@ var Formatter = /** @class */ (function () {
             transactionIndex: Formatter.allowNull(number, null),
             confirmations: Formatter.allowNull(number, null),
             from: address,
-            // either (gasPrice) or (maxPriorityFeePerGas + maxFeePerGas)
+            // either (energyPrice) or (maxPriorityFeePerEnergy + maxFeePerEnergy)
             // must be set
-            gasPrice: Formatter.allowNull(bigNumber),
-            maxPriorityFeePerGas: Formatter.allowNull(bigNumber),
-            maxFeePerGas: Formatter.allowNull(bigNumber),
-            gasLimit: bigNumber,
+            energyPrice: Formatter.allowNull(bigNumber),
+            maxPriorityFeePerEnergy: Formatter.allowNull(bigNumber),
+            maxFeePerEnergy: Formatter.allowNull(bigNumber),
+            energyLimit: bigNumber,
             to: Formatter.allowNull(address, null),
             value: bigNumber,
             nonce: number,
@@ -56,10 +56,10 @@ var Formatter = /** @class */ (function () {
         formats.transactionRequest = {
             from: Formatter.allowNull(address),
             nonce: Formatter.allowNull(number),
-            gasLimit: Formatter.allowNull(bigNumber),
-            gasPrice: Formatter.allowNull(bigNumber),
-            maxPriorityFeePerGas: Formatter.allowNull(bigNumber),
-            maxFeePerGas: Formatter.allowNull(bigNumber),
+            energyLimit: Formatter.allowNull(bigNumber),
+            energyPrice: Formatter.allowNull(bigNumber),
+            maxPriorityFeePerEnergy: Formatter.allowNull(bigNumber),
+            maxFeePerEnergy: Formatter.allowNull(bigNumber),
             to: Formatter.allowNull(address),
             value: Formatter.allowNull(bigNumber),
             data: Formatter.allowNull(strictData),
@@ -83,15 +83,15 @@ var Formatter = /** @class */ (function () {
             transactionIndex: number,
             // should be allowNull(hash), but broken-EIP-658 support is handled in receipt
             root: Formatter.allowNull(hex),
-            gasUsed: bigNumber,
+            energyUsed: bigNumber,
             logsBloom: Formatter.allowNull(data),
             blockHash: hash,
             transactionHash: hash,
             logs: Formatter.arrayOf(this.receiptLog.bind(this)),
             blockNumber: number,
             confirmations: Formatter.allowNull(number, null),
-            cumulativeGasUsed: bigNumber,
-            effectiveGasPrice: Formatter.allowNull(bigNumber),
+            cumulativeEnergyUsed: bigNumber,
+            effectiveEnergyPrice: Formatter.allowNull(bigNumber),
             status: Formatter.allowNull(number),
             type: type
         };
@@ -102,12 +102,12 @@ var Formatter = /** @class */ (function () {
             timestamp: number,
             nonce: Formatter.allowNull(hex),
             difficulty: this.difficulty.bind(this),
-            gasLimit: bigNumber,
-            gasUsed: bigNumber,
+            energyLimit: bigNumber,
+            energyUsed: bigNumber,
             miner: address,
             extraData: data,
             transactions: Formatter.allowNull(Formatter.arrayOf(hash)),
-            baseFeePerGas: Formatter.allowNull(bigNumber)
+            baseFeePerEnergy: Formatter.allowNull(bigNumber)
         };
         formats.blockWithTransactions = (0, properties_1.shallowCopy)(formats.block);
         formats.blockWithTransactions.transactions = Formatter.allowNull(Formatter.arrayOf(this.transactionResponse.bind(this)));
@@ -264,9 +264,9 @@ var Formatter = /** @class */ (function () {
         return Formatter.check(this.formats.transactionRequest, value);
     };
     Formatter.prototype.transactionResponse = function (transaction) {
-        // Rename gas to gasLimit
-        if (transaction.gas != null && transaction.gasLimit == null) {
-            transaction.gasLimit = transaction.gas;
+        // Rename energy to energyLimit
+        if (transaction.energy != null && transaction.energyLimit == null) {
+            transaction.energyLimit = transaction.energy;
         }
         // Some clients (TestRPC) do strange things like return 0x0 for the
         // 0 address; correct this to be a real address

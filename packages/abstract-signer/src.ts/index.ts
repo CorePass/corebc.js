@@ -10,7 +10,7 @@ import { version } from "./_version";
 const logger = new Logger(version);
 
 const allowedTransactionKeys: Array<string> = [
-    "accessList", "networkId", "customData", "data", "from", "gasLimit", "gasPrice", "maxFeePerGas", "maxPriorityFeePerGas", "nonce", "to", "type", "value"
+    "accessList", "networkId", "customData", "data", "from", "energyLimit", "energyPrice", "maxFeePerEnergy", "maxPriorityFeePerEnergy", "nonce", "to", "type", "value"
 ];
 
 const forwardErrors = [
@@ -104,11 +104,11 @@ export abstract class Signer {
         return await this.provider.getTransactionCount(this.getAddress(), blockTag);
     }
 
-    // Populates "from" if unspecified, and estimates the gas for the transaction
-    async estimateGas(transaction: Deferrable<TransactionRequest>): Promise<BigNumber> {
-        this._checkProvider("estimateGas");
+    // Populates "from" if unspecified, and estimates the energy for the transaction
+    async estimateEnergy(transaction: Deferrable<TransactionRequest>): Promise<BigNumber> {
+        this._checkProvider("estimateEnergy");
         const tx = await resolveProperties(this.checkTransaction(transaction));
-        return await this.provider.estimateGas(tx);
+        return await this.provider.estimateEnergy(tx);
     }
 
     // Populates "from" if unspecified, and calls with the transaction
@@ -132,9 +132,9 @@ export abstract class Signer {
         return network.networkId;
     }
 
-    async getGasPrice(): Promise<BigNumber> {
-        this._checkProvider("getGasPrice");
-        return await this.provider.getGasPrice();
+    async getEnergyPrice(): Promise<BigNumber> {
+        this._checkProvider("getEnergyPrice");
+        return await this.provider.getEnergyPrice();
     }
 
     async getFeeData(): Promise<FeeData> {
@@ -157,7 +157,7 @@ export abstract class Signer {
     // - returns a COPY (safe to mutate the result)
     // By default called from: (overriding these prevents it)
     //   - call
-    //   - estimateGas
+    //   - estimateEnergy
     //   - populateTransaction (and therefor sendTransaction)
     checkTransaction(transaction: Deferrable<TransactionRequest>): Deferrable<TransactionRequest> {
         for (const key in transaction) {
@@ -193,7 +193,7 @@ export abstract class Signer {
     //   - sendTransaction
     //
     // Notes:
-    //  - We allow gasPrice for EIP-1559 as long as it matches maxFeePerGas
+    //  - We allow energyPrice for EIP-1559 as long as it matches maxFeePerEnergy
     async populateTransaction(transaction: Deferrable<TransactionRequest>): Promise<TransactionRequest> {
 
         const tx: Deferrable<TransactionRequest> = await resolveProperties(this.checkTransaction(transaction))
@@ -213,22 +213,22 @@ export abstract class Signer {
         }
 
         // Do not allow mixing pre-eip-1559 and eip-1559 properties
-        const hasEip1559 = (tx.maxFeePerGas != null || tx.maxPriorityFeePerGas != null);
-        if (tx.gasPrice != null && (tx.type === 2 || hasEip1559)) {
-            logger.throwArgumentError("eip-1559 transaction do not support gasPrice", "transaction", transaction);
+        const hasEip1559 = (tx.maxFeePerEnergy != null || tx.maxPriorityFeePerEnergy != null);
+        if (tx.energyPrice != null && (tx.type === 2 || hasEip1559)) {
+            logger.throwArgumentError("eip-1559 transaction do not support energyPrice", "transaction", transaction);
         } else if ((tx.type === 0 || tx.type === 1) && hasEip1559) {
-            logger.throwArgumentError("pre-eip-1559 transaction do not support maxFeePerGas/maxPriorityFeePerGas", "transaction", transaction);
+            logger.throwArgumentError("pre-eip-1559 transaction do not support maxFeePerEnergy/maxPriorityFeePerEnergy", "transaction", transaction);
         }
 
-        if ((tx.type === 2 || tx.type == null) && (tx.maxFeePerGas != null && tx.maxPriorityFeePerGas != null)) {
+        if ((tx.type === 2 || tx.type == null) && (tx.maxFeePerEnergy != null && tx.maxPriorityFeePerEnergy != null)) {
             // Fully-formed EIP-1559 transaction (skip getFeeData)
             tx.type = 2;
 
         } else if (tx.type === 0 || tx.type === 1) {
             // Explicit Legacy or EIP-2930 transaction
 
-            // Populate missing gasPrice
-            if (tx.gasPrice == null) { tx.gasPrice = this.getGasPrice(); }
+            // Populate missing energyPrice
+            if (tx.energyPrice == null) { tx.energyPrice = this.getEnergyPrice(); }
 
         } else {
 
@@ -238,27 +238,27 @@ export abstract class Signer {
             if (tx.type == null) {
                 // We need to auto-detect the intended type of this transaction...
 
-                if (feeData.maxFeePerGas != null && feeData.maxPriorityFeePerGas != null) {
+                if (feeData.maxFeePerEnergy != null && feeData.maxPriorityFeePerEnergy != null) {
                     // The network supports EIP-1559!
 
                     // Upgrade transaction from null to eip-1559
                     tx.type = 2;
 
-                    if (tx.gasPrice != null) {
-                        // Using legacy gasPrice property on an eip-1559 network,
-                        // so use gasPrice as both fee properties
-                        const gasPrice = tx.gasPrice;
-                        delete tx.gasPrice;
-                        tx.maxFeePerGas = gasPrice;
-                        tx.maxPriorityFeePerGas = gasPrice;
+                    if (tx.energyPrice != null) {
+                        // Using legacy energyPrice property on an eip-1559 network,
+                        // so use energyPrice as both fee properties
+                        const energyPrice = tx.energyPrice;
+                        delete tx.energyPrice;
+                        tx.maxFeePerEnergy = energyPrice;
+                        tx.maxPriorityFeePerEnergy = energyPrice;
 
                     } else {
                         // Populate missing fee data
-                        if (tx.maxFeePerGas == null) { tx.maxFeePerGas = feeData.maxFeePerGas; }
-                        if (tx.maxPriorityFeePerGas == null) { tx.maxPriorityFeePerGas = feeData.maxPriorityFeePerGas; }
+                        if (tx.maxFeePerEnergy == null) { tx.maxFeePerEnergy = feeData.maxFeePerEnergy; }
+                        if (tx.maxPriorityFeePerEnergy == null) { tx.maxPriorityFeePerEnergy = feeData.maxPriorityFeePerEnergy; }
                     }
 
-                } else if (feeData.gasPrice != null) {
+                } else if (feeData.energyPrice != null) {
                     // Network doesn't support EIP-1559...
 
                     // ...but they are trying to use EIP-1559 properties
@@ -269,7 +269,7 @@ export abstract class Signer {
                     }
 
                     // Populate missing fee data
-                    if (tx.gasPrice == null) { tx.gasPrice = feeData.gasPrice; }
+                    if (tx.energyPrice == null) { tx.energyPrice = feeData.energyPrice; }
 
                     // Explicitly set untyped transaction to legacy
                     tx.type = 0;
@@ -285,20 +285,20 @@ export abstract class Signer {
                 // Explicitly using EIP-1559
 
                 // Populate missing fee data
-                if (tx.maxFeePerGas == null) { tx.maxFeePerGas = feeData.maxFeePerGas; }
-                if (tx.maxPriorityFeePerGas == null) { tx.maxPriorityFeePerGas = feeData.maxPriorityFeePerGas; }
+                if (tx.maxFeePerEnergy == null) { tx.maxFeePerEnergy = feeData.maxFeePerEnergy; }
+                if (tx.maxPriorityFeePerEnergy == null) { tx.maxPriorityFeePerEnergy = feeData.maxPriorityFeePerEnergy; }
             }
         }
 
         if (tx.nonce == null) { tx.nonce = this.getTransactionCount("pending"); }
 
-        if (tx.gasLimit == null) {
-            tx.gasLimit = this.estimateGas(tx).catch((error) => {
+        if (tx.energyLimit == null) {
+            tx.energyLimit = this.estimateEnergy(tx).catch((error) => {
                 if (forwardErrors.indexOf(error.code) >= 0) {
                     throw error;
                 }
 
-                return logger.throwError("cannot estimate gas; transaction may fail or may require manual gas limit", Logger.errors.UNPREDICTABLE_GAS_LIMIT, {
+                return logger.throwError("cannot estimate energy; transaction may fail or may require manual energy limit", Logger.errors.UNPREDICTABLE_GAS_LIMIT, {
                     error: error,
                     tx: tx
                 });

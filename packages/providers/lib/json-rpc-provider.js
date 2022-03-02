@@ -64,7 +64,7 @@ var logger_1 = require("@ethersproject/logger");
 var _version_1 = require("./_version");
 var logger = new logger_1.Logger(_version_1.version);
 var base_provider_1 = require("./base-provider");
-var errorGas = ["call", "estimateGas"];
+var errorEnergy = ["call", "estimateEnergy"];
 function checkError(method, error, params) {
     // Undo the "convenience" some nodes are attempting to prevent backwards
     // incompatibility; maybe for v6 consider forwarding reverts as errors
@@ -90,8 +90,8 @@ function checkError(method, error, params) {
     }
     message = (message || "").toLowerCase();
     var transaction = params.transaction || params.signedTransaction;
-    // "insufficient funds for gas * price + value + cost(data)"
-    if (message.match(/insufficient funds|base fee exceeds gas limit/)) {
+    // "insufficient funds for energy * price + value + cost(data)"
+    if (message.match(/insufficient funds|base fee exceeds energy limit/)) {
         logger.throwError("insufficient funds for intrinsic transaction cost", logger_1.Logger.errors.INSUFFICIENT_FUNDS, {
             error: error,
             method: method,
@@ -122,8 +122,8 @@ function checkError(method, error, params) {
             transaction: transaction
         });
     }
-    if (errorGas.indexOf(method) >= 0 && message.match(/gas required exceeds allowance|always failing transaction|execution reverted/)) {
-        logger.throwError("cannot estimate gas; transaction may fail or may require manual gas limit", logger_1.Logger.errors.UNPREDICTABLE_GAS_LIMIT, {
+    if (errorEnergy.indexOf(method) >= 0 && message.match(/energy required exceeds allowance|always failing transaction|execution reverted/)) {
+        logger.throwError("cannot estimate energy; transaction may fail or may require manual energy limit", logger_1.Logger.errors.UNPREDICTABLE_GAS_LIMIT, {
             error: error,
             method: method,
             transaction: transaction
@@ -211,13 +211,13 @@ var JsonRpcSigner = /** @class */ (function (_super) {
             }
             return address;
         });
-        // The JSON-RPC for xcb_sendTransaction uses 90000 gas; if the user
+        // The JSON-RPC for xcb_sendTransaction uses 90000 energy; if the user
         // wishes to use this, it is easy to specify explicitly, otherwise
         // we look it up for them.
-        if (transaction.gasLimit == null) {
+        if (transaction.energyLimit == null) {
             var estimate = (0, properties_1.shallowCopy)(transaction);
             estimate.from = fromAddress;
-            transaction.gasLimit = this.provider.estimateGas(estimate);
+            transaction.energyLimit = this.provider.estimateEnergy(estimate);
         }
         if (transaction.to != null) {
             transaction.to = Promise.resolve(transaction.to).then(function (to) { return __awaiter(_this, void 0, void 0, function () {
@@ -392,8 +392,8 @@ var UncheckedJsonRpcSigner = /** @class */ (function (_super) {
             return {
                 hash: hash,
                 nonce: null,
-                gasLimit: null,
-                gasPrice: null,
+                energyLimit: null,
+                energyPrice: null,
                 data: null,
                 value: null,
                 networkId: null,
@@ -406,9 +406,9 @@ var UncheckedJsonRpcSigner = /** @class */ (function (_super) {
     return UncheckedJsonRpcSigner;
 }(JsonRpcSigner));
 var allowedTransactionKeys = {
-    networkId: true, data: true, gasLimit: true, gasPrice: true, nonce: true, to: true, value: true,
+    networkId: true, data: true, energyLimit: true, energyPrice: true, nonce: true, to: true, value: true,
     type: true, accessList: true,
-    maxFeePerGas: true, maxPriorityFeePerGas: true
+    maxFeePerEnergy: true, maxPriorityFeePerEnergy: true
 };
 var JsonRpcProvider = /** @class */ (function (_super) {
     __extends(JsonRpcProvider, _super);
@@ -580,8 +580,8 @@ var JsonRpcProvider = /** @class */ (function (_super) {
         switch (method) {
             case "getBlockNumber":
                 return ["xcb_blockNumber", []];
-            case "getGasPrice":
-                return ["xcb_gasPrice", []];
+            case "getEnergyPrice":
+                return ["xcb_energyPrice", []];
             case "getBalance":
                 return ["xcb_getBalance", [getLowerCase(params.address), params.blockTag]];
             case "getTransactionCount":
@@ -608,9 +608,9 @@ var JsonRpcProvider = /** @class */ (function (_super) {
                 var hexlifyTransaction = (0, properties_1.getStatic)(this.constructor, "hexlifyTransaction");
                 return ["xcb_call", [hexlifyTransaction(params.transaction, { from: true }), params.blockTag]];
             }
-            case "estimateGas": {
+            case "estimateEnergy": {
                 var hexlifyTransaction = (0, properties_1.getStatic)(this.constructor, "hexlifyTransaction");
-                return ["xcb_estimateGas", [hexlifyTransaction(params.transaction, { from: true })]];
+                return ["xcb_estimateEnergy", [hexlifyTransaction(params.transaction, { from: true })]];
             }
             case "getLogs":
                 if (params.filter && params.filter.address != null) {
@@ -628,14 +628,14 @@ var JsonRpcProvider = /** @class */ (function (_super) {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        if (!(method === "call" || method === "estimateGas")) return [3 /*break*/, 2];
+                        if (!(method === "call" || method === "estimateEnergy")) return [3 /*break*/, 2];
                         tx = params.transaction;
                         if (!(tx && tx.type != null && bignumber_1.BigNumber.from(tx.type).isZero())) return [3 /*break*/, 2];
-                        if (!(tx.maxFeePerGas == null && tx.maxPriorityFeePerGas == null)) return [3 /*break*/, 2];
+                        if (!(tx.maxFeePerEnergy == null && tx.maxPriorityFeePerEnergy == null)) return [3 /*break*/, 2];
                         return [4 /*yield*/, this.getFeeData()];
                     case 1:
                         feeData = _a.sent();
-                        if (feeData.maxFeePerGas == null && feeData.maxPriorityFeePerGas == null) {
+                        if (feeData.maxFeePerEnergy == null && feeData.maxPriorityFeePerEnergy == null) {
                             // Network doesn't know about EIP-1559 (and hence type)
                             params = (0, properties_1.shallowCopy)(params);
                             params.transaction = (0, properties_1.shallowCopy)(tx);
@@ -713,7 +713,7 @@ var JsonRpcProvider = /** @class */ (function (_super) {
         _super.prototype._stopEvent.call(this, event);
     };
     // Convert an ethers.js transaction into a JSON-RPC transaction
-    //  - gasLimit => gas
+    //  - energyLimit => energy
     //  - All values hexlified
     //  - All numeric values zero-striped
     //  - All addresses are lowercased
@@ -734,13 +734,13 @@ var JsonRpcProvider = /** @class */ (function (_super) {
         (0, properties_1.checkProperties)(transaction, allowed);
         var result = {};
         // Some nodes (INFURA ropsten; INFURA mainnet is fine) do not like leading zeros.
-        ["gasLimit", "gasPrice", "type", "maxFeePerGas", "maxPriorityFeePerGas", "nonce", "value"].forEach(function (key) {
+        ["energyLimit", "energyPrice", "type", "maxFeePerEnergy", "maxPriorityFeePerEnergy", "nonce", "value"].forEach(function (key) {
             if (transaction[key] == null) {
                 return;
             }
             var value = (0, bytes_1.hexValue)(transaction[key]);
-            if (key === "gasLimit") {
-                key = "gas";
+            if (key === "energyLimit") {
+                key = "energy";
             }
             result[key] = value;
         });

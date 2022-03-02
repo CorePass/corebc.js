@@ -28,7 +28,7 @@ export interface JsonFragment {
     readonly inputs?: ReadonlyArray<JsonFragmentType>;
     readonly outputs?: ReadonlyArray<JsonFragmentType>;
 
-    readonly gas?: string;
+    readonly energy?: string;
 };
 
 const _constructorGuard = { };
@@ -578,8 +578,8 @@ export class EventFragment extends Fragment {
     }
 }
 
-function parseGas(value: string, params: any): string {
-    params.gas = null;
+function parseEnergy(value: string, params: any): string {
+    params.energy = null;
 
     let comps = value.split("@");
     if (comps.length !== 1) {
@@ -587,9 +587,9 @@ function parseGas(value: string, params: any): string {
             logger.throwArgumentError("invalid human-readable ABI signature", "value", value);
         }
         if (!comps[1].match(/^[0-9]+$/)) {
-            logger.throwArgumentError("invalid human-readable ABI signature gas", "value", value);
+            logger.throwArgumentError("invalid human-readable ABI signature energy", "value", value);
         }
-        params.gas = BigNumber.from(comps[1]);
+        params.energy = BigNumber.from(comps[1]);
         return comps[0];
     }
 
@@ -706,13 +706,13 @@ function verifyState(value: StateInputValue): StateOutputValue {
 interface _ConstructorFragment extends _Fragment {
     stateMutability: string;
     payable: boolean;
-    gas?: BigNumber;
+    energy?: BigNumber;
 }
 
 export class ConstructorFragment extends Fragment {
     stateMutability: string;
     payable: boolean;
-    gas?: BigNumber;
+    energy?: BigNumber;
 
     format(format?: string): string {
         if (!format) { format = FormatTypes.sighash; }
@@ -725,7 +725,7 @@ export class ConstructorFragment extends Fragment {
                 type: "constructor",
                 stateMutability: ((this.stateMutability !== "nonpayable") ? this.stateMutability: undefined),
                 payable: this.payable,
-                gas: (this.gas ? this.gas.toNumber(): undefined),
+                energy: (this.energy ? this.energy.toNumber(): undefined),
                 inputs: this.inputs.map((input) => JSON.parse(input.format(format)))
             });
         }
@@ -772,7 +772,7 @@ export class ConstructorFragment extends Fragment {
             inputs: (value.inputs ? value.inputs.map(ParamType.fromObject): []),
             payable: state.payable,
             stateMutability: state.stateMutability,
-            gas: (value.gas ? BigNumber.from(value.gas): null)
+            energy: (value.energy ? BigNumber.from(value.energy): null)
         };
 
         return new ConstructorFragment(_constructorGuard, params);
@@ -781,7 +781,7 @@ export class ConstructorFragment extends Fragment {
     static fromString(value: string): ConstructorFragment {
         let params: any = { type: "constructor" };
 
-        value = parseGas(value, params);
+        value = parseEnergy(value, params);
 
         let parens = value.match(regexParen);
         if (!parens || parens[1].trim() !== "constructor") {
@@ -822,7 +822,7 @@ export class FunctionFragment extends ConstructorFragment {
                 constant: this.constant,
                 stateMutability: ((this.stateMutability !== "nonpayable") ? this.stateMutability: undefined),
                 payable: this.payable,
-                gas: (this.gas ? this.gas.toNumber(): undefined),
+                energy: (this.energy ? this.energy.toNumber(): undefined),
                 inputs: this.inputs.map((input) => JSON.parse(input.format(format))),
                 outputs: this.outputs.map((output) => JSON.parse(output.format(format))),
             });
@@ -853,8 +853,8 @@ export class FunctionFragment extends ConstructorFragment {
                 ).join(", ") + ") ";
             }
 
-            if (this.gas != null) {
-                result += "@" + this.gas.toString() + " ";
+            if (this.energy != null) {
+                result += "@" + this.energy.toString() + " ";
             }
         }
 
@@ -885,7 +885,7 @@ export class FunctionFragment extends ConstructorFragment {
             outputs: (value.outputs ? value.outputs.map(ParamType.fromObject): [ ]),
             payable: state.payable,
             stateMutability: state.stateMutability,
-            gas: (value.gas ? BigNumber.from(value.gas): null)
+            energy: (value.energy ? BigNumber.from(value.energy): null)
         };
 
         return new FunctionFragment(_constructorGuard, params);
@@ -893,7 +893,7 @@ export class FunctionFragment extends ConstructorFragment {
 
     static fromString(value: string): FunctionFragment {
         let params: any = { type: "function" };
-        value = parseGas(value, params);
+        value = parseEnergy(value, params);
 
         let comps = value.split(" returns ");
         if (comps.length > 2) {

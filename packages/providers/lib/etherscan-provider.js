@@ -73,7 +73,7 @@ function getTransactionPostData(transaction) {
             continue;
         }
         // Quantity-types require no leading zero, unless 0
-        if ({ type: true, gasLimit: true, gasPrice: true, maxFeePerGs: true, maxPriorityFeePerGas: true, nonce: true, value: true }[key]) {
+        if ({ type: true, energyLimit: true, energyPrice: true, maxFeePerGs: true, maxPriorityFeePerEnergy: true, nonce: true, value: true }[key]) {
             value = (0, bytes_1.hexValue)((0, bytes_1.hexlify)(value));
         }
         else if (key === "accessList") {
@@ -192,7 +192,7 @@ function checkError(method, error, transaction) {
             transaction: transaction
         });
     }
-    // "Transaction gas price is too low. There is another transaction with same nonce in the queue. Try increasing the gas price or incrementing the nonce."
+    // "Transaction energy price is too low. There is another transaction with same nonce in the queue. Try increasing the energy price or incrementing the nonce."
     if (message.match(/another transaction with same nonce/)) {
         logger.throwError("replacement fee too low", logger_1.Logger.errors.REPLACEMENT_UNDERPRICED, {
             error: error,
@@ -201,7 +201,7 @@ function checkError(method, error, transaction) {
         });
     }
     if (message.match(/execution failed due to an exception|execution reverted/)) {
-        logger.throwError("cannot estimate gas; transaction may fail or may require manual gas limit", logger_1.Logger.errors.UNPREDICTABLE_GAS_LIMIT, {
+        logger.throwError("cannot estimate energy; transaction may fail or may require manual energy limit", logger_1.Logger.errors.UNPREDICTABLE_GAS_LIMIT, {
             error: error,
             method: method,
             transaction: transaction
@@ -317,7 +317,7 @@ var EtherscanProvider = /** @class */ (function (_super) {
                         _a = method;
                         switch (_a) {
                             case "getBlockNumber": return [3 /*break*/, 1];
-                            case "getGasPrice": return [3 /*break*/, 2];
+                            case "getEnergyPrice": return [3 /*break*/, 2];
                             case "getBalance": return [3 /*break*/, 3];
                             case "getTransactionCount": return [3 /*break*/, 4];
                             case "getCode": return [3 /*break*/, 5];
@@ -327,13 +327,13 @@ var EtherscanProvider = /** @class */ (function (_super) {
                             case "getTransaction": return [3 /*break*/, 9];
                             case "getTransactionReceipt": return [3 /*break*/, 10];
                             case "call": return [3 /*break*/, 11];
-                            case "estimateGas": return [3 /*break*/, 15];
+                            case "estimateEnergy": return [3 /*break*/, 15];
                             case "getLogs": return [3 /*break*/, 19];
                             case "getEtherPrice": return [3 /*break*/, 26];
                         }
                         return [3 /*break*/, 28];
                     case 1: return [2 /*return*/, this.fetch("proxy", { action: "xcb_blockNumber" })];
-                    case 2: return [2 /*return*/, this.fetch("proxy", { action: "xcb_gasPrice" })];
+                    case 2: return [2 /*return*/, this.fetch("proxy", { action: "xcb_energyPrice" })];
                     case 3: 
                     // Returns base-10 result
                     return [2 /*return*/, this.fetch("account", {
@@ -398,7 +398,7 @@ var EtherscanProvider = /** @class */ (function (_super) {
                     case 15:
                         postData = getTransactionPostData(params.transaction);
                         postData.module = "proxy";
-                        postData.action = "xcb_estimateGas";
+                        postData.action = "xcb_estimateEnergy";
                         _c.label = 16;
                     case 16:
                         _c.trys.push([16, 18, , 19]);
@@ -406,7 +406,7 @@ var EtherscanProvider = /** @class */ (function (_super) {
                     case 17: return [2 /*return*/, _c.sent()];
                     case 18:
                         error_2 = _c.sent();
-                        return [2 /*return*/, checkError("estimateGas", error_2, params.transaction)];
+                        return [2 /*return*/, checkError("estimateEnergy", error_2, params.transaction)];
                     case 19:
                         args = { action: "getLogs" };
                         if (params.filter.fromBlock) {

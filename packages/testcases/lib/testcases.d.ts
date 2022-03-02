@@ -71,8 +71,8 @@ export interface SignedTransaction {
     signedTransactionNetworkId5: string;
     unsignedTransactionNetworkId5: string;
     nonce: number;
-    gasLimit: string;
-    gasPrice: string;
+    energyLimit: string;
+    energyPrice: string;
     to: string;
     value: string;
     data: string;
@@ -84,9 +84,9 @@ export interface TypedTransaction {
     tx: {
         type?: number;
         data?: string;
-        gasLimit?: string;
-        maxPriorityFeePerGas: string;
-        maxFeePerGas: string;
+        energyLimit?: string;
+        maxPriorityFeePerEnergy: string;
+        maxFeePerEnergy: string;
         nonce: number;
         to: string;
         value: string;

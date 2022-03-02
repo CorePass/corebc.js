@@ -76,9 +76,9 @@ var logger = new logger_1.Logger(_version_1.version);
 ;
 ///////////////////////////////
 var allowedTransactionKeys = {
-    networkId: true, data: true, from: true, gasLimit: true, gasPrice: true, nonce: true, to: true, value: true,
+    networkId: true, data: true, from: true, energyLimit: true, energyPrice: true, nonce: true, to: true, value: true,
     type: true, accessList: true,
-    maxFeePerGas: true, maxPriorityFeePerGas: true,
+    maxFeePerEnergy: true, maxPriorityFeePerEnergy: true,
     customData: true
 };
 function resolveName(resolver, nameOrPromise) {
@@ -207,17 +207,17 @@ function populateTransaction(contract, fragment, args) {
                     if (ro.nonce != null) {
                         tx.nonce = bignumber_1.BigNumber.from(ro.nonce).toNumber();
                     }
-                    if (ro.gasLimit != null) {
-                        tx.gasLimit = bignumber_1.BigNumber.from(ro.gasLimit);
+                    if (ro.energyLimit != null) {
+                        tx.energyLimit = bignumber_1.BigNumber.from(ro.energyLimit);
                     }
-                    if (ro.gasPrice != null) {
-                        tx.gasPrice = bignumber_1.BigNumber.from(ro.gasPrice);
+                    if (ro.energyPrice != null) {
+                        tx.energyPrice = bignumber_1.BigNumber.from(ro.energyPrice);
                     }
-                    if (ro.maxFeePerGas != null) {
-                        tx.maxFeePerGas = bignumber_1.BigNumber.from(ro.maxFeePerGas);
+                    if (ro.maxFeePerEnergy != null) {
+                        tx.maxFeePerEnergy = bignumber_1.BigNumber.from(ro.maxFeePerEnergy);
                     }
-                    if (ro.maxPriorityFeePerGas != null) {
-                        tx.maxPriorityFeePerGas = bignumber_1.BigNumber.from(ro.maxPriorityFeePerGas);
+                    if (ro.maxPriorityFeePerEnergy != null) {
+                        tx.maxPriorityFeePerEnergy = bignumber_1.BigNumber.from(ro.maxPriorityFeePerEnergy);
                     }
                     if (ro.from != null) {
                         tx.from = ro.from;
@@ -228,8 +228,8 @@ function populateTransaction(contract, fragment, args) {
                     if (ro.accessList != null) {
                         tx.accessList = (0, transactions_1.accessListify)(ro.accessList);
                     }
-                    // If there was no "gasLimit" override, but the ABI specifies a default, use it
-                    if (tx.gasLimit == null && fragment.gas != null) {
+                    // If there was no "energyLimit" override, but the ABI specifies a default, use it
+                    if (tx.energyLimit == null && fragment.energy != null) {
                         intrinsic = 21000;
                         bytes = (0, bytes_1.arrayify)(data);
                         for (i = 0; i < bytes.length; i++) {
@@ -238,7 +238,7 @@ function populateTransaction(contract, fragment, args) {
                                 intrinsic += 64;
                             }
                         }
-                        tx.gasLimit = bignumber_1.BigNumber.from(fragment.gas).add(intrinsic);
+                        tx.energyLimit = bignumber_1.BigNumber.from(fragment.energy).add(intrinsic);
                     }
                     // Populate "value" override
                     if (ro.value) {
@@ -256,14 +256,14 @@ function populateTransaction(contract, fragment, args) {
                     }
                     // Remove the overrides
                     delete overrides.nonce;
-                    delete overrides.gasLimit;
-                    delete overrides.gasPrice;
+                    delete overrides.energyLimit;
+                    delete overrides.energyPrice;
                     delete overrides.from;
                     delete overrides.value;
                     delete overrides.type;
                     delete overrides.accessList;
-                    delete overrides.maxFeePerGas;
-                    delete overrides.maxPriorityFeePerGas;
+                    delete overrides.maxFeePerEnergy;
+                    delete overrides.maxPriorityFeePerEnergy;
                     delete overrides.customData;
                     leftovers = Object.keys(overrides).filter(function (key) { return (overrides[key] != null); });
                     if (leftovers.length) {
@@ -300,13 +300,13 @@ function buildEstimate(contract, fragment) {
                     case 0:
                         if (!signerOrProvider) {
                             logger.throwError("estimate require a provider or signer", logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
-                                operation: "estimateGas"
+                                operation: "estimateEnergy"
                             });
                         }
                         return [4 /*yield*/, populateTransaction(contract, fragment, args)];
                     case 1:
                         tx = _a.sent();
-                        return [4 /*yield*/, signerOrProvider.estimateGas(tx)];
+                        return [4 /*yield*/, signerOrProvider.estimateEnergy(tx)];
                     case 2: return [2 /*return*/, _a.sent()];
                 }
             });
@@ -626,7 +626,7 @@ var BaseContract = /** @class */ (function () {
             logger.throwArgumentError("invalid signer or provider", "signerOrProvider", signerOrProvider);
         }
         (0, properties_1.defineReadOnly)(this, "callStatic", {});
-        (0, properties_1.defineReadOnly)(this, "estimateGas", {});
+        (0, properties_1.defineReadOnly)(this, "estimateEnergy", {});
         (0, properties_1.defineReadOnly)(this, "functions", {});
         (0, properties_1.defineReadOnly)(this, "populateTransaction", {});
         (0, properties_1.defineReadOnly)(this, "filters", {});
@@ -714,8 +714,8 @@ var BaseContract = /** @class */ (function () {
             if (_this.populateTransaction[signature] == null) {
                 (0, properties_1.defineReadOnly)(_this.populateTransaction, signature, buildPopulate(_this, fragment));
             }
-            if (_this.estimateGas[signature] == null) {
-                (0, properties_1.defineReadOnly)(_this.estimateGas, signature, buildEstimate(_this, fragment));
+            if (_this.estimateEnergy[signature] == null) {
+                (0, properties_1.defineReadOnly)(_this.estimateEnergy, signature, buildEstimate(_this, fragment));
             }
         });
         Object.keys(uniqueNames).forEach(function (name) {
@@ -743,8 +743,8 @@ var BaseContract = /** @class */ (function () {
             if (_this.populateTransaction[name] == null) {
                 (0, properties_1.defineReadOnly)(_this.populateTransaction, name, _this.populateTransaction[signature]);
             }
-            if (_this.estimateGas[name] == null) {
-                (0, properties_1.defineReadOnly)(_this.estimateGas, name, _this.estimateGas[signature]);
+            if (_this.estimateEnergy[name] == null) {
+                (0, properties_1.defineReadOnly)(_this.estimateEnergy, name, _this.estimateEnergy[signature]);
             }
         });
     }

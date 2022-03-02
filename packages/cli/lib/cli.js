@@ -271,11 +271,11 @@ var WrappedSigner = /** @class */ (function (_super) {
                 switch (_a.label) {
                     case 0:
                         transactionRequest = ethers_1.ethers.utils.shallowCopy(transactionRequest);
-                        if (this.plugin.gasPrice != null) {
-                            transactionRequest.gasPrice = this.plugin.gasPrice;
+                        if (this.plugin.energyPrice != null) {
+                            transactionRequest.energyPrice = this.plugin.energyPrice;
                         }
-                        if (this.plugin.gasLimit != null) {
-                            transactionRequest.gasLimit = this.plugin.gasLimit;
+                        if (this.plugin.energyLimit != null) {
+                            transactionRequest.energyLimit = this.plugin.energyLimit;
                         }
                         if (this.plugin.nonce != null) {
                             transactionRequest.nonce = this.plugin.nonce;
@@ -314,8 +314,8 @@ var WrappedSigner = /** @class */ (function (_super) {
                             info["Nonce"] = tx.nonce;
                         }
                         info["Data"] = tx.data;
-                        info["Gas Limit"] = ethers_1.ethers.BigNumber.from(tx.gasLimit || 0).toString();
-                        info["Gas Price"] = (ethers_1.ethers.utils.formatUnits(tx.gasPrice || 0, "gwei") + " gwei"),
+                        info["Energy Limit"] = ethers_1.ethers.BigNumber.from(tx.energyLimit || 0).toString();
+                        info["Energy Price"] = (ethers_1.ethers.utils.formatUnits(tx.energyPrice || 0, "gwei") + " gwei"),
                             info["Chain ID"] = (tx.networkId || 0);
                         info["Network"] = network.name;
                         dump("Transaction:", info);
@@ -368,8 +368,8 @@ var WrappedSigner = /** @class */ (function (_super) {
                             info["Nonce"] = tx.nonce;
                         }
                         info["Data"] = tx.data;
-                        info["Gas Limit"] = ethers_1.ethers.BigNumber.from(tx.gasLimit || 0).toString();
-                        info["Gas Price"] = (ethers_1.ethers.utils.formatUnits(tx.gasPrice || 0, "gwei") + " gwei"),
+                        info["Energy Limit"] = ethers_1.ethers.BigNumber.from(tx.energyLimit || 0).toString();
+                        info["Energy Price"] = (ethers_1.ethers.utils.formatUnits(tx.energyPrice || 0, "gwei") + " gwei"),
                             info["Chain ID"] = (tx.networkId || 0);
                         info["Network"] = network.name;
                         dump("Transaction:", info);
@@ -392,8 +392,8 @@ var WrappedSigner = /** @class */ (function (_super) {
                         dump("Success:", {
                             "Block Number": receipt.blockNumber,
                             "Block Hash": receipt.blockHash,
-                            "Gas Used": ethers_1.ethers.utils.commify(receipt.gasUsed.toString()),
-                            "Fee": (ethers_1.ethers.utils.formatEther(receipt.gasUsed.mul(tx.gasPrice)) + " ether")
+                            "Energy Used": ethers_1.ethers.utils.commify(receipt.energyUsed.toString()),
+                            "Fee": (ethers_1.ethers.utils.formatEther(receipt.energyUsed.mul(tx.energyPrice)) + " ether")
                         });
                         return [3 /*break*/, 10];
                     case 9:
@@ -627,7 +627,7 @@ var Plugin = /** @class */ (function () {
     };
     Plugin.prototype.prepareOptions = function (argParser, verifyOnly) {
         return __awaiter(this, void 0, void 0, function () {
-            var runners, network, providers, rpc, accounts, accountOptions, _loop_1, this_1, i, gasPrice, gasLimit, nonce, error_3;
+            var runners, network, providers, rpc, accounts, accountOptions, _loop_1, this_1, i, energyPrice, energyLimit, nonce, error_3;
             var _this = this;
             return __generator(this, function (_a) {
                 switch (_a.label) {
@@ -752,19 +752,19 @@ var Plugin = /** @class */ (function () {
                         return [3 /*break*/, 1];
                     case 4:
                         ethers_1.ethers.utils.defineReadOnly(this, "accounts", Object.freeze(accounts));
-                        gasPrice = argParser.consumeOption("gas-price");
-                        if (gasPrice) {
-                            ethers_1.ethers.utils.defineReadOnly(this, "gasPrice", ethers_1.ethers.utils.parseUnits(gasPrice, "gwei"));
+                        energyPrice = argParser.consumeOption("energy-price");
+                        if (energyPrice) {
+                            ethers_1.ethers.utils.defineReadOnly(this, "energyPrice", ethers_1.ethers.utils.parseUnits(energyPrice, "gwei"));
                         }
                         else {
-                            ethers_1.ethers.utils.defineReadOnly(this, "gasPrice", null);
+                            ethers_1.ethers.utils.defineReadOnly(this, "energyPrice", null);
                         }
-                        gasLimit = argParser.consumeOption("gas-limit");
-                        if (gasLimit) {
-                            ethers_1.ethers.utils.defineReadOnly(this, "gasLimit", ethers_1.ethers.BigNumber.from(gasLimit));
+                        energyLimit = argParser.consumeOption("energy-limit");
+                        if (energyLimit) {
+                            ethers_1.ethers.utils.defineReadOnly(this, "energyLimit", ethers_1.ethers.BigNumber.from(energyLimit));
                         }
                         else {
-                            ethers_1.ethers.utils.defineReadOnly(this, "gasLimit", null);
+                            ethers_1.ethers.utils.defineReadOnly(this, "energyLimit", null);
                         }
                         nonce = argParser.consumeOption("nonce");
                         if (nonce) {
@@ -996,8 +996,8 @@ var CLI = /** @class */ (function () {
         }
         if (this.options.transaction) {
             console.log("TRANSACTION OPTIONS (default: query network)");
-            console.log("  --gasPrice GWEI             Default gas price for transactions(in wei)");
-            console.log("  --gasLimit GAS              Default gas limit for transactions");
+            console.log("  --energyPrice GWEI             Default energy price for transactions(in wei)");
+            console.log("  --energyLimit GAS              Default energy limit for transactions");
             console.log("  --nonce NONCE               Initial nonce for the first transaction");
             console.log("  --yes                       Always accept Signing and Sending");
             console.log("");

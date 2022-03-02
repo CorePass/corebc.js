@@ -20,7 +20,7 @@ const logger = new Logger(version);
 import { BaseProvider, Event } from "./base-provider";
 
 
-const errorGas = [ "call", "estimateGas" ];
+const errorEnergy = [ "call", "estimateEnergy" ];
 
 function checkError(method: string, error: any, params: any): any {
     // Undo the "convenience" some nodes are attempting to prevent backwards
@@ -48,8 +48,8 @@ function checkError(method: string, error: any, params: any): any {
 
     const transaction = params.transaction || params.signedTransaction;
 
-    // "insufficient funds for gas * price + value + cost(data)"
-    if (message.match(/insufficient funds|base fee exceeds gas limit/)) {
+    // "insufficient funds for energy * price + value + cost(data)"
+    if (message.match(/insufficient funds|base fee exceeds energy limit/)) {
         logger.throwError("insufficient funds for intrinsic transaction cost", Logger.errors.INSUFFICIENT_FUNDS, {
             error, method, transaction
         });
@@ -76,8 +76,8 @@ function checkError(method: string, error: any, params: any): any {
         });
     }
 
-    if (errorGas.indexOf(method) >= 0 && message.match(/gas required exceeds allowance|always failing transaction|execution reverted/)) {
-        logger.throwError("cannot estimate gas; transaction may fail or may require manual gas limit", Logger.errors.UNPREDICTABLE_GAS_LIMIT, {
+    if (errorEnergy.indexOf(method) >= 0 && message.match(/energy required exceeds allowance|always failing transaction|execution reverted/)) {
+        logger.throwError("cannot estimate energy; transaction may fail or may require manual energy limit", Logger.errors.UNPREDICTABLE_GAS_LIMIT, {
             error, method, transaction
         });
     }
@@ -174,13 +174,13 @@ export class JsonRpcSigner extends Signer implements TypedDataSigner {
             return address;
         });
 
-        // The JSON-RPC for xcb_sendTransaction uses 90000 gas; if the user
+        // The JSON-RPC for xcb_sendTransaction uses 90000 energy; if the user
         // wishes to use this, it is easy to specify explicitly, otherwise
         // we look it up for them.
-        if (transaction.gasLimit == null) {
+        if (transaction.energyLimit == null) {
             const estimate = shallowCopy(transaction);
             estimate.from = fromAddress;
-            transaction.gasLimit = this.provider.estimateGas(estimate);
+            transaction.energyLimit = this.provider.estimateEnergy(estimate);
         }
 
         if (transaction.to != null) {
@@ -288,8 +288,8 @@ class UncheckedJsonRpcSigner extends JsonRpcSigner {
             return <TransactionResponse>{
                 hash: hash,
                 nonce: null,
-                gasLimit: null,
-                gasPrice: null,
+                energyLimit: null,
+                energyPrice: null,
                 data: null,
                 value: null,
                 networkId: null,
@@ -302,9 +302,9 @@ class UncheckedJsonRpcSigner extends JsonRpcSigner {
 }
 
 const allowedTransactionKeys: { [ key: string ]: boolean } = {
-    networkId: true, data: true, gasLimit: true, gasPrice:true, nonce: true, to: true, value: true,
+    networkId: true, data: true, energyLimit: true, energyPrice:true, nonce: true, to: true, value: true,
     type: true, accessList: true,
-    maxFeePerGas: true, maxPriorityFeePerGas: true
+    maxFeePerEnergy: true, maxPriorityFeePerEnergy: true
 }
 
 export class JsonRpcProvider extends BaseProvider {
@@ -476,8 +476,8 @@ export class JsonRpcProvider extends BaseProvider {
             case "getBlockNumber":
                 return [ "xcb_blockNumber", [] ];
 
-            case "getGasPrice":
-                return [ "xcb_gasPrice", [] ];
+            case "getEnergyPrice":
+                return [ "xcb_energyPrice", [] ];
 
             case "getBalance":
                 return [ "xcb_getBalance", [ getLowerCase(params.address), params.blockTag ] ];
@@ -513,9 +513,9 @@ export class JsonRpcProvider extends BaseProvider {
                 return [ "xcb_call", [ hexlifyTransaction(params.transaction, { from: true }), params.blockTag ] ];
             }
 
-            case "estimateGas": {
+            case "estimateEnergy": {
                 const hexlifyTransaction = getStatic<(t: TransactionRequest, a?: { [key: string]: boolean }) => { [key: string]: string }>(this.constructor, "hexlifyTransaction");
-                return [ "xcb_estimateGas", [ hexlifyTransaction(params.transaction, { from: true }) ] ];
+                return [ "xcb_estimateEnergy", [ hexlifyTransaction(params.transaction, { from: true }) ] ];
             }
 
             case "getLogs":
@@ -534,13 +534,13 @@ export class JsonRpcProvider extends BaseProvider {
     async perform(method: string, params: any): Promise<any> {
         // Legacy networks do not like the type field being passed along (which
         // is fair), so we delete type if it is 0 and a non-EIP-1559 network
-        if (method === "call" || method === "estimateGas") {
+        if (method === "call" || method === "estimateEnergy") {
             const tx = params.transaction;
             if (tx && tx.type != null && BigNumber.from(tx.type).isZero()) {
                 // If there are no EIP-1559 properties, it might be non-EIP-a559
-                if (tx.maxFeePerGas == null && tx.maxPriorityFeePerGas == null) {
+                if (tx.maxFeePerEnergy == null && tx.maxPriorityFeePerEnergy == null) {
                     const feeData = await this.getFeeData();
-                    if (feeData.maxFeePerGas == null && feeData.maxPriorityFeePerGas == null) {
+                    if (feeData.maxFeePerEnergy == null && feeData.maxPriorityFeePerEnergy == null) {
                         // Network doesn't know about EIP-1559 (and hence type)
                         params = shallowCopy(params);
                         params.transaction = shallowCopy(tx);
@@ -618,7 +618,7 @@ export class JsonRpcProvider extends BaseProvider {
     }
 
     // Convert an ethers.js transaction into a JSON-RPC transaction
-    //  - gasLimit => gas
+    //  - energyLimit => energy
     //  - All values hexlified
     //  - All numeric values zero-striped
     //  - All addresses are lowercased
@@ -640,10 +640,10 @@ export class JsonRpcProvider extends BaseProvider {
         const result: { [key: string]: string | AccessList } = {};
 
         // Some nodes (INFURA ropsten; INFURA mainnet is fine) do not like leading zeros.
-        ["gasLimit", "gasPrice", "type", "maxFeePerGas", "maxPriorityFeePerGas", "nonce", "value"].forEach(function(key) {
+        ["energyLimit", "energyPrice", "type", "maxFeePerEnergy", "maxPriorityFeePerEnergy", "nonce", "value"].forEach(function(key) {
             if ((<any>transaction)[key] == null) { return; }
             const value = hexValue((<any>transaction)[key]);
-            if (key === "gasLimit") { key = "gas"; }
+            if (key === "energyLimit") { key = "energy"; }
             result[key] = value;
         });
 

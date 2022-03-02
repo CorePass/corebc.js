@@ -33,14 +33,14 @@ function handleNumber(value) {
 // Legacy Transaction Fields
 const transactionFields = [
     { name: "nonce", maxLength: 32, numeric: true },
-    { name: "gasPrice", maxLength: 32, numeric: true },
-    { name: "gasLimit", maxLength: 32, numeric: true },
+    { name: "energyPrice", maxLength: 32, numeric: true },
+    { name: "energyLimit", maxLength: 32, numeric: true },
     { name: "to", length: 20 },
     { name: "value", maxLength: 32, numeric: true },
     { name: "data" },
 ];
 const allowedTransactionKeys = {
-    networkId: true, data: true, gasLimit: true, gasPrice: true, nonce: true, to: true, type: true, value: true
+    networkId: true, data: true, energyLimit: true, energyPrice: true, nonce: true, to: true, type: true, value: true
 };
 export function computeAddress(key) {
     const publicKey = computePublicKey(key);
@@ -93,24 +93,24 @@ function formatAccessList(value) {
     return accessListify(value).map((set) => [set.address, set.storageKeys]);
 }
 function _serializeEip1559(transaction, signature) {
-    // If there is an explicit gasPrice, make sure it matches the
+    // If there is an explicit energyPrice, make sure it matches the
     // EIP-1559 fees; otherwise they may not understand what they
     // think they are setting in terms of fee.
-    if (transaction.gasPrice != null) {
-        const gasPrice = BigNumber.from(transaction.gasPrice);
-        const maxFeePerGas = BigNumber.from(transaction.maxFeePerGas || 0);
-        if (!gasPrice.eq(maxFeePerGas)) {
-            logger.throwArgumentError("mismatch EIP-1559 gasPrice != maxFeePerGas", "tx", {
-                gasPrice, maxFeePerGas
+    if (transaction.energyPrice != null) {
+        const energyPrice = BigNumber.from(transaction.energyPrice);
+        const maxFeePerEnergy = BigNumber.from(transaction.maxFeePerEnergy || 0);
+        if (!energyPrice.eq(maxFeePerEnergy)) {
+            logger.throwArgumentError("mismatch EIP-1559 energyPrice != maxFeePerEnergy", "tx", {
+                energyPrice, maxFeePerEnergy
             });
         }
     }
     const fields = [
         formatNumber(transaction.networkId || 0, "networkId"),
         formatNumber(transaction.nonce || 0, "nonce"),
-        formatNumber(transaction.maxPriorityFeePerGas || 0, "maxPriorityFeePerGas"),
-        formatNumber(transaction.maxFeePerGas || 0, "maxFeePerGas"),
-        formatNumber(transaction.gasLimit || 0, "gasLimit"),
+        formatNumber(transaction.maxPriorityFeePerEnergy || 0, "maxPriorityFeePerEnergy"),
+        formatNumber(transaction.maxFeePerEnergy || 0, "maxFeePerEnergy"),
+        formatNumber(transaction.energyLimit || 0, "energyLimit"),
         ((transaction.to != null) ? getAddress(transaction.to) : "0x"),
         formatNumber(transaction.value || 0, "value"),
         (transaction.data || "0x"),
@@ -128,8 +128,8 @@ function _serializeEip2930(transaction, signature) {
     const fields = [
         formatNumber(transaction.networkId || 0, "networkId"),
         formatNumber(transaction.nonce || 0, "nonce"),
-        formatNumber(transaction.gasPrice || 0, "gasPrice"),
-        formatNumber(transaction.gasLimit || 0, "gasLimit"),
+        formatNumber(transaction.energyPrice || 0, "energyPrice"),
+        formatNumber(transaction.energyLimit || 0, "energyLimit"),
         ((transaction.to != null) ? getAddress(transaction.to) : "0x"),
         formatNumber(transaction.value || 0, "value"),
         (transaction.data || "0x"),
@@ -260,16 +260,16 @@ function _parseEip1559(payload) {
     if (transaction.length !== 9 && transaction.length !== 12) {
         logger.throwArgumentError("invalid component count for transaction type: 2", "payload", hexlify(payload));
     }
-    const maxPriorityFeePerGas = handleNumber(transaction[2]);
-    const maxFeePerGas = handleNumber(transaction[3]);
+    const maxPriorityFeePerEnergy = handleNumber(transaction[2]);
+    const maxFeePerEnergy = handleNumber(transaction[3]);
     const tx = {
         type: 2,
         networkId: handleNumber(transaction[0]).toNumber(),
         nonce: handleNumber(transaction[1]).toNumber(),
-        maxPriorityFeePerGas: maxPriorityFeePerGas,
-        maxFeePerGas: maxFeePerGas,
-        gasPrice: null,
-        gasLimit: handleNumber(transaction[4]),
+        maxPriorityFeePerEnergy: maxPriorityFeePerEnergy,
+        maxFeePerEnergy: maxFeePerEnergy,
+        energyPrice: null,
+        energyLimit: handleNumber(transaction[4]),
         to: handleAddress(transaction[5]),
         value: handleNumber(transaction[6]),
         data: transaction[7],
@@ -292,8 +292,8 @@ function _parseEip2930(payload) {
         type: 1,
         networkId: handleNumber(transaction[0]).toNumber(),
         nonce: handleNumber(transaction[1]).toNumber(),
-        gasPrice: handleNumber(transaction[2]),
-        gasLimit: handleNumber(transaction[3]),
+        energyPrice: handleNumber(transaction[2]),
+        energyLimit: handleNumber(transaction[3]),
         to: handleAddress(transaction[4]),
         value: handleNumber(transaction[5]),
         data: transaction[6],
@@ -315,8 +315,8 @@ function _parse(rawTransaction) {
     }
     const tx = {
         nonce: handleNumber(transaction[0]).toNumber(),
-        gasPrice: handleNumber(transaction[1]),
-        gasLimit: handleNumber(transaction[2]),
+        energyPrice: handleNumber(transaction[1]),
+        energyLimit: handleNumber(transaction[2]),
         to: handleAddress(transaction[3]),
         value: handleNumber(transaction[4]),
         data: transaction[5],

@@ -72,8 +72,8 @@ var blockchainData = {
                 timestamp: 1438270048,
                 nonce: "0x2e9344e0cbde83ce",
                 difficulty: 17154715646,
-                gasLimit: bnify("0x1388"),
-                gasUsed: bnify("0"),
+                energyLimit: bnify("0x1388"),
+                energyUsed: bnify("0"),
                 miner: "0x5088D623ba0fcf0131E0897a91734A4D83596AA0",
                 extraData: "0x476574682f76312e302e302d66633739643332642f6c696e75782f676f312e34",
                 transactions: []
@@ -87,8 +87,8 @@ var blockchainData = {
                 transactionIndex: 18,
                 type: 0,
                 from: "0x32DEF047DeFd076DB21A2D759aff2A591c972248",
-                gasPrice: bnify("0x4a817c800"),
-                gasLimit: bnify("0x3d090"),
+                energyPrice: bnify("0x4a817c800"),
+                energyLimit: bnify("0x3d090"),
                 to: "0x6fC21092DA55B392b045eD78F4732bff3C580e2c",
                 value: bnify("0x186cc6acd4b0000"),
                 nonce: 0,
@@ -107,9 +107,9 @@ var blockchainData = {
                 blockNumber: 0x3c92b5,
                 type: 0,
                 contractAddress: null,
-                cumulativeGasUsed: 0x1cca2e,
+                cumulativeEnergyUsed: 0x1cca2e,
                 from: "0x18C6045651826824FEBBD39d8560584078d1b247",
-                gasUsed: 0x14bb7,
+                energyUsed: 0x14bb7,
                 logs: [
                     {
                         address: "0x314159265dD8dbb310642f98f50C066173C1259b",
@@ -154,9 +154,9 @@ var blockchainData = {
                 blockNumber: 0x444f76,
                 type: 0,
                 contractAddress: null,
-                cumulativeGasUsed: 0x15bfe7,
+                cumulativeEnergyUsed: 0x15bfe7,
                 from: "0x18C6045651826824FEBBD39d8560584078d1b247",
-                gasUsed: 0x1b968,
+                energyUsed: 0x1b968,
                 logs: [
                     {
                         address: "0xb90E64082D00437e65A76d4c8187596BC213480a",
@@ -195,8 +195,8 @@ var blockchainData = {
                 number: 3,
                 timestamp: 1488459452,
                 difficulty: 131072,
-                gasLimit: bnify("0x5b48ec"),
-                gasUsed: bnify("0"),
+                energyLimit: bnify("0x5b48ec"),
+                energyUsed: bnify("0"),
                 miner: "0x00A0A24b9f0E5EC7Aa4c7389b8302fd0123194dE",
                 extraData: "0xd5830105048650617269747986312e31352e31826c69",
                 transactions: []
@@ -208,8 +208,8 @@ var blockchainData = {
                 number: 16265864,
                 timestamp: 1579621004,
                 difficulty: null,
-                gasLimit: bnify("0x989680"),
-                gasUsed: bnify("0x0705bf"),
+                energyLimit: bnify("0x989680"),
+                energyUsed: bnify("0x0705bf"),
                 miner: "0x596e8221A30bFe6e7eFF67Fee664A01C73BA3C56",
                 extraData: "0xde830206088f5061726974792d457468657265756d86312e34302e30826c69",
                 transactions: [
@@ -240,8 +240,8 @@ var blockchainData = {
                 timestamp: 1492010489,
                 nonce: "0x0000000000000000",
                 difficulty: 2,
-                gasLimit: bnify("0x47e7c4"),
-                gasUsed: bnify(0),
+                energyLimit: bnify("0x47e7c4"),
+                energyUsed: bnify(0),
                 //                miner: "0x42EB768f2244C8811C63729A21A3569731535f06",
                 extraData: "0xd783010600846765746887676f312e372e33856c696e757800000000000000004e10f96536e45ceca7e34cc1bdda71db3f3bb029eb69afd28b57eb0202c0ec0859d383a99f63503c4df9ab6c1dc63bf6b9db77be952f47d86d2d7b208e77397301",
                 transactions: []
@@ -266,8 +266,8 @@ var blockchainData = {
                 timestamp: 1479642588,
                 nonce: "0x04668f72247a130c",
                 difficulty: 996427,
-                gasLimit: bnify("0xff4033"),
-                gasUsed: bnify("0"),
+                energyLimit: bnify("0xff4033"),
+                energyUsed: bnify("0"),
                 miner: "0xD1aEb42885A43b72B518182Ef893125814811048",
                 extraData: "0xd883010503846765746887676f312e372e318664617277696e",
                 transactions: []
@@ -287,8 +287,8 @@ var blockchainData = {
                 blockHash: "0x378e24bcd568bd24cf1f54d38f13f038ee28d89e82af4f2a0d79c1f88dcd8aac",
                 blockNumber: 9812343,
                 from: "0x32162F3581E88a5f62e8A61892B42C46E2c18f7b",
-                gasPrice: bnify("0x65cf89a0"),
-                gasLimit: bnify("0x5b68"),
+                energyPrice: bnify("0x65cf89a0"),
+                energyLimit: bnify("0x5b68"),
                 to: "0x32162F3581E88a5f62e8A61892B42C46E2c18f7b",
                 value: bnify("0"),
                 nonce: 13,
@@ -315,8 +315,8 @@ var blockchainData = {
                 blockHash: "0x7565688256f5801768237993b47ca0608796b3ace0c4b8b6e623c6092bef14b8",
                 blockNumber: 9812365,
                 from: "0x32162F3581E88a5f62e8A61892B42C46E2c18f7b",
-                gasPrice: bnify("0x65cf89a0"),
-                gasLimit: bnify("0x71ac"),
+                energyPrice: bnify("0x65cf89a0"),
+                energyLimit: bnify("0x71ac"),
                 to: "0x32162F3581E88a5f62e8A61892B42C46E2c18f7b",
                 value: bnify("0"),
                 nonce: 14,
@@ -336,10 +336,10 @@ var blockchainData = {
                 type: 2,
                 creates: null,
                 from: '0xad252DD6C011E613610A36368f04aC84D5185b7c',
-                //gasPrice: bnify("0x0268ab0ed6"),
-                maxPriorityFeePerGas: bnify("0x0268ab0ed6"),
-                maxFeePerGas: bnify("0x0268ab0ed6"),
-                gasLimit: bnify("0x5208"),
+                //energyPrice: bnify("0x0268ab0ed6"),
+                maxPriorityFeePerEnergy: bnify("0x0268ab0ed6"),
+                maxFeePerEnergy: bnify("0x0268ab0ed6"),
+                energyLimit: bnify("0x5208"),
                 to: '0x8210357f377E901f18E45294e86a2A32215Cc3C9',
                 value: bnify("0x7b"),
                 nonce: 0,
@@ -357,9 +357,9 @@ var blockchainData = {
                 blockNumber: 0x1564d8,
                 type: 0,
                 contractAddress: null,
-                cumulativeGasUsed: bnify("0x80b9"),
+                cumulativeEnergyUsed: bnify("0x80b9"),
                 from: "0xb346D5019EeafC028CfC01A5f789399C2314ae8D",
-                gasUsed: bnify("0x80b9"),
+                energyUsed: bnify("0x80b9"),
                 logs: [
                     {
                         address: "0x6fC21092DA55B392b045eD78F4732bff3C580e2c",
@@ -386,9 +386,9 @@ var blockchainData = {
                 blockHash: "0x61d343e0e081b60ac53bab381e07bdd5d0815b204091a576fd05106b814e7e1e",
                 blockNumber: 0x1e1e3b,
                 contractAddress: null,
-                cumulativeGasUsed: bnify("0x4142f"),
+                cumulativeEnergyUsed: bnify("0x4142f"),
                 from: "0xdc8F20170C0946ACCF9627b3EB1513CFD1c0499f",
-                gasUsed: bnify("0x1eb6d"),
+                energyUsed: bnify("0x1eb6d"),
                 logs: [
                     {
                         address: "0xCBf1735Aad8C4B337903cD44b419eFE6538aaB40",
@@ -418,11 +418,11 @@ var blockchainData = {
                 to: '0x8210357f377E901f18E45294e86a2A32215Cc3C9',
                 from: '0xad252DD6C011E613610A36368f04aC84D5185b7c',
                 contractAddress: null,
-                gasUsed: bnify("0x5208"),
+                energyUsed: bnify("0x5208"),
                 logsBloom: '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
                 logs: [],
-                cumulativeGasUsed: bnify("0x038f3e"),
-                effectiveGasPrice: bnify("0x268ab0ed6"),
+                cumulativeEnergyUsed: bnify("0x038f3e"),
+                effectiveEnergyPrice: bnify("0x268ab0ed6"),
                 status: 1,
             }
         ],
@@ -442,8 +442,8 @@ var blockchainData = {
                 number: 3,
                 timestamp: 1548947483,
                 difficulty: 2,
-                gasLimit: bnify("10455073"),
-                gasUsed: bnify("0"),
+                energyLimit: bnify("10455073"),
+                energyUsed: bnify("0"),
                 //                miner: "0xe0a2Bd4258D2768837BAa26A28fE71Dc079f84c7",
                 extraData: "0x506172697479205465636820417574686f7269747900000000000000000000002822e1b202411c38084d96c84302b8361ec4840a51cd2fad9cb4bd9921cad7e64bc2e5dc7b41f3f75b33358be3aec718cf4d4317ace940e01b3581a95c9259ac01",
                 transactions: []
@@ -455,8 +455,8 @@ var blockchainData = {
                 number: 1479831,
                 timestamp: 1571216171,
                 difficulty: 2,
-                gasLimit: bnify(0x7a1200),
-                gasUsed: bnify("0x0d0ef5"),
+                energyLimit: bnify(0x7a1200),
+                energyUsed: bnify("0x0d0ef5"),
                 //                miner: "0x22eA9f6b28DB76A7162054c05ed812dEb2f519Cd",
                 extraData: "0x0000000000000000000000000000000000000000000000000000000000000000f4e6fc1fbd88adf57a272d98f725487f872ef0495a54c2b873a58d14e010bf517cc5650417f18cfd4ad2396272c564a7da1265ae27c397609293f488ec57d68e01",
                 transactions: [
@@ -476,9 +476,9 @@ var blockchainData = {
                 byzantium: true,
                 type: 0,
                 contractAddress: null,
-                cumulativeGasUsed: bnify(21000),
+                cumulativeEnergyUsed: bnify(21000),
                 from: "0x8c1e1e5b47980D214965f3bd8ea34C413E120ae4",
-                gasUsed: bnify(21000),
+                energyUsed: bnify(21000),
                 logsBloom: "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
                 to: "0x58Bb4221245461E1d4cf886f18a01E3Df40Bd359",
                 transactionHash: "0xec8b1ac5d787f36c738cc7793fec606283b41f1efa69df4ae6b2a014dcd12797",
@@ -831,8 +831,8 @@ Object.keys(blockchainData).forEach(function (network) {
                 case 0:
                     txProps = {
                         to: "0x8ba1f109551bD432803012645Ac136ddd64DBA72",
-                        gasPrice: 9000000000,
-                        gasLimit: 21000,
+                        energyPrice: 9000000000,
+                        energyLimit: 21000,
                         networkId: 3,
                         value: 1,
                     };
@@ -849,8 +849,8 @@ Object.keys(blockchainData).forEach(function (network) {
         return __generator(this, function (_a) {
             txProps = {
                 to: "0x8ba1f109551bD432803012645Ac136ddd64DBA72",
-                gasPrice: 9000000000,
-                gasLimit: 21000,
+                energyPrice: 9000000000,
+                energyLimit: 21000,
                 value: 1,
                 // @TODO: Remove this once all providers are eip-1559 savvy
                 type: 0,
@@ -861,7 +861,7 @@ Object.keys(blockchainData).forEach(function (network) {
     }); });
     addErrorTest(ethers_1.ethers.utils.Logger.errors.UNPREDICTABLE_GAS_LIMIT, function (provider) { return __awaiter(_this, void 0, void 0, function () {
         return __generator(this, function (_a) {
-            return [2 /*return*/, provider.estimateGas({
+            return [2 /*return*/, provider.estimateEnergy({
                     to: "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e" // ENS contract
                 })];
         });
@@ -876,12 +876,12 @@ testFunctions.push({
         return false;
     },
     execute: function (provider) { return __awaiter(void 0, void 0, void 0, function () {
-        var gasPrice, wallet, addr, b0, tx, b1;
+        var energyPrice, wallet, addr, b0, tx, b1;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, provider.getGasPrice()];
+                case 0: return [4 /*yield*/, provider.getEnergyPrice()];
                 case 1:
-                    gasPrice = (_a.sent()).mul(10);
+                    energyPrice = (_a.sent()).mul(10);
                     wallet = fundWallet.connect(provider);
                     addr = "0x8210357f377E901f18E45294e86a2A32215Cc3C9";
                     return [4 /*yield*/, waiter(3000)];
@@ -895,7 +895,7 @@ testFunctions.push({
                             type: 0,
                             to: addr,
                             value: 123,
-                            gasPrice: gasPrice
+                            energyPrice: energyPrice
                         })];
                 case 4:
                     tx = _a.sent();
@@ -923,12 +923,12 @@ testFunctions.push({
         return false;
     },
     execute: function (provider) { return __awaiter(void 0, void 0, void 0, function () {
-        var gasPrice, wallet, addr, b0, tx, b1;
+        var energyPrice, wallet, addr, b0, tx, b1;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, provider.getGasPrice()];
+                case 0: return [4 /*yield*/, provider.getEnergyPrice()];
                 case 1:
-                    gasPrice = (_a.sent()).mul(10);
+                    energyPrice = (_a.sent()).mul(10);
                     wallet = fundWallet.connect(provider);
                     addr = "0x8210357f377E901f18E45294e86a2A32215Cc3C9";
                     return [4 /*yield*/, waiter(3000)];
@@ -948,7 +948,7 @@ testFunctions.push({
                             },
                             to: addr,
                             value: 123,
-                            gasPrice: gasPrice
+                            energyPrice: energyPrice
                         })];
                 case 4:
                     tx = _a.sent();
@@ -1043,7 +1043,7 @@ describe("Test Provider Methods", function () {
     });
     after(function () {
         return __awaiter(this, void 0, void 0, function () {
-            var provider, gasPrice, balance, tx;
+            var provider, energyPrice, balance, tx;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1054,17 +1054,17 @@ describe("Test Provider Methods", function () {
                         // Wait until the funding is complete
                         _a.sent();
                         provider = new ethers_1.ethers.providers.InfuraProvider("ropsten", getApiKeys("ropsten").infura);
-                        return [4 /*yield*/, provider.getGasPrice()];
+                        return [4 /*yield*/, provider.getEnergyPrice()];
                     case 2:
-                        gasPrice = _a.sent();
+                        energyPrice = _a.sent();
                         return [4 /*yield*/, provider.getBalance(fundWallet.address)];
                     case 3:
                         balance = _a.sent();
                         return [4 /*yield*/, fundWallet.connect(provider).sendTransaction({
                                 to: faucet,
-                                gasLimit: 21000,
-                                gasPrice: gasPrice,
-                                value: balance.sub(gasPrice.mul(21000))
+                                energyLimit: 21000,
+                                energyPrice: energyPrice,
+                                value: balance.sub(energyPrice.mul(21000))
                             })];
                     case 4:
                         tx = _a.sent();

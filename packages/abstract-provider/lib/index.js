@@ -142,28 +142,28 @@ var Provider = /** @class */ (function () {
     }
     Provider.prototype.getFeeData = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var _a, block, gasPrice, maxFeePerGas, maxPriorityFeePerGas;
+            var _a, block, energyPrice, maxFeePerEnergy, maxPriorityFeePerEnergy;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0: return [4 /*yield*/, (0, properties_1.resolveProperties)({
                             block: this.getBlock("latest"),
-                            gasPrice: this.getGasPrice().catch(function (error) {
+                            energyPrice: this.getEnergyPrice().catch(function (error) {
                                 // @TODO: Why is this now failing on Calaveras?
                                 //console.log(error);
                                 return null;
                             })
                         })];
                     case 1:
-                        _a = _b.sent(), block = _a.block, gasPrice = _a.gasPrice;
-                        maxFeePerGas = null, maxPriorityFeePerGas = null;
-                        if (block && block.baseFeePerGas) {
+                        _a = _b.sent(), block = _a.block, energyPrice = _a.energyPrice;
+                        maxFeePerEnergy = null, maxPriorityFeePerEnergy = null;
+                        if (block && block.baseFeePerEnergy) {
                             // We may want to compute this more accurately in the future,
                             // using the formula "check if the base fee is correct".
                             // See: https://eips.ethereum.org/EIPS/eip-1559
-                            maxPriorityFeePerGas = bignumber_1.BigNumber.from("2500000000");
-                            maxFeePerGas = block.baseFeePerGas.mul(2).add(maxPriorityFeePerGas);
+                            maxPriorityFeePerEnergy = bignumber_1.BigNumber.from("2500000000");
+                            maxFeePerEnergy = block.baseFeePerEnergy.mul(2).add(maxPriorityFeePerEnergy);
                         }
-                        return [2 /*return*/, { maxFeePerGas: maxFeePerGas, maxPriorityFeePerGas: maxPriorityFeePerGas, gasPrice: gasPrice }];
+                        return [2 /*return*/, { maxFeePerEnergy: maxFeePerEnergy, maxPriorityFeePerEnergy: maxPriorityFeePerEnergy, energyPrice: energyPrice }];
                 }
             });
         });

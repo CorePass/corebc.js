@@ -1228,15 +1228,15 @@ export class BaseProvider extends Provider implements EnsProvider {
         return this._getInternalBlockNumber(0);
     }
 
-    async getGasPrice(): Promise<BigNumber> {
+    async getEnergyPrice(): Promise<BigNumber> {
         await this.getNetwork();
 
-        const result = await this.perform("getGasPrice", { });
+        const result = await this.perform("getEnergyPrice", { });
         try {
             return BigNumber.from(result);
         } catch (error) {
             return logger.throwError("bad result from backend", Logger.errors.SERVER_ERROR, {
-                method: "getGasPrice",
+                method: "getEnergyPrice",
                 result, error
             });
         }
@@ -1387,7 +1387,7 @@ export class BaseProvider extends Provider implements EnsProvider {
             tx[key] = Promise.resolve(values[key]).then((v) => (v ? this._getAddress(v): null))
         });
 
-        ["gasLimit", "gasPrice", "maxFeePerGas", "maxPriorityFeePerGas", "value"].forEach((key) => {
+        ["energyLimit", "energyPrice", "maxFeePerEnergy", "maxPriorityFeePerEnergy", "value"].forEach((key) => {
             if (values[key] == null) { return; }
             tx[key] = Promise.resolve(values[key]).then((v) => (v ? BigNumber.from(v): null));
         });
@@ -1449,18 +1449,18 @@ export class BaseProvider extends Provider implements EnsProvider {
         }
     }
 
-    async estimateGas(transaction: Deferrable<TransactionRequest>): Promise<BigNumber> {
+    async estimateEnergy(transaction: Deferrable<TransactionRequest>): Promise<BigNumber> {
         await this.getNetwork();
         const params = await resolveProperties({
             transaction: this._getTransactionRequest(transaction)
         });
 
-        const result = await this.perform("estimateGas", params);
+        const result = await this.perform("estimateEnergy", params);
         try {
             return BigNumber.from(result);
         } catch (error) {
             return logger.throwError("bad result from backend", Logger.errors.SERVER_ERROR, {
-                method: "estimateGas",
+                method: "estimateEnergy",
                 params, result, error
             });
         }
