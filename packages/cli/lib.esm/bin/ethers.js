@@ -59,7 +59,6 @@ function setupContext(path, context, plugin) {
     context.FixedNumber = ethers.FixedNumber;
     context.getAddress = ethers.utils.getAddress;
     context.getContractAddress = ethers.utils.getContractAddress;
-    context.getIcapAddress = ethers.utils.getIcapAddress;
     context.arrayify = ethers.utils.arrayify;
     context.concat = ethers.utils.concat;
     context.hexlify = ethers.utils.hexlify;

@@ -54,7 +54,6 @@ function setupContext(path: string, context: any, plugin: Plugin) {
 
     context.getAddress = ethers.utils.getAddress;
     context.getContractAddress = ethers.utils.getContractAddress;
-    context.getIcapAddress = ethers.utils.getIcapAddress;
 
     context.arrayify = ethers.utils.arrayify;
     context.concat = ethers.utils.concat;

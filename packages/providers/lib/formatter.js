@@ -270,7 +270,7 @@ var Formatter = /** @class */ (function () {
         }
         // Some clients (TestRPC) do strange things like return 0x0 for the
         // 0 address; correct this to be a real address
-        if (transaction.to && bignumber_1.BigNumber.from(transaction.to).isZero()) {
+        if (transaction.to && bignumber_1.BigNumber.from((0, address_1.getAddress)(transaction.to)).isZero()) {
             transaction.to = "0x0000000000000000000000000000000000000000";
         }
         // Rename input to data

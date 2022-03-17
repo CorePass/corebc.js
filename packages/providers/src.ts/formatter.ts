@@ -324,7 +324,7 @@ export class Formatter {
 
         // Some clients (TestRPC) do strange things like return 0x0 for the
         // 0 address; correct this to be a real address
-        if (transaction.to && BigNumber.from(transaction.to).isZero()) {
+        if (transaction.to && BigNumber.from(getAddress(transaction.to)).isZero()) {
             transaction.to = "0x0000000000000000000000000000000000000000";
         }
 

@@ -18,17 +18,4 @@ describe('Private key generation', function () {
         });
     });
 });
-describe('Checksum and ICAP address generation', function () {
-    var tests = (0, testcases_1.loadTests)('accounts');
-    tests.forEach(function (test) {
-        it(('correctly transforms address - ' + test.name), function () {
-            assert_1.default.equal(ethers_1.ethers.utils.getAddress(test.address), test.checksumAddress, 'correctly computes checksum address from address');
-            assert_1.default.equal(ethers_1.ethers.utils.getIcapAddress(test.address), test.icapAddress, 'correctly computes ICAP address from address');
-            assert_1.default.equal(ethers_1.ethers.utils.getAddress(test.checksumAddress), test.checksumAddress, 'correctly computes checksum address from checksum address');
-            assert_1.default.equal(ethers_1.ethers.utils.getIcapAddress(test.checksumAddress), test.icapAddress, 'correctly computes ICAP address from checksum address');
-            assert_1.default.equal(ethers_1.ethers.utils.getAddress(test.icapAddress), test.checksumAddress, 'correctly computes checksum address from icap address');
-            assert_1.default.equal(ethers_1.ethers.utils.getIcapAddress(test.icapAddress), test.icapAddress, 'correctly computes ICAP address from icap address');
-        });
-    });
-});
 //# sourceMappingURL=test-account.js.map
