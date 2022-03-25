@@ -91,6 +91,7 @@
     "@ledgerhq/hw-transport-u2f": "5.26.0",
     "@types/mocha": "^5.2.0",
     "aes-js": "3.0.0",
+    "bcrypto": "^5.4.0",
     "bech32": "1.1.4",
     "bn.js": "^4.11.9",
     "elliptic": "6.5.4",

@@ -1,50 +1,26 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.computePublicKey = exports.recoverPublicKey = exports.SigningKey = void 0;
-var elliptic_1 = require("./elliptic");
+// @ts-ignore: TS7016
+var ed448_1 = __importDefault(require("bcrypto/lib/ed448"));
 var bytes_1 = require("@ethersproject/bytes");
 var properties_1 = require("@ethersproject/properties");
 var logger_1 = require("@ethersproject/logger");
 var _version_1 = require("./_version");
 var logger = new logger_1.Logger(_version_1.version);
-var _curve = null;
-function getCurve() {
-    if (!_curve) {
-        _curve = new elliptic_1.EC("secp256k1");
-    }
-    return _curve;
-}
 var SigningKey = /** @class */ (function () {
     function SigningKey(privateKey) {
-        (0, properties_1.defineReadOnly)(this, "curve", "secp256k1");
         (0, properties_1.defineReadOnly)(this, "privateKey", (0, bytes_1.hexlify)(privateKey));
-        var keyPair = getCurve().keyFromPrivate((0, bytes_1.arrayify)(this.privateKey));
-        (0, properties_1.defineReadOnly)(this, "publicKey", "0x" + keyPair.getPublic(false, "hex"));
-        (0, properties_1.defineReadOnly)(this, "compressedPublicKey", "0x" + keyPair.getPublic(true, "hex"));
+        (0, properties_1.defineReadOnly)(this, "publicKey", computePublicKey(privateKey));
         (0, properties_1.defineReadOnly)(this, "_isSigningKey", true);
     }
-    SigningKey.prototype._addPoint = function (other) {
-        var p0 = getCurve().keyFromPublic((0, bytes_1.arrayify)(this.publicKey));
-        var p1 = getCurve().keyFromPublic((0, bytes_1.arrayify)(other));
-        return "0x" + p0.pub.add(p1.pub).encodeCompressed("hex");
-    };
     SigningKey.prototype.signDigest = function (digest) {
-        var keyPair = getCurve().keyFromPrivate((0, bytes_1.arrayify)(this.privateKey));
-        var digestBytes = (0, bytes_1.arrayify)(digest);
-        if (digestBytes.length !== 32) {
-            logger.throwArgumentError("bad digest length", "digest", digest);
-        }
-        var signature = keyPair.sign(digestBytes, { canonical: true });
-        return (0, bytes_1.splitSignature)({
-            recoveryParam: signature.recoveryParam,
-            r: (0, bytes_1.hexZeroPad)("0x" + signature.r.toString(16), 32),
-            s: (0, bytes_1.hexZeroPad)("0x" + signature.s.toString(16), 32),
-        });
-    };
-    SigningKey.prototype.computeSharedSecret = function (otherKey) {
-        var keyPair = getCurve().keyFromPrivate((0, bytes_1.arrayify)(this.privateKey));
-        var otherKeyPair = getCurve().keyFromPublic((0, bytes_1.arrayify)(computePublicKey(otherKey)));
-        return (0, bytes_1.hexZeroPad)("0x" + keyPair.derive(otherKeyPair.getPublic()).toString(16), 32);
+        var pub = computePublicKey(this.privateKey);
+        var sig = sign(this.privateKey, digest);
+        return (0, bytes_1.hexConcat)([sig, pub]);
     };
     SigningKey.isSigningKey = function (value) {
         return !!(value && value._isSigningKey);
@@ -52,34 +28,59 @@ var SigningKey = /** @class */ (function () {
     return SigningKey;
 }());
 exports.SigningKey = SigningKey;
+function sign(key, digest) {
+    var keyBuffer = Buffer.from((0, bytes_1.arrayify)(key));
+    if (keyBuffer.length !== 57) {
+        logger.throwArgumentError("invalid private key", "key", "[REDACTED]");
+    }
+    var digestBuffer = Buffer.from((0, bytes_1.arrayify)(digest));
+    if (digestBuffer.length !== 32) {
+        logger.throwArgumentError("bad digest length", "digest", digest);
+    }
+    if (keyBuffer[56] > 127) {
+        var prefix = keyBuffer.slice(0, 57);
+        prefix[0] &= 0xfc;
+        prefix[55] |= 0x80;
+        prefix[56] = 0;
+        var scalar = prefix.slice(0, 56);
+        var sig_1 = ed448_1.default.signWithScalar(digestBuffer, scalar, prefix);
+        return (0, bytes_1.hexlify)(sig_1);
+    }
+    var sig = ed448_1.default.sign(digestBuffer, keyBuffer);
+    return (0, bytes_1.hexlify)(sig);
+}
 function recoverPublicKey(digest, signature) {
-    var sig = (0, bytes_1.splitSignature)(signature);
-    var rs = { r: (0, bytes_1.arrayify)(sig.r), s: (0, bytes_1.arrayify)(sig.s) };
-    return "0x" + getCurve().recoverPubKey((0, bytes_1.arrayify)(digest), rs, sig.recoveryParam).encode("hex", false);
+    var digestBuffer = Buffer.from((0, bytes_1.arrayify)(digest));
+    if (digestBuffer.length !== 32) {
+        logger.throwArgumentError("bad digest length", "digest", digest);
+    }
+    var sigBuffer = Buffer.from((0, bytes_1.arrayify)(signature));
+    if (sigBuffer.length !== 171) {
+        logger.throwArgumentError("invalid signature", "signature", signature);
+    }
+    var sig = sigBuffer.slice(0, 114);
+    var pub = sigBuffer.slice(114);
+    if (ed448_1.default.verify(digestBuffer, sig, pub)) {
+        return (0, bytes_1.hexlify)(pub);
+    }
+    logger.throwArgumentError("invalid signature", "signature", signature);
+    return "";
 }
 exports.recoverPublicKey = recoverPublicKey;
-function computePublicKey(key, compressed) {
-    var bytes = (0, bytes_1.arrayify)(key);
-    if (bytes.length === 32) {
-        var signingKey = new SigningKey(bytes);
-        if (compressed) {
-            return "0x" + getCurve().keyFromPrivate(bytes).getPublic(true, "hex");
-        }
-        return signingKey.publicKey;
+function computePublicKey(key) {
+    var bytes = Buffer.from((0, bytes_1.arrayify)(key));
+    if (bytes.length !== 57) {
+        logger.throwArgumentError("invalid private key", "key", "[REDACTED]");
     }
-    else if (bytes.length === 33) {
-        if (compressed) {
-            return (0, bytes_1.hexlify)(bytes);
-        }
-        return "0x" + getCurve().keyFromPublic(bytes).getPublic(false, "hex");
+    if (bytes[56] > 127) {
+        var scalar = bytes.slice(0, 56);
+        scalar[0] &= 0xfc;
+        scalar[55] |= 0x80;
+        var pub_1 = ed448_1.default.publicKeyFromScalar(bytes);
+        return (0, bytes_1.hexlify)(pub_1);
     }
-    else if (bytes.length === 65) {
-        if (!compressed) {
-            return (0, bytes_1.hexlify)(bytes);
-        }
-        return "0x" + getCurve().keyFromPublic(bytes).getPublic(true, "hex");
-    }
-    return logger.throwArgumentError("invalid public or private key", "key", "[REDACTED]");
+    var pub = ed448_1.default.publicKeyCreate(bytes);
+    return (0, bytes_1.hexlify)(pub);
 }
 exports.computePublicKey = computePublicKey;
 //# sourceMappingURL=index.js.map

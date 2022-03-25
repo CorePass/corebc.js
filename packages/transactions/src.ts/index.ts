@@ -111,7 +111,7 @@ export function computeAddress(key: BytesLike | string): string {
     return getAddress(hexDataSlice(keccak256(hexDataSlice(publicKey, 1)), 12));
 }
 
-export function recoverAddress(digest: BytesLike, signature: SignatureLike): string {
+export function recoverAddress(digest: BytesLike, signature: string): string {
     return computeAddress(recoverPublicKey(arrayify(digest), signature));
 }
 
