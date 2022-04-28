@@ -365,32 +365,6 @@ describe('Test Hash Functions', function () {
         });
     });
 });
-describe('Test Solidity splitSignature', function () {
-    it('splits a canonical signature', function () {
-        this.timeout(120000);
-        var r = '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef';
-        var s = '0xcafe1a7ecafe1a7ecafe1a7ecafe1a7ecafe1a7ecafe1a7ecafe1a7ecafe1a7e';
-        for (var v = 27; v <= 28; v++) {
-            var signature = ethers_1.ethers.utils.concat([r, s, [v]]);
-            var sig = ethers_1.ethers.utils.splitSignature(signature);
-            assert_1.default.equal(sig.r, r, 'split r correctly');
-            assert_1.default.equal(sig.s, s, 'split s correctly');
-            assert_1.default.equal(sig.v, v, 'split v correctly');
-        }
-    });
-    it('splits a legacy signature', function () {
-        this.timeout(120000);
-        var r = '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef';
-        var s = '0xcafe1a7ecafe1a7ecafe1a7ecafe1a7ecafe1a7ecafe1a7ecafe1a7ecafe1a7e';
-        for (var v = 27; v <= 28; v++) {
-            var signature = ethers_1.ethers.utils.concat([r, s, [v - 27]]);
-            var sig = ethers_1.ethers.utils.splitSignature(signature);
-            assert_1.default.equal(sig.r, r, 'split r correctly');
-            assert_1.default.equal(sig.s, s, 'split s correctly');
-            assert_1.default.equal(sig.v, v, 'split v correctly');
-        }
-    });
-});
 describe('Test Base64 coder', function () {
     // https://en.wikipedia.org/wiki/Base64#Examples
     it('encodes and decodes the example from wikipedia', function () {
@@ -535,36 +509,36 @@ describe("Test nameprep", function () {
         });
     });
 });
-describe("Test Signature Manipulation", function () {
-    var tests = (0, testcases_1.loadTests)("transactions");
-    tests.forEach(function (test) {
-        it("autofills partial signatures - " + test.name, function () {
-            var address = ethers_1.ethers.utils.getAddress(test.accountAddress);
-            var hash = ethers_1.ethers.utils.keccak256(test.unsignedTransaction);
-            var data = ethers_1.ethers.utils.RLP.decode(test.signedTransaction);
-            var s = data.pop(), r = data.pop(), v = parseInt(data.pop().substring(2), 16);
-            var sig = ethers_1.ethers.utils.splitSignature({ r: r, s: s, v: v });
-            {
-                var addr = ethers_1.ethers.utils.recoverAddress(hash, {
-                    r: r, s: s, v: v
-                });
-                assert_1.default.equal(addr, address, "Using r, s and v");
-            }
-            {
-                var addr = ethers_1.ethers.utils.recoverAddress(hash, {
-                    r: sig.r, _vs: sig._vs
-                });
-                assert_1.default.equal(addr, address, "Using r, _vs");
-            }
-            {
-                var addr = ethers_1.ethers.utils.recoverAddress(hash, {
-                    r: sig.r, s: sig.s, recoveryParam: sig.recoveryParam
-                });
-                assert_1.default.equal(addr, address, "Using r, s and recoveryParam");
-            }
-        });
-    });
-});
+// describe("Test Signature Manipulation", function() {
+//     const tests: Array<TestCase.SignedTransaction> = loadTests("transactions");
+//     tests.forEach((test) => {
+//         it("autofills partial signatures - " + test.name, function() {
+//             const address = ethers.utils.getAddress(test.accountAddress);
+//             const hash = ethers.utils.keccak256(test.unsignedTransaction);
+//             const data = ethers.utils.RLP.decode(test.signedTransaction);
+//             const s = data.pop(), r = data.pop(), v = parseInt(data.pop().substring(2), 16);
+//             const sig = ethers.utils.splitSignature({ r: r, s: s, v: v });
+//             {
+//                 const addr = ethers.utils.recoverAddress(hash, {
+//                     r: r, s: s, v: v
+//                 });
+//                 assert.equal(addr, address, "Using r, s and v");
+//             }
+//             {
+//                 const addr = ethers.utils.recoverAddress(hash, {
+//                     r: sig.r, _vs: sig._vs
+//                 });
+//                 assert.equal(addr, address, "Using r, _vs");
+//             }
+//             {
+//                 const addr = ethers.utils.recoverAddress(hash, {
+//                     r: sig.r, s: sig.s, recoveryParam: sig.recoveryParam
+//                 });
+//                 assert.equal(addr, address, "Using r, s and recoveryParam");
+//             }
+//         });
+//     });
+// });
 describe("Test Typed Transactions", function () {
     var tests = (0, testcases_1.loadTests)("typed-transactions");
     function equalsData(name, a, b, ifNull) {
@@ -638,7 +612,7 @@ describe("Test Typed Transactions", function () {
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
-                            wallet = new ethers_1.ethers.Wallet(test.key);
+                            wallet = new ethers_1.ethers.Wallet(test.key, test.prefix);
                             return [4 /*yield*/, wallet.signTransaction(test.tx)];
                         case 1:
                             signed = _a.sent();
@@ -840,7 +814,7 @@ describe("EIP-712", function () {
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
-                            wallet = new ethers_1.ethers.Wallet(test.privateKey);
+                            wallet = new ethers_1.ethers.Wallet(test.privateKey, test.prefix);
                             return [4 /*yield*/, wallet._signTypedData(test.domain, test.types, test.data)];
                         case 1:
                             signature = _a.sent();
@@ -849,132 +823,6 @@ describe("EIP-712", function () {
                     }
                 });
             });
-        });
-    });
-});
-/*
-type EIP2930Test = {
-    hash: string,
-    data:
-};
-*/
-function _deepEquals(a, b, path) {
-    if (Array.isArray(a)) {
-        if (!Array.isArray(b)) {
-            return "{ path }:!isArray(b)";
-        }
-        if (a.length !== b.length) {
-            return "{ path }:a.length[" + a.length + "]!=b.length[" + b.length + "]";
-        }
-        for (var i = 0; i < a.length; i++) {
-            var reason = _deepEquals(a[i], b[i], path + ":" + i);
-            if (reason != null) {
-                return reason;
-            }
-        }
-        return null;
-    }
-    if (a.eq) {
-        if (!b.eq) {
-            return path + ":typeof(b)!=BigNumber";
-        }
-        return a.eq(b) ? null : path + ":!a.eq(b)";
-    }
-    if (a != null && typeof (a) === "object") {
-        if (b != null && typeof (b) !== "object") {
-            return path + ":typeof(b)!=object";
-        }
-        var keys = Object.keys(a), otherKeys = Object.keys(b);
-        keys.sort();
-        otherKeys.sort();
-        if (keys.length !== otherKeys.length) {
-            return path + ":keys(a)[" + keys.join(",") + "]!=keys(b)[" + otherKeys.join(",") + "]";
-        }
-        for (var key in a) {
-            var reason = _deepEquals(a[key], b[key], path + ":" + key);
-            if (reason != null) {
-                return reason;
-            }
-        }
-        return null;
-    }
-    if (a !== b) {
-        return path + "[" + a + " != " + b + "]";
-    }
-    return null;
-}
-function deepEquals(a, b) {
-    return _deepEquals(a, b, "");
-}
-describe("EIP-2930", function () {
-    var Tests = [
-        {
-            hash: "0x48bff7b0e603200118a672f7c622ab7d555a28f98938edb8318803eed7ea7395",
-            data: "0x01f87c030d8465cf89a0825b689432162f3581e88a5f62e8a61892b42c46e2c18f7b8080d7d6940000000000000000000000000000000000000000c080a09659cba42376dbea1433cd6afc9c8ffa38dbeff5408ffdca0ebde6207281a3eca027efbab3e6ed30b088ce0a50533364778e101c9e52acf318daec131da64e7758",
-            preimage: "0x01f839030d8465cf89a0825b689432162f3581e88a5f62e8a61892b42c46e2c18f7b8080d7d6940000000000000000000000000000000000000000c0",
-            tx: {
-                hash: "0x48bff7b0e603200118a672f7c622ab7d555a28f98938edb8318803eed7ea7395",
-                type: 1,
-                networkId: 3,
-                nonce: 13,
-                energyPrice: ethers_1.ethers.BigNumber.from("0x65cf89a0"),
-                energyLimit: ethers_1.ethers.BigNumber.from("0x5b68"),
-                to: "0x32162F3581E88a5f62e8A61892B42C46E2c18f7b",
-                value: ethers_1.ethers.BigNumber.from("0"),
-                data: "0x",
-                accessList: [
-                    {
-                        address: "0x0000000000000000000000000000000000000000",
-                        storageKeys: []
-                    }
-                ],
-                v: 0,
-                r: "0x9659cba42376dbea1433cd6afc9c8ffa38dbeff5408ffdca0ebde6207281a3ec",
-                s: "0x27efbab3e6ed30b088ce0a50533364778e101c9e52acf318daec131da64e7758",
-                from: "0x32162F3581E88a5f62e8A61892B42C46E2c18f7b",
-            }
-        },
-        {
-            hash: "0x1675a417e728fd3562d628d06955ef35b913573d9e417eb4e6a209998499c9d3",
-            data: "0x01f8e2030e8465cf89a08271ac9432162f3581e88a5f62e8a61892b42c46e2c18f7b8080f87cf87a940000000000000000000000000000000000000000f863a0deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefa00000000000111111111122222222223333333333444444444455555555556666a0deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef80a0b0646756f89817d70cdb40aa2ae8b5f43ef65d0926dcf71a7dca5280c93763dfa04d32dbd9a44a2c5639b8434b823938202f75b0a8459f3fcd9f37b2495b7a66a6",
-            preimage: "0x01f89f030e8465cf89a08271ac9432162f3581e88a5f62e8a61892b42c46e2c18f7b8080f87cf87a940000000000000000000000000000000000000000f863a0deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefa00000000000111111111122222222223333333333444444444455555555556666a0deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
-            tx: {
-                hash: "0x1675a417e728fd3562d628d06955ef35b913573d9e417eb4e6a209998499c9d3",
-                type: 1,
-                networkId: 3,
-                nonce: 14,
-                energyPrice: ethers_1.ethers.BigNumber.from("0x65cf89a0"),
-                energyLimit: ethers_1.ethers.BigNumber.from("0x71ac"),
-                to: "0x32162F3581E88a5f62e8A61892B42C46E2c18f7b",
-                value: ethers_1.ethers.BigNumber.from("0"),
-                data: "0x",
-                accessList: [
-                    {
-                        address: "0x0000000000000000000000000000000000000000",
-                        storageKeys: [
-                            "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
-                            "0x0000000000111111111122222222223333333333444444444455555555556666",
-                            "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
-                        ]
-                    }
-                ],
-                v: 0,
-                r: "0xb0646756f89817d70cdb40aa2ae8b5f43ef65d0926dcf71a7dca5280c93763df",
-                s: "0x4d32dbd9a44a2c5639b8434b823938202f75b0a8459f3fcd9f37b2495b7a66a6",
-                from: "0x32162F3581E88a5f62e8A61892B42C46E2c18f7b",
-            }
-        },
-    ];
-    Tests.forEach(function (test) {
-        it("tx:" + test.hash, function () {
-            var tx = ethers_1.ethers.utils.parseTransaction(test.data);
-            assert_1.default.equal(tx.hash, test.hash);
-            var reason = deepEquals(tx, test.tx);
-            assert_1.default.ok(reason == null, reason);
-            var preimageData = ethers_1.ethers.utils.serializeTransaction((test.tx));
-            assert_1.default.equal(preimageData, test.preimage);
-            var data = ethers_1.ethers.utils.serializeTransaction((test.tx), test.tx);
-            assert_1.default.equal(data, test.data);
         });
     });
 });

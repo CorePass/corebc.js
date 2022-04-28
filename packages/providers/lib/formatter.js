@@ -30,8 +30,6 @@ var Formatter = /** @class */ (function () {
         var strictData = function (v) { return _this.data(v, true); };
         formats.transaction = {
             hash: hash,
-            type: type,
-            accessList: Formatter.allowNull(this.accessList.bind(this), null),
             blockHash: Formatter.allowNull(hash, null),
             blockNumber: Formatter.allowNull(number, null),
             transactionIndex: Formatter.allowNull(number, null),
@@ -40,16 +38,11 @@ var Formatter = /** @class */ (function () {
             // either (energyPrice) or (maxPriorityFeePerEnergy + maxFeePerEnergy)
             // must be set
             energyPrice: Formatter.allowNull(bigNumber),
-            maxPriorityFeePerEnergy: Formatter.allowNull(bigNumber),
-            maxFeePerEnergy: Formatter.allowNull(bigNumber),
             energyLimit: bigNumber,
             to: Formatter.allowNull(address, null),
             value: bigNumber,
             nonce: number,
             data: data,
-            r: Formatter.allowNull(this.uint256),
-            s: Formatter.allowNull(this.uint256),
-            v: Formatter.allowNull(number),
             creates: Formatter.allowNull(address, null),
             raw: Formatter.allowNull(data),
         };
@@ -58,13 +51,9 @@ var Formatter = /** @class */ (function () {
             nonce: Formatter.allowNull(number),
             energyLimit: Formatter.allowNull(bigNumber),
             energyPrice: Formatter.allowNull(bigNumber),
-            maxPriorityFeePerEnergy: Formatter.allowNull(bigNumber),
-            maxFeePerEnergy: Formatter.allowNull(bigNumber),
             to: Formatter.allowNull(address),
             value: Formatter.allowNull(bigNumber),
             data: Formatter.allowNull(strictData),
-            type: Formatter.allowNull(number),
-            accessList: Formatter.allowNull(this.accessList.bind(this), null),
         };
         formats.receiptLog = {
             transactionIndex: number,
@@ -130,9 +119,6 @@ var Formatter = /** @class */ (function () {
             logIndex: number,
         };
         return formats;
-    };
-    Formatter.prototype.accessList = function (accessList) {
-        return (0, transactions_1.accessListify)(accessList || []);
     };
     // Requires a BigNumberish that is within the IEEE754 safe integer range; returns a number
     // Strict! Used on input.
@@ -281,35 +267,11 @@ var Formatter = /** @class */ (function () {
         if (transaction.to == null && transaction.creates == null) {
             transaction.creates = this.contractAddress(transaction);
         }
-        if ((transaction.type === 1 || transaction.type === 2) && transaction.accessList == null) {
-            transaction.accessList = [];
-        }
         var result = Formatter.check(this.formats.transaction, transaction);
         if (transaction.networkId != null) {
             var networkId = transaction.networkId;
             if ((0, bytes_1.isHexString)(networkId)) {
                 networkId = bignumber_1.BigNumber.from(networkId).toNumber();
-            }
-            result.networkId = networkId;
-        }
-        else {
-            var networkId = transaction.networkId;
-            // geth-etc returns networkId
-            if (networkId == null && result.v == null) {
-                networkId = transaction.networkId;
-            }
-            if ((0, bytes_1.isHexString)(networkId)) {
-                networkId = bignumber_1.BigNumber.from(networkId).toNumber();
-            }
-            if (typeof (networkId) !== "number" && result.v != null) {
-                networkId = (result.v - 35) / 2;
-                if (networkId < 0) {
-                    networkId = 0;
-                }
-                networkId = parseInt(networkId);
-            }
-            if (typeof (networkId) !== "number") {
-                networkId = 0;
             }
             result.networkId = networkId;
         }

@@ -22,7 +22,7 @@ import { ErrorCode as errors, Logger } from "@ethersproject/logger";
 // Types
 
 import { BigNumberish } from "@ethersproject/bignumber";
-import { Bytes, BytesLike, Signature } from "@ethersproject/bytes";
+import { Bytes, BytesLike } from "@ethersproject/bytes";
 import { Transaction, UnsignedTransaction } from "@ethersproject/transactions";
 
 
@@ -111,8 +111,6 @@ export {
 
     Bytes,
     BytesLike,
-
-    Signature,
 
     Transaction,
     UnsignedTransaction,

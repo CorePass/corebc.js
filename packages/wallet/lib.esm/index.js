@@ -8,10 +8,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { getAddress } from "@ethersproject/address";
+import { extractPrefix, getAddress } from "@ethersproject/address";
 import { Provider } from "@ethersproject/abstract-provider";
 import { Signer } from "@ethersproject/abstract-signer";
-import { arrayify, concat, hexDataSlice, isHexString, joinSignature } from "@ethersproject/bytes";
+import { arrayify, concat, hexDataSlice, isHexString } from "@ethersproject/bytes";
 import { hashMessage, _TypedDataEncoder } from "@ethersproject/hash";
 import { defaultPath, HDNode, entropyToMnemonic } from "@ethersproject/hdnode";
 import { keccak256 } from "@ethersproject/keccak256";
@@ -24,20 +24,21 @@ import { Logger } from "@ethersproject/logger";
 import { version } from "./_version";
 const logger = new Logger(version);
 function isAccount(value) {
-    return (value != null && isHexString(value.privateKey, 32) && value.address != null);
+    return (value != null && isHexString(value.privateKey, 57) && value.address != null);
 }
 function hasMnemonic(value) {
     const mnemonic = value.mnemonic;
     return (mnemonic && mnemonic.phrase);
 }
 export class Wallet extends Signer {
-    constructor(privateKey, provider) {
+    constructor(privateKey, prefix, provider) {
         logger.checkNew(new.target, Wallet);
         super();
+        defineReadOnly(this, "prefix", prefix);
         if (isAccount(privateKey)) {
             const signingKey = new SigningKey(privateKey.privateKey);
             defineReadOnly(this, "_signingKey", () => signingKey);
-            defineReadOnly(this, "address", computeAddress(this.publicKey));
+            defineReadOnly(this, "address", computeAddress(this.publicKey, prefix));
             if (this.address !== getAddress(privateKey.address)) {
                 logger.throwArgumentError("privateKey/address mismatch", "privateKey", "[REDACTED]");
             }
@@ -50,7 +51,7 @@ export class Wallet extends Signer {
                 }));
                 const mnemonic = this.mnemonic;
                 const node = HDNode.fromMnemonic(mnemonic.phrase, null, mnemonic.locale).derivePath(mnemonic.path);
-                if (computeAddress(node.privateKey) !== this.address) {
+                if (computeAddress(node.privateKey, prefix) !== this.address) {
                     logger.throwArgumentError("mnemonic/address mismatch", "privateKey", "[REDACTED]");
                 }
             }
@@ -60,16 +61,12 @@ export class Wallet extends Signer {
         }
         else {
             if (SigningKey.isSigningKey(privateKey)) {
-                /* istanbul ignore if */
-                if (privateKey.curve !== "secp256k1") {
-                    logger.throwArgumentError("unsupported curve; must be secp256k1", "privateKey", "[REDACTED]");
-                }
                 defineReadOnly(this, "_signingKey", () => privateKey);
             }
             else {
                 // A lot of common tools do not prefix private keys with a 0x (see: #1166)
                 if (typeof (privateKey) === "string") {
-                    if (privateKey.match(/^[0-9a-f]*$/i) && privateKey.length === 64) {
+                    if (privateKey.match(/^[0-9a-f]*$/i) && privateKey.length === 114) {
                         privateKey = "0x" + privateKey;
                     }
                 }
@@ -77,7 +74,7 @@ export class Wallet extends Signer {
                 defineReadOnly(this, "_signingKey", () => signingKey);
             }
             defineReadOnly(this, "_mnemonic", () => null);
-            defineReadOnly(this, "address", computeAddress(this.publicKey));
+            defineReadOnly(this, "address", computeAddress(this.publicKey, prefix));
         }
         /* istanbul ignore if */
         if (provider && !Provider.isProvider(provider)) {
@@ -92,7 +89,7 @@ export class Wallet extends Signer {
         return Promise.resolve(this.address);
     }
     connect(provider) {
-        return new Wallet(this, provider);
+        return new Wallet(this, this.prefix, provider);
     }
     signTransaction(transaction) {
         return resolveProperties(transaction).then((tx) => {
@@ -108,7 +105,7 @@ export class Wallet extends Signer {
     }
     signMessage(message) {
         return __awaiter(this, void 0, void 0, function* () {
-            return joinSignature(this._signingKey().signDigest(hashMessage(message)));
+            return this._signingKey().signDigest(hashMessage(message));
         });
     }
     _signTypedData(domain, types, value) {
@@ -123,7 +120,7 @@ export class Wallet extends Signer {
                 }
                 return this.provider.resolveName(name);
             });
-            return joinSignature(this._signingKey().signDigest(_TypedDataEncoder.hash(populated.domain, types, populated.value)));
+            return this._signingKey().signDigest(_TypedDataEncoder.hash(populated.domain, types, populated.value));
         });
     }
     encrypt(password, options, progressCallback) {
@@ -142,7 +139,7 @@ export class Wallet extends Signer {
     /**
      *  Static methods to create Wallet instances.
      */
-    static createRandom(options) {
+    static createRandom(prefix, options) {
         let entropy = randomBytes(16);
         if (!options) {
             options = {};
@@ -151,27 +148,30 @@ export class Wallet extends Signer {
             entropy = arrayify(hexDataSlice(keccak256(concat([entropy, options.extraEntropy])), 0, 16));
         }
         const mnemonic = entropyToMnemonic(entropy, options.locale);
-        return Wallet.fromMnemonic(mnemonic, options.path, options.locale);
+        return Wallet.fromMnemonic(mnemonic, prefix, options.path, options.locale);
     }
     static fromEncryptedJson(json, password, progressCallback) {
         return decryptJsonWallet(json, password, progressCallback).then((account) => {
-            return new Wallet(account);
+            const prefix = extractPrefix(account.address);
+            return new Wallet(account, prefix);
         });
     }
     static fromEncryptedJsonSync(json, password) {
-        return new Wallet(decryptJsonWalletSync(json, password));
+        const account = decryptJsonWalletSync(json, password);
+        const prefix = extractPrefix(account.address);
+        return new Wallet(account, prefix);
     }
-    static fromMnemonic(mnemonic, path, wordlist) {
+    static fromMnemonic(mnemonic, prefix, path, wordlist) {
         if (!path) {
             path = defaultPath;
         }
-        return new Wallet(HDNode.fromMnemonic(mnemonic, null, wordlist).derivePath(path));
+        return new Wallet(HDNode.fromMnemonic(mnemonic, prefix, null, wordlist).derivePath(path), prefix);
     }
 }
-export function verifyMessage(message, signature) {
-    return recoverAddress(hashMessage(message), signature);
+export function verifyMessage(message, signature, prefix) {
+    return recoverAddress(hashMessage(message), signature, prefix);
 }
-export function verifyTypedData(domain, types, value, signature) {
-    return recoverAddress(_TypedDataEncoder.hash(domain, types, value), signature);
+export function verifyTypedData(domain, types, value, signature, prefix) {
+    return recoverAddress(_TypedDataEncoder.hash(domain, types, value), signature, prefix);
 }
 //# sourceMappingURL=index.js.map

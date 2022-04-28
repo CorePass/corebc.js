@@ -64,6 +64,7 @@ var keccak256_1 = require("@ethersproject/keccak256");
 var pbkdf2_1 = require("@ethersproject/pbkdf2");
 var random_1 = require("@ethersproject/random");
 var properties_1 = require("@ethersproject/properties");
+var address_2 = require("@ethersproject/address");
 var transactions_1 = require("@ethersproject/transactions");
 var utils_1 = require("./utils");
 var logger_1 = require("@ethersproject/logger");
@@ -107,15 +108,10 @@ function _getAccount(data, key) {
         });
     }
     var mnemonicKey = key.slice(32, 64);
-    var address = (0, transactions_1.computeAddress)(privateKey);
-    if (data.address) {
-        var check = data.address.toLowerCase();
-        if (check.substring(0, 2) !== "0x") {
-            check = "0x" + check;
-        }
-        if ((0, address_1.getAddress)(check) !== address) {
-            throw new Error("address mismatch");
-        }
+    var address = (0, address_1.getAddress)(data.address);
+    var prefix = (0, address_2.extractPrefix)(address);
+    if ((0, transactions_1.computeAddress)(privateKey, prefix) !== address) {
+        throw new Error("address mismatch");
     }
     var account = {
         _isKeystoreAccount: true,
@@ -230,7 +226,9 @@ exports.decrypt = decrypt;
 function encrypt(account, password, options, progressCallback) {
     try {
         // Check the address matches the private key
-        if ((0, address_1.getAddress)(account.address) !== (0, transactions_1.computeAddress)(account.privateKey)) {
+        var address = (0, address_1.getAddress)(account.address);
+        var prefix = (0, address_2.extractPrefix)(address);
+        if ((0, transactions_1.computeAddress)(account.privateKey, prefix) !== address) {
             throw new Error("address/privateKey mismatch");
         }
         // Check the mnemonic (if any) matches the private key

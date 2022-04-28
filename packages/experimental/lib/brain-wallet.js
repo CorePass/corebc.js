@@ -29,7 +29,7 @@ var BrainWallet = /** @class */ (function (_super) {
     function BrainWallet() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
-    BrainWallet._generate = function (username, password, legacy, progressCallback) {
+    BrainWallet._generate = function (username, password, prefix, legacy, progressCallback) {
         if (!warned) {
             logger.warn("Warning: using Brain Wallets should be considered insecure (this warning will not be repeated)");
             warned = true;
@@ -52,17 +52,17 @@ var BrainWallet = /** @class */ (function (_super) {
         }
         return scrypt_js_1.default.scrypt(passwordBytes, usernameBytes, (1 << 18), 8, 1, 32, progressCallback).then(function (key) {
             if (legacy) {
-                return new BrainWallet(key);
+                return new BrainWallet(key, prefix);
             }
             var mnemonic = ethers_1.ethers.utils.entropyToMnemonic(ethers_1.ethers.utils.arrayify(key).slice(0, 16));
-            return new BrainWallet(ethers_1.ethers.Wallet.fromMnemonic(mnemonic));
+            return new BrainWallet(ethers_1.ethers.Wallet.fromMnemonic(mnemonic, prefix), prefix);
         });
     };
-    BrainWallet.generate = function (username, password, progressCallback) {
-        return BrainWallet._generate(username, password, false, progressCallback);
+    BrainWallet.generate = function (username, password, prefix, progressCallback) {
+        return BrainWallet._generate(username, password, prefix, false, progressCallback);
     };
-    BrainWallet.generateLegacy = function (username, password, progressCallback) {
-        return BrainWallet._generate(username, password, true, progressCallback);
+    BrainWallet.generateLegacy = function (username, password, prefix, progressCallback) {
+        return BrainWallet._generate(username, password, prefix, true, progressCallback);
     };
     return BrainWallet;
 }(ethers_1.ethers.Wallet));

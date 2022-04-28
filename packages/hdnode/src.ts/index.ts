@@ -3,28 +3,19 @@
 // See: https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki
 // See: https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki
 
-
 import { ExternallyOwnedAccount } from "@ethersproject/abstract-signer";
-import { Base58 } from "@ethersproject/basex";
-import { arrayify, BytesLike, concat, hexDataSlice, hexZeroPad, hexlify } from "@ethersproject/bytes";
-import { BigNumber } from "@ethersproject/bignumber";
+import { arrayify, BytesLike, concat, hexDataSlice, hexlify } from "@ethersproject/bytes";
 import { toUtf8Bytes, UnicodeNormalizationForm } from "@ethersproject/strings";
 import { pbkdf2 } from "@ethersproject/pbkdf2";
 import { defineReadOnly } from "@ethersproject/properties";
 import { SigningKey } from "@ethersproject/signing-key";
-import { computeHmac, ripemd160, sha256, SupportedAlgorithm } from "@ethersproject/sha2";
+import { ripemd160, sha256 } from "@ethersproject/sha3";
 import { computeAddress } from "@ethersproject/transactions";
 import { Wordlist, wordlists } from "@ethersproject/wordlists";
 
 import { Logger } from "@ethersproject/logger";
 import { version } from "./_version";
 const logger = new Logger(version);
-
-const N = BigNumber.from("0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141");
-
-
-// "Bitcoin seed"
-const MasterSecret = toUtf8Bytes("Bitcoin seed");
 
 const HardenedBit = 0x80000000;
 
@@ -36,14 +27,6 @@ function getUpperMask(bits: number): number {
 // Returns a byte with the LSB bits set
 function getLowerMask(bits: number): number {
    return (1 << bits) - 1;
-}
-
-function bytes32(value: BigNumber | Uint8Array): string {
-    return hexZeroPad(hexlify(value), 32);
-}
-
-function base58check(data: Uint8Array): string {
-    return Base58.encode(concat([ data, hexDataSlice(sha256(sha256(data)), 0, 4) ]));
 }
 
 function getWordlist(wordlist: string | Wordlist): Wordlist {
@@ -62,6 +45,40 @@ function getWordlist(wordlist: string | Wordlist): Wordlist {
     return wordlist;
 }
 
+function sha512Hash(password: BytesLike, salt: BytesLike): Uint8Array {
+    const p = arrayify(password);
+    const s = arrayify(salt);
+    return arrayify(pbkdf2(p, s, 2048, 57, "sha256"));
+}
+
+function concatKeyIndexSalt(prefix: number, key: Uint8Array, index: number, salt: Uint8Array): Uint8Array {
+    const ind = new Uint8Array(4);
+    const p = new Uint8Array(1);
+    p[0] = prefix % 256;
+    let j = index;
+    for (let i = 0; i < 4; i++) {
+            ind[i] = j % 256;
+            j = Math.floor(j/256);
+    }
+    const t = concat([p, key, ind]);
+    return sha512Hash(t, salt);
+}
+
+function addScalar(a: Uint8Array, b: Uint8Array): Uint8Array {
+    b = concat([b.slice(0, 63) + "0x00000000"]);
+    b[0] &= 0xfc;
+
+    const c = new Uint8Array(57);
+    let hold = 0;
+    for (let i = 0; i < 57; i++) {
+        hold += a[i] + b[i];
+        c[i] = hold % 256;
+        hold = Math.floor(hold / 256);
+    }
+    return c;
+};
+
+
 const _constructorGuard: any = {};
 
 export const defaultPath = "m/44'/60'/0'/0/0";
@@ -73,6 +90,7 @@ export interface Mnemonic {
 };
 
 export class HDNode implements ExternallyOwnedAccount {
+    readonly extendedPrivateKey: string;
     readonly privateKey: string;
     readonly publicKey: string;
 
@@ -84,7 +102,7 @@ export class HDNode implements ExternallyOwnedAccount {
     readonly mnemonic?: Mnemonic;
     readonly path: string;
 
-    readonly chainCode: string;
+    readonly prefix: string;
 
     readonly index: number;
     readonly depth: number;
@@ -96,7 +114,7 @@ export class HDNode implements ExternallyOwnedAccount {
      *   - fromMnemonic
      *   - fromSeed
      */
-    constructor(constructorGuard: any, privateKey: string, publicKey: string, parentFingerprint: string, chainCode: string, index: number, depth: number, mnemonicOrPath: Mnemonic | string) {
+    constructor(constructorGuard: any, extendedPrivateKey: string, publicKey: string, parentFingerprint: string, prefix: string, index: number, depth: number, mnemonicOrPath: Mnemonic | string) {
         logger.checkNew(new.target, HDNode);
 
         /* istanbul ignore if */
@@ -104,11 +122,14 @@ export class HDNode implements ExternallyOwnedAccount {
             throw new Error("HDNode constructor cannot be called directly");
         }
 
-        if (privateKey) {
+        if (extendedPrivateKey) {
+            defineReadOnly(this, "extendedPrivateKey", extendedPrivateKey);
+            const privateKey = hexDataSlice(extendedPrivateKey, 57, 114);
             const signingKey = new SigningKey(privateKey);
             defineReadOnly(this, "privateKey", signingKey.privateKey);
-            defineReadOnly(this, "publicKey", signingKey.compressedPublicKey);
+            defineReadOnly(this, "publicKey", signingKey.publicKey);
         } else {
+            defineReadOnly(this, "extendedPrivateKey", null);
             defineReadOnly(this, "privateKey", null);
             defineReadOnly(this, "publicKey", hexlify(publicKey));
         }
@@ -116,9 +137,9 @@ export class HDNode implements ExternallyOwnedAccount {
         defineReadOnly(this, "parentFingerprint", parentFingerprint);
         defineReadOnly(this, "fingerprint", hexDataSlice(ripemd160(sha256(this.publicKey)), 0, 4));
 
-        defineReadOnly(this, "address", computeAddress(this.publicKey));
+        defineReadOnly(this, "prefix", prefix);
 
-        defineReadOnly(this, "chainCode", chainCode);
+        defineReadOnly(this, "address", computeAddress(this.publicKey, prefix));
 
         defineReadOnly(this, "index", index);
         defineReadOnly(this, "depth", depth);
@@ -140,76 +161,37 @@ export class HDNode implements ExternallyOwnedAccount {
         }
     }
 
-    get extendedKey(): string {
-        // We only support the mainnet values for now, but if anyone needs
-        // testnet values, let me know. I believe current sentiment is that
-        // we should always use mainnet, and use BIP-44 to derive the network
-        //   - Mainnet: public=0x0488B21E, private=0x0488ADE4
-        //   - Testnet: public=0x043587CF, private=0x04358394
-
-        if (this.depth >= 256) { throw new Error("Depth too large!"); }
-
-        return base58check(concat([
-            ((this.privateKey != null) ? "0x0488ADE4": "0x0488B21E"),
-            hexlify(this.depth),
-            this.parentFingerprint,
-            hexZeroPad(hexlify(this.index), 4),
-            this.chainCode,
-            ((this.privateKey != null) ? concat([ "0x00", this.privateKey ]): this.publicKey),
-        ]));
-    }
-
     neuter(): HDNode {
-        return new HDNode(_constructorGuard, null, this.publicKey, this.parentFingerprint, this.chainCode, this.index, this.depth, this.path);
+        return new HDNode(_constructorGuard, null, this.publicKey, this.parentFingerprint, this.prefix, this.index, this.depth, this.path);
     }
 
     private _derive(index: number): HDNode {
         if (index > 0xffffffff) { throw new Error("invalid index - " + String(index)); }
 
+        if (!this.extendedPrivateKey) {
+            throw new Error("cannot derive child of neutered node");
+        }
+        const extendedPrivateKey = arrayify(this.extendedPrivateKey);
+        const salt = extendedPrivateKey.slice(0, 57);
+        const key = extendedPrivateKey.slice(57, 114);
+
+        let r0, r1: Uint8Array;
+        if (index >= HardenedBit) {
+            r0 = concatKeyIndexSalt(1, key, index, salt);
+            r1 = concatKeyIndexSalt(0, key, index, salt);
+        } else {
+            const pub = arrayify(this.publicKey);
+            r0 = concatKeyIndexSalt(3, pub, index, salt);
+            r1 = concatKeyIndexSalt(2, pub, index, salt);
+        }
+        const newKey = hexlify(concat([r0, addScalar(key, r1)]))
+
         // Base path
-        let path = this.path;
-        if (path) { path += "/" + (index & ~HardenedBit); }
-
-        const data = new Uint8Array(37);
-
-        if (index & HardenedBit) {
-            if (!this.privateKey) {
-                throw new Error("cannot derive child of neutered node");
-            }
-
-            // Data = 0x00 || ser_256(k_par)
-            data.set(arrayify(this.privateKey), 1);
-
-            // Hardened path
-            if (path) { path += "'"; }
-
-        } else {
-            // Data = ser_p(point(k_par))
-            data.set(arrayify(this.publicKey));
+        let path = this.path
+        if (path) {
+            path += index >= HardenedBit ? `/${index - HardenedBit}'` : `/${index}`
         }
-
-        // Data += ser_32(i)
-        for (let i = 24; i >= 0; i -= 8) { data[33 + (i >> 3)] = ((index >> (24 - i)) & 0xff); }
-
-        const I = arrayify(computeHmac(SupportedAlgorithm.sha512, this.chainCode, data));
-        const IL = I.slice(0, 32);
-        const IR = I.slice(32);
-
-        // The private key
-        let ki: string = null
-
-        // The public key
-        let Ki: string = null;
-
-        if (this.privateKey) {
-            ki = bytes32(BigNumber.from(IL).add(this.privateKey).mod(N));
-        } else {
-            const ek = new SigningKey(hexlify(IL));
-            Ki = ek._addPoint(this.publicKey);
-        }
-
         let mnemonicOrPath: Mnemonic | string = path;
-
         const srcMnemonic =  this.mnemonic;
         if (srcMnemonic) {
             mnemonicOrPath = Object.freeze({
@@ -219,7 +201,7 @@ export class HDNode implements ExternallyOwnedAccount {
             });
         }
 
-        return new HDNode(_constructorGuard, ki, Ki, this.fingerprint, bytes32(IR), index, this.depth + 1, mnemonicOrPath);
+        return new HDNode(_constructorGuard, newKey, null, this.fingerprint, this.prefix, index, this.depth + 1, mnemonicOrPath);
     }
 
     derivePath(path: string): HDNode {
@@ -251,59 +233,41 @@ export class HDNode implements ExternallyOwnedAccount {
     }
 
 
-    static _fromSeed(seed: BytesLike, mnemonic: Mnemonic): HDNode {
+    static _fromSeed(seed: BytesLike, mnemonic: Mnemonic, prefix: string): HDNode {
         const seedArray: Uint8Array = arrayify(seed);
         if (seedArray.length < 16 || seedArray.length > 64) { throw new Error("invalid seed"); }
 
-        const I: Uint8Array = arrayify(computeHmac(SupportedAlgorithm.sha512, MasterSecret, seedArray));
+        const s1 = sha512Hash(seed, "0x6d6e656d6f6e6963666f72746865636861696e");
+        const s2 = sha512Hash(seed, "0x6d6e656d6f6e6963666f727468656b6579");
+        s2[56] |= 0x80;
+        s2[55] |= 0x80;
+        s2[55] &= 0xbf;
+        const key = hexlify(concat([s1, s2]));
 
-        return new HDNode(_constructorGuard, bytes32(I.slice(0, 32)), null, "0x00000000", bytes32(I.slice(32)), 0, 0, mnemonic);
+        return new HDNode(_constructorGuard, key, null, "0x00000000", prefix, 0, 0, mnemonic);
     }
 
-    static fromMnemonic(mnemonic: string, password?: string, wordlist?: string | Wordlist): HDNode {
-
+    static fromMnemonic(
+        mnemonic: string,
+        prefix: string,
+        password?: string,
+        wordlist?: string | Wordlist,
+    ): HDNode {
         // If a locale name was passed in, find the associated wordlist
         wordlist = getWordlist(wordlist);
 
         // Normalize the case and spacing in the mnemonic (throws if the mnemonic is invalid)
         mnemonic = entropyToMnemonic(mnemonicToEntropy(mnemonic, wordlist), wordlist);
 
-        return HDNode._fromSeed(mnemonicToSeed(mnemonic, password), {
-            phrase: mnemonic,
-            path: "m",
-            locale: wordlist.locale
-        });
+        return HDNode._fromSeed(
+            mnemonicToSeed(mnemonic, password),
+            {phrase: mnemonic, path: "m", locale: wordlist.locale},
+            prefix,
+        );
     }
 
-    static fromSeed(seed: BytesLike): HDNode {
-        return HDNode._fromSeed(seed, null);
-    }
-
-    static fromExtendedKey(extendedKey: string): HDNode {
-        const bytes = Base58.decode(extendedKey);
-
-        if (bytes.length !== 82 || base58check(bytes.slice(0, 78)) !== extendedKey) {
-            logger.throwArgumentError("invalid extended key", "extendedKey", "[REDACTED]");
-        }
-
-        const depth = bytes[4];
-        const parentFingerprint = hexlify(bytes.slice(5, 9));
-        const index = parseInt(hexlify(bytes.slice(9, 13)).substring(2), 16);
-        const chainCode = hexlify(bytes.slice(13, 45));
-        const key = bytes.slice(45, 78);
-
-        switch (hexlify(bytes.slice(0, 4))) {
-            // Public Key
-            case "0x0488b21e": case "0x043587cf":
-                return new HDNode(_constructorGuard, null, hexlify(key), parentFingerprint, chainCode, index, depth, null);
-
-            // Private Key
-            case "0x0488ade4": case "0x04358394 ":
-                if (key[0] !== 0) { break; }
-                return new HDNode(_constructorGuard, hexlify(key.slice(1)), null, parentFingerprint, chainCode, index, depth, null);
-        }
-
-        return logger.throwArgumentError("invalid extended key", "extendedKey", "[REDACTED]");
+    static fromSeed(seed: BytesLike, prefix: string): HDNode {
+        return HDNode._fromSeed(seed, null, prefix);
     }
 }
 
@@ -408,5 +372,5 @@ export function getAccountPath(index: number): string {
     if (typeof(index) !== "number" || index < 0 || index >= HardenedBit || index % 1) {
         logger.throwArgumentError("invalid account index", "index", index);
     }
-    return `m/44'/60'/${ index }'/0/0`;
+    return `m/44'/654'/0'/0'/${ index }`;
 }

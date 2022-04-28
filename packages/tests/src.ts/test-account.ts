@@ -12,6 +12,7 @@ type TestCase = {
     checksumAddress: string;
     icapAddress: string;
     privateKey?: string;
+    prefix: string;
 };
 
 describe('Private key generation', function() {
@@ -19,7 +20,7 @@ describe('Private key generation', function() {
     tests.forEach((test) => {
         if (!test.privateKey) { return; }
         it(('correctly converts private key - ' + test.name), function() {
-            let wallet = new ethers.Wallet(test.privateKey);
+            let wallet = new ethers.Wallet(test.privateKey, test.prefix);
             assert.equal(wallet.address.toLowerCase(), test.address.toLowerCase(),
                 'correctly computes privateKey - ' + test.privateKey);
         });

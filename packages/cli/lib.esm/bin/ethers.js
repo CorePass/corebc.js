@@ -63,8 +63,6 @@ function setupContext(path, context, plugin) {
     context.concat = ethers.utils.concat;
     context.hexlify = ethers.utils.hexlify;
     context.zeroPad = ethers.utils.zeroPad;
-    context.joinSignature = ethers.utils.joinSignature;
-    context.splitSignature = ethers.utils.splitSignature;
     context.id = ethers.utils.id;
     context.keccak256 = ethers.utils.keccak256;
     context.namehash = ethers.utils.namehash;
@@ -253,7 +251,7 @@ class InitPlugin extends Plugin {
             if (password !== confirm) {
                 this.throwError("Passwords do not match");
             }
-            let wallet = ethers.Wallet.createRandom();
+            let wallet = ethers.Wallet.createRandom(this.prefix);
             let progressBar = yield getProgressBar("Encrypting");
             let json = yield wallet.encrypt(password, {}, progressBar);
             try {

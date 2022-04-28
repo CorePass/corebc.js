@@ -2,21 +2,17 @@ import { BigNumber, BigNumberish } from "@ethersproject/bignumber";
 import { BytesLike } from "@ethersproject/bytes";
 import { Network } from "@ethersproject/networks";
 import { Deferrable, Description } from "@ethersproject/properties";
-import { AccessListish, Transaction } from "@ethersproject/transactions";
+import { Transaction } from "@ethersproject/transactions";
 import { OnceBlockable } from "@ethersproject/web";
 export declare type TransactionRequest = {
     to?: string;
     from?: string;
     nonce?: BigNumberish;
+    networkId?: number;
     energyLimit?: BigNumberish;
     energyPrice?: BigNumberish;
     data?: BytesLike;
     value?: BigNumberish;
-    networkId?: number;
-    type?: number;
-    accessList?: AccessListish;
-    maxPriorityFeePerEnergy?: BigNumberish;
-    maxFeePerEnergy?: BigNumberish;
     customData?: Record<string, any>;
 };
 export interface TransactionResponse extends Transaction {

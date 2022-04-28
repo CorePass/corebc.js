@@ -13,7 +13,7 @@ describe('Private key generation', function () {
             return;
         }
         it(('correctly converts private key - ' + test.name), function () {
-            var wallet = new ethers_1.ethers.Wallet(test.privateKey);
+            var wallet = new ethers_1.ethers.Wallet(test.privateKey, test.prefix);
             assert_1.default.equal(wallet.address.toLowerCase(), test.address.toLowerCase(), 'correctly computes privateKey - ' + test.privateKey);
         });
     });

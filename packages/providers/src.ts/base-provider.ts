@@ -12,7 +12,7 @@ import { namehash } from "@ethersproject/hash";
 import { getNetwork, Network, Networkish } from "@ethersproject/networks";
 import { Deferrable, defineReadOnly, getStatic, resolveProperties } from "@ethersproject/properties";
 import { Transaction } from "@ethersproject/transactions";
-import { sha256 } from "@ethersproject/sha2";
+import { sha256 } from "@ethersproject/sha3";
 import { toUtf8Bytes, toUtf8String } from "@ethersproject/strings";
 import { fetchJson, poll } from "@ethersproject/web";
 
@@ -1396,10 +1396,6 @@ export class BaseProvider extends Provider implements EnsProvider {
             if (values[key] == null) { return; }
             tx[key] = Promise.resolve(values[key]).then((v) => ((v != null) ? v: null));
         });
-
-        if (values.accessList) {
-            tx.accessList = this.formatter.accessList(values.accessList);
-        }
 
         ["data"].forEach((key) => {
             if (values[key] == null) { return; }

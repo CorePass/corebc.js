@@ -218,7 +218,7 @@ var WrappedSigner = /** @class */ (function (_super) {
     };
     WrappedSigner.prototype.signMessage = function (message) {
         return __awaiter(this, void 0, void 0, function () {
-            var signer, info, bytes, i, c, result, signature;
+            var signer, info, bytes, i, c, signature;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, getSigner(this)];
@@ -249,17 +249,11 @@ var WrappedSigner = /** @class */ (function (_super) {
                         _a.sent();
                         return [4 /*yield*/, signer.signMessage(message)];
                     case 3:
-                        result = _a.sent();
-                        signature = ethers_1.ethers.utils.splitSignature(result);
+                        signature = _a.sent();
                         dump("Signature", {
-                            Flat: result,
-                            r: signature.r,
-                            s: signature.s,
-                            vs: signature._vs,
-                            v: signature.v,
-                            recid: signature.recoveryParam,
+                            Signature: signature,
                         });
-                        return [2 /*return*/, result];
+                        return [2 /*return*/, signature];
                 }
             });
         });
@@ -290,7 +284,7 @@ var WrappedSigner = /** @class */ (function (_super) {
     };
     WrappedSigner.prototype.signTransaction = function (transactionRequest) {
         return __awaiter(this, void 0, void 0, function () {
-            var signer, network, tx, info, result, signature;
+            var signer, network, tx, info, signature;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, getSigner(this)];
@@ -324,17 +318,11 @@ var WrappedSigner = /** @class */ (function (_super) {
                         _a.sent();
                         return [4 /*yield*/, signer.signTransaction(transactionRequest)];
                     case 5:
-                        result = _a.sent();
-                        signature = ethers_1.ethers.utils.splitSignature(result);
+                        signature = _a.sent();
                         dump("Signature:", {
-                            Signature: result,
-                            r: signature.r,
-                            s: signature.s,
-                            vs: signature._vs,
-                            v: signature.v,
-                            recid: signature.recoveryParam,
+                            Signature: signature,
                         });
-                        return [2 /*return*/, result];
+                        return [2 /*return*/, signature];
                 }
             });
         });
@@ -548,8 +536,8 @@ function loadAccount(arg, plugin, preventFile) {
                     return [2 /*return*/, loadAccount(content, plugin, true)];
                 case 2:
                     // Raw private key
-                    if (ethers_1.ethers.utils.isHexString(arg, 32)) {
-                        signer_1 = new ethers_1.ethers.Wallet(arg, plugin.provider);
+                    if (ethers_1.ethers.utils.isHexString(arg, 57)) {
+                        signer_1 = new ethers_1.ethers.Wallet(arg, plugin.prefix, plugin.provider);
                         return [2 /*return*/, Promise.resolve(new WrappedSigner(signer_1.getAddress(), function () { return Promise.resolve(signer_1); }, plugin))];
                     }
                     // Mnemonic
@@ -559,23 +547,23 @@ function loadAccount(arg, plugin, preventFile) {
                         if (plugin.mnemonicPassword) {
                             signerPromise_1 = (0, prompt_1.getPassword)("Password (mnemonic): ").then(function (password) {
                                 var node = ethers_1.ethers.utils.HDNode.fromMnemonic(mnemonic_1, password).derivePath(plugin.mnemonicPath);
-                                return new ethers_1.ethers.Wallet(node.privateKey, plugin.provider);
+                                return new ethers_1.ethers.Wallet(node.privateKey, plugin.prefix, plugin.provider);
                             });
                         }
                         else if (plugin._xxxMnemonicPasswordHard) {
                             signerPromise_1 = (0, prompt_1.getPassword)("Password (mnemonic; experimental - hard): ").then(function (password) {
                                 var passwordBytes = ethers_1.ethers.utils.toUtf8Bytes(password, ethers_1.ethers.utils.UnicodeNormalizationForm.NFKC);
-                                var saltBytes = ethers_1.ethers.utils.arrayify(ethers_1.ethers.utils.HDNode.fromMnemonic(mnemonic_1).privateKey);
+                                var saltBytes = ethers_1.ethers.utils.arrayify(ethers_1.ethers.utils.HDNode.fromMnemonic(mnemonic_1, plugin.prefix).privateKey);
                                 var progressBar = (0, prompt_1.getProgressBar)("Decrypting");
                                 return scrypt.scrypt(passwordBytes, saltBytes, (1 << 20), 8, 1, 32, progressBar).then(function (key) {
                                     var derivedPassword = ethers_1.ethers.utils.hexlify(key).substring(2);
                                     var node = ethers_1.ethers.utils.HDNode.fromMnemonic(mnemonic_1, derivedPassword).derivePath(plugin.mnemonicPath);
-                                    return new ethers_1.ethers.Wallet(node.privateKey, plugin.provider);
+                                    return new ethers_1.ethers.Wallet(node.privateKey, plugin.prefix, plugin.provider);
                                 });
                             });
                         }
                         else {
-                            signerPromise_1 = Promise.resolve(ethers_1.ethers.Wallet.fromMnemonic(arg).connect(plugin.provider));
+                            signerPromise_1 = Promise.resolve(ethers_1.ethers.Wallet.fromMnemonic(arg, plugin.prefix).connect(plugin.provider));
                         }
                         return [2 /*return*/, Promise.resolve(new WrappedSigner(signerPromise_1.then(function (wallet) { return wallet.getAddress(); }), function () { return signerPromise_1; }, plugin))];
                     }
@@ -627,7 +615,7 @@ var Plugin = /** @class */ (function () {
     };
     Plugin.prototype.prepareOptions = function (argParser, verifyOnly) {
         return __awaiter(this, void 0, void 0, function () {
-            var runners, network, providers, rpc, accounts, accountOptions, _loop_1, this_1, i, energyPrice, energyLimit, nonce, error_3;
+            var runners, prefix, network, providers, rpc, accounts, accountOptions, _loop_1, this_1, i, energyPrice, energyLimit, nonce, error_3;
             var _this = this;
             return __generator(this, function (_a) {
                 switch (_a.label) {
@@ -635,6 +623,11 @@ var Plugin = /** @class */ (function () {
                         runners = [];
                         this.wait = argParser.consumeFlag("wait");
                         this.yes = argParser.consumeFlag("yes");
+                        prefix = argParser.consumeOption("prefix");
+                        if (!prefix) {
+                            this.throwUsageError("--prefix is required");
+                        }
+                        ethers_1.ethers.utils.defineReadOnly(this, "prefix", prefix);
                         network = (argParser.consumeOption("network") || "homestead");
                         providers = [];
                         rpc = [];
@@ -643,18 +636,6 @@ var Plugin = /** @class */ (function () {
                             providers.push(provider);
                             rpc.push(provider);
                         });
-                        if (argParser.consumeFlag("alchemy")) {
-                            providers.push(new ethers_1.ethers.providers.AlchemyProvider(network));
-                        }
-                        if (argParser.consumeFlag("etherscan")) {
-                            providers.push(new ethers_1.ethers.providers.EtherscanProvider(network));
-                        }
-                        if (argParser.consumeFlag("infura")) {
-                            providers.push(new ethers_1.ethers.providers.InfuraProvider(network));
-                        }
-                        if (argParser.consumeFlag("nodesmith")) {
-                            providers.push(new ethers_1.ethers.providers.NodesmithProvider(network));
-                        }
                         if (argParser.consumeFlag("offline")) {
                             providers.push(new OfflineProvider(network));
                         }
@@ -985,10 +966,6 @@ var CLI = /** @class */ (function () {
         }
         if (this.options.provider) {
             console.log("PROVIDER OPTIONS (default: all + homestead)");
-            console.log("  --alchemy                   Include Alchemy");
-            console.log("  --etherscan                 Include Etherscan");
-            console.log("  --infura                    Include INFURA");
-            console.log("  --nodesmith                 Include nodesmith");
             console.log("  --rpc URL                   Include a custom JSON-RPC");
             console.log("  --offline                   Dump signed transactions (no send)");
             console.log("  --network NETWORK           Network to connect to (default: homestead)");

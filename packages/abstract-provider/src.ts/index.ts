@@ -4,7 +4,7 @@ import { BigNumber, BigNumberish } from "@ethersproject/bignumber";
 import { BytesLike, isHexString } from "@ethersproject/bytes";
 import { Network } from "@ethersproject/networks";
 import { Deferrable, Description, defineReadOnly, resolveProperties } from "@ethersproject/properties";
-import { AccessListish, Transaction } from "@ethersproject/transactions";
+import { Transaction } from "@ethersproject/transactions";
 import { OnceBlockable } from "@ethersproject/web";
 
 import { Logger } from "@ethersproject/logger";
@@ -19,19 +19,13 @@ export type TransactionRequest = {
     to?: string,
     from?: string,
     nonce?: BigNumberish,
+    networkId?: number
 
     energyLimit?: BigNumberish,
     energyPrice?: BigNumberish,
 
     data?: BytesLike,
     value?: BigNumberish,
-    networkId?: number
-
-    type?: number;
-    accessList?: AccessListish;
-
-    maxPriorityFeePerEnergy?: BigNumberish;
-    maxFeePerEnergy?: BigNumberish;
 
     customData?: Record<string, any>;
 }

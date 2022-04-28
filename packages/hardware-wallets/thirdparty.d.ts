@@ -22,8 +22,8 @@ declare module "@ledgerhq/hw-app-eth" {
         constructor(transport: Transport);
         getAppConfiguration(): Promise<Config>;
         getAddress(path: string): Promise<PublicAccount>;
-        signPersonalMessage(path: string, message: string): Promise<Signature>;
-        signTransaction(path: string, unsignedTx: string): Promise<Signature>;
+        signPersonalMessage(path: string, message: string): Promise<string>;
+        signTransaction(path: string, unsignedTx: string): Promise<string>;
     }
 
     export default Eth;

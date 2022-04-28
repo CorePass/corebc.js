@@ -1,16 +1,17 @@
 import { Provider, TransactionRequest } from "@ethersproject/abstract-provider";
 import { ExternallyOwnedAccount, Signer, TypedDataDomain, TypedDataField, TypedDataSigner } from "@ethersproject/abstract-signer";
-import { Bytes, BytesLike, SignatureLike } from "@ethersproject/bytes";
+import { Bytes, BytesLike } from "@ethersproject/bytes";
 import { Mnemonic } from "@ethersproject/hdnode";
 import { SigningKey } from "@ethersproject/signing-key";
 import { ProgressCallback } from "@ethersproject/json-wallets";
 import { Wordlist } from "@ethersproject/wordlists";
 export declare class Wallet extends Signer implements ExternallyOwnedAccount, TypedDataSigner {
+    readonly prefix: string;
     readonly address: string;
     readonly provider: Provider;
     readonly _signingKey: () => SigningKey;
     readonly _mnemonic: () => Mnemonic;
-    constructor(privateKey: BytesLike | ExternallyOwnedAccount | SigningKey, provider?: Provider);
+    constructor(privateKey: BytesLike | ExternallyOwnedAccount | SigningKey, prefix: string, provider?: Provider);
     get mnemonic(): Mnemonic;
     get privateKey(): string;
     get publicKey(): string;
@@ -23,11 +24,11 @@ export declare class Wallet extends Signer implements ExternallyOwnedAccount, Ty
     /**
      *  Static methods to create Wallet instances.
      */
-    static createRandom(options?: any): Wallet;
+    static createRandom(prefix: string, options?: any): Wallet;
     static fromEncryptedJson(json: string, password: Bytes | string, progressCallback?: ProgressCallback): Promise<Wallet>;
     static fromEncryptedJsonSync(json: string, password: Bytes | string): Wallet;
-    static fromMnemonic(mnemonic: string, path?: string, wordlist?: Wordlist): Wallet;
+    static fromMnemonic(mnemonic: string, prefix: string, path?: string, wordlist?: Wordlist): Wallet;
 }
-export declare function verifyMessage(message: Bytes | string, signature: SignatureLike): string;
-export declare function verifyTypedData(domain: TypedDataDomain, types: Record<string, Array<TypedDataField>>, value: Record<string, any>, signature: SignatureLike): string;
+export declare function verifyMessage(message: Bytes | string, signature: string, prefix: string): string;
+export declare function verifyTypedData(domain: TypedDataDomain, types: Record<string, Array<TypedDataField>>, value: Record<string, any>, signature: string, prefix: string): string;
 //# sourceMappingURL=index.d.ts.map

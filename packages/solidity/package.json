@@ -5,7 +5,7 @@
     "@ethersproject/bytes": "^5.5.0",
     "@ethersproject/keccak256": "^5.5.0",
     "@ethersproject/logger": "^5.5.0",
-    "@ethersproject/sha2": "^5.5.0",
+    "@ethersproject/sha3": "^5.5.0",
     "@ethersproject/strings": "^5.5.0"
   },
   "description": "Solidity coder for non-standard (tight) packing.",

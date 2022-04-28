@@ -7,7 +7,6 @@ import { getAddress, getContractAddress } from "@ethersproject/address";
 import { BigNumber, BigNumberish } from "@ethersproject/bignumber";
 import { arrayify, BytesLike, concat, hexlify, isBytes, isHexString } from "@ethersproject/bytes";
 import { Deferrable, defineReadOnly, deepCopy, getStatic, resolveProperties, shallowCopy } from "@ethersproject/properties";
-import { AccessList, accessListify, AccessListish } from "@ethersproject/transactions";
 
 import { Logger } from "@ethersproject/logger";
 import { version } from "./_version";
@@ -17,11 +16,7 @@ const logger = new Logger(version);
 export interface Overrides {
     energyLimit?: BigNumberish | Promise<BigNumberish>;
     energyPrice?: BigNumberish | Promise<BigNumberish>;
-    maxFeePerEnergy?: BigNumberish | Promise<BigNumberish>;
-    maxPriorityFeePerEnergy?: BigNumberish | Promise<BigNumberish>;
     nonce?: BigNumberish | Promise<BigNumberish>;
-    type?: number;
-    accessList?: AccessListish;
     customData?: Record<string, any>;
 };
 
@@ -43,19 +38,13 @@ export interface PopulatedTransaction {
     to?: string;
     from?: string;
     nonce?: number;
+    networkId?: number;
 
     energyLimit?: BigNumber;
     energyPrice?: BigNumber;
 
     data?: string;
     value?: BigNumber;
-    networkId?: number;
-
-    type?: number;
-    accessList?: AccessList;
-
-    maxFeePerEnergy?: BigNumber;
-    maxPriorityFeePerEnergy?: BigNumber;
 
     customData?: Record<string, any>;
 };
@@ -108,8 +97,6 @@ export interface ContractTransaction extends TransactionResponse {
 
 const allowedTransactionKeys: { [ key: string ]: boolean } = {
     networkId: true, data: true, from: true, energyLimit: true, energyPrice:true, nonce: true, to: true, value: true,
-    type: true, accessList: true,
-    maxFeePerEnergy: true, maxPriorityFeePerEnergy: true,
     customData: true
 }
 
@@ -235,12 +222,7 @@ async function populateTransaction(contract: Contract, fragment: FunctionFragmen
     if (ro.nonce != null) { tx.nonce = BigNumber.from(ro.nonce).toNumber(); }
     if (ro.energyLimit != null) { tx.energyLimit = BigNumber.from(ro.energyLimit); }
     if (ro.energyPrice != null) { tx.energyPrice = BigNumber.from(ro.energyPrice); }
-    if (ro.maxFeePerEnergy != null) { tx.maxFeePerEnergy = BigNumber.from(ro.maxFeePerEnergy); }
-    if (ro.maxPriorityFeePerEnergy != null) { tx.maxPriorityFeePerEnergy = BigNumber.from(ro.maxPriorityFeePerEnergy); }
     if (ro.from != null) { tx.from = ro.from; }
-
-    if (ro.type != null) { tx.type = ro.type; }
-    if (ro.accessList != null) { tx.accessList = accessListify(ro.accessList); }
 
     // If there was no "energyLimit" override, but the ABI specifies a default, use it
     if (tx.energyLimit == null && fragment.energy != null) {
@@ -280,12 +262,6 @@ async function populateTransaction(contract: Contract, fragment: FunctionFragmen
     delete overrides.energyPrice;
     delete overrides.from;
     delete overrides.value;
-
-    delete overrides.type;
-    delete overrides.accessList;
-
-    delete overrides.maxFeePerEnergy;
-    delete overrides.maxPriorityFeePerEnergy;
 
     delete overrides.customData;
 

@@ -68,7 +68,6 @@ var address_1 = require("@ethersproject/address");
 var bignumber_1 = require("@ethersproject/bignumber");
 var bytes_1 = require("@ethersproject/bytes");
 var properties_1 = require("@ethersproject/properties");
-var transactions_1 = require("@ethersproject/transactions");
 var logger_1 = require("@ethersproject/logger");
 var _version_1 = require("./_version");
 var logger = new logger_1.Logger(_version_1.version);
@@ -77,8 +76,6 @@ var logger = new logger_1.Logger(_version_1.version);
 ///////////////////////////////
 var allowedTransactionKeys = {
     networkId: true, data: true, from: true, energyLimit: true, energyPrice: true, nonce: true, to: true, value: true,
-    type: true, accessList: true,
-    maxFeePerEnergy: true, maxPriorityFeePerEnergy: true,
     customData: true
 };
 function resolveName(resolver, nameOrPromise) {
@@ -213,20 +210,8 @@ function populateTransaction(contract, fragment, args) {
                     if (ro.energyPrice != null) {
                         tx.energyPrice = bignumber_1.BigNumber.from(ro.energyPrice);
                     }
-                    if (ro.maxFeePerEnergy != null) {
-                        tx.maxFeePerEnergy = bignumber_1.BigNumber.from(ro.maxFeePerEnergy);
-                    }
-                    if (ro.maxPriorityFeePerEnergy != null) {
-                        tx.maxPriorityFeePerEnergy = bignumber_1.BigNumber.from(ro.maxPriorityFeePerEnergy);
-                    }
                     if (ro.from != null) {
                         tx.from = ro.from;
-                    }
-                    if (ro.type != null) {
-                        tx.type = ro.type;
-                    }
-                    if (ro.accessList != null) {
-                        tx.accessList = (0, transactions_1.accessListify)(ro.accessList);
                     }
                     // If there was no "energyLimit" override, but the ABI specifies a default, use it
                     if (tx.energyLimit == null && fragment.energy != null) {
@@ -260,10 +245,6 @@ function populateTransaction(contract, fragment, args) {
                     delete overrides.energyPrice;
                     delete overrides.from;
                     delete overrides.value;
-                    delete overrides.type;
-                    delete overrides.accessList;
-                    delete overrides.maxFeePerEnergy;
-                    delete overrides.maxPriorityFeePerEnergy;
                     delete overrides.customData;
                     leftovers = Object.keys(overrides).filter(function (key) { return (overrides[key] != null); });
                     if (leftovers.length) {

@@ -4,20 +4,20 @@ import { AbiCoder, checkResultErrors, ConstructorFragment, defaultAbiCoder, Erro
 import { getAddress, getCreate2Address, getContractAddress, isAddress } from "@ethersproject/address";
 import * as base64 from "@ethersproject/base64";
 import { Base58 as base58 } from "@ethersproject/basex";
-import { arrayify, concat, hexConcat, hexDataSlice, hexDataLength, hexlify, hexStripZeros, hexValue, hexZeroPad, isBytes, isBytesLike, isHexString, joinSignature, zeroPad, splitSignature, stripZeros } from "@ethersproject/bytes";
+import { arrayify, concat, hexConcat, hexDataSlice, hexDataLength, hexlify, hexStripZeros, hexValue, hexZeroPad, isBytes, isBytesLike, isHexString, zeroPad, stripZeros } from "@ethersproject/bytes";
 import { _TypedDataEncoder, hashMessage, id, isValidName, namehash } from "@ethersproject/hash";
 import { defaultPath, entropyToMnemonic, getAccountPath, HDNode, isValidMnemonic, mnemonicToEntropy, mnemonicToSeed } from "@ethersproject/hdnode";
 import { getJsonWalletAddress } from "@ethersproject/json-wallets";
 import { keccak256 } from "@ethersproject/keccak256";
 import { Logger } from "@ethersproject/logger";
-import { computeHmac, ripemd160, sha256, sha512 } from "@ethersproject/sha2";
+import { computeHmac, ripemd160, sha256, sha512 } from "@ethersproject/sha3";
 import { keccak256 as solidityKeccak256, pack as solidityPack, sha256 as soliditySha256 } from "@ethersproject/solidity";
 import { randomBytes, shuffled } from "@ethersproject/random";
 import { checkProperties, deepCopy, defineReadOnly, getStatic, resolveProperties, shallowCopy } from "@ethersproject/properties";
 import * as RLP from "@ethersproject/rlp";
 import { computePublicKey, recoverPublicKey, SigningKey } from "@ethersproject/signing-key";
 import { formatBytes32String, nameprep, parseBytes32String, _toEscapedUtf8String, toUtf8Bytes, toUtf8CodePoints, toUtf8String, Utf8ErrorFuncs } from "@ethersproject/strings";
-import { accessListify, computeAddress, parse as parseTransaction, recoverAddress, serialize as serializeTransaction, TransactionTypes } from "@ethersproject/transactions";
+import { computeAddress, parse as parseTransaction, recoverAddress, serialize as serializeTransaction } from "@ethersproject/transactions";
 import { commify, formatEther, parseEther, formatUnits, parseUnits } from "@ethersproject/units";
 import { verifyMessage, verifyTypedData } from "@ethersproject/wallet";
 import { _fetchData, fetchJson, poll } from "@ethersproject/web";
@@ -25,7 +25,7 @@ import { _fetchData, fetchJson, poll } from "@ethersproject/web";
 ////////////////////////
 // Enums
 
-import { SupportedAlgorithm } from "@ethersproject/sha2";
+import { SupportedAlgorithm } from "@ethersproject/sha3";
 import { UnicodeNormalizationForm, Utf8ErrorReason } from "@ethersproject/strings";
 import { UnsignedTransaction } from "@ethersproject/transactions";
 
@@ -38,7 +38,6 @@ import { Mnemonic } from "@ethersproject/hdnode";
 import { EncryptOptions, ProgressCallback } from "@ethersproject/json-wallets";
 import { Deferrable } from "@ethersproject/properties";
 import { Utf8ErrorFunc } from "@ethersproject/strings";
-import { AccessList, AccessListish } from "@ethersproject/transactions";
 import { ConnectionInfo, FetchJsonResponse, OnceBlockable, OncePollable, PollOptions } from "@ethersproject/web";
 
 ////////////////////////
@@ -147,13 +146,8 @@ export {
     solidityKeccak256,
     soliditySha256,
 
-    splitSignature,
-    joinSignature,
-
-    accessListify,
     parseTransaction,
     serializeTransaction,
-    TransactionTypes,
 
     getJsonWalletAddress,
 
@@ -188,8 +182,6 @@ export {
     BytesLike,
     Hexable,
 
-    AccessList,
-    AccessListish,
     UnsignedTransaction,
 
     CoerceFunc,

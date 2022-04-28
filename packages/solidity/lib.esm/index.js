@@ -2,7 +2,7 @@
 import { BigNumber } from "@ethersproject/bignumber";
 import { arrayify, concat, hexlify, zeroPad } from "@ethersproject/bytes";
 import { keccak256 as hashKeccak256 } from "@ethersproject/keccak256";
-import { sha256 as hashSha256 } from "@ethersproject/sha2";
+import { sha256 as hashSha256 } from "@ethersproject/sha3";
 import { toUtf8Bytes } from "@ethersproject/strings";
 const regexBytes = new RegExp("^bytes([0-9]+)$");
 const regexNumber = new RegExp("^(u?int)([0-9]*)$");

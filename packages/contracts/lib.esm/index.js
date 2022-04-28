@@ -15,7 +15,6 @@ import { getAddress, getContractAddress } from "@ethersproject/address";
 import { BigNumber } from "@ethersproject/bignumber";
 import { arrayify, concat, hexlify, isBytes, isHexString } from "@ethersproject/bytes";
 import { defineReadOnly, deepCopy, getStatic, resolveProperties, shallowCopy } from "@ethersproject/properties";
-import { accessListify } from "@ethersproject/transactions";
 import { Logger } from "@ethersproject/logger";
 import { version } from "./_version";
 const logger = new Logger(version);
@@ -24,8 +23,6 @@ const logger = new Logger(version);
 ///////////////////////////////
 const allowedTransactionKeys = {
     networkId: true, data: true, from: true, energyLimit: true, energyPrice: true, nonce: true, to: true, value: true,
-    type: true, accessList: true,
-    maxFeePerEnergy: true, maxPriorityFeePerEnergy: true,
     customData: true
 };
 function resolveName(resolver, nameOrPromise) {
@@ -138,20 +135,8 @@ function populateTransaction(contract, fragment, args) {
         if (ro.energyPrice != null) {
             tx.energyPrice = BigNumber.from(ro.energyPrice);
         }
-        if (ro.maxFeePerEnergy != null) {
-            tx.maxFeePerEnergy = BigNumber.from(ro.maxFeePerEnergy);
-        }
-        if (ro.maxPriorityFeePerEnergy != null) {
-            tx.maxPriorityFeePerEnergy = BigNumber.from(ro.maxPriorityFeePerEnergy);
-        }
         if (ro.from != null) {
             tx.from = ro.from;
-        }
-        if (ro.type != null) {
-            tx.type = ro.type;
-        }
-        if (ro.accessList != null) {
-            tx.accessList = accessListify(ro.accessList);
         }
         // If there was no "energyLimit" override, but the ABI specifies a default, use it
         if (tx.energyLimit == null && fragment.energy != null) {
@@ -190,10 +175,6 @@ function populateTransaction(contract, fragment, args) {
         delete overrides.energyPrice;
         delete overrides.from;
         delete overrides.value;
-        delete overrides.type;
-        delete overrides.accessList;
-        delete overrides.maxFeePerEnergy;
-        delete overrides.maxPriorityFeePerEnergy;
         delete overrides.customData;
         // Make sure there are no stray overrides, which may indicate a
         // typo or using an unsupported key.

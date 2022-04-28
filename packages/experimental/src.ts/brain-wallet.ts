@@ -12,7 +12,7 @@ let warned = false;
 
 export class BrainWallet extends ethers.Wallet {
 
-    static _generate(username: ethers.Bytes | string, password: ethers.Bytes | string, legacy: boolean, progressCallback?: ethers.utils.ProgressCallback): Promise<BrainWallet> {
+    static _generate(username: ethers.Bytes | string, password: ethers.Bytes | string, prefix: string, legacy: boolean, progressCallback?: ethers.utils.ProgressCallback): Promise<BrainWallet> {
         if (!warned) {
             logger.warn("Warning: using Brain Wallets should be considered insecure (this warning will not be repeated)");
             warned = true;
@@ -36,20 +36,20 @@ export class BrainWallet extends ethers.Wallet {
 
         return scrypt.scrypt(passwordBytes, usernameBytes, (1 << 18), 8, 1, 32, progressCallback).then((key: Uint8Array) => {
             if (legacy) {
-                return new BrainWallet(key);
+                return new BrainWallet(key, prefix);
 
             }
             const mnemonic = ethers.utils.entropyToMnemonic(ethers.utils.arrayify(key).slice(0, 16));
-            return new BrainWallet(ethers.Wallet.fromMnemonic(mnemonic));
+            return new BrainWallet(ethers.Wallet.fromMnemonic(mnemonic, prefix), prefix);
         });
     }
 
-    static generate(username: ethers.Bytes | string, password: ethers.Bytes | string, progressCallback?: ethers.utils.ProgressCallback): Promise<BrainWallet> {
-        return BrainWallet._generate(username, password, false, progressCallback);
+    static generate(username: ethers.Bytes | string, password: ethers.Bytes | string, prefix: string, progressCallback?: ethers.utils.ProgressCallback): Promise<BrainWallet> {
+        return BrainWallet._generate(username, password, prefix, false, progressCallback);
     }
 
-    static generateLegacy(username: ethers.Bytes | string, password: ethers.Bytes | string, progressCallback?: ethers.utils.ProgressCallback): Promise<BrainWallet> {
-        return BrainWallet._generate(username, password, true, progressCallback);
+    static generateLegacy(username: ethers.Bytes | string, password: ethers.Bytes | string, prefix: string, progressCallback?: ethers.utils.ProgressCallback): Promise<BrainWallet> {
+        return BrainWallet._generate(username, password, prefix, true, progressCallback);
     }
 }
 

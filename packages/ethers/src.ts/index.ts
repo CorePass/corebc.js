@@ -68,8 +68,6 @@ export {
     Bytes,
     BytesLike,
 
-    Signature,
-
     Transaction,
     UnsignedTransaction,
 

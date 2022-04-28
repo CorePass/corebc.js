@@ -84,9 +84,7 @@ export class LedgerSigner extends ethers.Signer {
             }
             const messageHex = ethers.utils.hexlify(message).substring(2);
             const sig = yield this._retry((eth) => eth.signPersonalMessage(this.path, messageHex));
-            sig.r = '0x' + sig.r;
-            sig.s = '0x' + sig.s;
-            return ethers.utils.joinSignature(sig);
+            return sig;
         });
     }
     signTransaction(transaction) {
@@ -103,11 +101,7 @@ export class LedgerSigner extends ethers.Signer {
             };
             const unsignedTx = ethers.utils.serializeTransaction(baseTx).substring(2);
             const sig = yield this._retry((eth) => eth.signTransaction(this.path, unsignedTx));
-            return ethers.utils.serializeTransaction(baseTx, {
-                v: ethers.BigNumber.from("0x" + sig.v).toNumber(),
-                r: ("0x" + sig.r),
-                s: ("0x" + sig.s),
-            });
+            return ethers.utils.serializeTransaction(baseTx, sig);
         });
     }
     connect(provider) {

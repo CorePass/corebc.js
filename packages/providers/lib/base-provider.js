@@ -63,7 +63,7 @@ var constants_1 = require("@ethersproject/constants");
 var hash_1 = require("@ethersproject/hash");
 var networks_1 = require("@ethersproject/networks");
 var properties_1 = require("@ethersproject/properties");
-var sha2_1 = require("@ethersproject/sha2");
+var sha3_1 = require("@ethersproject/sha3");
 var strings_1 = require("@ethersproject/strings");
 var web_1 = require("@ethersproject/web");
 var bech32_1 = __importDefault(require("bech32"));
@@ -244,7 +244,7 @@ function bytes32ify(value) {
 }
 // Compute the Base58Check encoded data (checksum is first 4 bytes of sha256d)
 function base58Encode(data) {
-    return basex_1.Base58.encode((0, bytes_1.concat)([data, (0, bytes_1.hexDataSlice)((0, sha2_1.sha256)((0, sha2_1.sha256)(data)), 0, 4)]));
+    return basex_1.Base58.encode((0, bytes_1.concat)([data, (0, bytes_1.hexDataSlice)((0, sha3_1.sha256)((0, sha3_1.sha256)(data)), 0, 4)]));
 }
 var matcherIpfs = new RegExp("^(ipfs):/\/(.*)$", "i");
 var matchers = [
@@ -1578,9 +1578,6 @@ var BaseProvider = /** @class */ (function (_super) {
                             }
                             tx[key] = Promise.resolve(values[key]).then(function (v) { return ((v != null) ? v : null); });
                         });
-                        if (values.accessList) {
-                            tx.accessList = this.formatter.accessList(values.accessList);
-                        }
                         ["data"].forEach(function (key) {
                             if (values[key] == null) {
                                 return;

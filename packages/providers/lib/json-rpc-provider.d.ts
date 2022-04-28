@@ -3,7 +3,6 @@ import { Signer, TypedDataDomain, TypedDataField, TypedDataSigner } from "@ether
 import { Bytes } from "@ethersproject/bytes";
 import { Network, Networkish } from "@ethersproject/networks";
 import { Deferrable } from "@ethersproject/properties";
-import { AccessList } from "@ethersproject/transactions";
 import { ConnectionInfo } from "@ethersproject/web";
 import { BaseProvider, Event } from "./base-provider";
 export declare class JsonRpcSigner extends Signer implements TypedDataSigner {
@@ -47,7 +46,7 @@ export declare class JsonRpcProvider extends BaseProvider {
     static hexlifyTransaction(transaction: TransactionRequest, allowExtra?: {
         [key: string]: boolean;
     }): {
-        [key: string]: string | AccessList;
+        [key: string]: string;
     };
 }
 export {};

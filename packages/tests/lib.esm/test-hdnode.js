@@ -33,9 +33,9 @@ describe('Test HD Node Derivation is Case Agnostic', function () {
         it("Normalizes case - " + test.name, function () {
             this.timeout(10000);
             let wordlist = (ethers.wordlists)[test.locale];
-            let rootNode = ethers.utils.HDNode.fromMnemonic(test.mnemonic, test.password || null, wordlist);
+            let rootNode = ethers.utils.HDNode.fromMnemonic(test.mnemonic, test.prefix, test.password || null, wordlist);
             let altMnemonic = randomCase(test.name, test.mnemonic);
-            let altNode = ethers.utils.HDNode.fromMnemonic(altMnemonic, test.password || null, wordlist);
+            let altNode = ethers.utils.HDNode.fromMnemonic(altMnemonic, test.prefix, test.password || null, wordlist);
             assert.equal(altNode.privateKey, rootNode.privateKey, altMnemonic);
         });
     });
@@ -55,11 +55,11 @@ describe('Test HD Node Derivation from Seed', function () {
         }
         it('Derives the HD nodes - ' + test.name, function () {
             this.timeout(10000);
-            let rootNode = ethers.utils.HDNode.fromSeed(test.seed);
+            let rootNode = ethers.utils.HDNode.fromSeed(test.seed, test.prefix);
             test.hdnodes.forEach((nodeTest) => {
                 let node = rootNode.derivePath(nodeTest.path);
                 assert.equal(node.privateKey, nodeTest.privateKey, 'Generates privateKey - ' + nodeTest.privateKey);
-                let wallet = new ethers.Wallet(node.privateKey);
+                let wallet = new ethers.Wallet(node.privateKey, test.prefix);
                 assert.equal(wallet.address.toLowerCase(), nodeTest.address, 'Generates address - ' + nodeTest.privateKey);
             });
         });
@@ -87,7 +87,7 @@ describe('Test HD Node Derivation from Mnemonic', function () {
                 assert.equal(node.path, nodeTest.path, 'Matches path - ' + nodeTest.privateKey);
                 assert.equal(node.mnemonic.phrase, test.mnemonic, 'Matches mnemonic.phrase - ' + nodeTest.privateKey);
                 assert.equal(node.mnemonic.path, nodeTest.path, 'Matches mnemonic.path - ' + nodeTest.privateKey);
-                let wallet = new ethers.Wallet(node.privateKey);
+                let wallet = new ethers.Wallet(node.privateKey, test.prefix);
                 assert.equal(wallet.address.toLowerCase(), nodeTest.address, 'Generates address - ' + nodeTest.privateKey);
             });
         });
@@ -117,31 +117,13 @@ describe('Test HD Mnemonic Phrases', function testMnemonic() {
         });
     });
 });
-describe("HD Extended Keys", function () {
-    const root = ethers.utils.HDNode.fromSeed("0xdeadbeefdeadbeefdeadbeefdeadbeef");
-    const root42 = root.derivePath("42");
-    it("exports and imports xpriv extended keys", function () {
-        const xpriv = root.extendedKey;
-        const node = ethers.utils.HDNode.fromExtendedKey(xpriv);
-        assert.equal(root.address, node.address, "address matches");
-        const node42 = node.derivePath("42");
-        assert.equal(root42.address, node42.address, "address matches");
-    });
-    it("exports and imports xpub extended keys", function () {
-        const xpub = root.neuter().extendedKey;
-        const node = ethers.utils.HDNode.fromExtendedKey(xpub);
-        assert.equal(root.address, node.address, "address matches");
-        const node42 = node.derivePath("42");
-        assert.equal(root42.address, node42.address, "address matches");
-    });
-});
 describe("HD error cases", function () {
     const testInvalid = [
         "",
         "m/45/m",
         "m/44/foobar"
     ];
-    const root = ethers.utils.HDNode.fromSeed("0xdeadbeefdeadbeefdeadbeefdeadbeef");
+    const root = ethers.utils.HDNode.fromSeed("0xdeadbeefdeadbeefdeadbeefdeadbeef", "cc");
     testInvalid.forEach((path) => {
         it(`fails on path "${path}"`, function () {
             assert.throws(() => {

@@ -27,7 +27,7 @@
     "@ethersproject/properties": "^5.5.0",
     "@ethersproject/random": "^5.5.0",
     "@ethersproject/rlp": "^5.5.0",
-    "@ethersproject/sha2": "^5.5.0",
+    "@ethersproject/sha3": "^5.5.0",
     "@ethersproject/strings": "^5.5.0",
     "@ethersproject/transactions": "^5.5.0",
     "@ethersproject/web": "^5.5.0",

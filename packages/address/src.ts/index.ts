@@ -1,8 +1,8 @@
 "use strict";
 
+import { sha256 } from "@ethersproject/sha3";
 import { arrayify, BytesLike, concat, hexDataLength, hexDataSlice, stripZeros } from "@ethersproject/bytes";
 import { BigNumber, BigNumberish, _base16To36, _base36To16 } from "@ethersproject/bignumber";
-import { keccak256 } from "@ethersproject/keccak256";
 import { encode } from "@ethersproject/rlp";
 
 import { Logger } from "@ethersproject/logger";
@@ -68,6 +68,30 @@ export function isAddress(address: string): boolean {
     return false;
 }
 
+export function extractPrefix(address: string): string {
+    address = getAddress(address);
+    return address.substring(2, 4);
+}
+
+export function networkIdToPrefix(networkId: number): string {
+    if (networkId == 1) {
+        return "cb";
+    } else if (networkId == 3 || networkId == 4) {
+        return "ab";
+    } else if (networkId > 10 || networkId == 0) {
+        return "ce";
+    } else {
+        logger.throwArgumentError("bad networkId", "networkId", networkId);
+        return "";
+    }
+}
+
+export function publicToAddress(key: BytesLike | string, prefix: string): string {
+    const val = hexDataSlice(sha256(key), 12)
+    const checksum = getChecksumAddress(val, prefix);
+    return "0x" + prefix + checksum + val;
+};
+
 export function getContractAddress(transaction: { from: string, nonce: BigNumberish }) {
     let from: string = null;
     try {
@@ -77,7 +101,7 @@ export function getContractAddress(transaction: { from: string, nonce: BigNumber
     }
 
     const nonce = stripZeros(arrayify(BigNumber.from(transaction.nonce).toHexString()));
-    const val = hexDataSlice(keccak256(encode([ from, nonce ])), 12);
+    const val = hexDataSlice(sha256(encode([ from, nonce ])), 12);
     const prefix = from.substring(2, 4)
     const checksum = getChecksumAddress(val, prefix)
     return "0x" + prefix + checksum + val;
@@ -91,7 +115,7 @@ export function getCreate2Address(from: string, salt: BytesLike, initCodeHash: B
         logger.throwArgumentError("initCodeHash must be 32 bytes", "initCodeHash", initCodeHash);
     }
 
-    const val = hexDataSlice(keccak256(concat([ "0xff", getAddress(from), salt, initCodeHash ])), 12)
+    const val = hexDataSlice(sha256(concat([ "0xff", getAddress(from), salt, initCodeHash ])), 12);
     const prefix = from.substring(2, 4)
     const checksum = getChecksumAddress(val, prefix)
     return "0x" + prefix + checksum + val;

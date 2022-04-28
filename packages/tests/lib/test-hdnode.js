@@ -37,9 +37,9 @@ describe('Test HD Node Derivation is Case Agnostic', function () {
         it("Normalizes case - " + test.name, function () {
             this.timeout(10000);
             var wordlist = (ethers_1.ethers.wordlists)[test.locale];
-            var rootNode = ethers_1.ethers.utils.HDNode.fromMnemonic(test.mnemonic, test.password || null, wordlist);
+            var rootNode = ethers_1.ethers.utils.HDNode.fromMnemonic(test.mnemonic, test.prefix, test.password || null, wordlist);
             var altMnemonic = randomCase(test.name, test.mnemonic);
-            var altNode = ethers_1.ethers.utils.HDNode.fromMnemonic(altMnemonic, test.password || null, wordlist);
+            var altNode = ethers_1.ethers.utils.HDNode.fromMnemonic(altMnemonic, test.prefix, test.password || null, wordlist);
             assert_1.default.equal(altNode.privateKey, rootNode.privateKey, altMnemonic);
         });
     });
@@ -59,11 +59,11 @@ describe('Test HD Node Derivation from Seed', function () {
         }
         it('Derives the HD nodes - ' + test.name, function () {
             this.timeout(10000);
-            var rootNode = ethers_1.ethers.utils.HDNode.fromSeed(test.seed);
+            var rootNode = ethers_1.ethers.utils.HDNode.fromSeed(test.seed, test.prefix);
             test.hdnodes.forEach(function (nodeTest) {
                 var node = rootNode.derivePath(nodeTest.path);
                 assert_1.default.equal(node.privateKey, nodeTest.privateKey, 'Generates privateKey - ' + nodeTest.privateKey);
-                var wallet = new ethers_1.ethers.Wallet(node.privateKey);
+                var wallet = new ethers_1.ethers.Wallet(node.privateKey, test.prefix);
                 assert_1.default.equal(wallet.address.toLowerCase(), nodeTest.address, 'Generates address - ' + nodeTest.privateKey);
             });
         });
@@ -91,7 +91,7 @@ describe('Test HD Node Derivation from Mnemonic', function () {
                 assert_1.default.equal(node.path, nodeTest.path, 'Matches path - ' + nodeTest.privateKey);
                 assert_1.default.equal(node.mnemonic.phrase, test.mnemonic, 'Matches mnemonic.phrase - ' + nodeTest.privateKey);
                 assert_1.default.equal(node.mnemonic.path, nodeTest.path, 'Matches mnemonic.path - ' + nodeTest.privateKey);
-                var wallet = new ethers_1.ethers.Wallet(node.privateKey);
+                var wallet = new ethers_1.ethers.Wallet(node.privateKey, test.prefix);
                 assert_1.default.equal(wallet.address.toLowerCase(), nodeTest.address, 'Generates address - ' + nodeTest.privateKey);
             });
         });
@@ -121,31 +121,13 @@ describe('Test HD Mnemonic Phrases', function testMnemonic() {
         });
     });
 });
-describe("HD Extended Keys", function () {
-    var root = ethers_1.ethers.utils.HDNode.fromSeed("0xdeadbeefdeadbeefdeadbeefdeadbeef");
-    var root42 = root.derivePath("42");
-    it("exports and imports xpriv extended keys", function () {
-        var xpriv = root.extendedKey;
-        var node = ethers_1.ethers.utils.HDNode.fromExtendedKey(xpriv);
-        assert_1.default.equal(root.address, node.address, "address matches");
-        var node42 = node.derivePath("42");
-        assert_1.default.equal(root42.address, node42.address, "address matches");
-    });
-    it("exports and imports xpub extended keys", function () {
-        var xpub = root.neuter().extendedKey;
-        var node = ethers_1.ethers.utils.HDNode.fromExtendedKey(xpub);
-        assert_1.default.equal(root.address, node.address, "address matches");
-        var node42 = node.derivePath("42");
-        assert_1.default.equal(root42.address, node42.address, "address matches");
-    });
-});
 describe("HD error cases", function () {
     var testInvalid = [
         "",
         "m/45/m",
         "m/44/foobar"
     ];
-    var root = ethers_1.ethers.utils.HDNode.fromSeed("0xdeadbeefdeadbeefdeadbeefdeadbeef");
+    var root = ethers_1.ethers.utils.HDNode.fromSeed("0xdeadbeefdeadbeefdeadbeefdeadbeef", "cc");
     testInvalid.forEach(function (path) {
         it("fails on path \"" + path + "\"", function () {
             assert_1.default.throws(function () {

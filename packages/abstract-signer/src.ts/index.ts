@@ -10,7 +10,7 @@ import { version } from "./_version";
 const logger = new Logger(version);
 
 const allowedTransactionKeys: Array<string> = [
-    "accessList", "networkId", "customData", "data", "from", "energyLimit", "energyPrice", "maxFeePerEnergy", "maxPriorityFeePerEnergy", "nonce", "to", "type", "value"
+    "networkId", "customData", "data", "from", "energyLimit", "energyPrice", "nonce", "to", "value"
 ];
 
 const forwardErrors = [
@@ -191,9 +191,6 @@ export abstract class Signer {
     // this Signer. Should be used by sendTransaction but NOT by signTransaction.
     // By default called from: (overriding these prevents it)
     //   - sendTransaction
-    //
-    // Notes:
-    //  - We allow energyPrice for EIP-1559 as long as it matches maxFeePerEnergy
     async populateTransaction(transaction: Deferrable<TransactionRequest>): Promise<TransactionRequest> {
 
         const tx: Deferrable<TransactionRequest> = await resolveProperties(this.checkTransaction(transaction))
@@ -212,84 +209,6 @@ export abstract class Signer {
             tx.to.catch((error) => {  });
         }
 
-        // Do not allow mixing pre-eip-1559 and eip-1559 properties
-        const hasEip1559 = (tx.maxFeePerEnergy != null || tx.maxPriorityFeePerEnergy != null);
-        if (tx.energyPrice != null && (tx.type === 2 || hasEip1559)) {
-            logger.throwArgumentError("eip-1559 transaction do not support energyPrice", "transaction", transaction);
-        } else if ((tx.type === 0 || tx.type === 1) && hasEip1559) {
-            logger.throwArgumentError("pre-eip-1559 transaction do not support maxFeePerEnergy/maxPriorityFeePerEnergy", "transaction", transaction);
-        }
-
-        if ((tx.type === 2 || tx.type == null) && (tx.maxFeePerEnergy != null && tx.maxPriorityFeePerEnergy != null)) {
-            // Fully-formed EIP-1559 transaction (skip getFeeData)
-            tx.type = 2;
-
-        } else if (tx.type === 0 || tx.type === 1) {
-            // Explicit Legacy or EIP-2930 transaction
-
-            // Populate missing energyPrice
-            if (tx.energyPrice == null) { tx.energyPrice = this.getEnergyPrice(); }
-
-        } else {
-
-            // We need to get fee data to determine things
-            const feeData = await this.getFeeData();
-
-            if (tx.type == null) {
-                // We need to auto-detect the intended type of this transaction...
-
-                if (feeData.maxFeePerEnergy != null && feeData.maxPriorityFeePerEnergy != null) {
-                    // The network supports EIP-1559!
-
-                    // Upgrade transaction from null to eip-1559
-                    tx.type = 2;
-
-                    if (tx.energyPrice != null) {
-                        // Using legacy energyPrice property on an eip-1559 network,
-                        // so use energyPrice as both fee properties
-                        const energyPrice = tx.energyPrice;
-                        delete tx.energyPrice;
-                        tx.maxFeePerEnergy = energyPrice;
-                        tx.maxPriorityFeePerEnergy = energyPrice;
-
-                    } else {
-                        // Populate missing fee data
-                        if (tx.maxFeePerEnergy == null) { tx.maxFeePerEnergy = feeData.maxFeePerEnergy; }
-                        if (tx.maxPriorityFeePerEnergy == null) { tx.maxPriorityFeePerEnergy = feeData.maxPriorityFeePerEnergy; }
-                    }
-
-                } else if (feeData.energyPrice != null) {
-                    // Network doesn't support EIP-1559...
-
-                    // ...but they are trying to use EIP-1559 properties
-                    if (hasEip1559) {
-                        logger.throwError("network does not support EIP-1559", Logger.errors.UNSUPPORTED_OPERATION, {
-                            operation: "populateTransaction"
-                        });
-                    }
-
-                    // Populate missing fee data
-                    if (tx.energyPrice == null) { tx.energyPrice = feeData.energyPrice; }
-
-                    // Explicitly set untyped transaction to legacy
-                    tx.type = 0;
-
-                } else {
-                    // getFeeData has failed us.
-                    logger.throwError("failed to get consistent fee data", Logger.errors.UNSUPPORTED_OPERATION, {
-                        operation: "signer.getFeeData"
-                    });
-                }
-
-            } else if (tx.type === 2) {
-                // Explicitly using EIP-1559
-
-                // Populate missing fee data
-                if (tx.maxFeePerEnergy == null) { tx.maxFeePerEnergy = feeData.maxFeePerEnergy; }
-                if (tx.maxPriorityFeePerEnergy == null) { tx.maxPriorityFeePerEnergy = feeData.maxPriorityFeePerEnergy; }
-            }
-        }
-
         if (tx.nonce == null) { tx.nonce = this.getTransactionCount("pending"); }
 
         if (tx.energyLimit == null) {
@@ -303,6 +222,10 @@ export abstract class Signer {
                     tx: tx
                 });
             });
+        }
+
+        if (tx.energyPrice == null) {
+            tx.energyPrice = this.getEnergyPrice();
         }
 
         if (tx.networkId == null) {

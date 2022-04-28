@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getCreate2Address = exports.getContractAddress = exports.isAddress = exports.getAddress = void 0;
+exports.getCreate2Address = exports.getContractAddress = exports.publicToAddress = exports.networkIdToPrefix = exports.extractPrefix = exports.isAddress = exports.getAddress = void 0;
+var sha3_1 = require("@ethersproject/sha3");
 var bytes_1 = require("@ethersproject/bytes");
 var bignumber_1 = require("@ethersproject/bignumber");
-var keccak256_1 = require("@ethersproject/keccak256");
 var rlp_1 = require("@ethersproject/rlp");
 var logger_1 = require("@ethersproject/logger");
 var _version_1 = require("./_version");
@@ -63,6 +63,34 @@ function isAddress(address) {
     return false;
 }
 exports.isAddress = isAddress;
+function extractPrefix(address) {
+    address = getAddress(address);
+    return address.substring(2, 4);
+}
+exports.extractPrefix = extractPrefix;
+function networkIdToPrefix(networkId) {
+    if (networkId == 1) {
+        return "cb";
+    }
+    else if (networkId == 3 || networkId == 4) {
+        return "ab";
+    }
+    else if (networkId > 10 || networkId == 0) {
+        return "ce";
+    }
+    else {
+        logger.throwArgumentError("bad networkId", "networkId", networkId);
+        return "";
+    }
+}
+exports.networkIdToPrefix = networkIdToPrefix;
+function publicToAddress(key, prefix) {
+    var val = (0, bytes_1.hexDataSlice)((0, sha3_1.sha256)(key), 12);
+    var checksum = getChecksumAddress(val, prefix);
+    return "0x" + prefix + checksum + val;
+}
+exports.publicToAddress = publicToAddress;
+;
 function getContractAddress(transaction) {
     var from = null;
     try {
@@ -72,7 +100,7 @@ function getContractAddress(transaction) {
         logger.throwArgumentError("missing from address", "transaction", transaction);
     }
     var nonce = (0, bytes_1.stripZeros)((0, bytes_1.arrayify)(bignumber_1.BigNumber.from(transaction.nonce).toHexString()));
-    var val = (0, bytes_1.hexDataSlice)((0, keccak256_1.keccak256)((0, rlp_1.encode)([from, nonce])), 12);
+    var val = (0, bytes_1.hexDataSlice)((0, sha3_1.sha256)((0, rlp_1.encode)([from, nonce])), 12);
     var prefix = from.substring(2, 4);
     var checksum = getChecksumAddress(val, prefix);
     return "0x" + prefix + checksum + val;
@@ -85,7 +113,7 @@ function getCreate2Address(from, salt, initCodeHash) {
     if ((0, bytes_1.hexDataLength)(initCodeHash) !== 32) {
         logger.throwArgumentError("initCodeHash must be 32 bytes", "initCodeHash", initCodeHash);
     }
-    var val = (0, bytes_1.hexDataSlice)((0, keccak256_1.keccak256)((0, bytes_1.concat)(["0xff", getAddress(from), salt, initCodeHash])), 12);
+    var val = (0, bytes_1.hexDataSlice)((0, sha3_1.sha256)((0, bytes_1.concat)(["0xff", getAddress(from), salt, initCodeHash])), 12);
     var prefix = from.substring(2, 4);
     var checksum = getChecksumAddress(val, prefix);
     return "0x" + prefix + checksum + val;

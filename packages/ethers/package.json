@@ -23,7 +23,7 @@
     "@ethersproject/providers": "5.5.3",
     "@ethersproject/random": "5.5.1",
     "@ethersproject/rlp": "5.5.0",
-    "@ethersproject/sha2": "5.5.0",
+    "@ethersproject/sha3": "5.5.0",
     "@ethersproject/signing-key": "5.5.0",
     "@ethersproject/solidity": "5.5.0",
     "@ethersproject/strings": "5.5.0",

@@ -2,6 +2,9 @@ import { BytesLike } from "@ethersproject/bytes";
 import { BigNumberish } from "@ethersproject/bignumber";
 export declare function getAddress(address: string): string;
 export declare function isAddress(address: string): boolean;
+export declare function extractPrefix(address: string): string;
+export declare function networkIdToPrefix(networkId: number): string;
+export declare function publicToAddress(key: BytesLike | string, prefix: string): string;
 export declare function getContractAddress(transaction: {
     from: string;
     nonce: BigNumberish;

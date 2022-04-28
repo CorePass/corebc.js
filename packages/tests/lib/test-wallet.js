@@ -87,7 +87,7 @@ describe('Test JSON Wallets', function () {
                             assert_1.default.equal(walletAddress.toLowerCase(), test.address, 'generate correct address - ' + wallet.address);
                             // Test connect
                             {
-                                provider = new ethers_1.ethers.providers.EtherscanProvider();
+                                provider = ethers_1.ethers.getDefaultProvider("");
                                 walletConnected = wallet.connect(provider);
                                 assert_1.default.equal(walletConnected.provider, provider, "provider is connected");
                                 assert_1.default.ok((wallet.provider == null), "original wallet provider is null");
@@ -95,7 +95,7 @@ describe('Test JSON Wallets', function () {
                             }
                             // Make sure it can accept a SigningKey
                             {
-                                wallet2 = new ethers_1.ethers.Wallet(wallet._signingKey());
+                                wallet2 = new ethers_1.ethers.Wallet(wallet._signingKey(), wallet.prefix);
                                 assert_1.default.equal(wallet2.privateKey, test.privateKey, 'generated correct private key - ' + wallet2.privateKey);
                             }
                             // Test the sync decryption (this wallet is light, so it is safe)
@@ -115,7 +115,7 @@ describe('Test JSON Wallets', function () {
     // A few extra test cases to test encrypting/decrypting
     ['one', 'two', 'three'].forEach(function (i) {
         var password = 'foobar' + i;
-        var wallet = ethers_1.ethers.Wallet.createRandom({ path: "m/56'/82", extraEntropy: utils.randomHexString('test-' + i, 32) });
+        var wallet = ethers_1.ethers.Wallet.createRandom("cc", { path: "m/56'/82", extraEntropy: utils.randomHexString('test-' + i, 32) });
         it('encrypts and decrypts a random wallet - ' + i, function () {
             this.timeout(1200000);
             return wallet.encrypt(password).then(function (json) {
@@ -225,7 +225,7 @@ describe('Test Transaction Signing and Parsing', function () {
                     switch (_a.label) {
                         case 0:
                             this.timeout(120000);
-                            wallet = new ethers_1.ethers.Wallet(test.privateKey);
+                            wallet = new ethers_1.ethers.Wallet(test.privateKey, test.prefix);
                             transaction = {
                                 to: test.to,
                                 data: test.data,
@@ -250,6 +250,7 @@ describe('Test Signing Messages', function () {
     var tests = [
         // See: https://etherscan.io/verifySig/57
         {
+            prefix: "cc",
             address: '0x14791697260E4c9A71f18484C9f997B308e59325',
             name: 'string("hello world")',
             message: 'hello world',
@@ -259,6 +260,7 @@ describe('Test Signing Messages', function () {
         },
         // See: https://github.com/ethers-io/ethers.js/issues/80
         {
+            prefix: "cc",
             address: '0xD351c7c627ad5531Edb9587f4150CaF393c33E87',
             name: 'bytes(0x47173285...4cb01fad)',
             message: ethers_1.ethers.utils.arrayify('0x47173285a8d7341e5e972fc677286384f802f8ef42a5ec5f03bbfa254cb01fad'),
@@ -268,6 +270,7 @@ describe('Test Signing Messages', function () {
         },
         // See: https://github.com/ethers-io/ethers.js/issues/85
         {
+            prefix: "cc",
             address: '0xe7deA7e64B62d1Ca52f1716f29cd27d4FE28e3e1',
             name: 'zero-prefixed signature',
             message: ethers_1.ethers.utils.arrayify(ethers_1.ethers.utils.id('0x7f23b5eed5bc7e89f267f339561b2697faab234a2')),
@@ -279,7 +282,7 @@ describe('Test Signing Messages', function () {
     tests.forEach(function (test) {
         it(('signs a message "' + test.name + '"'), function () {
             this.timeout(120000);
-            var wallet = new ethers_1.ethers.Wallet(test.privateKey);
+            var wallet = new ethers_1.ethers.Wallet(test.privateKey, test.prefix);
             return wallet.signMessage(test.message).then(function (signature) {
                 assert_1.default.equal(signature, test.signature, 'computes message signature');
             });
@@ -288,7 +291,7 @@ describe('Test Signing Messages', function () {
     tests.forEach(function (test) {
         it(('verifies a message "' + test.name + '"'), function () {
             this.timeout(120000);
-            var address = ethers_1.ethers.utils.verifyMessage(test.message, test.signature);
+            var address = ethers_1.ethers.utils.verifyMessage(test.message, test.signature, test.prefix);
             assert_1.default.equal(address, test.address, 'verifies message signature');
         });
     });
@@ -316,7 +319,7 @@ describe("Wallet Errors", function () {
             var wallet = new ethers_1.ethers.Wallet({
                 privateKey: "0x6a73cd9b03647e83ef937888a5258a26e4c766dbf41ddd974f15e32d09cfe9c0",
                 address: "0x3f4f037dfc910a3517b9a5b23cf036ffae01a5a7"
-            });
+            }, "cc");
             console.log(wallet);
         }, function (error) {
             return error.reason === "privateKey/address mismatch";
@@ -330,7 +333,7 @@ describe("Wallet Errors", function () {
                 mnemonic: {
                     phrase: "pact grief smile usage kind pledge river excess garbage mixed olive receive"
                 }
-            });
+            }, "cc");
             console.log(wallet);
         }, function (error) {
             return error.reason === "mnemonic/address mismatch";
@@ -338,7 +341,7 @@ describe("Wallet Errors", function () {
     });
     it("fails on from mismatch", function () {
         var _this = this;
-        var wallet = new ethers_1.ethers.Wallet("0x6a73cd9b03647e83ef937888a5258a26e4c766dbf41ddd974f15e32d09cfe9c0");
+        var wallet = new ethers_1.ethers.Wallet("0x6a73cd9b03647e83ef937888a5258a26e4c766dbf41ddd974f15e32d09cfe9c0", "cc");
         return new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
             var error_1;
             return __generator(this, function (_a) {

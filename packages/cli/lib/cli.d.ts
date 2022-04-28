@@ -37,6 +37,7 @@ export interface PluginType {
     getOptionHelp?: () => Array<Help>;
 }
 export declare abstract class Plugin {
+    prefix: string;
     network: ethers.providers.Network;
     provider: ethers.providers.Provider;
     accounts: ReadonlyArray<WrappedSigner>;

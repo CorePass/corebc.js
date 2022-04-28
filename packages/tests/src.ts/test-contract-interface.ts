@@ -636,7 +636,7 @@ describe("Test ParamType Parser", function() {
 describe('Test EIP-838 Error Codes', function() {
     const addr = "0xbd0B4B009a76CA97766360F04f75e05A3E449f1E";
     it("testError1", async function () {
-        const provider = new ethers.providers.InfuraProvider("ropsten", "49a0efa3aaee4fd99797bfa94d8ce2f1");
+        const provider = ethers.getDefaultProvider("");
         const contract = new ethers.Contract(addr, [
             "function testError1(bool pass, address addr, uint256 value) pure returns (bool)",
             "function testError2(bool pass, bytes data) pure returns (bool)",

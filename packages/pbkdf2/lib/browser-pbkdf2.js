@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.pbkdf2 = void 0;
 var bytes_1 = require("@ethersproject/bytes");
-var sha2_1 = require("@ethersproject/sha2");
+var sha3_1 = require("@ethersproject/sha3");
 function pbkdf2(password, salt, iterations, keylen, hashAlgorithm) {
     password = (0, bytes_1.arrayify)(password);
     salt = (0, bytes_1.arrayify)(salt);
@@ -21,7 +21,7 @@ function pbkdf2(password, salt, iterations, keylen, hashAlgorithm) {
         block1[salt.length + 2] = (i >> 8) & 0xff;
         block1[salt.length + 3] = i & 0xff;
         //let U = createHmac(password).update(block1).digest();
-        var U = (0, bytes_1.arrayify)((0, sha2_1.computeHmac)(hashAlgorithm, password, block1));
+        var U = (0, bytes_1.arrayify)((0, sha3_1.computeHmac)(hashAlgorithm, password, block1));
         if (!hLen) {
             hLen = U.length;
             T = new Uint8Array(hLen);
@@ -32,7 +32,7 @@ function pbkdf2(password, salt, iterations, keylen, hashAlgorithm) {
         T.set(U);
         for (var j = 1; j < iterations; j++) {
             //U = createHmac(password).update(U).digest();
-            U = (0, bytes_1.arrayify)((0, sha2_1.computeHmac)(hashAlgorithm, password, U));
+            U = (0, bytes_1.arrayify)((0, sha3_1.computeHmac)(hashAlgorithm, password, U));
             for (var k = 0; k < hLen; k++)
                 T[k] ^= U[k];
         }

@@ -109,8 +109,6 @@ function setupContext(path, context, plugin) {
     context.concat = ethers_1.ethers.utils.concat;
     context.hexlify = ethers_1.ethers.utils.hexlify;
     context.zeroPad = ethers_1.ethers.utils.zeroPad;
-    context.joinSignature = ethers_1.ethers.utils.joinSignature;
-    context.splitSignature = ethers_1.ethers.utils.splitSignature;
     context.id = ethers_1.ethers.utils.id;
     context.keccak256 = ethers_1.ethers.utils.keccak256;
     context.namehash = ethers_1.ethers.utils.namehash;
@@ -341,7 +339,7 @@ var InitPlugin = /** @class */ (function (_super) {
                         if (password !== confirm) {
                             this.throwError("Passwords do not match");
                         }
-                        wallet = ethers_1.ethers.Wallet.createRandom();
+                        wallet = ethers_1.ethers.Wallet.createRandom(this.prefix);
                         return [4 /*yield*/, (0, prompt_1.getProgressBar)("Encrypting")];
                     case 3:
                         progressBar = _a.sent();

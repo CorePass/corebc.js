@@ -4,7 +4,7 @@ exports.sha256 = exports.keccak256 = exports.pack = void 0;
 var bignumber_1 = require("@ethersproject/bignumber");
 var bytes_1 = require("@ethersproject/bytes");
 var keccak256_1 = require("@ethersproject/keccak256");
-var sha2_1 = require("@ethersproject/sha2");
+var sha3_1 = require("@ethersproject/sha3");
 var strings_1 = require("@ethersproject/strings");
 var regexBytes = new RegExp("^bytes([0-9]+)$");
 var regexNumber = new RegExp("^(u?int)([0-9]*)$");
@@ -90,7 +90,7 @@ function keccak256(types, values) {
 }
 exports.keccak256 = keccak256;
 function sha256(types, values) {
-    return (0, sha2_1.sha256)(pack(types, values));
+    return (0, sha3_1.sha256)(pack(types, values));
 }
 exports.sha256 = sha256;
 //# sourceMappingURL=index.js.map

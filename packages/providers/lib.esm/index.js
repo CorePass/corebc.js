@@ -2,16 +2,10 @@
 import { Provider } from "@ethersproject/abstract-provider";
 import { getNetwork } from "@ethersproject/networks";
 import { BaseProvider, Resolver } from "./base-provider";
-import { AlchemyProvider, AlchemyWebSocketProvider } from "./alchemy-provider";
-import { CloudflareProvider } from "./cloudflare-provider";
-import { EtherscanProvider } from "./etherscan-provider";
 import { FallbackProvider } from "./fallback-provider";
 import { IpcProvider } from "./ipc-provider";
-import { InfuraProvider, InfuraWebSocketProvider } from "./infura-provider";
 import { JsonRpcProvider, JsonRpcSigner } from "./json-rpc-provider";
 import { JsonRpcBatchProvider } from "./json-rpc-batch-provider";
-import { NodesmithProvider } from "./nodesmith-provider";
-import { PocketProvider } from "./pocket-provider";
 import { StaticJsonRpcProvider, UrlJsonRpcProvider } from "./url-json-rpc-provider";
 import { Web3Provider } from "./web3-provider";
 import { WebSocketProvider } from "./websocket-provider";
@@ -50,13 +44,7 @@ function getDefaultProvider(network, options) {
     }
     return n._defaultProvider({
         FallbackProvider,
-        AlchemyProvider,
-        CloudflareProvider,
-        EtherscanProvider,
-        InfuraProvider,
         JsonRpcProvider,
-        NodesmithProvider,
-        PocketProvider,
         Web3Provider,
         IpcProvider,
     }, options);
@@ -68,7 +56,7 @@ export {
 Provider, BaseProvider, Resolver, UrlJsonRpcProvider, 
 ///////////////////////
 // Concrete Providers
-FallbackProvider, AlchemyProvider, AlchemyWebSocketProvider, CloudflareProvider, EtherscanProvider, InfuraProvider, InfuraWebSocketProvider, JsonRpcProvider, JsonRpcBatchProvider, NodesmithProvider, PocketProvider, StaticJsonRpcProvider, Web3Provider, WebSocketProvider, IpcProvider, 
+FallbackProvider, JsonRpcProvider, JsonRpcBatchProvider, StaticJsonRpcProvider, Web3Provider, WebSocketProvider, IpcProvider, 
 ///////////////////////
 // Signer
 JsonRpcSigner, 

@@ -4,7 +4,7 @@ import { BigNumber } from "@ethersproject/bignumber";
 import { hexDataLength, hexDataSlice, hexValue, hexZeroPad, isHexString } from "@ethersproject/bytes";
 import { AddressZero } from "@ethersproject/constants";
 import { shallowCopy } from "@ethersproject/properties";
-import { accessListify, parse as parseTransaction } from "@ethersproject/transactions";
+import { parse as parseTransaction } from "@ethersproject/transactions";
 import { Logger } from "@ethersproject/logger";
 import { version } from "./_version";
 const logger = new Logger(version);
@@ -26,8 +26,6 @@ export class Formatter {
         const strictData = (v) => { return this.data(v, true); };
         formats.transaction = {
             hash: hash,
-            type: type,
-            accessList: Formatter.allowNull(this.accessList.bind(this), null),
             blockHash: Formatter.allowNull(hash, null),
             blockNumber: Formatter.allowNull(number, null),
             transactionIndex: Formatter.allowNull(number, null),
@@ -36,16 +34,11 @@ export class Formatter {
             // either (energyPrice) or (maxPriorityFeePerEnergy + maxFeePerEnergy)
             // must be set
             energyPrice: Formatter.allowNull(bigNumber),
-            maxPriorityFeePerEnergy: Formatter.allowNull(bigNumber),
-            maxFeePerEnergy: Formatter.allowNull(bigNumber),
             energyLimit: bigNumber,
             to: Formatter.allowNull(address, null),
             value: bigNumber,
             nonce: number,
             data: data,
-            r: Formatter.allowNull(this.uint256),
-            s: Formatter.allowNull(this.uint256),
-            v: Formatter.allowNull(number),
             creates: Formatter.allowNull(address, null),
             raw: Formatter.allowNull(data),
         };
@@ -54,13 +47,9 @@ export class Formatter {
             nonce: Formatter.allowNull(number),
             energyLimit: Formatter.allowNull(bigNumber),
             energyPrice: Formatter.allowNull(bigNumber),
-            maxPriorityFeePerEnergy: Formatter.allowNull(bigNumber),
-            maxFeePerEnergy: Formatter.allowNull(bigNumber),
             to: Formatter.allowNull(address),
             value: Formatter.allowNull(bigNumber),
             data: Formatter.allowNull(strictData),
-            type: Formatter.allowNull(number),
-            accessList: Formatter.allowNull(this.accessList.bind(this), null),
         };
         formats.receiptLog = {
             transactionIndex: number,
@@ -126,9 +115,6 @@ export class Formatter {
             logIndex: number,
         };
         return formats;
-    }
-    accessList(accessList) {
-        return accessListify(accessList || []);
     }
     // Requires a BigNumberish that is within the IEEE754 safe integer range; returns a number
     // Strict! Used on input.
@@ -277,35 +263,11 @@ export class Formatter {
         if (transaction.to == null && transaction.creates == null) {
             transaction.creates = this.contractAddress(transaction);
         }
-        if ((transaction.type === 1 || transaction.type === 2) && transaction.accessList == null) {
-            transaction.accessList = [];
-        }
         const result = Formatter.check(this.formats.transaction, transaction);
         if (transaction.networkId != null) {
             let networkId = transaction.networkId;
             if (isHexString(networkId)) {
                 networkId = BigNumber.from(networkId).toNumber();
-            }
-            result.networkId = networkId;
-        }
-        else {
-            let networkId = transaction.networkId;
-            // geth-etc returns networkId
-            if (networkId == null && result.v == null) {
-                networkId = transaction.networkId;
-            }
-            if (isHexString(networkId)) {
-                networkId = BigNumber.from(networkId).toNumber();
-            }
-            if (typeof (networkId) !== "number" && result.v != null) {
-                networkId = (result.v - 35) / 2;
-                if (networkId < 0) {
-                    networkId = 0;
-                }
-                networkId = parseInt(networkId);
-            }
-            if (typeof (networkId) !== "number") {
-                networkId = 0;
             }
             result.networkId = networkId;
         }

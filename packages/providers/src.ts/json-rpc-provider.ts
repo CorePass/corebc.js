@@ -10,7 +10,6 @@ import { _TypedDataEncoder } from "@ethersproject/hash";
 import { Network, Networkish } from "@ethersproject/networks";
 import { checkProperties, deepCopy, Deferrable, defineReadOnly, getStatic, resolveProperties, shallowCopy } from "@ethersproject/properties";
 import { toUtf8Bytes } from "@ethersproject/strings";
-import { AccessList, accessListify } from "@ethersproject/transactions";
 import { ConnectionInfo, fetchJson, poll } from "@ethersproject/web";
 
 import { Logger } from "@ethersproject/logger";
@@ -303,8 +302,6 @@ class UncheckedJsonRpcSigner extends JsonRpcSigner {
 
 const allowedTransactionKeys: { [ key: string ]: boolean } = {
     networkId: true, data: true, energyLimit: true, energyPrice:true, nonce: true, to: true, value: true,
-    type: true, accessList: true,
-    maxFeePerEnergy: true, maxPriorityFeePerEnergy: true
 }
 
 export class JsonRpcProvider extends BaseProvider {
@@ -626,7 +623,7 @@ export class JsonRpcProvider extends BaseProvider {
     //       before this is called
     // @TODO: This will likely be removed in future versions and prepareRequest
     //        will be the preferred method for this.
-    static hexlifyTransaction(transaction: TransactionRequest, allowExtra?: { [key: string]: boolean }): { [key: string]: string | AccessList } {
+    static hexlifyTransaction(transaction: TransactionRequest, allowExtra?: { [key: string]: boolean }): { [key: string]: string } {
         // Check only allowed properties are given
         const allowed = shallowCopy(allowedTransactionKeys);
         if (allowExtra) {
@@ -637,10 +634,10 @@ export class JsonRpcProvider extends BaseProvider {
 
         checkProperties(transaction, allowed);
 
-        const result: { [key: string]: string | AccessList } = {};
+        const result: { [key: string]: string } = {};
 
         // Some nodes (INFURA ropsten; INFURA mainnet is fine) do not like leading zeros.
-        ["energyLimit", "energyPrice", "type", "maxFeePerEnergy", "maxPriorityFeePerEnergy", "nonce", "value"].forEach(function(key) {
+        ["energyLimit", "energyPrice", "nonce", "value"].forEach(function(key) {
             if ((<any>transaction)[key] == null) { return; }
             const value = hexValue((<any>transaction)[key]);
             if (key === "energyLimit") { key = "energy"; }
@@ -651,10 +648,6 @@ export class JsonRpcProvider extends BaseProvider {
             if ((<any>transaction)[key] == null) { return; }
             result[key] = hexlify((<any>transaction)[key]);
         });
-
-        if ((<any>transaction).accessList) {
-            result["accessList"] = accessListify((<any>transaction).accessList);
-        }
 
         return result;
     }

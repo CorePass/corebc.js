@@ -1,7 +1,6 @@
 "use strict";
 
-// @ts-ignore: TS7016
-import ed448 from 'bcrypto/lib/ed448';
+import ed448 from './ed448';
 
 import { arrayify, BytesLike, hexConcat, hexlify } from "@ethersproject/bytes";
 import { defineReadOnly } from "@ethersproject/properties";

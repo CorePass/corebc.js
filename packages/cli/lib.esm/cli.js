@@ -146,17 +146,11 @@ class WrappedSigner extends ethers.Signer {
             }
             dump("Message:", info);
             yield isAllowed(this, "Sign Message?");
-            let result = yield signer.signMessage(message);
-            let signature = ethers.utils.splitSignature(result);
+            let signature = yield signer.signMessage(message);
             dump("Signature", {
-                Flat: result,
-                r: signature.r,
-                s: signature.s,
-                vs: signature._vs,
-                v: signature.v,
-                recid: signature.recoveryParam,
+                Signature: signature,
             });
-            return result;
+            return signature;
         });
     }
     populateTransaction(transactionRequest) {
@@ -198,17 +192,11 @@ class WrappedSigner extends ethers.Signer {
             info["Network"] = network.name;
             dump("Transaction:", info);
             yield isAllowed(this, "Sign Transaction?");
-            let result = yield signer.signTransaction(transactionRequest);
-            let signature = ethers.utils.splitSignature(result);
+            let signature = yield signer.signTransaction(transactionRequest);
             dump("Signature:", {
-                Signature: result,
-                r: signature.r,
-                s: signature.s,
-                vs: signature._vs,
-                v: signature.v,
-                recid: signature.recoveryParam,
+                Signature: signature,
             });
-            return result;
+            return signature;
         });
     }
     sendTransaction(transactionRequest) {
@@ -378,8 +366,8 @@ function loadAccount(arg, plugin, preventFile) {
             return loadAccount(content, plugin, true);
         }
         // Raw private key
-        if (ethers.utils.isHexString(arg, 32)) {
-            const signer = new ethers.Wallet(arg, plugin.provider);
+        if (ethers.utils.isHexString(arg, 57)) {
+            const signer = new ethers.Wallet(arg, plugin.prefix, plugin.provider);
             return Promise.resolve(new WrappedSigner(signer.getAddress(), () => Promise.resolve(signer), plugin));
         }
         // Mnemonic
@@ -389,23 +377,23 @@ function loadAccount(arg, plugin, preventFile) {
             if (plugin.mnemonicPassword) {
                 signerPromise = getPassword("Password (mnemonic): ").then((password) => {
                     let node = ethers.utils.HDNode.fromMnemonic(mnemonic, password).derivePath(plugin.mnemonicPath);
-                    return new ethers.Wallet(node.privateKey, plugin.provider);
+                    return new ethers.Wallet(node.privateKey, plugin.prefix, plugin.provider);
                 });
             }
             else if (plugin._xxxMnemonicPasswordHard) {
                 signerPromise = getPassword("Password (mnemonic; experimental - hard): ").then((password) => {
                     let passwordBytes = ethers.utils.toUtf8Bytes(password, ethers.utils.UnicodeNormalizationForm.NFKC);
-                    let saltBytes = ethers.utils.arrayify(ethers.utils.HDNode.fromMnemonic(mnemonic).privateKey);
+                    let saltBytes = ethers.utils.arrayify(ethers.utils.HDNode.fromMnemonic(mnemonic, plugin.prefix).privateKey);
                     let progressBar = getProgressBar("Decrypting");
                     return scrypt.scrypt(passwordBytes, saltBytes, (1 << 20), 8, 1, 32, progressBar).then((key) => {
                         const derivedPassword = ethers.utils.hexlify(key).substring(2);
                         const node = ethers.utils.HDNode.fromMnemonic(mnemonic, derivedPassword).derivePath(plugin.mnemonicPath);
-                        return new ethers.Wallet(node.privateKey, plugin.provider);
+                        return new ethers.Wallet(node.privateKey, plugin.prefix, plugin.provider);
                     });
                 });
             }
             else {
-                signerPromise = Promise.resolve(ethers.Wallet.fromMnemonic(arg).connect(plugin.provider));
+                signerPromise = Promise.resolve(ethers.Wallet.fromMnemonic(arg, plugin.prefix).connect(plugin.provider));
             }
             return Promise.resolve(new WrappedSigner(signerPromise.then((wallet) => wallet.getAddress()), () => signerPromise, plugin));
         }
@@ -454,6 +442,11 @@ export class Plugin {
             this.yes = argParser.consumeFlag("yes");
             /////////////////////
             // Provider
+            const prefix = argParser.consumeOption("prefix");
+            if (!prefix) {
+                this.throwUsageError("--prefix is required");
+            }
+            ethers.utils.defineReadOnly(this, "prefix", prefix);
             let network = (argParser.consumeOption("network") || "homestead");
             let providers = [];
             let rpc = [];
@@ -462,18 +455,6 @@ export class Plugin {
                 providers.push(provider);
                 rpc.push(provider);
             });
-            if (argParser.consumeFlag("alchemy")) {
-                providers.push(new ethers.providers.AlchemyProvider(network));
-            }
-            if (argParser.consumeFlag("etherscan")) {
-                providers.push(new ethers.providers.EtherscanProvider(network));
-            }
-            if (argParser.consumeFlag("infura")) {
-                providers.push(new ethers.providers.InfuraProvider(network));
-            }
-            if (argParser.consumeFlag("nodesmith")) {
-                providers.push(new ethers.providers.NodesmithProvider(network));
-            }
             if (argParser.consumeFlag("offline")) {
                 providers.push(new OfflineProvider(network));
             }
@@ -760,10 +741,6 @@ export class CLI {
         }
         if (this.options.provider) {
             console.log("PROVIDER OPTIONS (default: all + homestead)");
-            console.log("  --alchemy                   Include Alchemy");
-            console.log("  --etherscan                 Include Etherscan");
-            console.log("  --infura                    Include INFURA");
-            console.log("  --nodesmith                 Include nodesmith");
             console.log("  --rpc URL                   Include a custom JSON-RPC");
             console.log("  --offline                   Dump signed transactions (no send)");
             console.log("  --network NETWORK           Network to connect to (default: homestead)");

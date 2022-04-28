@@ -21,6 +21,7 @@ export interface HDWallet {
     password?: string;
     entropy: string;
     mnemonic: string;
+    prefix: string;
     hdnodes: Array<HDWalletNode>;
 }
 export interface Nameprep {
@@ -64,6 +65,7 @@ export interface Unit {
 }
 export interface SignedTransaction {
     name: string;
+    prefix: string;
     accountAddress: string;
     privateKey: string;
     signedTransaction: string;
@@ -81,6 +83,7 @@ export interface TypedTransaction {
     name: string;
     key: string;
     address: string;
+    prefix: string;
     tx: {
         type?: number;
         data?: string;
@@ -101,6 +104,7 @@ export interface TypedTransaction {
 }
 export interface Eip712 {
     name: string;
+    prefix: string;
     domain: {
         name: string;
         version?: string;

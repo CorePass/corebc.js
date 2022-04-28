@@ -3,15 +3,10 @@ import { Block, BlockTag, Listener, Log, Provider, TransactionReceipt, Transacti
 import { Signer } from "@ethersproject/abstract-signer";
 import { BigNumber, BigNumberish } from "@ethersproject/bignumber";
 import { BytesLike } from "@ethersproject/bytes";
-import { AccessList, AccessListish } from "@ethersproject/transactions";
 export interface Overrides {
     energyLimit?: BigNumberish | Promise<BigNumberish>;
     energyPrice?: BigNumberish | Promise<BigNumberish>;
-    maxFeePerEnergy?: BigNumberish | Promise<BigNumberish>;
-    maxPriorityFeePerEnergy?: BigNumberish | Promise<BigNumberish>;
     nonce?: BigNumberish | Promise<BigNumberish>;
-    type?: number;
-    accessList?: AccessListish;
     customData?: Record<string, any>;
 }
 export interface PayableOverrides extends Overrides {
@@ -25,15 +20,11 @@ export interface PopulatedTransaction {
     to?: string;
     from?: string;
     nonce?: number;
+    networkId?: number;
     energyLimit?: BigNumber;
     energyPrice?: BigNumber;
     data?: string;
     value?: BigNumber;
-    networkId?: number;
-    type?: number;
-    accessList?: AccessList;
-    maxFeePerEnergy?: BigNumber;
-    maxPriorityFeePerEnergy?: BigNumber;
     customData?: Record<string, any>;
 }
 export declare type EventFilter = {

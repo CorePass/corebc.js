@@ -168,9 +168,7 @@ var LedgerSigner = /** @class */ (function (_super) {
                         return [4 /*yield*/, this._retry(function (eth) { return eth.signPersonalMessage(_this.path, messageHex); })];
                     case 1:
                         sig = _a.sent();
-                        sig.r = '0x' + sig.r;
-                        sig.s = '0x' + sig.s;
-                        return [2 /*return*/, ethers_1.ethers.utils.joinSignature(sig)];
+                        return [2 /*return*/, sig];
                 }
             });
         });
@@ -197,11 +195,7 @@ var LedgerSigner = /** @class */ (function (_super) {
                         return [4 /*yield*/, this._retry(function (eth) { return eth.signTransaction(_this.path, unsignedTx); })];
                     case 2:
                         sig = _a.sent();
-                        return [2 /*return*/, ethers_1.ethers.utils.serializeTransaction(baseTx, {
-                                v: ethers_1.ethers.BigNumber.from("0x" + sig.v).toNumber(),
-                                r: ("0x" + sig.r),
-                                s: ("0x" + sig.s),
-                            })];
+                        return [2 /*return*/, ethers_1.ethers.utils.serializeTransaction(baseTx, sig)];
                 }
             });
         });
