@@ -89,7 +89,7 @@ export function computePublicKey(key: BytesLike): string {
         const scalar = bytes.slice(0, 56);
         scalar[0] &= 0xfc;
         scalar[55] |= 0x80;
-        const pub = ed448.publicKeyFromScalar(bytes);
+        const pub = ed448.publicKeyFromScalar(scalar);
         return hexlify(pub);
     }
 

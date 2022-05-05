@@ -58,7 +58,7 @@ var abstract_signer_1 = require("@ethersproject/abstract-signer");
 var bytes_1 = require("@ethersproject/bytes");
 var hash_1 = require("@ethersproject/hash");
 var hdnode_1 = require("@ethersproject/hdnode");
-var keccak256_1 = require("@ethersproject/keccak256");
+var sha3_1 = require("@ethersproject/sha3");
 var properties_1 = require("@ethersproject/properties");
 var random_1 = require("@ethersproject/random");
 var signing_key_1 = require("@ethersproject/signing-key");
@@ -85,7 +85,7 @@ var Wallet = /** @class */ (function (_super) {
         if (isAccount(privateKey)) {
             var signingKey_1 = new signing_key_1.SigningKey(privateKey.privateKey);
             (0, properties_1.defineReadOnly)(_this, "_signingKey", function () { return signingKey_1; });
-            (0, properties_1.defineReadOnly)(_this, "address", (0, transactions_1.computeAddress)(_this.publicKey, prefix));
+            (0, properties_1.defineReadOnly)(_this, "address", (0, address_1.publicToAddress)(_this.publicKey, prefix));
             if (_this.address !== (0, address_1.getAddress)(privateKey.address)) {
                 logger.throwArgumentError("privateKey/address mismatch", "privateKey", "[REDACTED]");
             }
@@ -97,7 +97,7 @@ var Wallet = /** @class */ (function (_super) {
                     locale: srcMnemonic_1.locale || "en"
                 }); });
                 var mnemonic = _this.mnemonic;
-                var node = hdnode_1.HDNode.fromMnemonic(mnemonic.phrase, null, mnemonic.locale).derivePath(mnemonic.path);
+                var node = hdnode_1.HDNode.fromMnemonic(mnemonic.phrase, prefix, null, mnemonic.locale).derivePath(mnemonic.path);
                 if ((0, transactions_1.computeAddress)(node.privateKey, prefix) !== _this.address) {
                     logger.throwArgumentError("mnemonic/address mismatch", "privateKey", "[REDACTED]");
                 }
@@ -121,7 +121,7 @@ var Wallet = /** @class */ (function (_super) {
                 (0, properties_1.defineReadOnly)(_this, "_signingKey", function () { return signingKey_2; });
             }
             (0, properties_1.defineReadOnly)(_this, "_mnemonic", function () { return null; });
-            (0, properties_1.defineReadOnly)(_this, "address", (0, transactions_1.computeAddress)(_this.publicKey, prefix));
+            (0, properties_1.defineReadOnly)(_this, "address", (0, address_1.publicToAddress)(_this.publicKey, prefix));
         }
         /* istanbul ignore if */
         if (provider && !abstract_provider_1.Provider.isProvider(provider)) {
@@ -160,7 +160,7 @@ var Wallet = /** @class */ (function (_super) {
                 }
                 delete tx.from;
             }
-            var signature = _this._signingKey().signDigest((0, keccak256_1.keccak256)((0, transactions_1.serialize)(tx)));
+            var signature = _this._signingKey().signDigest((0, sha3_1.sha256)((0, transactions_1.serialize)(tx)));
             return (0, transactions_1.serialize)(tx, signature);
         });
     };
@@ -215,7 +215,7 @@ var Wallet = /** @class */ (function (_super) {
             options = {};
         }
         if (options.extraEntropy) {
-            entropy = (0, bytes_1.arrayify)((0, bytes_1.hexDataSlice)((0, keccak256_1.keccak256)((0, bytes_1.concat)([entropy, options.extraEntropy])), 0, 16));
+            entropy = (0, bytes_1.arrayify)((0, bytes_1.hexDataSlice)((0, sha3_1.sha256)((0, bytes_1.concat)([entropy, options.extraEntropy])), 0, 16));
         }
         var mnemonic = (0, hdnode_1.entropyToMnemonic)(entropy, options.locale);
         return Wallet.fromMnemonic(mnemonic, prefix, options.path, options.locale);

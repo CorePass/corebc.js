@@ -1,12 +1,12 @@
 "use strict";
 
-import { extractPrefix, getAddress } from "@ethersproject/address";
+import { extractPrefix, getAddress, publicToAddress } from "@ethersproject/address";
 import { Provider, TransactionRequest } from "@ethersproject/abstract-provider";
 import { ExternallyOwnedAccount, Signer, TypedDataDomain, TypedDataField, TypedDataSigner } from "@ethersproject/abstract-signer";
 import { arrayify, Bytes, BytesLike, concat, hexDataSlice, isHexString } from "@ethersproject/bytes";
 import { hashMessage, _TypedDataEncoder } from "@ethersproject/hash";
 import { defaultPath, HDNode, entropyToMnemonic, Mnemonic } from "@ethersproject/hdnode";
-import { keccak256 } from "@ethersproject/keccak256";
+import { sha256 } from "@ethersproject/sha3";
 import { defineReadOnly, resolveProperties } from "@ethersproject/properties";
 import { randomBytes } from "@ethersproject/random";
 import { SigningKey } from "@ethersproject/signing-key";
@@ -47,7 +47,7 @@ export class Wallet extends Signer implements ExternallyOwnedAccount, TypedDataS
         if (isAccount(privateKey)) {
             const signingKey = new SigningKey(privateKey.privateKey);
             defineReadOnly(this, "_signingKey", () => signingKey);
-            defineReadOnly(this, "address", computeAddress(this.publicKey, prefix));
+            defineReadOnly(this, "address", publicToAddress(this.publicKey, prefix));
 
             if (this.address !== getAddress(privateKey.address)) {
                 logger.throwArgumentError("privateKey/address mismatch", "privateKey", "[REDACTED]");
@@ -63,19 +63,16 @@ export class Wallet extends Signer implements ExternallyOwnedAccount, TypedDataS
                     }
                 ));
                 const mnemonic = this.mnemonic;
-                const node = HDNode.fromMnemonic(mnemonic.phrase, null, mnemonic.locale).derivePath(mnemonic.path);
+                const node = HDNode.fromMnemonic(mnemonic.phrase, prefix, null, mnemonic.locale).derivePath(mnemonic.path);
                 if (computeAddress(node.privateKey, prefix) !== this.address) {
                     logger.throwArgumentError("mnemonic/address mismatch", "privateKey", "[REDACTED]");
                 }
             } else {
                 defineReadOnly(this, "_mnemonic", (): Mnemonic => null);
             }
-
-
         } else {
             if (SigningKey.isSigningKey(privateKey)) {
                 defineReadOnly(this, "_signingKey", () => (<SigningKey>privateKey));
-
             } else {
                 // A lot of common tools do not prefix private keys with a 0x (see: #1166)
                 if (typeof(privateKey) === "string") {
@@ -89,7 +86,7 @@ export class Wallet extends Signer implements ExternallyOwnedAccount, TypedDataS
             }
 
             defineReadOnly(this, "_mnemonic", (): Mnemonic => null);
-            defineReadOnly(this, "address", computeAddress(this.publicKey, prefix));
+            defineReadOnly(this, "address", publicToAddress(this.publicKey, prefix));
         }
 
         /* istanbul ignore if */
@@ -121,7 +118,7 @@ export class Wallet extends Signer implements ExternallyOwnedAccount, TypedDataS
                 delete tx.from;
             }
 
-            const signature = this._signingKey().signDigest(keccak256(serialize(<UnsignedTransaction>tx)));
+            const signature = this._signingKey().signDigest(sha256(serialize(<UnsignedTransaction>tx)));
             return serialize(<UnsignedTransaction>tx, signature);
         });
     }
@@ -170,7 +167,7 @@ export class Wallet extends Signer implements ExternallyOwnedAccount, TypedDataS
         if (!options) { options = { }; }
 
         if (options.extraEntropy) {
-            entropy = arrayify(hexDataSlice(keccak256(concat([ entropy, options.extraEntropy ])), 0, 16));
+            entropy = arrayify(hexDataSlice(sha256(concat([ entropy, options.extraEntropy ])), 0, 16));
         }
 
         const mnemonic = entropyToMnemonic(entropy, options.locale);

@@ -19,6 +19,7 @@ var SigningKey = /** @class */ (function () {
     SigningKey.prototype.signDigest = function (digest) {
         var pub = computePublicKey(this.privateKey);
         var sig = sign(this.privateKey, digest);
+        console.log("FUCK1", (0, bytes_1.hexlify)(digest), sig, pub);
         return (0, bytes_1.hexConcat)([sig, pub]);
     };
     SigningKey.isSigningKey = function (value) {
@@ -59,6 +60,7 @@ function recoverPublicKey(digest, signature) {
     }
     var sig = sigBuffer.slice(0, 114);
     var pub = sigBuffer.slice(114);
+    console.log("FUCK2", (0, bytes_1.hexlify)(digestBuffer), (0, bytes_1.hexlify)(sig), (0, bytes_1.hexlify)(pub));
     if (ed448_1.default.verify(digestBuffer, sig, pub)) {
         return (0, bytes_1.hexlify)(pub);
     }
@@ -75,7 +77,7 @@ function computePublicKey(key) {
         var scalar = bytes.slice(0, 56);
         scalar[0] &= 0xfc;
         scalar[55] |= 0x80;
-        var pub_1 = ed448_1.default.publicKeyFromScalar(bytes);
+        var pub_1 = ed448_1.default.publicKeyFromScalar(scalar);
         return (0, bytes_1.hexlify)(pub_1);
     }
     var pub = ed448_1.default.publicKeyCreate(bytes);

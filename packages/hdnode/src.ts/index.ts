@@ -10,7 +10,7 @@ import { pbkdf2 } from "@ethersproject/pbkdf2";
 import { defineReadOnly } from "@ethersproject/properties";
 import { SigningKey } from "@ethersproject/signing-key";
 import { ripemd160, sha256 } from "@ethersproject/sha3";
-import { computeAddress } from "@ethersproject/transactions";
+import { publicToAddress } from "@ethersproject/address";
 import { Wordlist, wordlists } from "@ethersproject/wordlists";
 
 import { Logger } from "@ethersproject/logger";
@@ -48,7 +48,7 @@ function getWordlist(wordlist: string | Wordlist): Wordlist {
 function sha512Hash(password: BytesLike, salt: BytesLike): Uint8Array {
     const p = arrayify(password);
     const s = arrayify(salt);
-    return arrayify(pbkdf2(p, s, 2048, 57, "sha256"));
+    return arrayify(pbkdf2(p, s, 2048, 57, "sha512"));
 }
 
 function concatKeyIndexSalt(prefix: number, key: Uint8Array, index: number, salt: Uint8Array): Uint8Array {
@@ -65,7 +65,7 @@ function concatKeyIndexSalt(prefix: number, key: Uint8Array, index: number, salt
 }
 
 function addScalar(a: Uint8Array, b: Uint8Array): Uint8Array {
-    b = concat([b.slice(0, 63) + "0x00000000"]);
+    b = concat([b.slice(0, 53), "0x00000000"]);
     b[0] &= 0xfc;
 
     const c = new Uint8Array(57);
@@ -81,7 +81,7 @@ function addScalar(a: Uint8Array, b: Uint8Array): Uint8Array {
 
 const _constructorGuard: any = {};
 
-export const defaultPath = "m/44'/60'/0'/0/0";
+export const defaultPath = "m/44'/654'/0'/0'/5";
 
 export interface Mnemonic {
     readonly phrase: string;
@@ -139,7 +139,7 @@ export class HDNode implements ExternallyOwnedAccount {
 
         defineReadOnly(this, "prefix", prefix);
 
-        defineReadOnly(this, "address", computeAddress(this.publicKey, prefix));
+        defineReadOnly(this, "address", publicToAddress(this.publicKey, prefix));
 
         defineReadOnly(this, "index", index);
         defineReadOnly(this, "depth", depth);
@@ -175,7 +175,7 @@ export class HDNode implements ExternallyOwnedAccount {
         const salt = extendedPrivateKey.slice(0, 57);
         const key = extendedPrivateKey.slice(57, 114);
 
-        let r0, r1: Uint8Array;
+        let r0: Uint8Array, r1: Uint8Array;
         if (index >= HardenedBit) {
             r0 = concatKeyIndexSalt(1, key, index, salt);
             r1 = concatKeyIndexSalt(0, key, index, salt);

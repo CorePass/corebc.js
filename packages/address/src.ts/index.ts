@@ -22,8 +22,12 @@ const precompiledAddresses = [
     "0000000000000000000000000000000000000000000000000000000000000009",
 ]
 
+function removeHexPrefix(val: string): string {
+    return val.substring(0, 2) === "0x" ? val.substring(2) : val;
+}
+
 function getChecksumAddress(val: string, prefix: string): string {
-    const mods = (val + prefix + "00")
+    const mods = (removeHexPrefix(val) + removeHexPrefix(prefix) + "00")
         .replace(/[aA]/g, "10")
         .replace(/[bB]/g, "11")
         .replace(/[cC]/g, "12")
@@ -46,7 +50,7 @@ export function getAddress(address: string): string {
         logger.throwArgumentError("invalid address", "address", address);
     }
 
-    const raw = address.substring(0, 2) === "0x" ? address.substring(2) : address;
+    const raw = removeHexPrefix(address);
     if (precompiledAddresses.includes(raw)) {
         return "0x" + raw
     }
@@ -89,7 +93,7 @@ export function networkIdToPrefix(networkId: number): string {
 export function publicToAddress(key: BytesLike | string, prefix: string): string {
     const val = hexDataSlice(sha256(key), 12)
     const checksum = getChecksumAddress(val, prefix);
-    return "0x" + prefix + checksum + val;
+    return "0x" + prefix + checksum + removeHexPrefix(val);
 };
 
 export function getContractAddress(transaction: { from: string, nonce: BigNumberish }) {
@@ -104,7 +108,7 @@ export function getContractAddress(transaction: { from: string, nonce: BigNumber
     const val = hexDataSlice(sha256(encode([ from, nonce ])), 12);
     const prefix = from.substring(2, 4)
     const checksum = getChecksumAddress(val, prefix)
-    return "0x" + prefix + checksum + val;
+    return "0x" + prefix + checksum + removeHexPrefix(val);
 }
 
 export function getCreate2Address(from: string, salt: BytesLike, initCodeHash: BytesLike): string {
@@ -118,5 +122,5 @@ export function getCreate2Address(from: string, salt: BytesLike, initCodeHash: B
     const val = hexDataSlice(sha256(concat([ "0xff", getAddress(from), salt, initCodeHash ])), 12);
     const prefix = from.substring(2, 4)
     const checksum = getChecksumAddress(val, prefix)
-    return "0x" + prefix + checksum + val;
+    return "0x" + prefix + checksum + removeHexPrefix(val);
 }

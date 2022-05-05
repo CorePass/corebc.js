@@ -7048,8 +7048,11 @@ const precompiledAddresses = [
     "0000000000000000000000000000000000000000000000000000000000000008",
     "0000000000000000000000000000000000000000000000000000000000000009",
 ];
+function removeHexPrefix(val) {
+    return val.substring(0, 2) === "0x" ? val.substring(2) : val;
+}
 function getChecksumAddress(val, prefix) {
-    const mods = (val + prefix + "00")
+    const mods = (removeHexPrefix(val) + removeHexPrefix(prefix) + "00")
         .replace(/[aA]/g, "10")
         .replace(/[bB]/g, "11")
         .replace(/[cC]/g, "12")
@@ -7069,7 +7072,7 @@ function getAddress(address) {
     if (!address.match(/^(0x)?[0-9a-fA-F]{44}$/)) {
         logger$8.throwArgumentError("invalid address", "address", address);
     }
-    const raw = address.substring(0, 2) === "0x" ? address.substring(2) : address;
+    const raw = removeHexPrefix(address);
     if (precompiledAddresses.includes(raw)) {
         return "0x" + raw;
     }
@@ -7111,7 +7114,7 @@ function networkIdToPrefix(networkId) {
 function publicToAddress(key, prefix) {
     const val = hexDataSlice(sha256(key), 12);
     const checksum = getChecksumAddress(val, prefix);
-    return "0x" + prefix + checksum + val;
+    return "0x" + prefix + checksum + removeHexPrefix(val);
 }
 ;
 function getContractAddress(transaction) {
@@ -7126,7 +7129,7 @@ function getContractAddress(transaction) {
     const val = hexDataSlice(sha256(encode([from, nonce])), 12);
     const prefix = from.substring(2, 4);
     const checksum = getChecksumAddress(val, prefix);
-    return "0x" + prefix + checksum + val;
+    return "0x" + prefix + checksum + removeHexPrefix(val);
 }
 function getCreate2Address(from, salt, initCodeHash) {
     if (hexDataLength(salt) !== 32) {
@@ -7138,7 +7141,7 @@ function getCreate2Address(from, salt, initCodeHash) {
     const val = hexDataSlice(sha256(concat(["0xff", getAddress(from), salt, initCodeHash])), 12);
     const prefix = from.substring(2, 4);
     const checksum = getChecksumAddress(val, prefix);
-    return "0x" + prefix + checksum + val;
+    return "0x" + prefix + checksum + removeHexPrefix(val);
 }
 
 "use strict";
@@ -8867,7 +8870,7 @@ function namehash(name) {
     return hexlify(result);
 }
 
-const messagePrefix = "\x19Ethereum Signed Message:\n";
+const messagePrefix = "\x19Core Signed Message:\n";
 function hashMessage(message) {
     if (typeof (message) === "string") {
         message = toUtf8Bytes(message);
@@ -30462,6 +30465,7 @@ class SigningKey {
     signDigest(digest) {
         const pub = computePublicKey(this.privateKey);
         const sig = sign(this.privateKey, digest);
+        console.log("FUCK1", hexlify(digest), sig, pub);
         return hexConcat([sig, pub]);
     }
     static isSigningKey(value) {
@@ -30500,6 +30504,7 @@ function recoverPublicKey(digest, signature) {
     }
     const sig = sigBuffer.slice(0, 114);
     const pub = sigBuffer.slice(114);
+    console.log("FUCK2", hexlify(digestBuffer), hexlify(sig), hexlify(pub));
     if (ed448Browser.verify(digestBuffer, sig, pub)) {
         return hexlify(pub);
     }
@@ -30515,110 +30520,22 @@ function computePublicKey(key) {
         const scalar = bytes.slice(0, 56);
         scalar[0] &= 0xfc;
         scalar[55] |= 0x80;
-        const pub = ed448Browser.publicKeyFromScalar(bytes);
+        const pub = ed448Browser.publicKeyFromScalar(scalar);
         return hexlify(pub);
     }
     const pub = ed448Browser.publicKeyCreate(bytes);
     return hexlify(pub);
 }
 
-const version$e = "transactions/5.5.0";
-
-"use strict";
-const logger$j = new Logger(version$e);
-///////////////////////////////
-function handleAddress(value) {
-    if (value === "0x") {
-        return null;
-    }
-    return getAddress(value);
-}
-function handleNumber(value) {
-    if (value === "0x") {
-        return Zero$1;
-    }
-    return BigNumber.from(value);
-}
-const transactionFields = [
-    { name: "nonce", maxLength: 32, numeric: true },
-    { name: "energyPrice", maxLength: 32, numeric: true },
-    { name: "energyLimit", maxLength: 32, numeric: true },
-    { name: "networkId", maxLength: 32, numeric: true },
-    { name: "to", length: 20 },
-    { name: "value", maxLength: 32, numeric: true },
-    { name: "data" },
-];
-const allowedTransactionKeys$2 = {
-    networkId: true, data: true, energyLimit: true, energyPrice: true, nonce: true, to: true, value: true
-};
-function computeAddress(key, prefix) {
-    const publicKey = computePublicKey(key);
-    return publicToAddress(publicKey, prefix);
-}
-function recoverAddress(digest, signature, prefix) {
-    const publicKey = recoverPublicKey(arrayify(digest), signature);
-    return publicToAddress(publicKey, prefix);
-}
-function serialize(transaction, signature) {
-    checkProperties(transaction, allowedTransactionKeys$2);
-    const raw = [];
-    transactionFields.forEach(function (fieldInfo) {
-        let value = transaction[fieldInfo.name] || ([]);
-        const options = {};
-        if (fieldInfo.numeric) {
-            options.hexPad = "left";
-        }
-        value = arrayify(hexlify(value, options));
-        // Fixed-width field
-        if (fieldInfo.length && value.length !== fieldInfo.length && value.length > 0) {
-            logger$j.throwArgumentError("invalid length for " + fieldInfo.name, ("transaction:" + fieldInfo.name), value);
-        }
-        // Variable-width (with a maximum)
-        if (fieldInfo.maxLength) {
-            value = stripZeros(value);
-            if (value.length > fieldInfo.maxLength) {
-                logger$j.throwArgumentError("invalid length for " + fieldInfo.name, ("transaction:" + fieldInfo.name), value);
-            }
-        }
-        raw.push(hexlify(value));
-    });
-    if (!!signature) {
-        raw.push(hexlify(signature));
-    }
-    return encode(raw);
-}
-function parse(rawTransaction) {
-    const transaction = decode(rawTransaction);
-    if (transaction.length !== 7 && transaction.length !== 8) {
-        logger$j.throwArgumentError("invalid raw transaction", "rawTransaction", rawTransaction);
-    }
-    const tx = {
-        nonce: handleNumber(transaction[0]).toNumber(),
-        energyPrice: handleNumber(transaction[1]),
-        energyLimit: handleNumber(transaction[2]),
-        networkId: handleNumber(transaction[4]).toNumber(),
-        to: handleAddress(transaction[5]),
-        value: handleNumber(transaction[6]),
-        data: transaction[7],
-    };
-    tx.hash = sha256(encode(transaction.slice(0, 8)));
-    if (transaction.length === 8) {
-        tx.signature = transaction[9];
-        const prefix = networkIdToPrefix(tx.networkId);
-        tx.from = recoverAddress(tx.hash, tx.signature, prefix);
-    }
-    return tx;
-}
-
-const version$f = "wordlists/5.5.0";
+const version$e = "wordlists/5.5.0";
 
 "use strict";
 // This gets overridden by rollup
 const exportWordlist = false;
-const logger$k = new Logger(version$f);
+const logger$j = new Logger(version$e);
 class Wordlist {
     constructor(locale) {
-        logger$k.checkAbstract(new.target, Wordlist);
+        logger$j.checkAbstract(new.target, Wordlist);
         defineReadOnly(this, "locale", locale);
     }
     // Subclasses may override this
@@ -30698,10 +30615,10 @@ const wordlists = {
 
 "use strict";
 
-const version$g = "hdnode/5.5.0";
+const version$f = "hdnode/5.5.0";
 
 "use strict";
-const logger$l = new Logger(version$g);
+const logger$k = new Logger(version$f);
 const HardenedBit = 0x80000000;
 // Returns a byte with the MSB bits set
 function getUpperMask(bits) {
@@ -30718,7 +30635,7 @@ function getWordlist(wordlist) {
     if (typeof (wordlist) === "string") {
         const words = wordlists[wordlist];
         if (words == null) {
-            logger$l.throwArgumentError("unknown locale", "wordlist", wordlist);
+            logger$k.throwArgumentError("unknown locale", "wordlist", wordlist);
         }
         return words;
     }
@@ -30727,7 +30644,7 @@ function getWordlist(wordlist) {
 function sha512Hash(password, salt) {
     const p = arrayify(password);
     const s = arrayify(salt);
-    return arrayify(pbkdf2(p, s, 2048, 57, "sha256"));
+    return arrayify(pbkdf2(p, s, 2048, 57, "sha512"));
 }
 function concatKeyIndexSalt(prefix, key, index, salt) {
     const ind = new Uint8Array(4);
@@ -30742,7 +30659,7 @@ function concatKeyIndexSalt(prefix, key, index, salt) {
     return sha512Hash(t, salt);
 }
 function addScalar(a, b) {
-    b = concat([b.slice(0, 63) + "0x00000000"]);
+    b = concat([b.slice(0, 53), "0x00000000"]);
     b[0] &= 0xfc;
     const c = new Uint8Array(57);
     let hold = 0;
@@ -30755,7 +30672,7 @@ function addScalar(a, b) {
 }
 ;
 const _constructorGuard$3 = {};
-const defaultPath = "m/44'/60'/0'/0/0";
+const defaultPath = "m/44'/654'/0'/0'/5";
 ;
 class HDNode {
     /**
@@ -30766,7 +30683,7 @@ class HDNode {
      *   - fromSeed
      */
     constructor(constructorGuard, extendedPrivateKey, publicKey, parentFingerprint, prefix, index, depth, mnemonicOrPath) {
-        logger$l.checkNew(new.target, HDNode);
+        logger$k.checkNew(new.target, HDNode);
         /* istanbul ignore if */
         if (constructorGuard !== _constructorGuard$3) {
             throw new Error("HDNode constructor cannot be called directly");
@@ -30774,7 +30691,6 @@ class HDNode {
         if (extendedPrivateKey) {
             defineReadOnly(this, "extendedPrivateKey", extendedPrivateKey);
             const privateKey = hexDataSlice(extendedPrivateKey, 57, 114);
-            console.log("FUCK", extendedPrivateKey, privateKey);
             const signingKey = new SigningKey(privateKey);
             defineReadOnly(this, "privateKey", signingKey.privateKey);
             defineReadOnly(this, "publicKey", signingKey.publicKey);
@@ -30787,7 +30703,7 @@ class HDNode {
         defineReadOnly(this, "parentFingerprint", parentFingerprint);
         defineReadOnly(this, "fingerprint", hexDataSlice(ripemd160$1(sha256(this.publicKey)), 0, 4));
         defineReadOnly(this, "prefix", prefix);
-        defineReadOnly(this, "address", computeAddress(this.publicKey, prefix));
+        defineReadOnly(this, "address", publicToAddress(this.publicKey, prefix));
         defineReadOnly(this, "index", index);
         defineReadOnly(this, "depth", depth);
         if (mnemonicOrPath == null) {
@@ -30910,7 +30826,7 @@ function mnemonicToSeed(mnemonic, password) {
 }
 function mnemonicToEntropy(mnemonic, wordlist) {
     wordlist = getWordlist(wordlist);
-    logger$l.checkNormalize();
+    logger$k.checkNormalize();
     const words = wordlist.split(mnemonic);
     if ((words.length % 3) !== 0) {
         throw new Error("invalid mnemonic");
@@ -30980,15 +30896,15 @@ function isValidMnemonic(mnemonic, wordlist) {
 }
 function getAccountPath(index) {
     if (typeof (index) !== "number" || index < 0 || index >= HardenedBit || index % 1) {
-        logger$l.throwArgumentError("invalid account index", "index", index);
+        logger$k.throwArgumentError("invalid account index", "index", index);
     }
     return `m/44'/654'/0'/0'/${index}`;
 }
 
-const version$h = "random/5.5.1";
+const version$g = "random/5.5.1";
 
 "use strict";
-const logger$m = new Logger(version$h);
+const logger$l = new Logger(version$g);
 // Debugging line for testing browser lib in node
 //const window = { crypto: { getRandomValues: () => { } } };
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/globalThis
@@ -31008,10 +30924,10 @@ function getGlobal() {
 const anyGlobal = getGlobal();
 let crypto = anyGlobal.crypto || anyGlobal.msCrypto;
 if (!crypto || !crypto.getRandomValues) {
-    logger$m.warn("WARNING: Missing strong random number source");
+    logger$l.warn("WARNING: Missing strong random number source");
     crypto = {
         getRandomValues: function (buffer) {
-            return logger$m.throwError("no secure random source avaialble", Logger.errors.UNSUPPORTED_OPERATION, {
+            return logger$l.throwError("no secure random source avaialble", Logger.errors.UNSUPPORTED_OPERATION, {
                 operation: "crypto.getRandomValues"
             });
         }
@@ -31019,7 +30935,7 @@ if (!crypto || !crypto.getRandomValues) {
 }
 function randomBytes$2(length) {
     if (length <= 0 || length > 1024 || (length % 1) || length != length) {
-        logger$m.throwArgumentError("invalid length", "length", length);
+        logger$l.throwArgumentError("invalid length", "length", length);
     }
     const result = new Uint8Array(length);
     crypto.getRandomValues(result);
@@ -31842,7 +31758,7 @@ var aesJs = createCommonjsModule(function (module, exports) {
 })(commonjsGlobal);
 });
 
-const version$i = "json-wallets/5.5.0";
+const version$h = "json-wallets/5.5.0";
 
 "use strict";
 function looseArrayify(hexString) {
@@ -31906,7 +31822,7 @@ function uuidV4(randomBytes) {
 }
 
 "use strict";
-const logger$n = new Logger(version$i);
+const logger$m = new Logger(version$h);
 class CrowdsaleAccount extends Description {
     isCrowdsaleAccount(value) {
         return !!(value && value._isCrowdsaleAccount);
@@ -31921,7 +31837,7 @@ function decrypt(json, password) {
     // Encrypted Seed
     const encseed = looseArrayify(searchPath(data, "encseed"));
     if (!encseed || (encseed.length % 16) !== 0) {
-        logger$n.throwArgumentError("invalid encseed", "json", json);
+        logger$m.throwArgumentError("invalid encseed", "json", json);
     }
     const key = arrayify(pbkdf2(password, password, 2000, 32, "sha256")).slice(0, 16);
     const iv = encseed.slice(0, 16);
@@ -32482,6 +32398,94 @@ var scrypt = createCommonjsModule(function (module, exports) {
 })(commonjsGlobal);
 });
 
+const version$i = "transactions/5.5.0";
+
+"use strict";
+const logger$n = new Logger(version$i);
+///////////////////////////////
+function handleAddress(value) {
+    if (value === "0x") {
+        return null;
+    }
+    return getAddress(value);
+}
+function handleNumber(value) {
+    if (value === "0x") {
+        return Zero$1;
+    }
+    return BigNumber.from(value);
+}
+const transactionFields = [
+    { name: "nonce", maxLength: 32, numeric: true },
+    { name: "energyPrice", maxLength: 32, numeric: true },
+    { name: "energyLimit", maxLength: 32, numeric: true },
+    { name: "networkId", maxLength: 32, numeric: true },
+    { name: "to", length: 22 },
+    { name: "value", maxLength: 32, numeric: true },
+    { name: "data" },
+];
+const allowedTransactionKeys$2 = {
+    networkId: true, data: true, energyLimit: true, energyPrice: true, nonce: true, to: true, value: true
+};
+function computeAddress(key, prefix) {
+    const publicKey = computePublicKey(key);
+    return publicToAddress(publicKey, prefix);
+}
+function recoverAddress(digest, signature, prefix) {
+    const publicKey = recoverPublicKey(arrayify(digest), signature);
+    return publicToAddress(publicKey, prefix);
+}
+function serialize(transaction, signature) {
+    checkProperties(transaction, allowedTransactionKeys$2);
+    const raw = [];
+    transactionFields.forEach(function (fieldInfo) {
+        let value = transaction[fieldInfo.name] || ([]);
+        const options = {};
+        if (fieldInfo.numeric) {
+            options.hexPad = "left";
+        }
+        value = arrayify(hexlify(value, options));
+        // Fixed-width field
+        if (fieldInfo.length && value.length !== fieldInfo.length && value.length > 0) {
+            logger$n.throwArgumentError("invalid length for " + fieldInfo.name, ("transaction:" + fieldInfo.name), value);
+        }
+        // Variable-width (with a maximum)
+        if (fieldInfo.maxLength) {
+            value = stripZeros(value);
+            if (value.length > fieldInfo.maxLength) {
+                logger$n.throwArgumentError("invalid length for " + fieldInfo.name, ("transaction:" + fieldInfo.name), value);
+            }
+        }
+        raw.push(hexlify(value));
+    });
+    if (!!signature) {
+        raw.push(hexlify(signature));
+    }
+    return encode(raw);
+}
+function parse(rawTransaction) {
+    const transaction = decode(rawTransaction);
+    if (transaction.length !== 7 && transaction.length !== 8) {
+        logger$n.throwArgumentError("invalid raw transaction", "rawTransaction", rawTransaction);
+    }
+    const tx = {
+        nonce: handleNumber(transaction[0]).toNumber(),
+        energyPrice: handleNumber(transaction[1]),
+        energyLimit: handleNumber(transaction[2]),
+        networkId: handleNumber(transaction[3]).toNumber(),
+        to: handleAddress(transaction[4]),
+        value: handleNumber(transaction[5]),
+        data: transaction[6],
+    };
+    tx.hash = sha256(encode(transaction.slice(0, 7)));
+    if (transaction.length === 8) {
+        tx.signature = transaction[7];
+        const prefix = networkIdToPrefix(tx.networkId);
+        tx.from = recoverAddress(tx.hash, tx.signature, prefix);
+    }
+    return tx;
+}
+
 "use strict";
 var __awaiter$5 = (window && window.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -32492,7 +32496,7 @@ var __awaiter$5 = (window && window.__awaiter) || function (thisArg, _arguments,
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-const logger$o = new Logger(version$i);
+const logger$o = new Logger(version$h);
 // Exported Types
 function hasMnemonic(value) {
     return (value != null && value.mnemonic && value.mnemonic.phrase);
@@ -32837,7 +32841,7 @@ class Wallet extends Signer {
         if (isAccount(privateKey)) {
             const signingKey = new SigningKey(privateKey.privateKey);
             defineReadOnly(this, "_signingKey", () => signingKey);
-            defineReadOnly(this, "address", computeAddress(this.publicKey, prefix));
+            defineReadOnly(this, "address", publicToAddress(this.publicKey, prefix));
             if (this.address !== getAddress(privateKey.address)) {
                 logger$p.throwArgumentError("privateKey/address mismatch", "privateKey", "[REDACTED]");
             }
@@ -32849,7 +32853,7 @@ class Wallet extends Signer {
                     locale: srcMnemonic.locale || "en"
                 }));
                 const mnemonic = this.mnemonic;
-                const node = HDNode.fromMnemonic(mnemonic.phrase, null, mnemonic.locale).derivePath(mnemonic.path);
+                const node = HDNode.fromMnemonic(mnemonic.phrase, prefix, null, mnemonic.locale).derivePath(mnemonic.path);
                 if (computeAddress(node.privateKey, prefix) !== this.address) {
                     logger$p.throwArgumentError("mnemonic/address mismatch", "privateKey", "[REDACTED]");
                 }
@@ -32873,7 +32877,7 @@ class Wallet extends Signer {
                 defineReadOnly(this, "_signingKey", () => signingKey);
             }
             defineReadOnly(this, "_mnemonic", () => null);
-            defineReadOnly(this, "address", computeAddress(this.publicKey, prefix));
+            defineReadOnly(this, "address", publicToAddress(this.publicKey, prefix));
         }
         /* istanbul ignore if */
         if (provider && !Provider.isProvider(provider)) {
@@ -32898,7 +32902,7 @@ class Wallet extends Signer {
                 }
                 delete tx.from;
             }
-            const signature = this._signingKey().signDigest(keccak256(serialize(tx)));
+            const signature = this._signingKey().signDigest(sha256(serialize(tx)));
             return serialize(tx, signature);
         });
     }
@@ -32944,7 +32948,7 @@ class Wallet extends Signer {
             options = {};
         }
         if (options.extraEntropy) {
-            entropy = arrayify(hexDataSlice(keccak256(concat([entropy, options.extraEntropy])), 0, 16));
+            entropy = arrayify(hexDataSlice(sha256(concat([entropy, options.extraEntropy])), 0, 16));
         }
         const mnemonic = entropyToMnemonic(entropy, options.locale);
         return Wallet.fromMnemonic(mnemonic, prefix, options.path, options.locale);

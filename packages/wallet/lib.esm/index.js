@@ -8,13 +8,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { extractPrefix, getAddress } from "@ethersproject/address";
+import { extractPrefix, getAddress, publicToAddress } from "@ethersproject/address";
 import { Provider } from "@ethersproject/abstract-provider";
 import { Signer } from "@ethersproject/abstract-signer";
 import { arrayify, concat, hexDataSlice, isHexString } from "@ethersproject/bytes";
 import { hashMessage, _TypedDataEncoder } from "@ethersproject/hash";
 import { defaultPath, HDNode, entropyToMnemonic } from "@ethersproject/hdnode";
-import { keccak256 } from "@ethersproject/keccak256";
+import { sha256 } from "@ethersproject/sha3";
 import { defineReadOnly, resolveProperties } from "@ethersproject/properties";
 import { randomBytes } from "@ethersproject/random";
 import { SigningKey } from "@ethersproject/signing-key";
@@ -38,7 +38,7 @@ export class Wallet extends Signer {
         if (isAccount(privateKey)) {
             const signingKey = new SigningKey(privateKey.privateKey);
             defineReadOnly(this, "_signingKey", () => signingKey);
-            defineReadOnly(this, "address", computeAddress(this.publicKey, prefix));
+            defineReadOnly(this, "address", publicToAddress(this.publicKey, prefix));
             if (this.address !== getAddress(privateKey.address)) {
                 logger.throwArgumentError("privateKey/address mismatch", "privateKey", "[REDACTED]");
             }
@@ -50,7 +50,7 @@ export class Wallet extends Signer {
                     locale: srcMnemonic.locale || "en"
                 }));
                 const mnemonic = this.mnemonic;
-                const node = HDNode.fromMnemonic(mnemonic.phrase, null, mnemonic.locale).derivePath(mnemonic.path);
+                const node = HDNode.fromMnemonic(mnemonic.phrase, prefix, null, mnemonic.locale).derivePath(mnemonic.path);
                 if (computeAddress(node.privateKey, prefix) !== this.address) {
                     logger.throwArgumentError("mnemonic/address mismatch", "privateKey", "[REDACTED]");
                 }
@@ -74,7 +74,7 @@ export class Wallet extends Signer {
                 defineReadOnly(this, "_signingKey", () => signingKey);
             }
             defineReadOnly(this, "_mnemonic", () => null);
-            defineReadOnly(this, "address", computeAddress(this.publicKey, prefix));
+            defineReadOnly(this, "address", publicToAddress(this.publicKey, prefix));
         }
         /* istanbul ignore if */
         if (provider && !Provider.isProvider(provider)) {
@@ -99,7 +99,7 @@ export class Wallet extends Signer {
                 }
                 delete tx.from;
             }
-            const signature = this._signingKey().signDigest(keccak256(serialize(tx)));
+            const signature = this._signingKey().signDigest(sha256(serialize(tx)));
             return serialize(tx, signature);
         });
     }
@@ -145,7 +145,7 @@ export class Wallet extends Signer {
             options = {};
         }
         if (options.extraEntropy) {
-            entropy = arrayify(hexDataSlice(keccak256(concat([entropy, options.extraEntropy])), 0, 16));
+            entropy = arrayify(hexDataSlice(sha256(concat([entropy, options.extraEntropy])), 0, 16));
         }
         const mnemonic = entropyToMnemonic(entropy, options.locale);
         return Wallet.fromMnemonic(mnemonic, prefix, options.path, options.locale);

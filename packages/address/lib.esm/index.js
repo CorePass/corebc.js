@@ -18,8 +18,11 @@ const precompiledAddresses = [
     "0000000000000000000000000000000000000000000000000000000000000008",
     "0000000000000000000000000000000000000000000000000000000000000009",
 ];
+function removeHexPrefix(val) {
+    return val.substring(0, 2) === "0x" ? val.substring(2) : val;
+}
 function getChecksumAddress(val, prefix) {
-    const mods = (val + prefix + "00")
+    const mods = (removeHexPrefix(val) + removeHexPrefix(prefix) + "00")
         .replace(/[aA]/g, "10")
         .replace(/[bB]/g, "11")
         .replace(/[cC]/g, "12")
@@ -39,7 +42,7 @@ export function getAddress(address) {
     if (!address.match(/^(0x)?[0-9a-fA-F]{44}$/)) {
         logger.throwArgumentError("invalid address", "address", address);
     }
-    const raw = address.substring(0, 2) === "0x" ? address.substring(2) : address;
+    const raw = removeHexPrefix(address);
     if (precompiledAddresses.includes(raw)) {
         return "0x" + raw;
     }
@@ -81,7 +84,7 @@ export function networkIdToPrefix(networkId) {
 export function publicToAddress(key, prefix) {
     const val = hexDataSlice(sha256(key), 12);
     const checksum = getChecksumAddress(val, prefix);
-    return "0x" + prefix + checksum + val;
+    return "0x" + prefix + checksum + removeHexPrefix(val);
 }
 ;
 export function getContractAddress(transaction) {
@@ -96,7 +99,7 @@ export function getContractAddress(transaction) {
     const val = hexDataSlice(sha256(encode([from, nonce])), 12);
     const prefix = from.substring(2, 4);
     const checksum = getChecksumAddress(val, prefix);
-    return "0x" + prefix + checksum + val;
+    return "0x" + prefix + checksum + removeHexPrefix(val);
 }
 export function getCreate2Address(from, salt, initCodeHash) {
     if (hexDataLength(salt) !== 32) {
@@ -108,6 +111,6 @@ export function getCreate2Address(from, salt, initCodeHash) {
     const val = hexDataSlice(sha256(concat(["0xff", getAddress(from), salt, initCodeHash])), 12);
     const prefix = from.substring(2, 4);
     const checksum = getChecksumAddress(val, prefix);
-    return "0x" + prefix + checksum + val;
+    return "0x" + prefix + checksum + removeHexPrefix(val);
 }
 //# sourceMappingURL=index.js.map

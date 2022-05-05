@@ -62,7 +62,7 @@ const transactionFields = [
     { name: "energyPrice", maxLength: 32, numeric: true },
     { name: "energyLimit", maxLength: 32, numeric: true },
     { name: "networkId", maxLength: 32, numeric: true },
-    { name: "to", length: 20 },
+    { name: "to", length: 22 },
     { name: "value", maxLength: 32, numeric: true },
     { name: "data" },
 ];
@@ -126,15 +126,15 @@ export function parse(rawTransaction: BytesLike): Transaction {
         nonce:    handleNumber(transaction[0]).toNumber(),
         energyPrice: handleNumber(transaction[1]),
         energyLimit: handleNumber(transaction[2]),
-        networkId: handleNumber(transaction[4]).toNumber(),
-        to:       handleAddress(transaction[5]),
-        value:    handleNumber(transaction[6]),
-        data:     transaction[7],
+        networkId: handleNumber(transaction[3]).toNumber(),
+        to:       handleAddress(transaction[4]),
+        value:    handleNumber(transaction[5]),
+        data:     transaction[6],
     };
-    tx.hash = sha256(RLP.encode(transaction.slice(0, 8)));
+    tx.hash = sha256(RLP.encode(transaction.slice(0, 7)));
 
     if (transaction.length === 8) {
-        tx.signature = transaction[9];
+        tx.signature = transaction[7];
         const prefix = networkIdToPrefix(tx.networkId)
         tx.from = recoverAddress(tx.hash, tx.signature, prefix);
     }

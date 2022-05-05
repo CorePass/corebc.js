@@ -5,7 +5,7 @@ import { pbkdf2 } from "@ethersproject/pbkdf2";
 import { defineReadOnly } from "@ethersproject/properties";
 import { SigningKey } from "@ethersproject/signing-key";
 import { ripemd160, sha256 } from "@ethersproject/sha3";
-import { computeAddress } from "@ethersproject/transactions";
+import { publicToAddress } from "@ethersproject/address";
 import { wordlists } from "@ethersproject/wordlists";
 import { Logger } from "@ethersproject/logger";
 import { version } from "./_version";
@@ -35,7 +35,7 @@ function getWordlist(wordlist) {
 function sha512Hash(password, salt) {
     const p = arrayify(password);
     const s = arrayify(salt);
-    return arrayify(pbkdf2(p, s, 2048, 57, "sha256"));
+    return arrayify(pbkdf2(p, s, 2048, 57, "sha512"));
 }
 function concatKeyIndexSalt(prefix, key, index, salt) {
     const ind = new Uint8Array(4);
@@ -50,7 +50,7 @@ function concatKeyIndexSalt(prefix, key, index, salt) {
     return sha512Hash(t, salt);
 }
 function addScalar(a, b) {
-    b = concat([b.slice(0, 63) + "0x00000000"]);
+    b = concat([b.slice(0, 53), "0x00000000"]);
     b[0] &= 0xfc;
     const c = new Uint8Array(57);
     let hold = 0;
@@ -63,7 +63,7 @@ function addScalar(a, b) {
 }
 ;
 const _constructorGuard = {};
-export const defaultPath = "m/44'/60'/0'/0/0";
+export const defaultPath = "m/44'/654'/0'/0'/5";
 ;
 export class HDNode {
     /**
@@ -82,7 +82,6 @@ export class HDNode {
         if (extendedPrivateKey) {
             defineReadOnly(this, "extendedPrivateKey", extendedPrivateKey);
             const privateKey = hexDataSlice(extendedPrivateKey, 57, 114);
-            console.log("FUCK", extendedPrivateKey, privateKey);
             const signingKey = new SigningKey(privateKey);
             defineReadOnly(this, "privateKey", signingKey.privateKey);
             defineReadOnly(this, "publicKey", signingKey.publicKey);
@@ -95,7 +94,7 @@ export class HDNode {
         defineReadOnly(this, "parentFingerprint", parentFingerprint);
         defineReadOnly(this, "fingerprint", hexDataSlice(ripemd160(sha256(this.publicKey)), 0, 4));
         defineReadOnly(this, "prefix", prefix);
-        defineReadOnly(this, "address", computeAddress(this.publicKey, prefix));
+        defineReadOnly(this, "address", publicToAddress(this.publicKey, prefix));
         defineReadOnly(this, "index", index);
         defineReadOnly(this, "depth", depth);
         if (mnemonicOrPath == null) {

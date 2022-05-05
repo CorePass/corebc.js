@@ -7,7 +7,7 @@ var pbkdf2_1 = require("@ethersproject/pbkdf2");
 var properties_1 = require("@ethersproject/properties");
 var signing_key_1 = require("@ethersproject/signing-key");
 var sha3_1 = require("@ethersproject/sha3");
-var transactions_1 = require("@ethersproject/transactions");
+var address_1 = require("@ethersproject/address");
 var wordlists_1 = require("@ethersproject/wordlists");
 var logger_1 = require("@ethersproject/logger");
 var _version_1 = require("./_version");
@@ -37,7 +37,7 @@ function getWordlist(wordlist) {
 function sha512Hash(password, salt) {
     var p = (0, bytes_1.arrayify)(password);
     var s = (0, bytes_1.arrayify)(salt);
-    return (0, bytes_1.arrayify)((0, pbkdf2_1.pbkdf2)(p, s, 2048, 57, "sha256"));
+    return (0, bytes_1.arrayify)((0, pbkdf2_1.pbkdf2)(p, s, 2048, 57, "sha512"));
 }
 function concatKeyIndexSalt(prefix, key, index, salt) {
     var ind = new Uint8Array(4);
@@ -52,7 +52,7 @@ function concatKeyIndexSalt(prefix, key, index, salt) {
     return sha512Hash(t, salt);
 }
 function addScalar(a, b) {
-    b = (0, bytes_1.concat)([b.slice(0, 63) + "0x00000000"]);
+    b = (0, bytes_1.concat)([b.slice(0, 53), "0x00000000"]);
     b[0] &= 0xfc;
     var c = new Uint8Array(57);
     var hold = 0;
@@ -65,7 +65,7 @@ function addScalar(a, b) {
 }
 ;
 var _constructorGuard = {};
-exports.defaultPath = "m/44'/60'/0'/0/0";
+exports.defaultPath = "m/44'/654'/0'/0'/5";
 ;
 var HDNode = /** @class */ (function () {
     /**
@@ -85,7 +85,6 @@ var HDNode = /** @class */ (function () {
         if (extendedPrivateKey) {
             (0, properties_1.defineReadOnly)(this, "extendedPrivateKey", extendedPrivateKey);
             var privateKey = (0, bytes_1.hexDataSlice)(extendedPrivateKey, 57, 114);
-            console.log("FUCK", extendedPrivateKey, privateKey);
             var signingKey = new signing_key_1.SigningKey(privateKey);
             (0, properties_1.defineReadOnly)(this, "privateKey", signingKey.privateKey);
             (0, properties_1.defineReadOnly)(this, "publicKey", signingKey.publicKey);
@@ -98,7 +97,7 @@ var HDNode = /** @class */ (function () {
         (0, properties_1.defineReadOnly)(this, "parentFingerprint", parentFingerprint);
         (0, properties_1.defineReadOnly)(this, "fingerprint", (0, bytes_1.hexDataSlice)((0, sha3_1.ripemd160)((0, sha3_1.sha256)(this.publicKey)), 0, 4));
         (0, properties_1.defineReadOnly)(this, "prefix", prefix);
-        (0, properties_1.defineReadOnly)(this, "address", (0, transactions_1.computeAddress)(this.publicKey, prefix));
+        (0, properties_1.defineReadOnly)(this, "address", (0, address_1.publicToAddress)(this.publicKey, prefix));
         (0, properties_1.defineReadOnly)(this, "index", index);
         (0, properties_1.defineReadOnly)(this, "depth", depth);
         if (mnemonicOrPath == null) {

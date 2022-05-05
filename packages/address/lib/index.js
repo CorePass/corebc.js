@@ -20,8 +20,11 @@ var precompiledAddresses = [
     "0000000000000000000000000000000000000000000000000000000000000008",
     "0000000000000000000000000000000000000000000000000000000000000009",
 ];
+function removeHexPrefix(val) {
+    return val.substring(0, 2) === "0x" ? val.substring(2) : val;
+}
 function getChecksumAddress(val, prefix) {
-    var mods = (val + prefix + "00")
+    var mods = (removeHexPrefix(val) + removeHexPrefix(prefix) + "00")
         .replace(/[aA]/g, "10")
         .replace(/[bB]/g, "11")
         .replace(/[cC]/g, "12")
@@ -41,7 +44,7 @@ function getAddress(address) {
     if (!address.match(/^(0x)?[0-9a-fA-F]{44}$/)) {
         logger.throwArgumentError("invalid address", "address", address);
     }
-    var raw = address.substring(0, 2) === "0x" ? address.substring(2) : address;
+    var raw = removeHexPrefix(address);
     if (precompiledAddresses.includes(raw)) {
         return "0x" + raw;
     }
@@ -87,7 +90,7 @@ exports.networkIdToPrefix = networkIdToPrefix;
 function publicToAddress(key, prefix) {
     var val = (0, bytes_1.hexDataSlice)((0, sha3_1.sha256)(key), 12);
     var checksum = getChecksumAddress(val, prefix);
-    return "0x" + prefix + checksum + val;
+    return "0x" + prefix + checksum + removeHexPrefix(val);
 }
 exports.publicToAddress = publicToAddress;
 ;
@@ -103,7 +106,7 @@ function getContractAddress(transaction) {
     var val = (0, bytes_1.hexDataSlice)((0, sha3_1.sha256)((0, rlp_1.encode)([from, nonce])), 12);
     var prefix = from.substring(2, 4);
     var checksum = getChecksumAddress(val, prefix);
-    return "0x" + prefix + checksum + val;
+    return "0x" + prefix + checksum + removeHexPrefix(val);
 }
 exports.getContractAddress = getContractAddress;
 function getCreate2Address(from, salt, initCodeHash) {
@@ -116,7 +119,7 @@ function getCreate2Address(from, salt, initCodeHash) {
     var val = (0, bytes_1.hexDataSlice)((0, sha3_1.sha256)((0, bytes_1.concat)(["0xff", getAddress(from), salt, initCodeHash])), 12);
     var prefix = from.substring(2, 4);
     var checksum = getChecksumAddress(val, prefix);
-    return "0x" + prefix + checksum + val;
+    return "0x" + prefix + checksum + removeHexPrefix(val);
 }
 exports.getCreate2Address = getCreate2Address;
 //# sourceMappingURL=index.js.map
