@@ -328,7 +328,6 @@ describe('Test ID Hash Functions', function () {
 describe('Test Solidity Hash Functions', function() {
 
     type TestCase = {
-        keccak256: string,
         sha256: string,
         types: Array<string>,
         values: Array<string>
@@ -336,21 +335,20 @@ describe('Test Solidity Hash Functions', function() {
 
     const tests: Array<TestCase> = loadTests('solidity-hashes');
 
-    function test(funcName: string, testKey: 'keccak256' | 'sha256') {
+    function test(funcName: string) {
         it(`computes ${ funcName } correctly`, function() {
             this.timeout(120000);
 
             tests.forEach((test, index) => {
                 let actual = (<any>(ethers.utils))['solidity' + funcName](test.types, test.values);
-                let expected = test[testKey];
+                let expected = test.sha256;
                 assert.equal(actual, expected,
                     ('computes solidity-' + funcName + '(' + JSON.stringify(test.values) + ') - ' + test.types));
             });
         });
     }
 
-    test('Keccak256', 'keccak256');
-    test('Sha256', 'sha256');
+    test('Sha256');
 
     const testsInvalid = [
         "uint0",     // number - null length
@@ -379,10 +377,10 @@ describe('Test Hash Functions', function() {
 
     const tests: Array<TestCase.Hash> = loadTests('hashes');
 
-    it('computes keccak256 correctly', function() {
+    it('computes sha256 correctly', function() {
         this.timeout(120000);
         tests.forEach(function(test) {
-            assert.equal(ethers.utils.keccak256(test.data), test.keccak256, ('Keccak256 - ' + test.data));
+            assert.equal(ethers.utils.sha256(test.data), test.sha256, ('sha256 - ' + test.data));
         });
     });
 

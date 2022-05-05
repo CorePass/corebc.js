@@ -61,7 +61,6 @@ function setupContext(path: string, context: any, plugin: Plugin) {
     context.zeroPad = ethers.utils.zeroPad;
 
     context.id = ethers.utils.id;
-    context.keccak256 = ethers.utils.keccak256;
     context.namehash = ethers.utils.namehash;
     context.sha256 = ethers.utils.sha256;
 

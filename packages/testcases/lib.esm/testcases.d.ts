@@ -5,7 +5,6 @@ export interface BigNumber {
 }
 export interface Hash {
     data: string;
-    keccak256: string;
     sha256: string;
     sha512: string;
 }

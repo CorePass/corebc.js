@@ -3,7 +3,7 @@ import { getAddress } from "@ethersproject/address";
 import { BigNumber } from "@ethersproject/bignumber";
 import { arrayify, concat, hexDataSlice, hexlify, hexZeroPad, isHexString } from "@ethersproject/bytes";
 import { id } from "@ethersproject/hash";
-import { keccak256 } from "@ethersproject/keccak256";
+import { sha256 } from "@ethersproject/sha3";
 import { defineReadOnly, Description, getStatic } from "@ethersproject/properties";
 import { defaultAbiCoder } from "./abi-coder";
 import { checkResultErrors } from "./coders/abstract-coder";
@@ -370,7 +370,7 @@ export class Interface {
                 return id(value);
             }
             else if (param.type === "bytes") {
-                return keccak256(hexlify(value));
+                return sha256(hexlify(value));
             }
             // Check addresses are valid
             if (param.type === "address") {
@@ -425,7 +425,7 @@ export class Interface {
                     topics.push(id(value));
                 }
                 else if (param.type === "bytes") {
-                    topics.push(keccak256(value));
+                    topics.push(sha256(value));
                 }
                 else if (param.baseType === "tuple" || param.baseType === "array") {
                     // @TODO

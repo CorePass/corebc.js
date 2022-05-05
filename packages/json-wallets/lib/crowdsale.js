@@ -22,7 +22,7 @@ exports.decrypt = exports.CrowdsaleAccount = void 0;
 var aes_js_1 = __importDefault(require("aes-js"));
 var address_1 = require("@ethersproject/address");
 var bytes_1 = require("@ethersproject/bytes");
-var keccak256_1 = require("@ethersproject/keccak256");
+var sha3_1 = require("@ethersproject/sha3");
 var pbkdf2_1 = require("@ethersproject/pbkdf2");
 var strings_1 = require("@ethersproject/strings");
 var properties_1 = require("@ethersproject/properties");
@@ -64,7 +64,7 @@ function decrypt(json, password) {
         seedHex += String.fromCharCode(seed[i]);
     }
     var seedHexBytes = (0, strings_1.toUtf8Bytes)(seedHex);
-    var privateKey = (0, keccak256_1.keccak256)(seedHexBytes);
+    var privateKey = (0, sha3_1.sha256)(seedHexBytes);
     return new CrowdsaleAccount({
         _isCrowdsaleAccount: true,
         address: ethaddr,

@@ -7,7 +7,7 @@ import { ExternallyOwnedAccount } from "@ethersproject/abstract-signer";
 import { getAddress } from "@ethersproject/address";
 import { arrayify, Bytes, BytesLike, concat, hexlify } from "@ethersproject/bytes";
 import { defaultPath, entropyToMnemonic, HDNode, Mnemonic, mnemonicToEntropy } from "@ethersproject/hdnode";
-import { keccak256 } from "@ethersproject/keccak256";
+import { sha256 } from "@ethersproject/sha3";
 import { pbkdf2 as _pbkdf2 } from "@ethersproject/pbkdf2";
 import { randomBytes } from "@ethersproject/random";
 import { Description } from "@ethersproject/properties";
@@ -78,7 +78,7 @@ function _decrypt(data: any, key: Uint8Array, ciphertext: Uint8Array): Uint8Arra
 function _getAccount(data: any, key: Uint8Array): KeystoreAccount {
     const ciphertext = looseArrayify(searchPath(data, "crypto/ciphertext"));
 
-    const computedMAC = hexlify(keccak256(concat([ key.slice(16, 32), ciphertext ]))).substring(2);
+    const computedMAC = hexlify(sha256(concat([ key.slice(16, 32), ciphertext ]))).substring(2);
     if (computedMAC !== searchPath(data, "crypto/mac").toLowerCase()) {
         throw new Error("invalid password");
     }
@@ -321,7 +321,7 @@ export function encrypt(account: ExternallyOwnedAccount, password: Bytes | strin
         const ciphertext = arrayify(aesCtr.encrypt(privateKey));
 
         // Compute the message authentication code, used to check the password
-        const mac = keccak256(concat([macPrefix, ciphertext]))
+        const mac = sha256(concat([macPrefix, ciphertext]))
 
         // See: https://github.com/ethereum/wiki/wiki/Web3-Secret-Storage-Definition
         const data: { [key: string]: any } = {

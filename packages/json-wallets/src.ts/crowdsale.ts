@@ -5,7 +5,7 @@ import aes from "aes-js";
 import { ExternallyOwnedAccount } from "@ethersproject/abstract-signer";
 import { getAddress } from "@ethersproject/address";
 import { arrayify, Bytes } from "@ethersproject/bytes";
-import { keccak256 } from "@ethersproject/keccak256";
+import { sha256 } from "@ethersproject/sha3";
 import { pbkdf2 } from "@ethersproject/pbkdf2";
 import { toUtf8Bytes } from "@ethersproject/strings";
 import { Description } from "@ethersproject/properties";
@@ -68,7 +68,7 @@ export function decrypt(json: string, password: Bytes | string): ExternallyOwned
 
     const seedHexBytes = toUtf8Bytes(seedHex);
 
-    const privateKey = keccak256(seedHexBytes);
+    const privateKey = sha256(seedHexBytes);
 
     return new CrowdsaleAccount ({
         _isCrowdsaleAccount: true,

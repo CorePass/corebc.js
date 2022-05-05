@@ -344,7 +344,7 @@ abstract class ControllerPlugin extends AccountPlugin {
 
         if (!this.salt) {
             let signature = await this.accounts[0].signMessage("commit-" + this.owner + "-" + this.name);
-            this.salt = ethers.utils.keccak256(signature);
+            this.salt = ethers.utils.sha256(signature);
         }
     }
 }

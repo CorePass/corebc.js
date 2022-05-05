@@ -165,7 +165,7 @@ describe('Test Transaction Signing and Parsing', function() {
                     'serializes unsigned transaction (legacy)');
 
                 // Legacy signed serialized transaction
-                let signature = signDigest(ethers.utils.keccak256(unsignedTx));
+                let signature = signDigest(ethers.utils.sha256(unsignedTx));
                 assert.equal(ethers.utils.serializeTransaction(transaction, signature), test.signedTransaction,
                     'signs transaction (legacy)');
             })();
@@ -206,7 +206,7 @@ describe('Test Transaction Signing and Parsing', function() {
                     'serializes unsigned transaction (eip155) ');
 
                 // EIP-155 signed serialized transaction
-                let signature = signDigest(ethers.utils.keccak256(unsignedTx));
+                let signature = signDigest(ethers.utils.sha256(unsignedTx));
                 assert.equal(ethers.utils.serializeTransaction(transaction, signature), test.signedTransactionNetworkId5,
                     'signs transaction (eip155)');
             })();

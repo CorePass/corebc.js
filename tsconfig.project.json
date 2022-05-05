@@ -25,9 +25,6 @@
       "path": "./packages/constants"
     },
     {
-      "path": "./packages/keccak256"
-    },
-    {
       "path": "./packages/networks"
     },
     {

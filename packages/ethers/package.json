@@ -15,7 +15,6 @@
     "@ethersproject/hash": "5.5.0",
     "@ethersproject/hdnode": "5.5.0",
     "@ethersproject/json-wallets": "5.5.0",
-    "@ethersproject/keccak256": "5.5.0",
     "@ethersproject/logger": "5.5.0",
     "@ethersproject/networks": "5.5.2",
     "@ethersproject/pbkdf2": "5.5.0",

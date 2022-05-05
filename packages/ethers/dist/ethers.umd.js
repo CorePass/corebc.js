@@ -8988,683 +8988,6 @@
 
 	var abiCoder$1 = /*@__PURE__*/getDefaultExportFromCjs(abiCoder);
 
-	var sha3$1 = createCommonjsModule(function (module) {
-	/**
-	 * [js-sha3]{@link https://github.com/emn178/js-sha3}
-	 *
-	 * @version 0.8.0
-	 * @author Chen, Yi-Cyuan [emn178@gmail.com]
-	 * @copyright Chen, Yi-Cyuan 2015-2018
-	 * @license MIT
-	 */
-	/*jslint bitwise: true */
-	(function () {
-	  'use strict';
-
-	  var INPUT_ERROR = 'input is invalid type';
-	  var FINALIZE_ERROR = 'finalize already called';
-	  var WINDOW = typeof window === 'object';
-	  var root = WINDOW ? window : {};
-	  if (root.JS_SHA3_NO_WINDOW) {
-	    WINDOW = false;
-	  }
-	  var WEB_WORKER = !WINDOW && typeof self === 'object';
-	  var NODE_JS = !root.JS_SHA3_NO_NODE_JS && typeof process === 'object' && process.versions && process.versions.node;
-	  if (NODE_JS) {
-	    root = commonjsGlobal;
-	  } else if (WEB_WORKER) {
-	    root = self;
-	  }
-	  var COMMON_JS = !root.JS_SHA3_NO_COMMON_JS && 'object' === 'object' && module.exports;
-	  var AMD = typeof undefined === 'function' && undefined.amd;
-	  var ARRAY_BUFFER = !root.JS_SHA3_NO_ARRAY_BUFFER && typeof ArrayBuffer !== 'undefined';
-	  var HEX_CHARS = '0123456789abcdef'.split('');
-	  var SHAKE_PADDING = [31, 7936, 2031616, 520093696];
-	  var CSHAKE_PADDING = [4, 1024, 262144, 67108864];
-	  var KECCAK_PADDING = [1, 256, 65536, 16777216];
-	  var PADDING = [6, 1536, 393216, 100663296];
-	  var SHIFT = [0, 8, 16, 24];
-	  var RC = [1, 0, 32898, 0, 32906, 2147483648, 2147516416, 2147483648, 32907, 0, 2147483649,
-	    0, 2147516545, 2147483648, 32777, 2147483648, 138, 0, 136, 0, 2147516425, 0,
-	    2147483658, 0, 2147516555, 0, 139, 2147483648, 32905, 2147483648, 32771,
-	    2147483648, 32770, 2147483648, 128, 2147483648, 32778, 0, 2147483658, 2147483648,
-	    2147516545, 2147483648, 32896, 2147483648, 2147483649, 0, 2147516424, 2147483648];
-	  var BITS = [224, 256, 384, 512];
-	  var SHAKE_BITS = [128, 256];
-	  var OUTPUT_TYPES = ['hex', 'buffer', 'arrayBuffer', 'array', 'digest'];
-	  var CSHAKE_BYTEPAD = {
-	    '128': 168,
-	    '256': 136
-	  };
-
-	  if (root.JS_SHA3_NO_NODE_JS || !Array.isArray) {
-	    Array.isArray = function (obj) {
-	      return Object.prototype.toString.call(obj) === '[object Array]';
-	    };
-	  }
-
-	  if (ARRAY_BUFFER && (root.JS_SHA3_NO_ARRAY_BUFFER_IS_VIEW || !ArrayBuffer.isView)) {
-	    ArrayBuffer.isView = function (obj) {
-	      return typeof obj === 'object' && obj.buffer && obj.buffer.constructor === ArrayBuffer;
-	    };
-	  }
-
-	  var createOutputMethod = function (bits, padding, outputType) {
-	    return function (message) {
-	      return new Keccak(bits, padding, bits).update(message)[outputType]();
-	    };
-	  };
-
-	  var createShakeOutputMethod = function (bits, padding, outputType) {
-	    return function (message, outputBits) {
-	      return new Keccak(bits, padding, outputBits).update(message)[outputType]();
-	    };
-	  };
-
-	  var createCshakeOutputMethod = function (bits, padding, outputType) {
-	    return function (message, outputBits, n, s) {
-	      return methods['cshake' + bits].update(message, outputBits, n, s)[outputType]();
-	    };
-	  };
-
-	  var createKmacOutputMethod = function (bits, padding, outputType) {
-	    return function (key, message, outputBits, s) {
-	      return methods['kmac' + bits].update(key, message, outputBits, s)[outputType]();
-	    };
-	  };
-
-	  var createOutputMethods = function (method, createMethod, bits, padding) {
-	    for (var i = 0; i < OUTPUT_TYPES.length; ++i) {
-	      var type = OUTPUT_TYPES[i];
-	      method[type] = createMethod(bits, padding, type);
-	    }
-	    return method;
-	  };
-
-	  var createMethod = function (bits, padding) {
-	    var method = createOutputMethod(bits, padding, 'hex');
-	    method.create = function () {
-	      return new Keccak(bits, padding, bits);
-	    };
-	    method.update = function (message) {
-	      return method.create().update(message);
-	    };
-	    return createOutputMethods(method, createOutputMethod, bits, padding);
-	  };
-
-	  var createShakeMethod = function (bits, padding) {
-	    var method = createShakeOutputMethod(bits, padding, 'hex');
-	    method.create = function (outputBits) {
-	      return new Keccak(bits, padding, outputBits);
-	    };
-	    method.update = function (message, outputBits) {
-	      return method.create(outputBits).update(message);
-	    };
-	    return createOutputMethods(method, createShakeOutputMethod, bits, padding);
-	  };
-
-	  var createCshakeMethod = function (bits, padding) {
-	    var w = CSHAKE_BYTEPAD[bits];
-	    var method = createCshakeOutputMethod(bits, padding, 'hex');
-	    method.create = function (outputBits, n, s) {
-	      if (!n && !s) {
-	        return methods['shake' + bits].create(outputBits);
-	      } else {
-	        return new Keccak(bits, padding, outputBits).bytepad([n, s], w);
-	      }
-	    };
-	    method.update = function (message, outputBits, n, s) {
-	      return method.create(outputBits, n, s).update(message);
-	    };
-	    return createOutputMethods(method, createCshakeOutputMethod, bits, padding);
-	  };
-
-	  var createKmacMethod = function (bits, padding) {
-	    var w = CSHAKE_BYTEPAD[bits];
-	    var method = createKmacOutputMethod(bits, padding, 'hex');
-	    method.create = function (key, outputBits, s) {
-	      return new Kmac(bits, padding, outputBits).bytepad(['KMAC', s], w).bytepad([key], w);
-	    };
-	    method.update = function (key, message, outputBits, s) {
-	      return method.create(key, outputBits, s).update(message);
-	    };
-	    return createOutputMethods(method, createKmacOutputMethod, bits, padding);
-	  };
-
-	  var algorithms = [
-	    { name: 'keccak', padding: KECCAK_PADDING, bits: BITS, createMethod: createMethod },
-	    { name: 'sha3', padding: PADDING, bits: BITS, createMethod: createMethod },
-	    { name: 'shake', padding: SHAKE_PADDING, bits: SHAKE_BITS, createMethod: createShakeMethod },
-	    { name: 'cshake', padding: CSHAKE_PADDING, bits: SHAKE_BITS, createMethod: createCshakeMethod },
-	    { name: 'kmac', padding: CSHAKE_PADDING, bits: SHAKE_BITS, createMethod: createKmacMethod }
-	  ];
-
-	  var methods = {}, methodNames = [];
-
-	  for (var i = 0; i < algorithms.length; ++i) {
-	    var algorithm = algorithms[i];
-	    var bits = algorithm.bits;
-	    for (var j = 0; j < bits.length; ++j) {
-	      var methodName = algorithm.name + '_' + bits[j];
-	      methodNames.push(methodName);
-	      methods[methodName] = algorithm.createMethod(bits[j], algorithm.padding);
-	      if (algorithm.name !== 'sha3') {
-	        var newMethodName = algorithm.name + bits[j];
-	        methodNames.push(newMethodName);
-	        methods[newMethodName] = methods[methodName];
-	      }
-	    }
-	  }
-
-	  function Keccak(bits, padding, outputBits) {
-	    this.blocks = [];
-	    this.s = [];
-	    this.padding = padding;
-	    this.outputBits = outputBits;
-	    this.reset = true;
-	    this.finalized = false;
-	    this.block = 0;
-	    this.start = 0;
-	    this.blockCount = (1600 - (bits << 1)) >> 5;
-	    this.byteCount = this.blockCount << 2;
-	    this.outputBlocks = outputBits >> 5;
-	    this.extraBytes = (outputBits & 31) >> 3;
-
-	    for (var i = 0; i < 50; ++i) {
-	      this.s[i] = 0;
-	    }
-	  }
-
-	  Keccak.prototype.update = function (message) {
-	    if (this.finalized) {
-	      throw new Error(FINALIZE_ERROR);
-	    }
-	    var notString, type = typeof message;
-	    if (type !== 'string') {
-	      if (type === 'object') {
-	        if (message === null) {
-	          throw new Error(INPUT_ERROR);
-	        } else if (ARRAY_BUFFER && message.constructor === ArrayBuffer) {
-	          message = new Uint8Array(message);
-	        } else if (!Array.isArray(message)) {
-	          if (!ARRAY_BUFFER || !ArrayBuffer.isView(message)) {
-	            throw new Error(INPUT_ERROR);
-	          }
-	        }
-	      } else {
-	        throw new Error(INPUT_ERROR);
-	      }
-	      notString = true;
-	    }
-	    var blocks = this.blocks, byteCount = this.byteCount, length = message.length,
-	      blockCount = this.blockCount, index = 0, s = this.s, i, code;
-
-	    while (index < length) {
-	      if (this.reset) {
-	        this.reset = false;
-	        blocks[0] = this.block;
-	        for (i = 1; i < blockCount + 1; ++i) {
-	          blocks[i] = 0;
-	        }
-	      }
-	      if (notString) {
-	        for (i = this.start; index < length && i < byteCount; ++index) {
-	          blocks[i >> 2] |= message[index] << SHIFT[i++ & 3];
-	        }
-	      } else {
-	        for (i = this.start; index < length && i < byteCount; ++index) {
-	          code = message.charCodeAt(index);
-	          if (code < 0x80) {
-	            blocks[i >> 2] |= code << SHIFT[i++ & 3];
-	          } else if (code < 0x800) {
-	            blocks[i >> 2] |= (0xc0 | (code >> 6)) << SHIFT[i++ & 3];
-	            blocks[i >> 2] |= (0x80 | (code & 0x3f)) << SHIFT[i++ & 3];
-	          } else if (code < 0xd800 || code >= 0xe000) {
-	            blocks[i >> 2] |= (0xe0 | (code >> 12)) << SHIFT[i++ & 3];
-	            blocks[i >> 2] |= (0x80 | ((code >> 6) & 0x3f)) << SHIFT[i++ & 3];
-	            blocks[i >> 2] |= (0x80 | (code & 0x3f)) << SHIFT[i++ & 3];
-	          } else {
-	            code = 0x10000 + (((code & 0x3ff) << 10) | (message.charCodeAt(++index) & 0x3ff));
-	            blocks[i >> 2] |= (0xf0 | (code >> 18)) << SHIFT[i++ & 3];
-	            blocks[i >> 2] |= (0x80 | ((code >> 12) & 0x3f)) << SHIFT[i++ & 3];
-	            blocks[i >> 2] |= (0x80 | ((code >> 6) & 0x3f)) << SHIFT[i++ & 3];
-	            blocks[i >> 2] |= (0x80 | (code & 0x3f)) << SHIFT[i++ & 3];
-	          }
-	        }
-	      }
-	      this.lastByteIndex = i;
-	      if (i >= byteCount) {
-	        this.start = i - byteCount;
-	        this.block = blocks[blockCount];
-	        for (i = 0; i < blockCount; ++i) {
-	          s[i] ^= blocks[i];
-	        }
-	        f(s);
-	        this.reset = true;
-	      } else {
-	        this.start = i;
-	      }
-	    }
-	    return this;
-	  };
-
-	  Keccak.prototype.encode = function (x, right) {
-	    var o = x & 255, n = 1;
-	    var bytes = [o];
-	    x = x >> 8;
-	    o = x & 255;
-	    while (o > 0) {
-	      bytes.unshift(o);
-	      x = x >> 8;
-	      o = x & 255;
-	      ++n;
-	    }
-	    if (right) {
-	      bytes.push(n);
-	    } else {
-	      bytes.unshift(n);
-	    }
-	    this.update(bytes);
-	    return bytes.length;
-	  };
-
-	  Keccak.prototype.encodeString = function (str) {
-	    var notString, type = typeof str;
-	    if (type !== 'string') {
-	      if (type === 'object') {
-	        if (str === null) {
-	          throw new Error(INPUT_ERROR);
-	        } else if (ARRAY_BUFFER && str.constructor === ArrayBuffer) {
-	          str = new Uint8Array(str);
-	        } else if (!Array.isArray(str)) {
-	          if (!ARRAY_BUFFER || !ArrayBuffer.isView(str)) {
-	            throw new Error(INPUT_ERROR);
-	          }
-	        }
-	      } else {
-	        throw new Error(INPUT_ERROR);
-	      }
-	      notString = true;
-	    }
-	    var bytes = 0, length = str.length;
-	    if (notString) {
-	      bytes = length;
-	    } else {
-	      for (var i = 0; i < str.length; ++i) {
-	        var code = str.charCodeAt(i);
-	        if (code < 0x80) {
-	          bytes += 1;
-	        } else if (code < 0x800) {
-	          bytes += 2;
-	        } else if (code < 0xd800 || code >= 0xe000) {
-	          bytes += 3;
-	        } else {
-	          code = 0x10000 + (((code & 0x3ff) << 10) | (str.charCodeAt(++i) & 0x3ff));
-	          bytes += 4;
-	        }
-	      }
-	    }
-	    bytes += this.encode(bytes * 8);
-	    this.update(str);
-	    return bytes;
-	  };
-
-	  Keccak.prototype.bytepad = function (strs, w) {
-	    var bytes = this.encode(w);
-	    for (var i = 0; i < strs.length; ++i) {
-	      bytes += this.encodeString(strs[i]);
-	    }
-	    var paddingBytes = w - bytes % w;
-	    var zeros = [];
-	    zeros.length = paddingBytes;
-	    this.update(zeros);
-	    return this;
-	  };
-
-	  Keccak.prototype.finalize = function () {
-	    if (this.finalized) {
-	      return;
-	    }
-	    this.finalized = true;
-	    var blocks = this.blocks, i = this.lastByteIndex, blockCount = this.blockCount, s = this.s;
-	    blocks[i >> 2] |= this.padding[i & 3];
-	    if (this.lastByteIndex === this.byteCount) {
-	      blocks[0] = blocks[blockCount];
-	      for (i = 1; i < blockCount + 1; ++i) {
-	        blocks[i] = 0;
-	      }
-	    }
-	    blocks[blockCount - 1] |= 0x80000000;
-	    for (i = 0; i < blockCount; ++i) {
-	      s[i] ^= blocks[i];
-	    }
-	    f(s);
-	  };
-
-	  Keccak.prototype.toString = Keccak.prototype.hex = function () {
-	    this.finalize();
-
-	    var blockCount = this.blockCount, s = this.s, outputBlocks = this.outputBlocks,
-	      extraBytes = this.extraBytes, i = 0, j = 0;
-	    var hex = '', block;
-	    while (j < outputBlocks) {
-	      for (i = 0; i < blockCount && j < outputBlocks; ++i, ++j) {
-	        block = s[i];
-	        hex += HEX_CHARS[(block >> 4) & 0x0F] + HEX_CHARS[block & 0x0F] +
-	          HEX_CHARS[(block >> 12) & 0x0F] + HEX_CHARS[(block >> 8) & 0x0F] +
-	          HEX_CHARS[(block >> 20) & 0x0F] + HEX_CHARS[(block >> 16) & 0x0F] +
-	          HEX_CHARS[(block >> 28) & 0x0F] + HEX_CHARS[(block >> 24) & 0x0F];
-	      }
-	      if (j % blockCount === 0) {
-	        f(s);
-	        i = 0;
-	      }
-	    }
-	    if (extraBytes) {
-	      block = s[i];
-	      hex += HEX_CHARS[(block >> 4) & 0x0F] + HEX_CHARS[block & 0x0F];
-	      if (extraBytes > 1) {
-	        hex += HEX_CHARS[(block >> 12) & 0x0F] + HEX_CHARS[(block >> 8) & 0x0F];
-	      }
-	      if (extraBytes > 2) {
-	        hex += HEX_CHARS[(block >> 20) & 0x0F] + HEX_CHARS[(block >> 16) & 0x0F];
-	      }
-	    }
-	    return hex;
-	  };
-
-	  Keccak.prototype.arrayBuffer = function () {
-	    this.finalize();
-
-	    var blockCount = this.blockCount, s = this.s, outputBlocks = this.outputBlocks,
-	      extraBytes = this.extraBytes, i = 0, j = 0;
-	    var bytes = this.outputBits >> 3;
-	    var buffer;
-	    if (extraBytes) {
-	      buffer = new ArrayBuffer((outputBlocks + 1) << 2);
-	    } else {
-	      buffer = new ArrayBuffer(bytes);
-	    }
-	    var array = new Uint32Array(buffer);
-	    while (j < outputBlocks) {
-	      for (i = 0; i < blockCount && j < outputBlocks; ++i, ++j) {
-	        array[j] = s[i];
-	      }
-	      if (j % blockCount === 0) {
-	        f(s);
-	      }
-	    }
-	    if (extraBytes) {
-	      array[i] = s[i];
-	      buffer = buffer.slice(0, bytes);
-	    }
-	    return buffer;
-	  };
-
-	  Keccak.prototype.buffer = Keccak.prototype.arrayBuffer;
-
-	  Keccak.prototype.digest = Keccak.prototype.array = function () {
-	    this.finalize();
-
-	    var blockCount = this.blockCount, s = this.s, outputBlocks = this.outputBlocks,
-	      extraBytes = this.extraBytes, i = 0, j = 0;
-	    var array = [], offset, block;
-	    while (j < outputBlocks) {
-	      for (i = 0; i < blockCount && j < outputBlocks; ++i, ++j) {
-	        offset = j << 2;
-	        block = s[i];
-	        array[offset] = block & 0xFF;
-	        array[offset + 1] = (block >> 8) & 0xFF;
-	        array[offset + 2] = (block >> 16) & 0xFF;
-	        array[offset + 3] = (block >> 24) & 0xFF;
-	      }
-	      if (j % blockCount === 0) {
-	        f(s);
-	      }
-	    }
-	    if (extraBytes) {
-	      offset = j << 2;
-	      block = s[i];
-	      array[offset] = block & 0xFF;
-	      if (extraBytes > 1) {
-	        array[offset + 1] = (block >> 8) & 0xFF;
-	      }
-	      if (extraBytes > 2) {
-	        array[offset + 2] = (block >> 16) & 0xFF;
-	      }
-	    }
-	    return array;
-	  };
-
-	  function Kmac(bits, padding, outputBits) {
-	    Keccak.call(this, bits, padding, outputBits);
-	  }
-
-	  Kmac.prototype = new Keccak();
-
-	  Kmac.prototype.finalize = function () {
-	    this.encode(this.outputBits, true);
-	    return Keccak.prototype.finalize.call(this);
-	  };
-
-	  var f = function (s) {
-	    var h, l, n, c0, c1, c2, c3, c4, c5, c6, c7, c8, c9,
-	      b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15, b16, b17,
-	      b18, b19, b20, b21, b22, b23, b24, b25, b26, b27, b28, b29, b30, b31, b32, b33,
-	      b34, b35, b36, b37, b38, b39, b40, b41, b42, b43, b44, b45, b46, b47, b48, b49;
-	    for (n = 0; n < 48; n += 2) {
-	      c0 = s[0] ^ s[10] ^ s[20] ^ s[30] ^ s[40];
-	      c1 = s[1] ^ s[11] ^ s[21] ^ s[31] ^ s[41];
-	      c2 = s[2] ^ s[12] ^ s[22] ^ s[32] ^ s[42];
-	      c3 = s[3] ^ s[13] ^ s[23] ^ s[33] ^ s[43];
-	      c4 = s[4] ^ s[14] ^ s[24] ^ s[34] ^ s[44];
-	      c5 = s[5] ^ s[15] ^ s[25] ^ s[35] ^ s[45];
-	      c6 = s[6] ^ s[16] ^ s[26] ^ s[36] ^ s[46];
-	      c7 = s[7] ^ s[17] ^ s[27] ^ s[37] ^ s[47];
-	      c8 = s[8] ^ s[18] ^ s[28] ^ s[38] ^ s[48];
-	      c9 = s[9] ^ s[19] ^ s[29] ^ s[39] ^ s[49];
-
-	      h = c8 ^ ((c2 << 1) | (c3 >>> 31));
-	      l = c9 ^ ((c3 << 1) | (c2 >>> 31));
-	      s[0] ^= h;
-	      s[1] ^= l;
-	      s[10] ^= h;
-	      s[11] ^= l;
-	      s[20] ^= h;
-	      s[21] ^= l;
-	      s[30] ^= h;
-	      s[31] ^= l;
-	      s[40] ^= h;
-	      s[41] ^= l;
-	      h = c0 ^ ((c4 << 1) | (c5 >>> 31));
-	      l = c1 ^ ((c5 << 1) | (c4 >>> 31));
-	      s[2] ^= h;
-	      s[3] ^= l;
-	      s[12] ^= h;
-	      s[13] ^= l;
-	      s[22] ^= h;
-	      s[23] ^= l;
-	      s[32] ^= h;
-	      s[33] ^= l;
-	      s[42] ^= h;
-	      s[43] ^= l;
-	      h = c2 ^ ((c6 << 1) | (c7 >>> 31));
-	      l = c3 ^ ((c7 << 1) | (c6 >>> 31));
-	      s[4] ^= h;
-	      s[5] ^= l;
-	      s[14] ^= h;
-	      s[15] ^= l;
-	      s[24] ^= h;
-	      s[25] ^= l;
-	      s[34] ^= h;
-	      s[35] ^= l;
-	      s[44] ^= h;
-	      s[45] ^= l;
-	      h = c4 ^ ((c8 << 1) | (c9 >>> 31));
-	      l = c5 ^ ((c9 << 1) | (c8 >>> 31));
-	      s[6] ^= h;
-	      s[7] ^= l;
-	      s[16] ^= h;
-	      s[17] ^= l;
-	      s[26] ^= h;
-	      s[27] ^= l;
-	      s[36] ^= h;
-	      s[37] ^= l;
-	      s[46] ^= h;
-	      s[47] ^= l;
-	      h = c6 ^ ((c0 << 1) | (c1 >>> 31));
-	      l = c7 ^ ((c1 << 1) | (c0 >>> 31));
-	      s[8] ^= h;
-	      s[9] ^= l;
-	      s[18] ^= h;
-	      s[19] ^= l;
-	      s[28] ^= h;
-	      s[29] ^= l;
-	      s[38] ^= h;
-	      s[39] ^= l;
-	      s[48] ^= h;
-	      s[49] ^= l;
-
-	      b0 = s[0];
-	      b1 = s[1];
-	      b32 = (s[11] << 4) | (s[10] >>> 28);
-	      b33 = (s[10] << 4) | (s[11] >>> 28);
-	      b14 = (s[20] << 3) | (s[21] >>> 29);
-	      b15 = (s[21] << 3) | (s[20] >>> 29);
-	      b46 = (s[31] << 9) | (s[30] >>> 23);
-	      b47 = (s[30] << 9) | (s[31] >>> 23);
-	      b28 = (s[40] << 18) | (s[41] >>> 14);
-	      b29 = (s[41] << 18) | (s[40] >>> 14);
-	      b20 = (s[2] << 1) | (s[3] >>> 31);
-	      b21 = (s[3] << 1) | (s[2] >>> 31);
-	      b2 = (s[13] << 12) | (s[12] >>> 20);
-	      b3 = (s[12] << 12) | (s[13] >>> 20);
-	      b34 = (s[22] << 10) | (s[23] >>> 22);
-	      b35 = (s[23] << 10) | (s[22] >>> 22);
-	      b16 = (s[33] << 13) | (s[32] >>> 19);
-	      b17 = (s[32] << 13) | (s[33] >>> 19);
-	      b48 = (s[42] << 2) | (s[43] >>> 30);
-	      b49 = (s[43] << 2) | (s[42] >>> 30);
-	      b40 = (s[5] << 30) | (s[4] >>> 2);
-	      b41 = (s[4] << 30) | (s[5] >>> 2);
-	      b22 = (s[14] << 6) | (s[15] >>> 26);
-	      b23 = (s[15] << 6) | (s[14] >>> 26);
-	      b4 = (s[25] << 11) | (s[24] >>> 21);
-	      b5 = (s[24] << 11) | (s[25] >>> 21);
-	      b36 = (s[34] << 15) | (s[35] >>> 17);
-	      b37 = (s[35] << 15) | (s[34] >>> 17);
-	      b18 = (s[45] << 29) | (s[44] >>> 3);
-	      b19 = (s[44] << 29) | (s[45] >>> 3);
-	      b10 = (s[6] << 28) | (s[7] >>> 4);
-	      b11 = (s[7] << 28) | (s[6] >>> 4);
-	      b42 = (s[17] << 23) | (s[16] >>> 9);
-	      b43 = (s[16] << 23) | (s[17] >>> 9);
-	      b24 = (s[26] << 25) | (s[27] >>> 7);
-	      b25 = (s[27] << 25) | (s[26] >>> 7);
-	      b6 = (s[36] << 21) | (s[37] >>> 11);
-	      b7 = (s[37] << 21) | (s[36] >>> 11);
-	      b38 = (s[47] << 24) | (s[46] >>> 8);
-	      b39 = (s[46] << 24) | (s[47] >>> 8);
-	      b30 = (s[8] << 27) | (s[9] >>> 5);
-	      b31 = (s[9] << 27) | (s[8] >>> 5);
-	      b12 = (s[18] << 20) | (s[19] >>> 12);
-	      b13 = (s[19] << 20) | (s[18] >>> 12);
-	      b44 = (s[29] << 7) | (s[28] >>> 25);
-	      b45 = (s[28] << 7) | (s[29] >>> 25);
-	      b26 = (s[38] << 8) | (s[39] >>> 24);
-	      b27 = (s[39] << 8) | (s[38] >>> 24);
-	      b8 = (s[48] << 14) | (s[49] >>> 18);
-	      b9 = (s[49] << 14) | (s[48] >>> 18);
-
-	      s[0] = b0 ^ (~b2 & b4);
-	      s[1] = b1 ^ (~b3 & b5);
-	      s[10] = b10 ^ (~b12 & b14);
-	      s[11] = b11 ^ (~b13 & b15);
-	      s[20] = b20 ^ (~b22 & b24);
-	      s[21] = b21 ^ (~b23 & b25);
-	      s[30] = b30 ^ (~b32 & b34);
-	      s[31] = b31 ^ (~b33 & b35);
-	      s[40] = b40 ^ (~b42 & b44);
-	      s[41] = b41 ^ (~b43 & b45);
-	      s[2] = b2 ^ (~b4 & b6);
-	      s[3] = b3 ^ (~b5 & b7);
-	      s[12] = b12 ^ (~b14 & b16);
-	      s[13] = b13 ^ (~b15 & b17);
-	      s[22] = b22 ^ (~b24 & b26);
-	      s[23] = b23 ^ (~b25 & b27);
-	      s[32] = b32 ^ (~b34 & b36);
-	      s[33] = b33 ^ (~b35 & b37);
-	      s[42] = b42 ^ (~b44 & b46);
-	      s[43] = b43 ^ (~b45 & b47);
-	      s[4] = b4 ^ (~b6 & b8);
-	      s[5] = b5 ^ (~b7 & b9);
-	      s[14] = b14 ^ (~b16 & b18);
-	      s[15] = b15 ^ (~b17 & b19);
-	      s[24] = b24 ^ (~b26 & b28);
-	      s[25] = b25 ^ (~b27 & b29);
-	      s[34] = b34 ^ (~b36 & b38);
-	      s[35] = b35 ^ (~b37 & b39);
-	      s[44] = b44 ^ (~b46 & b48);
-	      s[45] = b45 ^ (~b47 & b49);
-	      s[6] = b6 ^ (~b8 & b0);
-	      s[7] = b7 ^ (~b9 & b1);
-	      s[16] = b16 ^ (~b18 & b10);
-	      s[17] = b17 ^ (~b19 & b11);
-	      s[26] = b26 ^ (~b28 & b20);
-	      s[27] = b27 ^ (~b29 & b21);
-	      s[36] = b36 ^ (~b38 & b30);
-	      s[37] = b37 ^ (~b39 & b31);
-	      s[46] = b46 ^ (~b48 & b40);
-	      s[47] = b47 ^ (~b49 & b41);
-	      s[8] = b8 ^ (~b0 & b2);
-	      s[9] = b9 ^ (~b1 & b3);
-	      s[18] = b18 ^ (~b10 & b12);
-	      s[19] = b19 ^ (~b11 & b13);
-	      s[28] = b28 ^ (~b20 & b22);
-	      s[29] = b29 ^ (~b21 & b23);
-	      s[38] = b38 ^ (~b30 & b32);
-	      s[39] = b39 ^ (~b31 & b33);
-	      s[48] = b48 ^ (~b40 & b42);
-	      s[49] = b49 ^ (~b41 & b43);
-
-	      s[0] ^= RC[n];
-	      s[1] ^= RC[n + 1];
-	    }
-	  };
-
-	  if (COMMON_JS) {
-	    module.exports = methods;
-	  } else {
-	    for (i = 0; i < methodNames.length; ++i) {
-	      root[methodNames[i]] = methods[methodNames[i]];
-	    }
-	    if (AMD) {
-	      undefined(function () {
-	        return methods;
-	      });
-	    }
-	  }
-	})();
-	});
-
-	var lib$9 = createCommonjsModule(function (module, exports) {
-	"use strict";
-	var __importDefault = (commonjsGlobal && commonjsGlobal.__importDefault) || function (mod) {
-	    return (mod && mod.__esModule) ? mod : { "default": mod };
-	};
-	Object.defineProperty(exports, "__esModule", { value: true });
-	exports.keccak256 = void 0;
-	var js_sha3_1 = __importDefault(sha3$1);
-
-	function keccak256(data) {
-	    return '0x' + js_sha3_1.default.keccak_256((0, lib$1.arrayify)(data));
-	}
-	exports.keccak256 = keccak256;
-
-	});
-
-	var index$9 = /*@__PURE__*/getDefaultExportFromCjs(lib$9);
-
 	var id_1 = createCommonjsModule(function (module, exports) {
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
@@ -9672,7 +8995,7 @@
 
 
 	function id(text) {
-	    return (0, lib$9.keccak256)((0, lib$8.toUtf8Bytes)(text));
+	    return (0, lib$4.sha256)((0, lib$8.toUtf8Bytes)(text));
 	}
 	exports.id = id;
 
@@ -9730,7 +9053,7 @@
 	            logger.throwArgumentError("invalid ENS address; missing component", "name", name);
 	        }
 	        var label = (0, lib$8.toUtf8Bytes)((0, lib$8.nameprep)(partition[3]));
-	        result = (0, lib$9.keccak256)((0, lib$1.concat)([result, (0, lib$9.keccak256)(label)]));
+	        result = (0, lib$4.sha256)((0, lib$1.concat)([result, (0, lib$4.sha256)(label)]));
 	        current = partition[2] || "";
 	    }
 	    return (0, lib$1.hexlify)(result);
@@ -9753,7 +9076,7 @@
 	    if (typeof (message) === "string") {
 	        message = (0, lib$8.toUtf8Bytes)(message);
 	    }
-	    return (0, lib$9.keccak256)((0, lib$1.concat)([
+	    return (0, lib$4.sha256)((0, lib$1.concat)([
 	        (0, lib$8.toUtf8Bytes)(exports.messagePrefix),
 	        (0, lib$8.toUtf8Bytes)(String(message.length)),
 	        message
@@ -9923,7 +9246,7 @@
 	            return ((!value) ? hexFalse : hexTrue);
 	        };
 	        case "bytes": return function (value) {
-	            return (0, lib$9.keccak256)(value);
+	            return (0, lib$4.sha256)(value);
 	        };
 	        case "string": return function (value) {
 	            return (0, id_1.id)(value);
@@ -10046,9 +9369,9 @@
 	                }
 	                var result = value.map(subEncoder_1);
 	                if (_this._types[subtype_1]) {
-	                    result = result.map(lib$9.keccak256);
+	                    result = result.map(lib$4.sha256);
 	                }
-	                return (0, lib$9.keccak256)((0, lib$1.hexConcat)(result));
+	                return (0, lib$4.sha256)((0, lib$1.hexConcat)(result));
 	            };
 	        }
 	        // Struct
@@ -10060,7 +9383,7 @@
 	                    var name = _a.name, type = _a.type;
 	                    var result = _this.getEncoder(type)(value[name]);
 	                    if (_this._types[type]) {
-	                        return (0, lib$9.keccak256)(result);
+	                        return (0, lib$4.sha256)(result);
 	                    }
 	                    return result;
 	                });
@@ -10081,7 +9404,7 @@
 	        return this.getEncoder(type)(value);
 	    };
 	    TypedDataEncoder.prototype.hashStruct = function (name, value) {
-	        return (0, lib$9.keccak256)(this.encodeData(name, value));
+	        return (0, lib$4.sha256)(this.encodeData(name, value));
 	    };
 	    TypedDataEncoder.prototype.encode = function (value) {
 	        return this.encodeData(this.primaryType, value);
@@ -10153,7 +9476,7 @@
 	        ]);
 	    };
 	    TypedDataEncoder.hash = function (domain, types, value) {
-	        return (0, lib$9.keccak256)(TypedDataEncoder.encode(domain, types, value));
+	        return (0, lib$4.sha256)(TypedDataEncoder.encode(domain, types, value));
 	    };
 	    // Replaces all address types with ENS names with their looked up address
 	    TypedDataEncoder.resolveNames = function (domain, types, value, resolveName) {
@@ -10271,7 +9594,7 @@
 
 	var typedData$1 = /*@__PURE__*/getDefaultExportFromCjs(typedData);
 
-	var lib$a = createCommonjsModule(function (module, exports) {
+	var lib$9 = createCommonjsModule(function (module, exports) {
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports._TypedDataEncoder = exports.hashMessage = exports.messagePrefix = exports.isValidName = exports.namehash = exports.id = void 0;
@@ -10288,7 +9611,7 @@
 
 	});
 
-	var index$a = /*@__PURE__*/getDefaultExportFromCjs(lib$a);
+	var index$9 = /*@__PURE__*/getDefaultExportFromCjs(lib$9);
 
 	var _interface = createCommonjsModule(function (module, exports) {
 	"use strict";
@@ -10464,10 +9787,10 @@
 	        return (0, lib$6.getAddress)(address);
 	    };
 	    Interface.getSighash = function (fragment) {
-	        return (0, lib$1.hexDataSlice)((0, lib$a.id)(fragment.format()), 0, 4);
+	        return (0, lib$1.hexDataSlice)((0, lib$9.id)(fragment.format()), 0, 4);
 	    };
 	    Interface.getEventTopic = function (eventFragment) {
-	        return (0, lib$a.id)(eventFragment.format());
+	        return (0, lib$9.id)(eventFragment.format());
 	    };
 	    // Find a function definition by any means necessary (unless it is ambiguous)
 	    Interface.prototype.getFunction = function (nameOrSignatureOrSighash) {
@@ -10707,10 +10030,10 @@
 	        }
 	        var encodeTopic = function (param, value) {
 	            if (param.type === "string") {
-	                return (0, lib$a.id)(value);
+	                return (0, lib$9.id)(value);
 	            }
 	            else if (param.type === "bytes") {
-	                return (0, lib$9.keccak256)((0, lib$1.hexlify)(value));
+	                return (0, lib$4.sha256)((0, lib$1.hexlify)(value));
 	            }
 	            // Check addresses are valid
 	            if (param.type === "address") {
@@ -10763,10 +10086,10 @@
 	            var value = values[index];
 	            if (param.indexed) {
 	                if (param.type === "string") {
-	                    topics.push((0, lib$a.id)(value));
+	                    topics.push((0, lib$9.id)(value));
 	                }
 	                else if (param.type === "bytes") {
-	                    topics.push((0, lib$9.keccak256)(value));
+	                    topics.push((0, lib$4.sha256)(value));
 	                }
 	                else if (param.baseType === "tuple" || param.baseType === "array") {
 	                    // @TODO
@@ -10948,7 +10271,7 @@
 
 	var _interface$1 = /*@__PURE__*/getDefaultExportFromCjs(_interface);
 
-	var lib$b = createCommonjsModule(function (module, exports) {
+	var lib$a = createCommonjsModule(function (module, exports) {
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.TransactionDescription = exports.LogDescription = exports.checkResultErrors = exports.Indexed = exports.Interface = exports.defaultAbiCoder = exports.AbiCoder = exports.FormatTypes = exports.ParamType = exports.FunctionFragment = exports.Fragment = exports.EventFragment = exports.ErrorFragment = exports.ConstructorFragment = void 0;
@@ -10972,7 +10295,7 @@
 
 	});
 
-	var index$b = /*@__PURE__*/getDefaultExportFromCjs(lib$b);
+	var index$a = /*@__PURE__*/getDefaultExportFromCjs(lib$a);
 
 	var _version$k = createCommonjsModule(function (module, exports) {
 	"use strict";
@@ -10984,7 +10307,7 @@
 
 	var _version$l = /*@__PURE__*/getDefaultExportFromCjs(_version$k);
 
-	var lib$c = createCommonjsModule(function (module, exports) {
+	var lib$b = createCommonjsModule(function (module, exports) {
 	"use strict";
 	var __extends = (commonjsGlobal && commonjsGlobal.__extends) || (function () {
 	    var extendStatics = function (d, b) {
@@ -11172,7 +10495,7 @@
 
 	});
 
-	var index$c = /*@__PURE__*/getDefaultExportFromCjs(lib$c);
+	var index$b = /*@__PURE__*/getDefaultExportFromCjs(lib$b);
 
 	var _version$m = createCommonjsModule(function (module, exports) {
 	"use strict";
@@ -11184,7 +10507,7 @@
 
 	var _version$n = /*@__PURE__*/getDefaultExportFromCjs(_version$m);
 
-	var lib$d = createCommonjsModule(function (module, exports) {
+	var lib$c = createCommonjsModule(function (module, exports) {
 	"use strict";
 	var __extends = (commonjsGlobal && commonjsGlobal.__extends) || (function () {
 	    var extendStatics = function (d, b) {
@@ -11549,7 +10872,7 @@
 
 	});
 
-	var index$d = /*@__PURE__*/getDefaultExportFromCjs(lib$d);
+	var index$c = /*@__PURE__*/getDefaultExportFromCjs(lib$c);
 
 	var _version$o = createCommonjsModule(function (module, exports) {
 	"use strict";
@@ -11561,7 +10884,7 @@
 
 	var _version$p = /*@__PURE__*/getDefaultExportFromCjs(_version$o);
 
-	var lib$e = createCommonjsModule(function (module, exports) {
+	var lib$d = createCommonjsModule(function (module, exports) {
 	"use strict";
 	var __extends = (commonjsGlobal && commonjsGlobal.__extends) || (function () {
 	    var extendStatics = function (d, b) {
@@ -12106,7 +11429,7 @@
 	        }
 	    };
 	    FragmentRunningEvent.prototype.getEmit = function (event) {
-	        var errors = (0, lib$b.checkResultErrors)(event.args);
+	        var errors = (0, lib$a.checkResultErrors)(event.args);
 	        if (errors.length) {
 	            throw errors[0].error;
 	        }
@@ -12159,11 +11482,11 @@
 	            (0, lib$3.defineReadOnly)(this, "provider", null);
 	            (0, lib$3.defineReadOnly)(this, "signer", null);
 	        }
-	        else if (lib$d.Signer.isSigner(signerOrProvider)) {
+	        else if (lib$c.Signer.isSigner(signerOrProvider)) {
 	            (0, lib$3.defineReadOnly)(this, "provider", signerOrProvider.provider || null);
 	            (0, lib$3.defineReadOnly)(this, "signer", signerOrProvider);
 	        }
-	        else if (lib$c.Provider.isProvider(signerOrProvider)) {
+	        else if (lib$b.Provider.isProvider(signerOrProvider)) {
 	            (0, lib$3.defineReadOnly)(this, "provider", signerOrProvider);
 	            (0, lib$3.defineReadOnly)(this, "signer", null);
 	        }
@@ -12297,10 +11620,10 @@
 	        return (0, lib$6.getContractAddress)(transaction);
 	    };
 	    BaseContract.getInterface = function (contractInterface) {
-	        if (lib$b.Interface.isInterface(contractInterface)) {
+	        if (lib$a.Interface.isInterface(contractInterface)) {
 	            return contractInterface;
 	        }
-	        return new lib$b.Interface(contractInterface);
+	        return new lib$a.Interface(contractInterface);
 	    };
 	    // @TODO: Allow timeout?
 	    BaseContract.prototype.deployed = function () {
@@ -12356,7 +11679,7 @@
 	    // Reconnect to a different signer or provider
 	    BaseContract.prototype.connect = function (signerOrProvider) {
 	        if (typeof (signerOrProvider) === "string") {
-	            signerOrProvider = new lib$d.VoidSigner(signerOrProvider, this.provider);
+	            signerOrProvider = new lib$c.VoidSigner(signerOrProvider, this.provider);
 	        }
 	        var contract = new (this.constructor)(this.address, this.interface, signerOrProvider);
 	        if (this.deployTransaction) {
@@ -12369,7 +11692,7 @@
 	        return new (this.constructor)(addressOrName, this.interface, this.signer || this.provider);
 	    };
 	    BaseContract.isIndexed = function (value) {
-	        return lib$b.Indexed.isIndexed(value);
+	        return lib$a.Indexed.isIndexed(value);
 	    };
 	    BaseContract.prototype._normalizeRunningEvent = function (runningEvent) {
 	        // Already have an instance of this event running; we can re-use it
@@ -12621,7 +11944,7 @@
 	            logger.throwArgumentError("invalid bytecode", "bytecode", bytecode);
 	        }
 	        // If we have a signer, make sure it is valid
-	        if (signer && !lib$d.Signer.isSigner(signer)) {
+	        if (signer && !lib$c.Signer.isSigner(signer)) {
 	            logger.throwArgumentError("invalid signer", "signer", signer);
 	        }
 	        (0, lib$3.defineReadOnly)(this, "bytecode", bytecodeHex);
@@ -12742,7 +12065,7 @@
 
 	});
 
-	var index$e = /*@__PURE__*/getDefaultExportFromCjs(lib$e);
+	var index$d = /*@__PURE__*/getDefaultExportFromCjs(lib$d);
 
 	var browserPbkdf2 = createCommonjsModule(function (module, exports) {
 	"use strict";
@@ -12796,7 +12119,7 @@
 
 	var browserPbkdf2$1 = /*@__PURE__*/getDefaultExportFromCjs(browserPbkdf2);
 
-	var lib$f = createCommonjsModule(function (module, exports) {
+	var lib$e = createCommonjsModule(function (module, exports) {
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.pbkdf2 = void 0;
@@ -12805,7 +12128,7 @@
 
 	});
 
-	var index$f = /*@__PURE__*/getDefaultExportFromCjs(lib$f);
+	var index$e = /*@__PURE__*/getDefaultExportFromCjs(lib$e);
 
 	/*!
 	 * custom.js - custom inspect symbol for bcrypto
@@ -30935,7 +30258,7 @@
 
 	var _version$r = /*@__PURE__*/getDefaultExportFromCjs(_version$q);
 
-	var lib$g = createCommonjsModule(function (module, exports) {
+	var lib$f = createCommonjsModule(function (module, exports) {
 	"use strict";
 	var __importDefault = (commonjsGlobal && commonjsGlobal.__importDefault) || function (mod) {
 	    return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -30957,7 +30280,6 @@
 	    SigningKey.prototype.signDigest = function (digest) {
 	        var pub = computePublicKey(this.privateKey);
 	        var sig = sign(this.privateKey, digest);
-	        console.log("FUCK1", (0, lib$1.hexlify)(digest), sig, pub);
 	        return (0, lib$1.hexConcat)([sig, pub]);
 	    };
 	    SigningKey.isSigningKey = function (value) {
@@ -30998,7 +30320,6 @@
 	    }
 	    var sig = sigBuffer.slice(0, 114);
 	    var pub = sigBuffer.slice(114);
-	    console.log("FUCK2", (0, lib$1.hexlify)(digestBuffer), (0, lib$1.hexlify)(sig), (0, lib$1.hexlify)(pub));
 	    if (ed448_1.default.verify(digestBuffer, sig, pub)) {
 	        return (0, lib$1.hexlify)(pub);
 	    }
@@ -31025,7 +30346,7 @@
 
 	});
 
-	var index$g = /*@__PURE__*/getDefaultExportFromCjs(lib$g);
+	var index$f = /*@__PURE__*/getDefaultExportFromCjs(lib$f);
 
 	var _version$s = createCommonjsModule(function (module, exports) {
 	"use strict";
@@ -31072,7 +30393,7 @@
 	            }
 	            words.push(word);
 	        }
-	        return (0, lib$a.id)(words.join("\n") + "\n");
+	        return (0, lib$9.id)(words.join("\n") + "\n");
 	    };
 	    Wordlist.register = function (lang, name) {
 	        if (!name) {
@@ -31169,7 +30490,7 @@
 
 	var browserWordlists$1 = /*@__PURE__*/getDefaultExportFromCjs(browserWordlists);
 
-	var lib$h = createCommonjsModule(function (module, exports) {
+	var lib$g = createCommonjsModule(function (module, exports) {
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.wordlists = exports.Wordlist = exports.logger = void 0;
@@ -31183,7 +30504,7 @@
 
 	});
 
-	var index$h = /*@__PURE__*/getDefaultExportFromCjs(lib$h);
+	var index$g = /*@__PURE__*/getDefaultExportFromCjs(lib$g);
 
 	var _version$u = createCommonjsModule(function (module, exports) {
 	"use strict";
@@ -31195,7 +30516,7 @@
 
 	var _version$v = /*@__PURE__*/getDefaultExportFromCjs(_version$u);
 
-	var lib$i = createCommonjsModule(function (module, exports) {
+	var lib$h = createCommonjsModule(function (module, exports) {
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.getAccountPath = exports.isValidMnemonic = exports.entropyToMnemonic = exports.mnemonicToEntropy = exports.mnemonicToSeed = exports.HDNode = exports.defaultPath = void 0;
@@ -31221,10 +30542,10 @@
 	}
 	function getWordlist(wordlist) {
 	    if (wordlist == null) {
-	        return lib$h.wordlists["en"];
+	        return lib$g.wordlists["en"];
 	    }
 	    if (typeof (wordlist) === "string") {
-	        var words = lib$h.wordlists[wordlist];
+	        var words = lib$g.wordlists[wordlist];
 	        if (words == null) {
 	            logger.throwArgumentError("unknown locale", "wordlist", wordlist);
 	        }
@@ -31235,7 +30556,7 @@
 	function sha512Hash(password, salt) {
 	    var p = (0, lib$1.arrayify)(password);
 	    var s = (0, lib$1.arrayify)(salt);
-	    return (0, lib$1.arrayify)((0, lib$f.pbkdf2)(p, s, 2048, 57, "sha512"));
+	    return (0, lib$1.arrayify)((0, lib$e.pbkdf2)(p, s, 2048, 57, "sha512"));
 	}
 	function concatKeyIndexSalt(prefix, key, index, salt) {
 	    var ind = new Uint8Array(4);
@@ -31283,7 +30604,7 @@
 	        if (extendedPrivateKey) {
 	            (0, lib$3.defineReadOnly)(this, "extendedPrivateKey", extendedPrivateKey);
 	            var privateKey = (0, lib$1.hexDataSlice)(extendedPrivateKey, 57, 114);
-	            var signingKey = new lib$g.SigningKey(privateKey);
+	            var signingKey = new lib$f.SigningKey(privateKey);
 	            (0, lib$3.defineReadOnly)(this, "privateKey", signingKey.privateKey);
 	            (0, lib$3.defineReadOnly)(this, "publicKey", signingKey.publicKey);
 	        }
@@ -31416,7 +30737,7 @@
 	        password = "";
 	    }
 	    var salt = (0, lib$8.toUtf8Bytes)("mnemonic" + password, lib$8.UnicodeNormalizationForm.NFKD);
-	    return (0, lib$f.pbkdf2)((0, lib$8.toUtf8Bytes)(mnemonic, lib$8.UnicodeNormalizationForm.NFKD), salt, 2048, 64, "sha512");
+	    return (0, lib$e.pbkdf2)((0, lib$8.toUtf8Bytes)(mnemonic, lib$8.UnicodeNormalizationForm.NFKD), salt, 2048, 64, "sha512");
 	}
 	exports.mnemonicToSeed = mnemonicToSeed;
 	function mnemonicToEntropy(mnemonic, wordlist) {
@@ -31502,7 +30823,7 @@
 
 	});
 
-	var index$i = /*@__PURE__*/getDefaultExportFromCjs(lib$i);
+	var index$h = /*@__PURE__*/getDefaultExportFromCjs(lib$h);
 
 	var _version$w = createCommonjsModule(function (module, exports) {
 	"use strict";
@@ -31585,7 +30906,7 @@
 
 	var shuffle$1 = /*@__PURE__*/getDefaultExportFromCjs(shuffle);
 
-	var lib$j = createCommonjsModule(function (module, exports) {
+	var lib$i = createCommonjsModule(function (module, exports) {
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.shuffled = exports.randomBytes = void 0;
@@ -31596,7 +30917,7 @@
 
 	});
 
-	var index$j = /*@__PURE__*/getDefaultExportFromCjs(lib$j);
+	var index$i = /*@__PURE__*/getDefaultExportFromCjs(lib$i);
 
 	var aesJs = createCommonjsModule(function (module, exports) {
 	"use strict";
@@ -32539,7 +31860,7 @@
 	    if (!encseed || (encseed.length % 16) !== 0) {
 	        logger.throwArgumentError("invalid encseed", "json", json);
 	    }
-	    var key = (0, lib$1.arrayify)((0, lib$f.pbkdf2)(password, password, 2000, 32, "sha256")).slice(0, 16);
+	    var key = (0, lib$1.arrayify)((0, lib$e.pbkdf2)(password, password, 2000, 32, "sha256")).slice(0, 16);
 	    var iv = encseed.slice(0, 16);
 	    var encryptedSeed = encseed.slice(16);
 	    // Decrypt the seed
@@ -32551,7 +31872,7 @@
 	        seedHex += String.fromCharCode(seed[i]);
 	    }
 	    var seedHexBytes = (0, lib$8.toUtf8Bytes)(seedHex);
-	    var privateKey = (0, lib$9.keccak256)(seedHexBytes);
+	    var privateKey = (0, lib$4.sha256)(seedHexBytes);
 	    return new CrowdsaleAccount({
 	        _isCrowdsaleAccount: true,
 	        address: ethaddr,
@@ -33124,7 +32445,7 @@
 
 	var _version$B = /*@__PURE__*/getDefaultExportFromCjs(_version$A);
 
-	var lib$k = createCommonjsModule(function (module, exports) {
+	var lib$j = createCommonjsModule(function (module, exports) {
 	"use strict";
 	var __createBinding = (commonjsGlobal && commonjsGlobal.__createBinding) || (Object.create ? (function(o, m, k, k2) {
 	    if (k2 === undefined) k2 = k;
@@ -33184,12 +32505,12 @@
 	    networkId: true, data: true, energyLimit: true, energyPrice: true, nonce: true, to: true, value: true
 	};
 	function computeAddress(key, prefix) {
-	    var publicKey = (0, lib$g.computePublicKey)(key);
+	    var publicKey = (0, lib$f.computePublicKey)(key);
 	    return (0, lib$6.publicToAddress)(publicKey, prefix);
 	}
 	exports.computeAddress = computeAddress;
 	function recoverAddress(digest, signature, prefix) {
-	    var publicKey = (0, lib$g.recoverPublicKey)((0, lib$1.arrayify)(digest), signature);
+	    var publicKey = (0, lib$f.recoverPublicKey)((0, lib$1.arrayify)(digest), signature);
 	    return (0, lib$6.publicToAddress)(publicKey, prefix);
 	}
 	exports.recoverAddress = recoverAddress;
@@ -33248,7 +32569,7 @@
 
 	});
 
-	var index$k = /*@__PURE__*/getDefaultExportFromCjs(lib$k);
+	var index$j = /*@__PURE__*/getDefaultExportFromCjs(lib$j);
 
 	var keystore = createCommonjsModule(function (module, exports) {
 	"use strict";
@@ -33350,7 +32671,7 @@
 	}
 	function _getAccount(data, key) {
 	    var ciphertext = (0, utils.looseArrayify)((0, utils.searchPath)(data, "crypto/ciphertext"));
-	    var computedMAC = (0, lib$1.hexlify)((0, lib$9.keccak256)((0, lib$1.concat)([key.slice(16, 32), ciphertext]))).substring(2);
+	    var computedMAC = (0, lib$1.hexlify)((0, lib$4.sha256)((0, lib$1.concat)([key.slice(16, 32), ciphertext]))).substring(2);
 	    if (computedMAC !== (0, utils.searchPath)(data, "crypto/mac").toLowerCase()) {
 	        throw new Error("invalid password");
 	    }
@@ -33363,7 +32684,7 @@
 	    var mnemonicKey = key.slice(32, 64);
 	    var address = (0, lib$6.getAddress)(data.address);
 	    var prefix = (0, address_2.extractPrefix)(address);
-	    if ((0, lib$k.computeAddress)(privateKey, prefix) !== address) {
+	    if ((0, lib$j.computeAddress)(privateKey, prefix) !== address) {
 	        throw new Error("address mismatch");
 	    }
 	    var account = {
@@ -33377,12 +32698,12 @@
 	        var mnemonicIv = (0, utils.looseArrayify)((0, utils.searchPath)(data, "x-ethers/mnemonicCounter"));
 	        var mnemonicCounter = new aes_js_1.default.Counter(mnemonicIv);
 	        var mnemonicAesCtr = new aes_js_1.default.ModeOfOperation.ctr(mnemonicKey, mnemonicCounter);
-	        var path = (0, utils.searchPath)(data, "x-ethers/path") || lib$i.defaultPath;
+	        var path = (0, utils.searchPath)(data, "x-ethers/path") || lib$h.defaultPath;
 	        var locale = (0, utils.searchPath)(data, "x-ethers/locale") || "en";
 	        var entropy = (0, lib$1.arrayify)(mnemonicAesCtr.decrypt(mnemonicCiphertext));
 	        try {
-	            var mnemonic = (0, lib$i.entropyToMnemonic)(entropy, locale);
-	            var node = lib$i.HDNode.fromMnemonic(mnemonic, null, locale).derivePath(path);
+	            var mnemonic = (0, lib$h.entropyToMnemonic)(entropy, locale);
+	            var node = lib$h.HDNode.fromMnemonic(mnemonic, null, locale).derivePath(path);
 	            if (node.privateKey != account.privateKey) {
 	                throw new Error("mnemonic mismatch");
 	            }
@@ -33400,7 +32721,7 @@
 	    return new KeystoreAccount(account);
 	}
 	function pbkdf2Sync(passwordBytes, salt, count, dkLen, prfFunc) {
-	    return (0, lib$1.arrayify)((0, lib$f.pbkdf2)(passwordBytes, salt, count, dkLen, prfFunc));
+	    return (0, lib$1.arrayify)((0, lib$e.pbkdf2)(passwordBytes, salt, count, dkLen, prfFunc));
 	}
 	function pbkdf2(passwordBytes, salt, count, dkLen, prfFunc) {
 	    return Promise.resolve(pbkdf2Sync(passwordBytes, salt, count, dkLen, prfFunc));
@@ -33481,13 +32802,13 @@
 	        // Check the address matches the private key
 	        var address = (0, lib$6.getAddress)(account.address);
 	        var prefix = (0, address_2.extractPrefix)(address);
-	        if ((0, lib$k.computeAddress)(account.privateKey, prefix) !== address) {
+	        if ((0, lib$j.computeAddress)(account.privateKey, prefix) !== address) {
 	            throw new Error("address/privateKey mismatch");
 	        }
 	        // Check the mnemonic (if any) matches the private key
 	        if (hasMnemonic(account)) {
 	            var mnemonic = account.mnemonic;
-	            var node = lib$i.HDNode.fromMnemonic(mnemonic.phrase, null, mnemonic.locale).derivePath(mnemonic.path || lib$i.defaultPath);
+	            var node = lib$h.HDNode.fromMnemonic(mnemonic.phrase, null, mnemonic.locale).derivePath(mnemonic.path || lib$h.defaultPath);
 	            if (node.privateKey != account.privateKey) {
 	                throw new Error("mnemonic mismatch");
 	            }
@@ -33511,8 +32832,8 @@
 	    var locale = null;
 	    if (hasMnemonic(account)) {
 	        var srcMnemonic = account.mnemonic;
-	        entropy = (0, lib$1.arrayify)((0, lib$i.mnemonicToEntropy)(srcMnemonic.phrase, srcMnemonic.locale || "en"));
-	        path = srcMnemonic.path || lib$i.defaultPath;
+	        entropy = (0, lib$1.arrayify)((0, lib$h.mnemonicToEntropy)(srcMnemonic.phrase, srcMnemonic.locale || "en"));
+	        path = srcMnemonic.path || lib$h.defaultPath;
 	        locale = srcMnemonic.locale || "en";
 	    }
 	    var client = options.client;
@@ -33525,7 +32846,7 @@
 	        salt = (0, lib$1.arrayify)(options.salt);
 	    }
 	    else {
-	        salt = (0, lib$j.randomBytes)(32);
+	        salt = (0, lib$i.randomBytes)(32);
 	        ;
 	    }
 	    // Override initialization vector
@@ -33537,7 +32858,7 @@
 	        }
 	    }
 	    else {
-	        iv = (0, lib$j.randomBytes)(16);
+	        iv = (0, lib$i.randomBytes)(16);
 	    }
 	    // Override the uuid
 	    var uuidRandom = null;
@@ -33548,7 +32869,7 @@
 	        }
 	    }
 	    else {
-	        uuidRandom = (0, lib$j.randomBytes)(16);
+	        uuidRandom = (0, lib$i.randomBytes)(16);
 	    }
 	    // Override the scrypt password-based key derivation function parameters
 	    var N = (1 << 17), r = 8, p = 1;
@@ -33578,7 +32899,7 @@
 	        var aesCtr = new aes_js_1.default.ModeOfOperation.ctr(derivedKey, counter);
 	        var ciphertext = (0, lib$1.arrayify)(aesCtr.encrypt(privateKey));
 	        // Compute the message authentication code, used to check the password
-	        var mac = (0, lib$9.keccak256)((0, lib$1.concat)([macPrefix, ciphertext]));
+	        var mac = (0, lib$4.sha256)((0, lib$1.concat)([macPrefix, ciphertext]));
 	        // See: https://github.com/ethereum/wiki/wiki/Web3-Secret-Storage-Definition
 	        var data = {
 	            address: account.address.substring(2).toLowerCase(),
@@ -33603,7 +32924,7 @@
 	        };
 	        // If we have a mnemonic, encrypt it into the JSON wallet
 	        if (entropy) {
-	            var mnemonicIv = (0, lib$j.randomBytes)(16);
+	            var mnemonicIv = (0, lib$i.randomBytes)(16);
 	            var mnemonicCounter = new aes_js_1.default.Counter(mnemonicIv);
 	            var mnemonicAesCtr = new aes_js_1.default.ModeOfOperation.ctr(mnemonicKey, mnemonicCounter);
 	            var mnemonicCiphertext = (0, lib$1.arrayify)(mnemonicAesCtr.encrypt(entropy));
@@ -33633,7 +32954,7 @@
 
 	var keystore$1 = /*@__PURE__*/getDefaultExportFromCjs(keystore);
 
-	var lib$l = createCommonjsModule(function (module, exports) {
+	var lib$k = createCommonjsModule(function (module, exports) {
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.decryptJsonWalletSync = exports.decryptJsonWallet = exports.getJsonWalletAddress = exports.isKeystoreWallet = exports.isCrowdsaleWallet = exports.encryptKeystore = exports.decryptKeystoreSync = exports.decryptKeystore = exports.decryptCrowdsale = void 0;
@@ -33677,7 +32998,7 @@
 
 	});
 
-	var index$l = /*@__PURE__*/getDefaultExportFromCjs(lib$l);
+	var index$k = /*@__PURE__*/getDefaultExportFromCjs(lib$k);
 
 	var _version$C = createCommonjsModule(function (module, exports) {
 	"use strict";
@@ -33689,7 +33010,7 @@
 
 	var _version$D = /*@__PURE__*/getDefaultExportFromCjs(_version$C);
 
-	var lib$m = createCommonjsModule(function (module, exports) {
+	var lib$l = createCommonjsModule(function (module, exports) {
 	"use strict";
 	var __extends = (commonjsGlobal && commonjsGlobal.__extends) || (function () {
 	    var extendStatics = function (d, b) {
@@ -33775,7 +33096,7 @@
 	        _this = _super.call(this) || this;
 	        (0, lib$3.defineReadOnly)(_this, "prefix", prefix);
 	        if (isAccount(privateKey)) {
-	            var signingKey_1 = new lib$g.SigningKey(privateKey.privateKey);
+	            var signingKey_1 = new lib$f.SigningKey(privateKey.privateKey);
 	            (0, lib$3.defineReadOnly)(_this, "_signingKey", function () { return signingKey_1; });
 	            (0, lib$3.defineReadOnly)(_this, "address", (0, lib$6.publicToAddress)(_this.publicKey, prefix));
 	            if (_this.address !== (0, lib$6.getAddress)(privateKey.address)) {
@@ -33785,12 +33106,12 @@
 	                var srcMnemonic_1 = privateKey.mnemonic;
 	                (0, lib$3.defineReadOnly)(_this, "_mnemonic", function () { return ({
 	                    phrase: srcMnemonic_1.phrase,
-	                    path: srcMnemonic_1.path || lib$i.defaultPath,
+	                    path: srcMnemonic_1.path || lib$h.defaultPath,
 	                    locale: srcMnemonic_1.locale || "en"
 	                }); });
 	                var mnemonic = _this.mnemonic;
-	                var node = lib$i.HDNode.fromMnemonic(mnemonic.phrase, prefix, null, mnemonic.locale).derivePath(mnemonic.path);
-	                if ((0, lib$k.computeAddress)(node.privateKey, prefix) !== _this.address) {
+	                var node = lib$h.HDNode.fromMnemonic(mnemonic.phrase, prefix, null, mnemonic.locale).derivePath(mnemonic.path);
+	                if ((0, lib$j.computeAddress)(node.privateKey, prefix) !== _this.address) {
 	                    logger.throwArgumentError("mnemonic/address mismatch", "privateKey", "[REDACTED]");
 	                }
 	            }
@@ -33799,7 +33120,7 @@
 	            }
 	        }
 	        else {
-	            if (lib$g.SigningKey.isSigningKey(privateKey)) {
+	            if (lib$f.SigningKey.isSigningKey(privateKey)) {
 	                (0, lib$3.defineReadOnly)(_this, "_signingKey", function () { return privateKey; });
 	            }
 	            else {
@@ -33809,14 +33130,14 @@
 	                        privateKey = "0x" + privateKey;
 	                    }
 	                }
-	                var signingKey_2 = new lib$g.SigningKey(privateKey);
+	                var signingKey_2 = new lib$f.SigningKey(privateKey);
 	                (0, lib$3.defineReadOnly)(_this, "_signingKey", function () { return signingKey_2; });
 	            }
 	            (0, lib$3.defineReadOnly)(_this, "_mnemonic", function () { return null; });
 	            (0, lib$3.defineReadOnly)(_this, "address", (0, lib$6.publicToAddress)(_this.publicKey, prefix));
 	        }
 	        /* istanbul ignore if */
-	        if (provider && !lib$c.Provider.isProvider(provider)) {
+	        if (provider && !lib$b.Provider.isProvider(provider)) {
 	            logger.throwArgumentError("invalid provider", "provider", provider);
 	        }
 	        (0, lib$3.defineReadOnly)(_this, "provider", provider || null);
@@ -33852,14 +33173,14 @@
 	                }
 	                delete tx.from;
 	            }
-	            var signature = _this._signingKey().signDigest((0, lib$4.sha256)((0, lib$k.serialize)(tx)));
-	            return (0, lib$k.serialize)(tx, signature);
+	            var signature = _this._signingKey().signDigest((0, lib$4.sha256)((0, lib$j.serialize)(tx)));
+	            return (0, lib$j.serialize)(tx, signature);
 	        });
 	    };
 	    Wallet.prototype.signMessage = function (message) {
 	        return __awaiter(this, void 0, void 0, function () {
 	            return __generator(this, function (_a) {
-	                return [2 /*return*/, this._signingKey().signDigest((0, lib$a.hashMessage)(message))];
+	                return [2 /*return*/, this._signingKey().signDigest((0, lib$9.hashMessage)(message))];
 	            });
 	        });
 	    };
@@ -33869,7 +33190,7 @@
 	            var _this = this;
 	            return __generator(this, function (_a) {
 	                switch (_a.label) {
-	                    case 0: return [4 /*yield*/, lib$a._TypedDataEncoder.resolveNames(domain, types, value, function (name) {
+	                    case 0: return [4 /*yield*/, lib$9._TypedDataEncoder.resolveNames(domain, types, value, function (name) {
 	                            if (_this.provider == null) {
 	                                logger.throwError("cannot resolve ENS names without a provider", lib.Logger.errors.UNSUPPORTED_OPERATION, {
 	                                    operation: "resolveName",
@@ -33880,7 +33201,7 @@
 	                        })];
 	                    case 1:
 	                        populated = _a.sent();
-	                        return [2 /*return*/, this._signingKey().signDigest(lib$a._TypedDataEncoder.hash(populated.domain, types, populated.value))];
+	                        return [2 /*return*/, this._signingKey().signDigest(lib$9._TypedDataEncoder.hash(populated.domain, types, populated.value))];
 	                }
 	            });
 	        });
@@ -33896,54 +33217,54 @@
 	        if (!options) {
 	            options = {};
 	        }
-	        return (0, lib$l.encryptKeystore)(this, password, options, progressCallback);
+	        return (0, lib$k.encryptKeystore)(this, password, options, progressCallback);
 	    };
 	    /**
 	     *  Static methods to create Wallet instances.
 	     */
 	    Wallet.createRandom = function (prefix, options) {
-	        var entropy = (0, lib$j.randomBytes)(16);
+	        var entropy = (0, lib$i.randomBytes)(16);
 	        if (!options) {
 	            options = {};
 	        }
 	        if (options.extraEntropy) {
 	            entropy = (0, lib$1.arrayify)((0, lib$1.hexDataSlice)((0, lib$4.sha256)((0, lib$1.concat)([entropy, options.extraEntropy])), 0, 16));
 	        }
-	        var mnemonic = (0, lib$i.entropyToMnemonic)(entropy, options.locale);
+	        var mnemonic = (0, lib$h.entropyToMnemonic)(entropy, options.locale);
 	        return Wallet.fromMnemonic(mnemonic, prefix, options.path, options.locale);
 	    };
 	    Wallet.fromEncryptedJson = function (json, password, progressCallback) {
-	        return (0, lib$l.decryptJsonWallet)(json, password, progressCallback).then(function (account) {
+	        return (0, lib$k.decryptJsonWallet)(json, password, progressCallback).then(function (account) {
 	            var prefix = (0, lib$6.extractPrefix)(account.address);
 	            return new Wallet(account, prefix);
 	        });
 	    };
 	    Wallet.fromEncryptedJsonSync = function (json, password) {
-	        var account = (0, lib$l.decryptJsonWalletSync)(json, password);
+	        var account = (0, lib$k.decryptJsonWalletSync)(json, password);
 	        var prefix = (0, lib$6.extractPrefix)(account.address);
 	        return new Wallet(account, prefix);
 	    };
 	    Wallet.fromMnemonic = function (mnemonic, prefix, path, wordlist) {
 	        if (!path) {
-	            path = lib$i.defaultPath;
+	            path = lib$h.defaultPath;
 	        }
-	        return new Wallet(lib$i.HDNode.fromMnemonic(mnemonic, prefix, null, wordlist).derivePath(path), prefix);
+	        return new Wallet(lib$h.HDNode.fromMnemonic(mnemonic, prefix, null, wordlist).derivePath(path), prefix);
 	    };
 	    return Wallet;
-	}(lib$d.Signer));
+	}(lib$c.Signer));
 	exports.Wallet = Wallet;
 	function verifyMessage(message, signature, prefix) {
-	    return (0, lib$k.recoverAddress)((0, lib$a.hashMessage)(message), signature, prefix);
+	    return (0, lib$j.recoverAddress)((0, lib$9.hashMessage)(message), signature, prefix);
 	}
 	exports.verifyMessage = verifyMessage;
 	function verifyTypedData(domain, types, value, signature, prefix) {
-	    return (0, lib$k.recoverAddress)(lib$a._TypedDataEncoder.hash(domain, types, value), signature, prefix);
+	    return (0, lib$j.recoverAddress)(lib$9._TypedDataEncoder.hash(domain, types, value), signature, prefix);
 	}
 	exports.verifyTypedData = verifyTypedData;
 
 	});
 
-	var index$m = /*@__PURE__*/getDefaultExportFromCjs(lib$m);
+	var index$l = /*@__PURE__*/getDefaultExportFromCjs(lib$l);
 
 	var _version$E = createCommonjsModule(function (module, exports) {
 	"use strict";
@@ -33955,7 +33276,7 @@
 
 	var _version$F = /*@__PURE__*/getDefaultExportFromCjs(_version$E);
 
-	var lib$n = createCommonjsModule(function (module, exports) {
+	var lib$m = createCommonjsModule(function (module, exports) {
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.getNetwork = void 0;
@@ -34185,9 +33506,9 @@
 
 	});
 
-	var index$n = /*@__PURE__*/getDefaultExportFromCjs(lib$n);
+	var index$m = /*@__PURE__*/getDefaultExportFromCjs(lib$m);
 
-	var lib$o = createCommonjsModule(function (module, exports) {
+	var lib$n = createCommonjsModule(function (module, exports) {
 	"use strict";
 	/**
 	 * var basex = require("base-x");
@@ -34315,7 +33636,7 @@
 
 	});
 
-	var index$o = /*@__PURE__*/getDefaultExportFromCjs(lib$o);
+	var index$n = /*@__PURE__*/getDefaultExportFromCjs(lib$n);
 
 	var browserBase64 = createCommonjsModule(function (module, exports) {
 	"use strict";
@@ -34345,7 +33666,7 @@
 
 	var browserBase64$1 = /*@__PURE__*/getDefaultExportFromCjs(browserBase64);
 
-	var lib$p = createCommonjsModule(function (module, exports) {
+	var lib$o = createCommonjsModule(function (module, exports) {
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.encode = exports.decode = void 0;
@@ -34355,7 +33676,7 @@
 
 	});
 
-	var index$p = /*@__PURE__*/getDefaultExportFromCjs(lib$p);
+	var index$o = /*@__PURE__*/getDefaultExportFromCjs(lib$o);
 
 	var _version$G = createCommonjsModule(function (module, exports) {
 	"use strict";
@@ -34463,7 +33784,7 @@
 
 	var browserGeturl$1 = /*@__PURE__*/getDefaultExportFromCjs(browserGeturl);
 
-	var lib$q = createCommonjsModule(function (module, exports) {
+	var lib$p = createCommonjsModule(function (module, exports) {
 	"use strict";
 	var __awaiter = (commonjsGlobal && commonjsGlobal.__awaiter) || function (thisArg, _arguments, P, generator) {
 	    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -34583,7 +33904,7 @@
 	            var authorization = connection.user + ":" + connection.password;
 	            headers["authorization"] = {
 	                key: "Authorization",
-	                value: "Basic " + (0, lib$p.encode)((0, lib$8.toUtf8Bytes)(authorization))
+	                value: "Basic " + (0, lib$o.encode)((0, lib$8.toUtf8Bytes)(authorization))
 	            };
 	        }
 	    }
@@ -34595,7 +33916,7 @@
 	                statusCode: 200,
 	                statusMessage: "OK",
 	                headers: { "content-type": dataMatch[1] },
-	                body: (0, lib$p.decode)(dataMatch[2])
+	                body: (0, lib$o.decode)(dataMatch[2])
 	            };
 	            var result = response.body;
 	            if (processFunc) {
@@ -34917,7 +34238,7 @@
 
 	});
 
-	var index$q = /*@__PURE__*/getDefaultExportFromCjs(lib$q);
+	var index$p = /*@__PURE__*/getDefaultExportFromCjs(lib$p);
 
 	'use strict';
 	var ALPHABET = 'qpzry9x8gf2tvdw0s3jn54khce6mua7l';
@@ -35397,7 +34718,7 @@
 	        return result;
 	    };
 	    Formatter.prototype.transaction = function (value) {
-	        return (0, lib$k.parse)(value);
+	        return (0, lib$j.parse)(value);
 	    };
 	    Formatter.prototype.receiptLog = function (value) {
 	        return Formatter.check(this.formats.receiptLog, value);
@@ -35667,7 +34988,7 @@
 	    else if (Array.isArray(eventName)) {
 	        return "filter:*:" + serializeTopics(eventName);
 	    }
-	    else if (lib$c.ForkEvent.isForkEvent(eventName)) {
+	    else if (lib$b.ForkEvent.isForkEvent(eventName)) {
 	        logger.warn("not implemented");
 	        throw new Error("not implemented");
 	    }
@@ -35779,7 +35100,7 @@
 	}
 	// Compute the Base58Check encoded data (checksum is first 4 bytes of sha256d)
 	function base58Encode(data) {
-	    return lib$o.Base58.encode((0, lib$1.concat)([data, (0, lib$1.hexDataSlice)((0, lib$4.sha256)((0, lib$4.sha256)(data)), 0, 4)]));
+	    return lib$n.Base58.encode((0, lib$1.concat)([data, (0, lib$1.hexDataSlice)((0, lib$4.sha256)((0, lib$4.sha256)(data)), 0, 4)]));
 	}
 	var matcherIpfs = new RegExp("^(ipfs):/\/(.*)$", "i");
 	var matchers = [
@@ -35832,7 +35153,7 @@
 	                    case 0:
 	                        tx = {
 	                            to: this.address,
-	                            data: (0, lib$1.hexConcat)([selector, (0, lib$a.namehash)(this.name), (parameters || "0x")])
+	                            data: (0, lib$1.hexConcat)([selector, (0, lib$9.namehash)(this.name), (parameters || "0x")])
 	                        };
 	                        _b.label = 1;
 	                    case 1:
@@ -35918,7 +35239,7 @@
 	                        _a.trys.push([1, 3, , 4]);
 	                        transaction = {
 	                            to: this.address,
-	                            data: ("0x3b3b57de" + (0, lib$a.namehash)(this.name).substring(2))
+	                            data: ("0x3b3b57de" + (0, lib$9.namehash)(this.name).substring(2))
 	                        };
 	                        return [4 /*yield*/, this.provider.call(transaction)];
 	                    case 2:
@@ -36064,7 +35385,7 @@
 	                            metadataUrl = getIpfsLink(metadataUrl);
 	                        }
 	                        linkage.push({ type: "metadata-url", content: metadataUrl });
-	                        return [4 /*yield*/, (0, lib$q.fetchJson)(metadataUrl)];
+	                        return [4 /*yield*/, (0, lib$p.fetchJson)(metadataUrl)];
 	                    case 16:
 	                        metadata = _h.sent();
 	                        if (!metadata) {
@@ -36116,7 +35437,7 @@
 	                        if (ipfs) {
 	                            length_4 = parseInt(ipfs[3], 16);
 	                            if (ipfs[4].length === length_4 * 2) {
-	                                return [2 /*return*/, "ipfs:/\/" + lib$o.Base58.encode("0x" + ipfs[1])];
+	                                return [2 /*return*/, "ipfs:/\/" + lib$n.Base58.encode("0x" + ipfs[1])];
 	                            }
 	                        }
 	                        swarm = hexBytes.match(/^0xe40101fa011b20([0-9a-f]*)$/);
@@ -36177,7 +35498,7 @@
 	    function BaseProvider(network) {
 	        var _newTarget = this.constructor;
 	        var _this = this;
-	        logger.checkNew(_newTarget, lib$c.Provider);
+	        logger.checkNew(_newTarget, lib$b.Provider);
 	        _this = _super.call(this) || this;
 	        // Events being listened to
 	        _this._events = [];
@@ -36266,7 +35587,7 @@
 	        // any change is reflected); otherwise this cannot change
 	        get: function () {
 	            var _this = this;
-	            return (0, lib$q.poll)(function () {
+	            return (0, lib$p.poll)(function () {
 	                return _this._ready().then(function (network) {
 	                    return network;
 	                }, function (error) {
@@ -36290,7 +35611,7 @@
 	    };
 	    // @TODO: Remove this and just use getNetwork
 	    BaseProvider.getNetwork = function (network) {
-	        return (0, lib$n.getNetwork)((network == null) ? "homestead" : network);
+	        return (0, lib$m.getNetwork)((network == null) ? "homestead" : network);
 	    };
 	    // Fetches the blockNumber, but will reuse any result that is less
 	    // than maxAge old or has been requested since the last request
@@ -37280,7 +36601,7 @@
 	                        error_8 = _b.sent();
 	                        logger.throwArgumentError("invalid block hash or block tag", "blockHashOrBlockTag", blockHashOrBlockTag);
 	                        return [3 /*break*/, 6];
-	                    case 6: return [2 /*return*/, (0, lib$q.poll)(function () { return __awaiter(_this, void 0, void 0, function () {
+	                    case 6: return [2 /*return*/, (0, lib$p.poll)(function () { return __awaiter(_this, void 0, void 0, function () {
 	                            var block, blockNumber_1, i, tx, confirmations, blockWithTxs;
 	                            var _this = this;
 	                            return __generator(this, function (_a) {
@@ -37365,7 +36686,7 @@
 	                    case 2:
 	                        transactionHash = _a.sent();
 	                        params = { transactionHash: this.formatter.hash(transactionHash, true) };
-	                        return [2 /*return*/, (0, lib$q.poll)(function () { return __awaiter(_this, void 0, void 0, function () {
+	                        return [2 /*return*/, (0, lib$p.poll)(function () { return __awaiter(_this, void 0, void 0, function () {
 	                                var result, tx, blockNumber, confirmations;
 	                                return __generator(this, function (_a) {
 	                                    switch (_a.label) {
@@ -37414,7 +36735,7 @@
 	                    case 2:
 	                        transactionHash = _a.sent();
 	                        params = { transactionHash: this.formatter.hash(transactionHash, true) };
-	                        return [2 /*return*/, (0, lib$q.poll)(function () { return __awaiter(_this, void 0, void 0, function () {
+	                        return [2 /*return*/, (0, lib$p.poll)(function () { return __awaiter(_this, void 0, void 0, function () {
 	                                var result, receipt, blockNumber, confirmations;
 	                                return __generator(this, function (_a) {
 	                                    switch (_a.label) {
@@ -37554,7 +36875,7 @@
 	                        }
 	                        transaction = {
 	                            to: network.ensAddress,
-	                            data: ("0x0178b8bf" + (0, lib$a.namehash)(name).substring(2))
+	                            data: ("0x0178b8bf" + (0, lib$9.namehash)(name).substring(2))
 	                        };
 	                        _c.label = 2;
 	                    case 2:
@@ -37625,7 +36946,7 @@
 	                        _a = lib$1.arrayify;
 	                        return [4 /*yield*/, this.call({
 	                                to: resolverAddress,
-	                                data: ("0x691f3431" + (0, lib$a.namehash)(reverseName).substring(2))
+	                                data: ("0x691f3431" + (0, lib$9.namehash)(reverseName).substring(2))
 	                            })];
 	                    case 3:
 	                        bytes = _a.apply(void 0, [_b.sent()]);
@@ -37801,7 +37122,7 @@
 	        return this;
 	    };
 	    return BaseProvider;
-	}(lib$c.Provider));
+	}(lib$b.Provider));
 	exports.BaseProvider = BaseProvider;
 
 	});
@@ -38134,7 +37455,7 @@
 	            if ((provider.blockNumber != null && provider.blockNumber >= blockNumber) || blockNumber === -1) {
 	                return [2 /*return*/, provider];
 	            }
-	            return [2 /*return*/, (0, lib$q.poll)(function () {
+	            return [2 /*return*/, (0, lib$p.poll)(function () {
 	                    return new Promise(function (resolve, reject) {
 	                        setTimeout(function () {
 	                            // We are synced
@@ -38238,7 +37559,7 @@
 	            logger.throwArgumentError("missing providers", "providers", providers);
 	        }
 	        var providerConfigs = providers.map(function (configOrProvider, index) {
-	            if (lib$c.Provider.isProvider(configOrProvider)) {
+	            if (lib$b.Provider.isProvider(configOrProvider)) {
 	                var stallTimeout = (0, formatter.isCommunityResource)(configOrProvider) ? 2000 : 750;
 	                var priority = 1;
 	                return Object.freeze({ provider: configOrProvider, weight: 1, stallTimeout: stallTimeout, priority: priority });
@@ -38330,7 +37651,7 @@
 	                        _a.label = 4;
 	                    case 4:
 	                        processFunc = getProcessFunc(this, method, params);
-	                        configs = (0, lib$j.shuffled)(this.providerConfigs.map(lib$3.shallowCopy));
+	                        configs = (0, lib$i.shuffled)(this.providerConfigs.map(lib$3.shallowCopy));
 	                        configs.sort(function (a, b) { return (a.priority - b.priority); });
 	                        currentBlockNumber = this._highestBlockNumber;
 	                        i = 0;
@@ -38803,7 +38124,7 @@
 	                        _a.label = 3;
 	                    case 3:
 	                        _a.trys.push([3, 5, , 6]);
-	                        return [4 /*yield*/, (0, lib$q.poll)(function () { return __awaiter(_this, void 0, void 0, function () {
+	                        return [4 /*yield*/, (0, lib$p.poll)(function () { return __awaiter(_this, void 0, void 0, function () {
 	                                var tx;
 	                                return __generator(this, function (_a) {
 	                                    switch (_a.label) {
@@ -38869,7 +38190,7 @@
 	            var _this = this;
 	            return __generator(this, function (_a) {
 	                switch (_a.label) {
-	                    case 0: return [4 /*yield*/, lib$a._TypedDataEncoder.resolveNames(domain, types, value, function (name) {
+	                    case 0: return [4 /*yield*/, lib$9._TypedDataEncoder.resolveNames(domain, types, value, function (name) {
 	                            return _this.provider.resolveName(name);
 	                        })];
 	                    case 1:
@@ -38879,7 +38200,7 @@
 	                        address = _a.sent();
 	                        return [4 /*yield*/, this.provider.send("xcb_signTypedData_v4", [
 	                                address.toLowerCase(),
-	                                JSON.stringify(lib$a._TypedDataEncoder.getPayload(populated.domain, types, populated.value))
+	                                JSON.stringify(lib$9._TypedDataEncoder.getPayload(populated.domain, types, populated.value))
 	                            ])];
 	                    case 3: return [2 /*return*/, _a.sent()];
 	                }
@@ -38902,7 +38223,7 @@
 	        });
 	    };
 	    return JsonRpcSigner;
-	}(lib$d.Signer));
+	}(lib$c.Signer));
 	exports.JsonRpcSigner = JsonRpcSigner;
 	var UncheckedJsonRpcSigner = /** @class */ (function (_super) {
 	    __extends(UncheckedJsonRpcSigner, _super);
@@ -39071,7 +38392,7 @@
 	        if (cache && this._cache[method]) {
 	            return this._cache[method];
 	        }
-	        var result = (0, lib$q.fetchJson)(this.connection, JSON.stringify(request), getResult).then(function (result) {
+	        var result = (0, lib$p.fetchJson)(this.connection, JSON.stringify(request), getResult).then(function (result) {
 	            _this.emit("debug", {
 	                action: "response",
 	                request: request,
@@ -39341,7 +38662,7 @@
 	                    request: (0, lib$3.deepCopy)(request),
 	                    provider: _this
 	                });
-	                return (0, lib$q.fetchJson)(_this.connection, JSON.stringify(request)).then(function (result) {
+	                return (0, lib$p.fetchJson)(_this.connection, JSON.stringify(request)).then(function (result) {
 	                    _this.emit("debug", {
 	                        action: "response",
 	                        request: request,
@@ -40104,14 +39425,14 @@
 
 	var websocketProvider$1 = /*@__PURE__*/getDefaultExportFromCjs(websocketProvider);
 
-	var lib$r = createCommonjsModule(function (module, exports) {
+	var lib$q = createCommonjsModule(function (module, exports) {
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.Formatter = exports.showThrottleMessage = exports.isCommunityResourcable = exports.isCommunityResource = exports.getNetwork = exports.getDefaultProvider = exports.JsonRpcSigner = exports.IpcProvider = exports.WebSocketProvider = exports.Web3Provider = exports.StaticJsonRpcProvider = exports.JsonRpcBatchProvider = exports.JsonRpcProvider = exports.FallbackProvider = exports.UrlJsonRpcProvider = exports.Resolver = exports.BaseProvider = exports.Provider = void 0;
 
-	Object.defineProperty(exports, "Provider", { enumerable: true, get: function () { return lib$c.Provider; } });
+	Object.defineProperty(exports, "Provider", { enumerable: true, get: function () { return lib$b.Provider; } });
 
-	Object.defineProperty(exports, "getNetwork", { enumerable: true, get: function () { return lib$n.getNetwork; } });
+	Object.defineProperty(exports, "getNetwork", { enumerable: true, get: function () { return lib$m.getNetwork; } });
 
 	Object.defineProperty(exports, "BaseProvider", { enumerable: true, get: function () { return baseProvider.BaseProvider; } });
 	Object.defineProperty(exports, "Resolver", { enumerable: true, get: function () { return baseProvider.Resolver; } });
@@ -40161,7 +39482,7 @@
 	            }
 	        }
 	    }
-	    var n = (0, lib$n.getNetwork)(network);
+	    var n = (0, lib$m.getNetwork)(network);
 	    if (!n || !n._defaultProvider) {
 	        logger.throwError("unsupported getDefaultProvider network", lib.Logger.errors.NETWORK_ERROR, {
 	            operation: "getDefaultProvider",
@@ -40179,7 +39500,7 @@
 
 	});
 
-	var index$r = /*@__PURE__*/getDefaultExportFromCjs(lib$r);
+	var index$q = /*@__PURE__*/getDefaultExportFromCjs(lib$q);
 
 	var _version$K = createCommonjsModule(function (module, exports) {
 	"use strict";
@@ -40191,11 +39512,10 @@
 
 	var _version$L = /*@__PURE__*/getDefaultExportFromCjs(_version$K);
 
-	var lib$s = createCommonjsModule(function (module, exports) {
+	var lib$r = createCommonjsModule(function (module, exports) {
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
-	exports.sha256 = exports.keccak256 = exports.pack = void 0;
-
+	exports.sha256 = exports.pack = void 0;
 
 
 
@@ -40279,10 +39599,6 @@
 	    return (0, lib$1.hexlify)((0, lib$1.concat)(tight));
 	}
 	exports.pack = pack;
-	function keccak256(types, values) {
-	    return (0, lib$9.keccak256)(pack(types, values));
-	}
-	exports.keccak256 = keccak256;
 	function sha256(types, values) {
 	    return (0, lib$4.sha256)(pack(types, values));
 	}
@@ -40290,7 +39606,7 @@
 
 	});
 
-	var index$s = /*@__PURE__*/getDefaultExportFromCjs(lib$s);
+	var index$r = /*@__PURE__*/getDefaultExportFromCjs(lib$r);
 
 	var _version$M = createCommonjsModule(function (module, exports) {
 	"use strict";
@@ -40302,7 +39618,7 @@
 
 	var _version$N = /*@__PURE__*/getDefaultExportFromCjs(_version$M);
 
-	var lib$t = createCommonjsModule(function (module, exports) {
+	var lib$s = createCommonjsModule(function (module, exports) {
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.parseEther = exports.formatEther = exports.parseUnits = exports.formatUnits = exports.commify = void 0;
@@ -40396,7 +39712,7 @@
 
 	});
 
-	var index$t = /*@__PURE__*/getDefaultExportFromCjs(lib$t);
+	var index$s = /*@__PURE__*/getDefaultExportFromCjs(lib$s);
 
 	var utils$2 = createCommonjsModule(function (module, exports) {
 	"use strict";
@@ -40421,31 +39737,31 @@
 	};
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.formatBytes32String = exports.Utf8ErrorFuncs = exports.toUtf8String = exports.toUtf8CodePoints = exports.toUtf8Bytes = exports._toEscapedUtf8String = exports.nameprep = exports.hexDataSlice = exports.hexDataLength = exports.hexZeroPad = exports.hexValue = exports.hexStripZeros = exports.hexConcat = exports.isHexString = exports.hexlify = exports.base64 = exports.base58 = exports.TransactionDescription = exports.LogDescription = exports.Interface = exports.SigningKey = exports.HDNode = exports.defaultPath = exports.isBytesLike = exports.isBytes = exports.zeroPad = exports.stripZeros = exports.concat = exports.arrayify = exports.shallowCopy = exports.resolveProperties = exports.getStatic = exports.defineReadOnly = exports.deepCopy = exports.checkProperties = exports.poll = exports.fetchJson = exports._fetchData = exports.RLP = exports.Logger = exports.checkResultErrors = exports.FormatTypes = exports.ParamType = exports.FunctionFragment = exports.EventFragment = exports.ErrorFragment = exports.ConstructorFragment = exports.Fragment = exports.defaultAbiCoder = exports.AbiCoder = void 0;
-	exports.Indexed = exports.Utf8ErrorReason = exports.UnicodeNormalizationForm = exports.SupportedAlgorithm = exports.mnemonicToSeed = exports.isValidMnemonic = exports.entropyToMnemonic = exports.mnemonicToEntropy = exports.getAccountPath = exports.verifyTypedData = exports.verifyMessage = exports.recoverPublicKey = exports.computePublicKey = exports.recoverAddress = exports.computeAddress = exports.getJsonWalletAddress = exports.serializeTransaction = exports.parseTransaction = exports.soliditySha256 = exports.solidityKeccak256 = exports.solidityPack = exports.shuffled = exports.randomBytes = exports.sha512 = exports.sha256 = exports.ripemd160 = exports.keccak256 = exports.computeHmac = exports.commify = exports.parseUnits = exports.formatUnits = exports.parseEther = exports.formatEther = exports.isAddress = exports.getCreate2Address = exports.getContractAddress = exports.getAddress = exports._TypedDataEncoder = exports.id = exports.isValidName = exports.namehash = exports.hashMessage = exports.parseBytes32String = void 0;
+	exports.Indexed = exports.Utf8ErrorReason = exports.UnicodeNormalizationForm = exports.SupportedAlgorithm = exports.mnemonicToSeed = exports.isValidMnemonic = exports.entropyToMnemonic = exports.mnemonicToEntropy = exports.getAccountPath = exports.verifyTypedData = exports.verifyMessage = exports.recoverPublicKey = exports.computePublicKey = exports.recoverAddress = exports.computeAddress = exports.getJsonWalletAddress = exports.serializeTransaction = exports.parseTransaction = exports.soliditySha256 = exports.solidityPack = exports.shuffled = exports.randomBytes = exports.sha512 = exports.sha256 = exports.ripemd160 = exports.computeHmac = exports.commify = exports.parseUnits = exports.formatUnits = exports.parseEther = exports.formatEther = exports.isAddress = exports.getCreate2Address = exports.getContractAddress = exports.getAddress = exports._TypedDataEncoder = exports.id = exports.isValidName = exports.namehash = exports.hashMessage = exports.parseBytes32String = void 0;
 
-	Object.defineProperty(exports, "AbiCoder", { enumerable: true, get: function () { return lib$b.AbiCoder; } });
-	Object.defineProperty(exports, "checkResultErrors", { enumerable: true, get: function () { return lib$b.checkResultErrors; } });
-	Object.defineProperty(exports, "ConstructorFragment", { enumerable: true, get: function () { return lib$b.ConstructorFragment; } });
-	Object.defineProperty(exports, "defaultAbiCoder", { enumerable: true, get: function () { return lib$b.defaultAbiCoder; } });
-	Object.defineProperty(exports, "ErrorFragment", { enumerable: true, get: function () { return lib$b.ErrorFragment; } });
-	Object.defineProperty(exports, "EventFragment", { enumerable: true, get: function () { return lib$b.EventFragment; } });
-	Object.defineProperty(exports, "FormatTypes", { enumerable: true, get: function () { return lib$b.FormatTypes; } });
-	Object.defineProperty(exports, "Fragment", { enumerable: true, get: function () { return lib$b.Fragment; } });
-	Object.defineProperty(exports, "FunctionFragment", { enumerable: true, get: function () { return lib$b.FunctionFragment; } });
-	Object.defineProperty(exports, "Indexed", { enumerable: true, get: function () { return lib$b.Indexed; } });
-	Object.defineProperty(exports, "Interface", { enumerable: true, get: function () { return lib$b.Interface; } });
-	Object.defineProperty(exports, "LogDescription", { enumerable: true, get: function () { return lib$b.LogDescription; } });
-	Object.defineProperty(exports, "ParamType", { enumerable: true, get: function () { return lib$b.ParamType; } });
-	Object.defineProperty(exports, "TransactionDescription", { enumerable: true, get: function () { return lib$b.TransactionDescription; } });
+	Object.defineProperty(exports, "AbiCoder", { enumerable: true, get: function () { return lib$a.AbiCoder; } });
+	Object.defineProperty(exports, "checkResultErrors", { enumerable: true, get: function () { return lib$a.checkResultErrors; } });
+	Object.defineProperty(exports, "ConstructorFragment", { enumerable: true, get: function () { return lib$a.ConstructorFragment; } });
+	Object.defineProperty(exports, "defaultAbiCoder", { enumerable: true, get: function () { return lib$a.defaultAbiCoder; } });
+	Object.defineProperty(exports, "ErrorFragment", { enumerable: true, get: function () { return lib$a.ErrorFragment; } });
+	Object.defineProperty(exports, "EventFragment", { enumerable: true, get: function () { return lib$a.EventFragment; } });
+	Object.defineProperty(exports, "FormatTypes", { enumerable: true, get: function () { return lib$a.FormatTypes; } });
+	Object.defineProperty(exports, "Fragment", { enumerable: true, get: function () { return lib$a.Fragment; } });
+	Object.defineProperty(exports, "FunctionFragment", { enumerable: true, get: function () { return lib$a.FunctionFragment; } });
+	Object.defineProperty(exports, "Indexed", { enumerable: true, get: function () { return lib$a.Indexed; } });
+	Object.defineProperty(exports, "Interface", { enumerable: true, get: function () { return lib$a.Interface; } });
+	Object.defineProperty(exports, "LogDescription", { enumerable: true, get: function () { return lib$a.LogDescription; } });
+	Object.defineProperty(exports, "ParamType", { enumerable: true, get: function () { return lib$a.ParamType; } });
+	Object.defineProperty(exports, "TransactionDescription", { enumerable: true, get: function () { return lib$a.TransactionDescription; } });
 
 	Object.defineProperty(exports, "getAddress", { enumerable: true, get: function () { return lib$6.getAddress; } });
 	Object.defineProperty(exports, "getCreate2Address", { enumerable: true, get: function () { return lib$6.getCreate2Address; } });
 	Object.defineProperty(exports, "getContractAddress", { enumerable: true, get: function () { return lib$6.getContractAddress; } });
 	Object.defineProperty(exports, "isAddress", { enumerable: true, get: function () { return lib$6.isAddress; } });
-	var base64 = __importStar(lib$p);
+	var base64 = __importStar(lib$o);
 	exports.base64 = base64;
 
-	Object.defineProperty(exports, "base58", { enumerable: true, get: function () { return lib$o.Base58; } });
+	Object.defineProperty(exports, "base58", { enumerable: true, get: function () { return lib$n.Base58; } });
 
 	Object.defineProperty(exports, "arrayify", { enumerable: true, get: function () { return lib$1.arrayify; } });
 	Object.defineProperty(exports, "concat", { enumerable: true, get: function () { return lib$1.concat; } });
@@ -40462,23 +39778,21 @@
 	Object.defineProperty(exports, "zeroPad", { enumerable: true, get: function () { return lib$1.zeroPad; } });
 	Object.defineProperty(exports, "stripZeros", { enumerable: true, get: function () { return lib$1.stripZeros; } });
 
-	Object.defineProperty(exports, "_TypedDataEncoder", { enumerable: true, get: function () { return lib$a._TypedDataEncoder; } });
-	Object.defineProperty(exports, "hashMessage", { enumerable: true, get: function () { return lib$a.hashMessage; } });
-	Object.defineProperty(exports, "id", { enumerable: true, get: function () { return lib$a.id; } });
-	Object.defineProperty(exports, "isValidName", { enumerable: true, get: function () { return lib$a.isValidName; } });
-	Object.defineProperty(exports, "namehash", { enumerable: true, get: function () { return lib$a.namehash; } });
+	Object.defineProperty(exports, "_TypedDataEncoder", { enumerable: true, get: function () { return lib$9._TypedDataEncoder; } });
+	Object.defineProperty(exports, "hashMessage", { enumerable: true, get: function () { return lib$9.hashMessage; } });
+	Object.defineProperty(exports, "id", { enumerable: true, get: function () { return lib$9.id; } });
+	Object.defineProperty(exports, "isValidName", { enumerable: true, get: function () { return lib$9.isValidName; } });
+	Object.defineProperty(exports, "namehash", { enumerable: true, get: function () { return lib$9.namehash; } });
 
-	Object.defineProperty(exports, "defaultPath", { enumerable: true, get: function () { return lib$i.defaultPath; } });
-	Object.defineProperty(exports, "entropyToMnemonic", { enumerable: true, get: function () { return lib$i.entropyToMnemonic; } });
-	Object.defineProperty(exports, "getAccountPath", { enumerable: true, get: function () { return lib$i.getAccountPath; } });
-	Object.defineProperty(exports, "HDNode", { enumerable: true, get: function () { return lib$i.HDNode; } });
-	Object.defineProperty(exports, "isValidMnemonic", { enumerable: true, get: function () { return lib$i.isValidMnemonic; } });
-	Object.defineProperty(exports, "mnemonicToEntropy", { enumerable: true, get: function () { return lib$i.mnemonicToEntropy; } });
-	Object.defineProperty(exports, "mnemonicToSeed", { enumerable: true, get: function () { return lib$i.mnemonicToSeed; } });
+	Object.defineProperty(exports, "defaultPath", { enumerable: true, get: function () { return lib$h.defaultPath; } });
+	Object.defineProperty(exports, "entropyToMnemonic", { enumerable: true, get: function () { return lib$h.entropyToMnemonic; } });
+	Object.defineProperty(exports, "getAccountPath", { enumerable: true, get: function () { return lib$h.getAccountPath; } });
+	Object.defineProperty(exports, "HDNode", { enumerable: true, get: function () { return lib$h.HDNode; } });
+	Object.defineProperty(exports, "isValidMnemonic", { enumerable: true, get: function () { return lib$h.isValidMnemonic; } });
+	Object.defineProperty(exports, "mnemonicToEntropy", { enumerable: true, get: function () { return lib$h.mnemonicToEntropy; } });
+	Object.defineProperty(exports, "mnemonicToSeed", { enumerable: true, get: function () { return lib$h.mnemonicToSeed; } });
 
-	Object.defineProperty(exports, "getJsonWalletAddress", { enumerable: true, get: function () { return lib$l.getJsonWalletAddress; } });
-
-	Object.defineProperty(exports, "keccak256", { enumerable: true, get: function () { return lib$9.keccak256; } });
+	Object.defineProperty(exports, "getJsonWalletAddress", { enumerable: true, get: function () { return lib$k.getJsonWalletAddress; } });
 
 	Object.defineProperty(exports, "Logger", { enumerable: true, get: function () { return lib.Logger; } });
 
@@ -40487,12 +39801,11 @@
 	Object.defineProperty(exports, "sha256", { enumerable: true, get: function () { return lib$4.sha256; } });
 	Object.defineProperty(exports, "sha512", { enumerable: true, get: function () { return lib$4.sha512; } });
 
-	Object.defineProperty(exports, "solidityKeccak256", { enumerable: true, get: function () { return lib$s.keccak256; } });
-	Object.defineProperty(exports, "solidityPack", { enumerable: true, get: function () { return lib$s.pack; } });
-	Object.defineProperty(exports, "soliditySha256", { enumerable: true, get: function () { return lib$s.sha256; } });
+	Object.defineProperty(exports, "solidityPack", { enumerable: true, get: function () { return lib$r.pack; } });
+	Object.defineProperty(exports, "soliditySha256", { enumerable: true, get: function () { return lib$r.sha256; } });
 
-	Object.defineProperty(exports, "randomBytes", { enumerable: true, get: function () { return lib$j.randomBytes; } });
-	Object.defineProperty(exports, "shuffled", { enumerable: true, get: function () { return lib$j.shuffled; } });
+	Object.defineProperty(exports, "randomBytes", { enumerable: true, get: function () { return lib$i.randomBytes; } });
+	Object.defineProperty(exports, "shuffled", { enumerable: true, get: function () { return lib$i.shuffled; } });
 
 	Object.defineProperty(exports, "checkProperties", { enumerable: true, get: function () { return lib$3.checkProperties; } });
 	Object.defineProperty(exports, "deepCopy", { enumerable: true, get: function () { return lib$3.deepCopy; } });
@@ -40503,9 +39816,9 @@
 	var RLP = __importStar(lib$5);
 	exports.RLP = RLP;
 
-	Object.defineProperty(exports, "computePublicKey", { enumerable: true, get: function () { return lib$g.computePublicKey; } });
-	Object.defineProperty(exports, "recoverPublicKey", { enumerable: true, get: function () { return lib$g.recoverPublicKey; } });
-	Object.defineProperty(exports, "SigningKey", { enumerable: true, get: function () { return lib$g.SigningKey; } });
+	Object.defineProperty(exports, "computePublicKey", { enumerable: true, get: function () { return lib$f.computePublicKey; } });
+	Object.defineProperty(exports, "recoverPublicKey", { enumerable: true, get: function () { return lib$f.recoverPublicKey; } });
+	Object.defineProperty(exports, "SigningKey", { enumerable: true, get: function () { return lib$f.SigningKey; } });
 
 	Object.defineProperty(exports, "formatBytes32String", { enumerable: true, get: function () { return lib$8.formatBytes32String; } });
 	Object.defineProperty(exports, "nameprep", { enumerable: true, get: function () { return lib$8.nameprep; } });
@@ -40516,23 +39829,23 @@
 	Object.defineProperty(exports, "toUtf8String", { enumerable: true, get: function () { return lib$8.toUtf8String; } });
 	Object.defineProperty(exports, "Utf8ErrorFuncs", { enumerable: true, get: function () { return lib$8.Utf8ErrorFuncs; } });
 
-	Object.defineProperty(exports, "computeAddress", { enumerable: true, get: function () { return lib$k.computeAddress; } });
-	Object.defineProperty(exports, "parseTransaction", { enumerable: true, get: function () { return lib$k.parse; } });
-	Object.defineProperty(exports, "recoverAddress", { enumerable: true, get: function () { return lib$k.recoverAddress; } });
-	Object.defineProperty(exports, "serializeTransaction", { enumerable: true, get: function () { return lib$k.serialize; } });
+	Object.defineProperty(exports, "computeAddress", { enumerable: true, get: function () { return lib$j.computeAddress; } });
+	Object.defineProperty(exports, "parseTransaction", { enumerable: true, get: function () { return lib$j.parse; } });
+	Object.defineProperty(exports, "recoverAddress", { enumerable: true, get: function () { return lib$j.recoverAddress; } });
+	Object.defineProperty(exports, "serializeTransaction", { enumerable: true, get: function () { return lib$j.serialize; } });
 
-	Object.defineProperty(exports, "commify", { enumerable: true, get: function () { return lib$t.commify; } });
-	Object.defineProperty(exports, "formatEther", { enumerable: true, get: function () { return lib$t.formatEther; } });
-	Object.defineProperty(exports, "parseEther", { enumerable: true, get: function () { return lib$t.parseEther; } });
-	Object.defineProperty(exports, "formatUnits", { enumerable: true, get: function () { return lib$t.formatUnits; } });
-	Object.defineProperty(exports, "parseUnits", { enumerable: true, get: function () { return lib$t.parseUnits; } });
+	Object.defineProperty(exports, "commify", { enumerable: true, get: function () { return lib$s.commify; } });
+	Object.defineProperty(exports, "formatEther", { enumerable: true, get: function () { return lib$s.formatEther; } });
+	Object.defineProperty(exports, "parseEther", { enumerable: true, get: function () { return lib$s.parseEther; } });
+	Object.defineProperty(exports, "formatUnits", { enumerable: true, get: function () { return lib$s.formatUnits; } });
+	Object.defineProperty(exports, "parseUnits", { enumerable: true, get: function () { return lib$s.parseUnits; } });
 
-	Object.defineProperty(exports, "verifyMessage", { enumerable: true, get: function () { return lib$m.verifyMessage; } });
-	Object.defineProperty(exports, "verifyTypedData", { enumerable: true, get: function () { return lib$m.verifyTypedData; } });
+	Object.defineProperty(exports, "verifyMessage", { enumerable: true, get: function () { return lib$l.verifyMessage; } });
+	Object.defineProperty(exports, "verifyTypedData", { enumerable: true, get: function () { return lib$l.verifyTypedData; } });
 
-	Object.defineProperty(exports, "_fetchData", { enumerable: true, get: function () { return lib$q._fetchData; } });
-	Object.defineProperty(exports, "fetchJson", { enumerable: true, get: function () { return lib$q.fetchJson; } });
-	Object.defineProperty(exports, "poll", { enumerable: true, get: function () { return lib$q.poll; } });
+	Object.defineProperty(exports, "_fetchData", { enumerable: true, get: function () { return lib$p._fetchData; } });
+	Object.defineProperty(exports, "fetchJson", { enumerable: true, get: function () { return lib$p.fetchJson; } });
+	Object.defineProperty(exports, "poll", { enumerable: true, get: function () { return lib$p.poll; } });
 	////////////////////////
 	// Enums
 	var sha3_2 = lib$4;
@@ -40579,26 +39892,26 @@
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.Wordlist = exports.version = exports.wordlists = exports.utils = exports.logger = exports.errors = exports.constants = exports.FixedNumber = exports.BigNumber = exports.ContractFactory = exports.Contract = exports.BaseContract = exports.providers = exports.getDefaultProvider = exports.VoidSigner = exports.Wallet = exports.Signer = void 0;
 
-	Object.defineProperty(exports, "BaseContract", { enumerable: true, get: function () { return lib$e.BaseContract; } });
-	Object.defineProperty(exports, "Contract", { enumerable: true, get: function () { return lib$e.Contract; } });
-	Object.defineProperty(exports, "ContractFactory", { enumerable: true, get: function () { return lib$e.ContractFactory; } });
+	Object.defineProperty(exports, "BaseContract", { enumerable: true, get: function () { return lib$d.BaseContract; } });
+	Object.defineProperty(exports, "Contract", { enumerable: true, get: function () { return lib$d.Contract; } });
+	Object.defineProperty(exports, "ContractFactory", { enumerable: true, get: function () { return lib$d.ContractFactory; } });
 
 	Object.defineProperty(exports, "BigNumber", { enumerable: true, get: function () { return lib$2.BigNumber; } });
 	Object.defineProperty(exports, "FixedNumber", { enumerable: true, get: function () { return lib$2.FixedNumber; } });
 
-	Object.defineProperty(exports, "Signer", { enumerable: true, get: function () { return lib$d.Signer; } });
-	Object.defineProperty(exports, "VoidSigner", { enumerable: true, get: function () { return lib$d.VoidSigner; } });
+	Object.defineProperty(exports, "Signer", { enumerable: true, get: function () { return lib$c.Signer; } });
+	Object.defineProperty(exports, "VoidSigner", { enumerable: true, get: function () { return lib$c.VoidSigner; } });
 
-	Object.defineProperty(exports, "Wallet", { enumerable: true, get: function () { return lib$m.Wallet; } });
+	Object.defineProperty(exports, "Wallet", { enumerable: true, get: function () { return lib$l.Wallet; } });
 	var constants = __importStar(lib$7);
 	exports.constants = constants;
-	var providers = __importStar(lib$r);
+	var providers = __importStar(lib$q);
 	exports.providers = providers;
-	var providers_1 = lib$r;
+	var providers_1 = lib$q;
 	Object.defineProperty(exports, "getDefaultProvider", { enumerable: true, get: function () { return providers_1.getDefaultProvider; } });
 
-	Object.defineProperty(exports, "Wordlist", { enumerable: true, get: function () { return lib$h.Wordlist; } });
-	Object.defineProperty(exports, "wordlists", { enumerable: true, get: function () { return lib$h.wordlists; } });
+	Object.defineProperty(exports, "Wordlist", { enumerable: true, get: function () { return lib$g.Wordlist; } });
+	Object.defineProperty(exports, "wordlists", { enumerable: true, get: function () { return lib$g.wordlists; } });
 	var utils = __importStar(utils$2);
 	exports.utils = utils;
 
@@ -40615,7 +39928,7 @@
 
 	var ethers$1 = /*@__PURE__*/getDefaultExportFromCjs(ethers);
 
-	var lib$u = createCommonjsModule(function (module, exports) {
+	var lib$t = createCommonjsModule(function (module, exports) {
 	"use strict";
 	var __createBinding = (commonjsGlobal && commonjsGlobal.__createBinding) || (Object.create ? (function(o, m, k, k2) {
 	    if (k2 === undefined) k2 = k;
@@ -40671,9 +39984,9 @@
 
 	});
 
-	var index$u = /*@__PURE__*/getDefaultExportFromCjs(lib$u);
+	var index$t = /*@__PURE__*/getDefaultExportFromCjs(lib$t);
 
-	return index$u;
+	return index$t;
 
 })));
 //# sourceMappingURL=ethers.umd.js.map

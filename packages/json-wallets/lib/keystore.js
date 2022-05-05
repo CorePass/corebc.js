@@ -60,7 +60,7 @@ var scrypt_js_1 = __importDefault(require("scrypt-js"));
 var address_1 = require("@ethersproject/address");
 var bytes_1 = require("@ethersproject/bytes");
 var hdnode_1 = require("@ethersproject/hdnode");
-var keccak256_1 = require("@ethersproject/keccak256");
+var sha3_1 = require("@ethersproject/sha3");
 var pbkdf2_1 = require("@ethersproject/pbkdf2");
 var random_1 = require("@ethersproject/random");
 var properties_1 = require("@ethersproject/properties");
@@ -97,7 +97,7 @@ function _decrypt(data, key, ciphertext) {
 }
 function _getAccount(data, key) {
     var ciphertext = (0, utils_1.looseArrayify)((0, utils_1.searchPath)(data, "crypto/ciphertext"));
-    var computedMAC = (0, bytes_1.hexlify)((0, keccak256_1.keccak256)((0, bytes_1.concat)([key.slice(16, 32), ciphertext]))).substring(2);
+    var computedMAC = (0, bytes_1.hexlify)((0, sha3_1.sha256)((0, bytes_1.concat)([key.slice(16, 32), ciphertext]))).substring(2);
     if (computedMAC !== (0, utils_1.searchPath)(data, "crypto/mac").toLowerCase()) {
         throw new Error("invalid password");
     }
@@ -325,7 +325,7 @@ function encrypt(account, password, options, progressCallback) {
         var aesCtr = new aes_js_1.default.ModeOfOperation.ctr(derivedKey, counter);
         var ciphertext = (0, bytes_1.arrayify)(aesCtr.encrypt(privateKey));
         // Compute the message authentication code, used to check the password
-        var mac = (0, keccak256_1.keccak256)((0, bytes_1.concat)([macPrefix, ciphertext]));
+        var mac = (0, sha3_1.sha256)((0, bytes_1.concat)([macPrefix, ciphertext]));
         // See: https://github.com/ethereum/wiki/wiki/Web3-Secret-Storage-Definition
         var data = {
             address: account.address.substring(2).toLowerCase(),

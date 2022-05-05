@@ -311,18 +311,17 @@ describe('Test ID Hash Functions', function () {
 });
 describe('Test Solidity Hash Functions', function () {
     var tests = (0, testcases_1.loadTests)('solidity-hashes');
-    function test(funcName, testKey) {
+    function test(funcName) {
         it("computes " + funcName + " correctly", function () {
             this.timeout(120000);
             tests.forEach(function (test, index) {
                 var actual = (ethers_1.ethers.utils)['solidity' + funcName](test.types, test.values);
-                var expected = test[testKey];
+                var expected = test.sha256;
                 assert_1.default.equal(actual, expected, ('computes solidity-' + funcName + '(' + JSON.stringify(test.values) + ') - ' + test.types));
             });
         });
     }
-    test('Keccak256', 'keccak256');
-    test('Sha256', 'sha256');
+    test('Sha256');
     var testsInvalid = [
         "uint0",
         "uint1",
@@ -346,10 +345,10 @@ describe('Test Solidity Hash Functions', function () {
 });
 describe('Test Hash Functions', function () {
     var tests = (0, testcases_1.loadTests)('hashes');
-    it('computes keccak256 correctly', function () {
+    it('computes sha256 correctly', function () {
         this.timeout(120000);
         tests.forEach(function (test) {
-            assert_1.default.equal(ethers_1.ethers.utils.keccak256(test.data), test.keccak256, ('Keccak256 - ' + test.data));
+            assert_1.default.equal(ethers_1.ethers.utils.sha256(test.data), test.sha256, ('sha256 - ' + test.data));
         });
     });
     it('computes sha2-256 correctly', function () {

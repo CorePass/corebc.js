@@ -75,7 +75,6 @@ class Script {
             },
 
             id: ethers.utils.id,
-            keccak256: ethers.utils.keccak256,
             namehash: ethers.utils.namehash,
             sha256: ethers.utils.sha256,
 

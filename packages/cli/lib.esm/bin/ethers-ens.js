@@ -335,7 +335,7 @@ class ControllerPlugin extends AccountPlugin {
             yield _super.prepareArgs.call(this, args);
             if (!this.salt) {
                 let signature = yield this.accounts[0].signMessage("commit-" + this.owner + "-" + this.name);
-                this.salt = ethers.utils.keccak256(signature);
+                this.salt = ethers.utils.sha256(signature);
             }
         });
     }

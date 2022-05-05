@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.namehash = exports.isValidName = void 0;
 var bytes_1 = require("@ethersproject/bytes");
 var strings_1 = require("@ethersproject/strings");
-var keccak256_1 = require("@ethersproject/keccak256");
+var sha3_1 = require("@ethersproject/sha3");
 var logger_1 = require("@ethersproject/logger");
 var _version_1 = require("./_version");
 var logger = new logger_1.Logger(_version_1.version);
@@ -37,7 +37,7 @@ function namehash(name) {
             logger.throwArgumentError("invalid ENS address; missing component", "name", name);
         }
         var label = (0, strings_1.toUtf8Bytes)((0, strings_1.nameprep)(partition[3]));
-        result = (0, keccak256_1.keccak256)((0, bytes_1.concat)([result, (0, keccak256_1.keccak256)(label)]));
+        result = (0, sha3_1.sha256)((0, bytes_1.concat)([result, (0, sha3_1.sha256)(label)]));
         current = partition[2] || "";
     }
     return (0, bytes_1.hexlify)(result);

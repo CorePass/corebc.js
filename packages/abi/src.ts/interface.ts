@@ -4,7 +4,7 @@ import { getAddress } from "@ethersproject/address";
 import { BigNumber, BigNumberish } from "@ethersproject/bignumber";
 import { arrayify, BytesLike, concat, hexDataSlice, hexlify, hexZeroPad, isHexString } from "@ethersproject/bytes";
 import { id } from "@ethersproject/hash";
-import { keccak256 } from "@ethersproject/keccak256"
+import { sha256 } from "@ethersproject/sha3"
 import { defineReadOnly, Description, getStatic } from "@ethersproject/properties";
 
 import { AbiCoder, defaultAbiCoder } from "./abi-coder";
@@ -457,7 +457,7 @@ export class Interface {
             if (param.type === "string") {
                  return id(value);
             } else if (param.type === "bytes") {
-                 return keccak256(hexlify(value));
+                 return sha256(hexlify(value));
             }
 
             // Check addresses are valid
@@ -519,7 +519,7 @@ export class Interface {
                 if (param.type === "string") {
                     topics.push(id(value))
                 } else if (param.type === "bytes") {
-                    topics.push(keccak256(value))
+                    topics.push(sha256(value))
                 } else if (param.baseType === "tuple" || param.baseType === "array") {
                     // @TODO
                     throw new Error("not implemented");

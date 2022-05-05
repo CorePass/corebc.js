@@ -113,7 +113,6 @@ var Script = /** @class */ (function () {
                 return ethers_1.ethers.utils.hexlify(ethers_1.ethers.utils.zeroPad(value, length));
             },
             id: ethers_1.ethers.utils.id,
-            keccak256: ethers_1.ethers.utils.keccak256,
             namehash: ethers_1.ethers.utils.namehash,
             sha256: ethers_1.ethers.utils.sha256,
             parseEther: ethers_1.ethers.utils.parseEther,

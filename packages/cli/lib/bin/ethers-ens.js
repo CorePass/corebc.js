@@ -545,7 +545,7 @@ var ControllerPlugin = /** @class */ (function (_super) {
                         return [4 /*yield*/, this.accounts[0].signMessage("commit-" + this.owner + "-" + this.name)];
                     case 2:
                         signature = _a.sent();
-                        this.salt = ethers_1.ethers.utils.keccak256(signature);
+                        this.salt = ethers_1.ethers.utils.sha256(signature);
                         _a.label = 3;
                     case 3: return [2 /*return*/];
                 }

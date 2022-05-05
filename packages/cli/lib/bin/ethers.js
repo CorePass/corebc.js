@@ -110,7 +110,6 @@ function setupContext(path, context, plugin) {
     context.hexlify = ethers_1.ethers.utils.hexlify;
     context.zeroPad = ethers_1.ethers.utils.zeroPad;
     context.id = ethers_1.ethers.utils.id;
-    context.keccak256 = ethers_1.ethers.utils.keccak256;
     context.namehash = ethers_1.ethers.utils.namehash;
     context.sha256 = ethers_1.ethers.utils.sha256;
     context.parseEther = ethers_1.ethers.utils.parseEther;

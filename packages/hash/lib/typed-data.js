@@ -40,7 +40,7 @@ exports.TypedDataEncoder = void 0;
 var address_1 = require("@ethersproject/address");
 var bignumber_1 = require("@ethersproject/bignumber");
 var bytes_1 = require("@ethersproject/bytes");
-var keccak256_1 = require("@ethersproject/keccak256");
+var sha3_1 = require("@ethersproject/sha3");
 var properties_1 = require("@ethersproject/properties");
 var logger_1 = require("@ethersproject/logger");
 var _version_1 = require("./_version");
@@ -155,7 +155,7 @@ function getBaseEncoder(type) {
             return ((!value) ? hexFalse : hexTrue);
         };
         case "bytes": return function (value) {
-            return (0, keccak256_1.keccak256)(value);
+            return (0, sha3_1.sha256)(value);
         };
         case "string": return function (value) {
             return (0, id_1.id)(value);
@@ -278,9 +278,9 @@ var TypedDataEncoder = /** @class */ (function () {
                 }
                 var result = value.map(subEncoder_1);
                 if (_this._types[subtype_1]) {
-                    result = result.map(keccak256_1.keccak256);
+                    result = result.map(sha3_1.sha256);
                 }
-                return (0, keccak256_1.keccak256)((0, bytes_1.hexConcat)(result));
+                return (0, sha3_1.sha256)((0, bytes_1.hexConcat)(result));
             };
         }
         // Struct
@@ -292,7 +292,7 @@ var TypedDataEncoder = /** @class */ (function () {
                     var name = _a.name, type = _a.type;
                     var result = _this.getEncoder(type)(value[name]);
                     if (_this._types[type]) {
-                        return (0, keccak256_1.keccak256)(result);
+                        return (0, sha3_1.sha256)(result);
                     }
                     return result;
                 });
@@ -313,7 +313,7 @@ var TypedDataEncoder = /** @class */ (function () {
         return this.getEncoder(type)(value);
     };
     TypedDataEncoder.prototype.hashStruct = function (name, value) {
-        return (0, keccak256_1.keccak256)(this.encodeData(name, value));
+        return (0, sha3_1.sha256)(this.encodeData(name, value));
     };
     TypedDataEncoder.prototype.encode = function (value) {
         return this.encodeData(this.primaryType, value);
@@ -385,7 +385,7 @@ var TypedDataEncoder = /** @class */ (function () {
         ]);
     };
     TypedDataEncoder.hash = function (domain, types, value) {
-        return (0, keccak256_1.keccak256)(TypedDataEncoder.encode(domain, types, value));
+        return (0, sha3_1.sha256)(TypedDataEncoder.encode(domain, types, value));
     };
     // Replaces all address types with ENS names with their looked up address
     TypedDataEncoder.resolveNames = function (domain, types, value, resolveName) {

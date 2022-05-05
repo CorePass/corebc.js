@@ -65,7 +65,6 @@ class Script {
                 return ethers.utils.hexlify(ethers.utils.zeroPad(value, length));
             },
             id: ethers.utils.id,
-            keccak256: ethers.utils.keccak256,
             namehash: ethers.utils.namehash,
             sha256: ethers.utils.sha256,
             parseEther: ethers.utils.parseEther,

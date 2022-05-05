@@ -1,9 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sha256 = exports.keccak256 = exports.pack = void 0;
+exports.sha256 = exports.pack = void 0;
 var bignumber_1 = require("@ethersproject/bignumber");
 var bytes_1 = require("@ethersproject/bytes");
-var keccak256_1 = require("@ethersproject/keccak256");
 var sha3_1 = require("@ethersproject/sha3");
 var strings_1 = require("@ethersproject/strings");
 var regexBytes = new RegExp("^bytes([0-9]+)$");
@@ -85,10 +84,6 @@ function pack(types, values) {
     return (0, bytes_1.hexlify)((0, bytes_1.concat)(tight));
 }
 exports.pack = pack;
-function keccak256(types, values) {
-    return (0, keccak256_1.keccak256)(pack(types, values));
-}
-exports.keccak256 = keccak256;
 function sha256(types, values) {
     return (0, sha3_1.sha256)(pack(types, values));
 }

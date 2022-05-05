@@ -9,11 +9,11 @@ function randomBytes(seed, lower, upper) {
     if (upper === 0 && upper === lower) {
         return new Uint8Array(0);
     }
-    var result = ethers_1.ethers.utils.arrayify(ethers_1.ethers.utils.keccak256(ethers_1.ethers.utils.toUtf8Bytes(seed)));
+    var result = ethers_1.ethers.utils.arrayify(ethers_1.ethers.utils.sha256(ethers_1.ethers.utils.toUtf8Bytes(seed)));
     while (result.length < upper) {
-        result = ethers_1.ethers.utils.concat([result, ethers_1.ethers.utils.keccak256(result)]);
+        result = ethers_1.ethers.utils.concat([result, ethers_1.ethers.utils.sha256(result)]);
     }
-    var top = ethers_1.ethers.utils.arrayify(ethers_1.ethers.utils.keccak256(result));
+    var top = ethers_1.ethers.utils.arrayify(ethers_1.ethers.utils.sha256(result));
     var percent = ((top[0] << 16) | (top[1] << 8) | top[2]) / 0x01000000;
     return result.slice(0, lower + Math.floor((upper - lower) * percent));
 }

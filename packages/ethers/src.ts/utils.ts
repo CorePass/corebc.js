@@ -8,10 +8,9 @@ import { arrayify, concat, hexConcat, hexDataSlice, hexDataLength, hexlify, hexS
 import { _TypedDataEncoder, hashMessage, id, isValidName, namehash } from "@ethersproject/hash";
 import { defaultPath, entropyToMnemonic, getAccountPath, HDNode, isValidMnemonic, mnemonicToEntropy, mnemonicToSeed } from "@ethersproject/hdnode";
 import { getJsonWalletAddress } from "@ethersproject/json-wallets";
-import { keccak256 } from "@ethersproject/keccak256";
 import { Logger } from "@ethersproject/logger";
 import { computeHmac, ripemd160, sha256, sha512 } from "@ethersproject/sha3";
-import { keccak256 as solidityKeccak256, pack as solidityPack, sha256 as soliditySha256 } from "@ethersproject/solidity";
+import { pack as solidityPack, sha256 as soliditySha256 } from "@ethersproject/solidity";
 import { randomBytes, shuffled } from "@ethersproject/random";
 import { checkProperties, deepCopy, defineReadOnly, getStatic, resolveProperties, shallowCopy } from "@ethersproject/properties";
 import * as RLP from "@ethersproject/rlp";
@@ -134,7 +133,6 @@ export {
     commify,
 
     computeHmac,
-    keccak256,
     ripemd160,
     sha256,
     sha512,
@@ -143,7 +141,6 @@ export {
     shuffled,
 
     solidityPack,
-    solidityKeccak256,
     soliditySha256,
 
     parseTransaction,

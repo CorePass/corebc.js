@@ -20,7 +20,7 @@ var address_1 = require("@ethersproject/address");
 var bignumber_1 = require("@ethersproject/bignumber");
 var bytes_1 = require("@ethersproject/bytes");
 var hash_1 = require("@ethersproject/hash");
-var keccak256_1 = require("@ethersproject/keccak256");
+var sha3_1 = require("@ethersproject/sha3");
 var properties_1 = require("@ethersproject/properties");
 var abi_coder_1 = require("./abi-coder");
 var abstract_coder_1 = require("./coders/abstract-coder");
@@ -417,7 +417,7 @@ var Interface = /** @class */ (function () {
                 return (0, hash_1.id)(value);
             }
             else if (param.type === "bytes") {
-                return (0, keccak256_1.keccak256)((0, bytes_1.hexlify)(value));
+                return (0, sha3_1.sha256)((0, bytes_1.hexlify)(value));
             }
             // Check addresses are valid
             if (param.type === "address") {
@@ -473,7 +473,7 @@ var Interface = /** @class */ (function () {
                     topics.push((0, hash_1.id)(value));
                 }
                 else if (param.type === "bytes") {
-                    topics.push((0, keccak256_1.keccak256)(value));
+                    topics.push((0, sha3_1.sha256)(value));
                 }
                 else if (param.baseType === "tuple" || param.baseType === "array") {
                     // @TODO

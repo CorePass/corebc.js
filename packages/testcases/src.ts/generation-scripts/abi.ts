@@ -6,7 +6,7 @@
 import { solc } from "@ethersproject/cli";
 
 import { randomHexString, randomNumber } from ".."
-import { BN, keccak256, toChecksumAddress } from "ethereumjs-util";
+import { BN, sha256, toChecksumAddress } from "ethereumjs-util";
 
 function hasPrefix(str: string, prefix: string): boolean {
     return (str.substring(0, prefix.length) === prefix);
@@ -25,7 +25,7 @@ function indent(tabs: number): string {
 }
 
 function getStructName(base: string): string {
-    return "Struct" + keccak256(base).slice(0, 4).toString("hex");
+    return "Struct" + sha256(base).slice(0, 4).toString("hex");
 }
 
 class Code {

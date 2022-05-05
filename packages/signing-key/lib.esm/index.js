@@ -14,7 +14,6 @@ export class SigningKey {
     signDigest(digest) {
         const pub = computePublicKey(this.privateKey);
         const sig = sign(this.privateKey, digest);
-        console.log("FUCK1", hexlify(digest), sig, pub);
         return hexConcat([sig, pub]);
     }
     static isSigningKey(value) {
@@ -53,7 +52,6 @@ export function recoverPublicKey(digest, signature) {
     }
     const sig = sigBuffer.slice(0, 114);
     const pub = sigBuffer.slice(114);
-    console.log("FUCK2", hexlify(digestBuffer), hexlify(sig), hexlify(pub));
     if (ed448.verify(digestBuffer, sig, pub)) {
         return hexlify(pub);
     }

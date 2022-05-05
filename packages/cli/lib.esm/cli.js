@@ -257,7 +257,7 @@ class OfflineProvider extends ethers.providers.BaseProvider {
         if (method === "sendTransaction") {
             console.log("Signed Transaction:");
             console.log(params.signedTransaction);
-            return Promise.resolve(ethers.utils.keccak256(params.signedTransaction));
+            return Promise.resolve(ethers.utils.sha256(params.signedTransaction));
         }
         return super.perform(method, params);
     }

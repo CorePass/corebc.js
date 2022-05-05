@@ -418,7 +418,7 @@ var OfflineProvider = /** @class */ (function (_super) {
         if (method === "sendTransaction") {
             console.log("Signed Transaction:");
             console.log(params.signedTransaction);
-            return Promise.resolve(ethers_1.ethers.utils.keccak256(params.signedTransaction));
+            return Promise.resolve(ethers_1.ethers.utils.sha256(params.signedTransaction));
         }
         return _super.prototype.perform.call(this, method, params);
     };

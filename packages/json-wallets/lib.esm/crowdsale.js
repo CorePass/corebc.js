@@ -2,7 +2,7 @@
 import aes from "aes-js";
 import { getAddress } from "@ethersproject/address";
 import { arrayify } from "@ethersproject/bytes";
-import { keccak256 } from "@ethersproject/keccak256";
+import { sha256 } from "@ethersproject/sha3";
 import { pbkdf2 } from "@ethersproject/pbkdf2";
 import { toUtf8Bytes } from "@ethersproject/strings";
 import { Description } from "@ethersproject/properties";
@@ -38,7 +38,7 @@ export function decrypt(json, password) {
         seedHex += String.fromCharCode(seed[i]);
     }
     const seedHexBytes = toUtf8Bytes(seedHex);
-    const privateKey = keccak256(seedHexBytes);
+    const privateKey = sha256(seedHexBytes);
     return new CrowdsaleAccount({
         _isCrowdsaleAccount: true,
         address: ethaddr,
