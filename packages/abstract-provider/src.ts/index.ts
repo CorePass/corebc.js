@@ -1,13 +1,13 @@
 "use strict";
 
-import { BigNumber, BigNumberish } from "@ethersproject/bignumber";
-import { BytesLike, isHexString } from "@ethersproject/bytes";
-import { Network } from "@ethersproject/networks";
-import { Deferrable, Description, defineReadOnly, resolveProperties } from "@ethersproject/properties";
-import { Transaction } from "@ethersproject/transactions";
-import { OnceBlockable } from "@ethersproject/web";
+import { BigNumber, BigNumberish } from "@corepass/corebc-bignumber";
+import { BytesLike, isHexString } from "@corepass/corebc-bytes";
+import { Network } from "@corepass/corebc-networks";
+import { Deferrable, Description, defineReadOnly, resolveProperties } from "@corepass/corebc-properties";
+import { Transaction } from "@corepass/corebc-transactions";
+import { OnceBlockable } from "@corepass/corebc-web";
 
-import { Logger } from "@ethersproject/logger";
+import { Logger } from "@corepass/corebc-logger";
 import { version } from "./_version";
 const logger = new Logger(version);
 

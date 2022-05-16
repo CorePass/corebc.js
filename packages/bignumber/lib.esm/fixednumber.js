@@ -1,6 +1,6 @@
 "use strict";
-import { arrayify, hexZeroPad, isBytes } from "@ethersproject/bytes";
-import { Logger } from "@ethersproject/logger";
+import { arrayify, hexZeroPad, isBytes } from "@corepass/corebc-bytes";
+import { Logger } from "@corepass/corebc-logger";
 import { version } from "./_version";
 const logger = new Logger(version);
 import { BigNumber, isBigNumberish } from "./bignumber";

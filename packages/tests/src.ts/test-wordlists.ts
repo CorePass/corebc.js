@@ -2,11 +2,11 @@
 
 import assert from 'assert';
 
-import { ethers } from "ethers";
-import { loadTests, TestCase } from "@ethersproject/testcases";
+import { corebc } from "corebc";
+import { loadTests, TestCase } from "@corepass/corebc-testcases";
 
 
-function checkWordlist(content: string, wordlist: ethers.Wordlist): void {
+function checkWordlist(content: string, wordlist: corebc.Wordlist): void {
     let words = content.split('\n');
     it('matches wordlists for ' + wordlist.locale, function() {
         for (let i = 0; i < 2048; i++) {
@@ -35,7 +35,7 @@ function checkWordlist(content: string, wordlist: ethers.Wordlist): void {
 describe('Check Wordlists', function() {
     let tests: Array<TestCase.Wordlist> = loadTests("wordlists");
     tests.forEach((test) => {
-        let wordlist = (<{ [ locale: string ]: ethers.Wordlist }>(ethers.wordlists))[test.locale];
+        let wordlist = (<{ [ locale: string ]: corebc.Wordlist }>(corebc.wordlists))[test.locale];
         if (wordlist == null) { return; }
         checkWordlist(test.content, wordlist);
     });

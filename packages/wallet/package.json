@@ -1,21 +1,21 @@
 {
   "author": "Richard Moore <me@ricmoo.com>",
   "dependencies": {
-    "@ethersproject/abstract-provider": "^5.5.0",
-    "@ethersproject/abstract-signer": "^5.5.0",
-    "@ethersproject/address": "^5.5.0",
-    "@ethersproject/bignumber": "^5.5.0",
-    "@ethersproject/bytes": "^5.5.0",
-    "@ethersproject/hash": "^5.5.0",
-    "@ethersproject/hdnode": "^5.5.0",
-    "@ethersproject/json-wallets": "^5.5.0",
-    "@ethersproject/sha3": "^5.5.0",
-    "@ethersproject/logger": "^5.5.0",
-    "@ethersproject/properties": "^5.5.0",
-    "@ethersproject/random": "^5.5.0",
-    "@ethersproject/signing-key": "^5.5.0",
-    "@ethersproject/transactions": "^5.5.0",
-    "@ethersproject/wordlists": "^5.5.0"
+    "@corepass/corebc-abstract-provider": "^0.1.0",
+    "@corepass/corebc-abstract-signer": "^0.1.0",
+    "@corepass/corebc-address": "^0.1.0",
+    "@corepass/corebc-bignumber": "^0.1.0",
+    "@corepass/corebc-bytes": "^0.1.0",
+    "@corepass/corebc-hash": "^0.1.0",
+    "@corepass/corebc-hdnode": "^0.1.0",
+    "@corepass/corebc-json-wallets": "^0.1.0",
+    "@corepass/corebc-sha3": "^0.1.0",
+    "@corepass/corebc-logger": "^0.1.0",
+    "@corepass/corebc-properties": "^0.1.0",
+    "@corepass/corebc-random": "^0.1.0",
+    "@corepass/corebc-signing-key": "^0.1.0",
+    "@corepass/corebc-transactions": "^0.1.0",
+    "@corepass/corebc-wordlists": "^0.1.0"
   },
   "description": "Classes for managing, encrypting and decrypting Ethereum private keys as a Signer for ethers.",
   "ethereum": "donations.ethers.eth",
@@ -36,7 +36,7 @@
   "license": "MIT",
   "main": "./lib/index.js",
   "module": "./lib.esm/index.js",
-  "name": "@ethersproject/wallet",
+  "name": "@corepass/corebc-wallet",
   "publishConfig": {
     "access": "public"
   },
@@ -51,5 +51,5 @@
   "sideEffects": false,
   "tarballHash": "0x769743426d97a1e3f789a1b72ec8ae71b8bb1b3bfefd9f4c75474573ded1f502",
   "types": "./lib/index.d.ts",
-  "version": "5.5.0"
+  "version": "0.1.0"
 }

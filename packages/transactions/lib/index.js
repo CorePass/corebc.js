@@ -20,29 +20,29 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.parse = exports.serialize = exports.recoverAddress = exports.computeAddress = void 0;
-var address_1 = require("@ethersproject/address");
-var bignumber_1 = require("@ethersproject/bignumber");
-var bytes_1 = require("@ethersproject/bytes");
-var constants_1 = require("@ethersproject/constants");
-var properties_1 = require("@ethersproject/properties");
-var RLP = __importStar(require("@ethersproject/rlp"));
-var sha3_1 = require("@ethersproject/sha3");
-var signing_key_1 = require("@ethersproject/signing-key");
-var logger_1 = require("@ethersproject/logger");
+var corebc_address_1 = require("@corepass/corebc-address");
+var corebc_bignumber_1 = require("@corepass/corebc-bignumber");
+var corebc_bytes_1 = require("@corepass/corebc-bytes");
+var corebc_constants_1 = require("@corepass/corebc-constants");
+var corebc_properties_1 = require("@corepass/corebc-properties");
+var RLP = __importStar(require("@corepass/corebc-rlp"));
+var corebc_sha3_1 = require("@corepass/corebc-sha3");
+var corebc_signing_key_1 = require("@corepass/corebc-signing-key");
+var corebc_logger_1 = require("@corepass/corebc-logger");
 var _version_1 = require("./_version");
-var logger = new logger_1.Logger(_version_1.version);
+var logger = new corebc_logger_1.Logger(_version_1.version);
 ///////////////////////////////
 function handleAddress(value) {
     if (value === "0x") {
         return null;
     }
-    return (0, address_1.getAddress)(value);
+    return (0, corebc_address_1.getAddress)(value);
 }
 function handleNumber(value) {
     if (value === "0x") {
-        return constants_1.Zero;
+        return corebc_constants_1.Zero;
     }
-    return bignumber_1.BigNumber.from(value);
+    return corebc_bignumber_1.BigNumber.from(value);
 }
 var transactionFields = [
     { name: "nonce", maxLength: 32, numeric: true },
@@ -57,17 +57,17 @@ var allowedTransactionKeys = {
     networkId: true, data: true, energyLimit: true, energyPrice: true, nonce: true, to: true, value: true
 };
 function computeAddress(key, prefix) {
-    var publicKey = (0, signing_key_1.computePublicKey)(key);
-    return (0, address_1.publicToAddress)(publicKey, prefix);
+    var publicKey = (0, corebc_signing_key_1.computePublicKey)(key);
+    return (0, corebc_address_1.publicToAddress)(publicKey, prefix);
 }
 exports.computeAddress = computeAddress;
 function recoverAddress(digest, signature, prefix) {
-    var publicKey = (0, signing_key_1.recoverPublicKey)((0, bytes_1.arrayify)(digest), signature);
-    return (0, address_1.publicToAddress)(publicKey, prefix);
+    var publicKey = (0, corebc_signing_key_1.recoverPublicKey)((0, corebc_bytes_1.arrayify)(digest), signature);
+    return (0, corebc_address_1.publicToAddress)(publicKey, prefix);
 }
 exports.recoverAddress = recoverAddress;
 function serialize(transaction, signature) {
-    (0, properties_1.checkProperties)(transaction, allowedTransactionKeys);
+    (0, corebc_properties_1.checkProperties)(transaction, allowedTransactionKeys);
     var raw = [];
     transactionFields.forEach(function (fieldInfo) {
         var value = transaction[fieldInfo.name] || ([]);
@@ -75,22 +75,22 @@ function serialize(transaction, signature) {
         if (fieldInfo.numeric) {
             options.hexPad = "left";
         }
-        value = (0, bytes_1.arrayify)((0, bytes_1.hexlify)(value, options));
+        value = (0, corebc_bytes_1.arrayify)((0, corebc_bytes_1.hexlify)(value, options));
         // Fixed-width field
         if (fieldInfo.length && value.length !== fieldInfo.length && value.length > 0) {
             logger.throwArgumentError("invalid length for " + fieldInfo.name, ("transaction:" + fieldInfo.name), value);
         }
         // Variable-width (with a maximum)
         if (fieldInfo.maxLength) {
-            value = (0, bytes_1.stripZeros)(value);
+            value = (0, corebc_bytes_1.stripZeros)(value);
             if (value.length > fieldInfo.maxLength) {
                 logger.throwArgumentError("invalid length for " + fieldInfo.name, ("transaction:" + fieldInfo.name), value);
             }
         }
-        raw.push((0, bytes_1.hexlify)(value));
+        raw.push((0, corebc_bytes_1.hexlify)(value));
     });
     if (!!signature) {
-        raw.push((0, bytes_1.hexlify)(signature));
+        raw.push((0, corebc_bytes_1.hexlify)(signature));
     }
     return RLP.encode(raw);
 }
@@ -109,10 +109,10 @@ function parse(rawTransaction) {
         value: handleNumber(transaction[5]),
         data: transaction[6],
     };
-    tx.hash = (0, sha3_1.sha256)(RLP.encode(transaction.slice(0, 7)));
+    tx.hash = (0, corebc_sha3_1.sha256)(RLP.encode(transaction.slice(0, 7)));
     if (transaction.length === 8) {
         tx.signature = transaction[7];
-        var prefix = (0, address_1.networkIdToPrefix)(tx.networkId);
+        var prefix = (0, corebc_address_1.networkIdToPrefix)(tx.networkId);
         tx.from = recoverAddress(tx.hash, tx.signature, prefix);
     }
     return tx;

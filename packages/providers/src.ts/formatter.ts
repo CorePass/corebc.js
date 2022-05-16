@@ -1,14 +1,14 @@
 "use strict";
 
-import { Block, TransactionReceipt, TransactionResponse } from "@ethersproject/abstract-provider";
-import { getAddress, getContractAddress } from "@ethersproject/address";
-import { BigNumber } from "@ethersproject/bignumber";
-import { hexDataLength, hexDataSlice, hexValue, hexZeroPad, isHexString } from "@ethersproject/bytes";
-import { AddressZero } from "@ethersproject/constants";
-import { shallowCopy } from "@ethersproject/properties";
-import { parse as parseTransaction } from "@ethersproject/transactions";
+import { Block, TransactionReceipt, TransactionResponse } from "@corepass/corebc-abstract-provider";
+import { getAddress, getContractAddress } from "@corepass/corebc-address";
+import { BigNumber } from "@corepass/corebc-bignumber";
+import { hexDataLength, hexDataSlice, hexValue, hexZeroPad, isHexString } from "@corepass/corebc-bytes";
+import { AddressZero } from "@corepass/corebc-constants";
+import { shallowCopy } from "@corepass/corebc-properties";
+import { parse as parseTransaction } from "@corepass/corebc-transactions";
 
-import { Logger } from "@ethersproject/logger";
+import { Logger } from "@corepass/corebc-logger";
 import { version } from "./_version";
 const logger = new Logger(version);
 

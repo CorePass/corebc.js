@@ -9,13 +9,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import assert from "assert";
-import { ethers } from "ethers";
+import { corebc } from "corebc";
 import contractData from "./test-contract.json";
 // const provider = new ethers.providers.InfuraProvider("rinkeby", "49a0efa3aaee4fd99797bfa94d8ce2f1");
-const provider = ethers.getDefaultProvider("");
+const provider = corebc.getDefaultProvider("");
 const TIMEOUT_PERIOD = 120000;
 const contract = (function () {
-    return new ethers.Contract(contractData.contractAddress, contractData.interface, provider);
+    return new corebc.Contract(contractData.contractAddress, contractData.interface, provider);
 })();
 function equals(name, actual, expected) {
     if (Array.isArray(expected)) {
@@ -27,7 +27,7 @@ function equals(name, actual, expected) {
     }
     if (typeof (actual) === 'object') {
         if (expected.indexed) {
-            assert.ok(ethers.Contract.isIndexed(actual), 'index property has index - ' + name);
+            assert.ok(corebc.Contract.isIndexed(actual), 'index property has index - ' + name);
             if (expected.hash) {
                 assert.equal(actual.hash, expected.hash, 'index property with known hash matches - ' + name);
             }
@@ -41,7 +41,7 @@ function equals(name, actual, expected) {
 }
 function TestContractEvents() {
     return __awaiter(this, void 0, void 0, function* () {
-        const data = yield ethers.utils.fetchJson('https://api.ethers.io/api/v1/?action=triggerTest&address=' + contract.address);
+        const data = yield corebc.utils.fetchJson('https://api.ethers.io/api/v1/?action=triggerTest&address=' + contract.address);
         console.log('*** Triggered Transaction Hash: ' + data.hash);
         contract.on("error", (error) => {
             console.log(error);
@@ -153,8 +153,8 @@ describe("Test Contract Transaction Population", function () {
     const testAddress = "0xdeadbeef00deadbeef01deadbeef02deadbeef03";
     const testAddressCheck = "0xDEAdbeeF00deAdbeEF01DeAdBEEF02DeADBEEF03";
     const fireflyAddress = "0x8ba1f109551bD432803012645Ac136ddd64DBA72";
-    const contract = new ethers.Contract(testAddress, abi);
-    const contractConnected = contract.connect(ethers.getDefaultProvider());
+    const contract = new corebc.Contract(testAddress, abi);
+    const contractConnected = contract.connect(corebc.getDefaultProvider());
     it("standard population", function () {
         return __awaiter(this, void 0, void 0, function* () {
             const tx = yield contract.populateTransaction.balanceOf(testAddress);

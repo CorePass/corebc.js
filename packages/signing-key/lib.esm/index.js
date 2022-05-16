@@ -1,8 +1,8 @@
 "use strict";
 import ed448 from './ed448';
-import { arrayify, hexConcat, hexlify } from "@ethersproject/bytes";
-import { defineReadOnly } from "@ethersproject/properties";
-import { Logger } from "@ethersproject/logger";
+import { arrayify, hexConcat, hexlify } from "@corepass/corebc-bytes";
+import { defineReadOnly } from "@corepass/corebc-properties";
+import { Logger } from "@corepass/corebc-logger";
 import { version } from "./_version";
 const logger = new Logger(version);
 export class SigningKey {

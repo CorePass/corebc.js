@@ -2,15 +2,15 @@
 
 import aes from "aes-js";
 
-import { ExternallyOwnedAccount } from "@ethersproject/abstract-signer";
-import { getAddress } from "@ethersproject/address";
-import { arrayify, Bytes } from "@ethersproject/bytes";
-import { sha256 } from "@ethersproject/sha3";
-import { pbkdf2 } from "@ethersproject/pbkdf2";
-import { toUtf8Bytes } from "@ethersproject/strings";
-import { Description } from "@ethersproject/properties";
+import { ExternallyOwnedAccount } from "@corepass/corebc-abstract-signer";
+import { getAddress } from "@corepass/corebc-address";
+import { arrayify, Bytes } from "@corepass/corebc-bytes";
+import { sha256 } from "@corepass/corebc-sha3";
+import { pbkdf2 } from "@corepass/corebc-pbkdf2";
+import { toUtf8Bytes } from "@corepass/corebc-strings";
+import { Description } from "@corepass/corebc-properties";
 
-import { Logger } from "@ethersproject/logger";
+import { Logger } from "@corepass/corebc-logger";
 import { version } from "./_version";
 const logger = new Logger(version);
 

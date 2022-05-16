@@ -63,11 +63,11 @@ function getUmdConfig() {
     plugins.push(commonjs({ }));
 
     return {
-        input: `packages/ethers/lib/index.js`,
+        input: `packages/corebc/lib/index.js`,
         output: {
-            file: `packages/ethers/dist/ethers.umd.js`,
+            file: `packages/corebc/dist/corebc.umd.js`,
             format: "umd",
-            name: "ethers",
+            name: "corebc",
             sourcemap: true
         },
         context: "window",
@@ -88,9 +88,9 @@ function getEsmConfig() {
     plugins.push(commonjs({ }));
 
     return {
-        input: `packages/ethers/lib.esm/index.js`,
+        input: `packages/corebc/lib.esm/index.js`,
         output: {
-            file: `packages/ethers/dist/ethers.esm.js`,
+            file: `packages/corebc/dist/corebc.esm.js`,
             format: "esm",
             sourcemap: true
         },

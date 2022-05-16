@@ -7,7 +7,7 @@
     "./lib/base64": "./lib/browser-base64.js"
   },
   "dependencies": {
-    "@ethersproject/bytes": "^5.5.0"
+    "@corepass/corebc-bytes": "^0.1.0"
   },
   "description": "Base64 coder.",
   "ethereum": "donations.ethers.eth",
@@ -28,7 +28,7 @@
   "license": "MIT",
   "main": "./lib/index.js",
   "module": "./lib.esm/index.js",
-  "name": "@ethersproject/base64",
+  "name": "@corepass/corebc-base64",
   "publishConfig": {
     "access": "public"
   },
@@ -43,5 +43,5 @@
   "sideEffects": false,
   "tarballHash": "0xd41aeec849d5c477d67777f87429f2494a37e758d237433bd25664427acae89c",
   "types": "./lib/index.d.ts",
-  "version": "5.5.0"
+  "version": "0.1.0"
 }

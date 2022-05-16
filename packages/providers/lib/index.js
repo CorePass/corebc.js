@@ -1,10 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Formatter = exports.showThrottleMessage = exports.isCommunityResourcable = exports.isCommunityResource = exports.getNetwork = exports.getDefaultProvider = exports.JsonRpcSigner = exports.IpcProvider = exports.WebSocketProvider = exports.Web3Provider = exports.StaticJsonRpcProvider = exports.JsonRpcBatchProvider = exports.JsonRpcProvider = exports.FallbackProvider = exports.UrlJsonRpcProvider = exports.Resolver = exports.BaseProvider = exports.Provider = void 0;
-var abstract_provider_1 = require("@ethersproject/abstract-provider");
-Object.defineProperty(exports, "Provider", { enumerable: true, get: function () { return abstract_provider_1.Provider; } });
-var networks_1 = require("@ethersproject/networks");
-Object.defineProperty(exports, "getNetwork", { enumerable: true, get: function () { return networks_1.getNetwork; } });
+var corebc_abstract_provider_1 = require("@corepass/corebc-abstract-provider");
+Object.defineProperty(exports, "Provider", { enumerable: true, get: function () { return corebc_abstract_provider_1.Provider; } });
+var corebc_networks_1 = require("@corepass/corebc-networks");
+Object.defineProperty(exports, "getNetwork", { enumerable: true, get: function () { return corebc_networks_1.getNetwork; } });
 var base_provider_1 = require("./base-provider");
 Object.defineProperty(exports, "BaseProvider", { enumerable: true, get: function () { return base_provider_1.BaseProvider; } });
 Object.defineProperty(exports, "Resolver", { enumerable: true, get: function () { return base_provider_1.Resolver; } });
@@ -29,9 +29,9 @@ Object.defineProperty(exports, "Formatter", { enumerable: true, get: function ()
 Object.defineProperty(exports, "isCommunityResourcable", { enumerable: true, get: function () { return formatter_1.isCommunityResourcable; } });
 Object.defineProperty(exports, "isCommunityResource", { enumerable: true, get: function () { return formatter_1.isCommunityResource; } });
 Object.defineProperty(exports, "showThrottleMessage", { enumerable: true, get: function () { return formatter_1.showThrottleMessage; } });
-var logger_1 = require("@ethersproject/logger");
+var corebc_logger_1 = require("@corepass/corebc-logger");
 var _version_1 = require("./_version");
-var logger = new logger_1.Logger(_version_1.version);
+var logger = new corebc_logger_1.Logger(_version_1.version);
 ////////////////////////
 // Helper Functions
 function getDefaultProvider(network, options) {
@@ -54,9 +54,9 @@ function getDefaultProvider(network, options) {
             }
         }
     }
-    var n = (0, networks_1.getNetwork)(network);
+    var n = (0, corebc_networks_1.getNetwork)(network);
     if (!n || !n._defaultProvider) {
-        logger.throwError("unsupported getDefaultProvider network", logger_1.Logger.errors.NETWORK_ERROR, {
+        logger.throwError("unsupported getDefaultProvider network", corebc_logger_1.Logger.errors.NETWORK_ERROR, {
             operation: "getDefaultProvider",
             network: network
         });

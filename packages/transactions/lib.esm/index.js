@@ -1,13 +1,13 @@
 "use strict";
-import { getAddress, networkIdToPrefix, publicToAddress } from "@ethersproject/address";
-import { BigNumber } from "@ethersproject/bignumber";
-import { arrayify, hexlify, stripZeros } from "@ethersproject/bytes";
-import { Zero } from "@ethersproject/constants";
-import { checkProperties } from "@ethersproject/properties";
-import * as RLP from "@ethersproject/rlp";
-import { sha256 } from "@ethersproject/sha3";
-import { computePublicKey, recoverPublicKey } from "@ethersproject/signing-key";
-import { Logger } from "@ethersproject/logger";
+import { getAddress, networkIdToPrefix, publicToAddress } from "@corepass/corebc-address";
+import { BigNumber } from "@corepass/corebc-bignumber";
+import { arrayify, hexlify, stripZeros } from "@corepass/corebc-bytes";
+import { Zero } from "@corepass/corebc-constants";
+import { checkProperties } from "@corepass/corebc-properties";
+import * as RLP from "@corepass/corebc-rlp";
+import { sha256 } from "@corepass/corebc-sha3";
+import { computePublicKey, recoverPublicKey } from "@corepass/corebc-signing-key";
+import { Logger } from "@corepass/corebc-logger";
 import { version } from "./_version";
 const logger = new Logger(version);
 ///////////////////////////////

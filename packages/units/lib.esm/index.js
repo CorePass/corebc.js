@@ -1,6 +1,6 @@
 "use strict";
-import { formatFixed, parseFixed } from "@ethersproject/bignumber";
-import { Logger } from "@ethersproject/logger";
+import { formatFixed, parseFixed } from "@corepass/corebc-bignumber";
+import { Logger } from "@corepass/corebc-logger";
 import { version } from "./_version";
 const logger = new Logger(version);
 const names = [

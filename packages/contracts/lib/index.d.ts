@@ -1,8 +1,8 @@
-import { Fragment, Indexed, Interface, JsonFragment, Result } from "@ethersproject/abi";
-import { Block, BlockTag, Listener, Log, Provider, TransactionReceipt, TransactionRequest, TransactionResponse } from "@ethersproject/abstract-provider";
-import { Signer } from "@ethersproject/abstract-signer";
-import { BigNumber, BigNumberish } from "@ethersproject/bignumber";
-import { BytesLike } from "@ethersproject/bytes";
+import { Fragment, Indexed, Interface, JsonFragment, Result } from "@corepass/corebc-abi";
+import { Block, BlockTag, Listener, Log, Provider, TransactionReceipt, TransactionRequest, TransactionResponse } from "@corepass/corebc-abstract-provider";
+import { Signer } from "@corepass/corebc-abstract-signer";
+import { BigNumber, BigNumberish } from "@corepass/corebc-bignumber";
+import { BytesLike } from "@corepass/corebc-bytes";
 export interface Overrides {
     energyLimit?: BigNumberish | Promise<BigNumberish>;
     energyPrice?: BigNumberish | Promise<BigNumberish>;

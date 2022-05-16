@@ -1,13 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getCreate2Address = exports.getContractAddress = exports.publicToAddress = exports.networkIdToPrefix = exports.extractPrefix = exports.isAddress = exports.getAddress = void 0;
-var sha3_1 = require("@ethersproject/sha3");
-var bytes_1 = require("@ethersproject/bytes");
-var bignumber_1 = require("@ethersproject/bignumber");
-var rlp_1 = require("@ethersproject/rlp");
-var logger_1 = require("@ethersproject/logger");
+var corebc_sha3_1 = require("@corepass/corebc-sha3");
+var corebc_bytes_1 = require("@corepass/corebc-bytes");
+var corebc_bignumber_1 = require("@corepass/corebc-bignumber");
+var corebc_rlp_1 = require("@corepass/corebc-rlp");
+var corebc_logger_1 = require("@corepass/corebc-logger");
 var _version_1 = require("./_version");
-var logger = new logger_1.Logger(_version_1.version);
+var logger = new corebc_logger_1.Logger(_version_1.version);
 var precompiledAddresses = [
     "0000000000000000000000000000000000000000000000000000000000000000",
     "0000000000000000000000000000000000000000000000000000000000000001",
@@ -31,7 +31,7 @@ function getChecksumAddress(val, prefix) {
         .replace(/[dD]/g, "13")
         .replace(/[eE]/g, "14")
         .replace(/[fF]/g, "15");
-    var checksum = bignumber_1.BigNumber.from(98).sub(bignumber_1.BigNumber.from(mods).mod(97)).toString();
+    var checksum = corebc_bignumber_1.BigNumber.from(98).sub(corebc_bignumber_1.BigNumber.from(mods).mod(97)).toString();
     if (checksum.length == 1) {
         checksum = "0" + checksum;
     }
@@ -88,7 +88,7 @@ function networkIdToPrefix(networkId) {
 }
 exports.networkIdToPrefix = networkIdToPrefix;
 function publicToAddress(key, prefix) {
-    var val = (0, bytes_1.hexDataSlice)((0, sha3_1.sha256)(key), 12);
+    var val = (0, corebc_bytes_1.hexDataSlice)((0, corebc_sha3_1.sha256)(key), 12);
     var checksum = getChecksumAddress(val, prefix);
     return "0x" + prefix + checksum + removeHexPrefix(val);
 }
@@ -102,21 +102,21 @@ function getContractAddress(transaction) {
     catch (error) {
         logger.throwArgumentError("missing from address", "transaction", transaction);
     }
-    var nonce = (0, bytes_1.stripZeros)((0, bytes_1.arrayify)(bignumber_1.BigNumber.from(transaction.nonce).toHexString()));
-    var val = (0, bytes_1.hexDataSlice)((0, sha3_1.sha256)((0, rlp_1.encode)([from, nonce])), 12);
+    var nonce = (0, corebc_bytes_1.stripZeros)((0, corebc_bytes_1.arrayify)(corebc_bignumber_1.BigNumber.from(transaction.nonce).toHexString()));
+    var val = (0, corebc_bytes_1.hexDataSlice)((0, corebc_sha3_1.sha256)((0, corebc_rlp_1.encode)([from, nonce])), 12);
     var prefix = from.substring(2, 4);
     var checksum = getChecksumAddress(val, prefix);
     return "0x" + prefix + checksum + removeHexPrefix(val);
 }
 exports.getContractAddress = getContractAddress;
 function getCreate2Address(from, salt, initCodeHash) {
-    if ((0, bytes_1.hexDataLength)(salt) !== 32) {
+    if ((0, corebc_bytes_1.hexDataLength)(salt) !== 32) {
         logger.throwArgumentError("salt must be 32 bytes", "salt", salt);
     }
-    if ((0, bytes_1.hexDataLength)(initCodeHash) !== 32) {
+    if ((0, corebc_bytes_1.hexDataLength)(initCodeHash) !== 32) {
         logger.throwArgumentError("initCodeHash must be 32 bytes", "initCodeHash", initCodeHash);
     }
-    var val = (0, bytes_1.hexDataSlice)((0, sha3_1.sha256)((0, bytes_1.concat)(["0xff", getAddress(from), salt, initCodeHash])), 12);
+    var val = (0, corebc_bytes_1.hexDataSlice)((0, corebc_sha3_1.sha256)((0, corebc_bytes_1.concat)(["0xff", getAddress(from), salt, initCodeHash])), 12);
     var prefix = from.substring(2, 4);
     var checksum = getChecksumAddress(val, prefix);
     return "0x" + prefix + checksum + removeHexPrefix(val);

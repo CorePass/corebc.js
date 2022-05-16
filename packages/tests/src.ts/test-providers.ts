@@ -4,9 +4,9 @@ import assert from "assert";
 
 //import Web3HttpProvider from "web3-providers-http";
 
-import { ethers } from "ethers";
+import { corebc } from "corebc";
 
-const bnify = ethers.BigNumber.from;
+const bnify = corebc.BigNumber.from;
 
 type TestCases = {
     addresses: Array<any>;
@@ -472,8 +472,8 @@ blockchainData["default"] = blockchainData.homestead;
 function equals(name: string, actual: any, expected: any): void {
     if (expected && expected.eq) {
         if (actual == null) { assert.ok(false, name + " - actual big number null"); }
-        expected = ethers.BigNumber.from(expected);
-        actual = ethers.BigNumber.from(actual);
+        expected = corebc.BigNumber.from(expected);
+        actual = corebc.BigNumber.from(actual);
         assert.ok(expected.eq(actual), name + " matches");
 
     } else if (Array.isArray(expected)) {
@@ -514,7 +514,7 @@ function waiter(duration: number): Promise<void> {
 type ProviderDescription = {
     name: string;
     networks: Array<string>;
-    create: (network: string) => ethers.providers.Provider;
+    create: (network: string) => corebc.providers.Provider;
 };
 
 type CheckSkipFunc = (provider: string, network: string, test: TestDescription) => boolean;
@@ -522,7 +522,7 @@ type CheckSkipFunc = (provider: string, network: string, test: TestDescription) 
 type TestDescription = {
     name: string;
     networks: Array<string>;
-    execute: (provider: ethers.providers.Provider) => Promise<void>;
+    execute: (provider: corebc.providers.Provider) => Promise<void>;
 
     attempts?: number;
     timeout?: number;
@@ -537,7 +537,7 @@ const allNetworks = [ "default", "homestead", "ropsten", "rinkeby", "kovan", "go
 // fail during CI because our default keys are pretty heavily used
 const _ApiKeys: Record<string, string> = {
     alchemy: "YrPw6SWb20vJDRFkhWq8aKnTQ8JRNRHM",
-    etherscan: "FPFGK6JSW2UHJJ2666FG93KP7WC999MNW7",
+    corebc: "FPFGK6JSW2UHJJ2666FG93KP7WC999MNW7",
     infura: "49a0efa3aaee4fd99797bfa94d8ce2f1",
 };
 
@@ -550,14 +550,14 @@ const _ApiKeysPocket: Record<string, string> = {
 
 type ApiKeySet = {
     alchemy: string;
-    etherscan: string;
+    corebc: string;
     infura: string;
     pocket: string;
 };
 
 function getApiKeys(network: string): ApiKeySet {
     if (network === "default" || network == null) { network = "homestead"; }
-    const apiKeys = ethers.utils.shallowCopy(_ApiKeys);
+    const apiKeys = corebc.utils.shallowCopy(_ApiKeys);
     apiKeys.pocket = _ApiKeysPocket[network];
     return <ApiKeySet>apiKeys;
 }
@@ -568,9 +568,9 @@ const providerFunctions: Array<ProviderDescription> = [
         networks: allNetworks,
         create: (network: string) => {
             if (network == "default") {
-                return ethers.getDefaultProvider(null, getApiKeys(network));
+                return corebc.getDefaultProvider(null, getApiKeys(network));
             }
-            return ethers.getDefaultProvider(network, getApiKeys(network));
+            return corebc.getDefaultProvider(network, getApiKeys(network));
         }
     },
     /*
@@ -599,29 +599,29 @@ const providerFunctions: Array<ProviderDescription> = [
 ];
 
 // This wallet can be funded and used for various test cases
-const fundWallet = ethers.Wallet.createRandom("cc");
+const fundWallet = corebc.Wallet.createRandom("cc");
 
 
 const testFunctions: Array<TestDescription> = [ ];
 
 Object.keys(blockchainData).forEach((network) => {
-    function addSimpleTest(name: string, func: (provider: ethers.providers.Provider) => Promise<any>, expected: any) {
+    function addSimpleTest(name: string, func: (provider: corebc.providers.Provider) => Promise<any>, expected: any) {
         testFunctions.push({
             name: name,
             networks: [ network ],
-            execute: async (provider: ethers.providers.Provider) => {
+            execute: async (provider: corebc.providers.Provider) => {
                 const value = await func(provider);
                 equals(name, expected, value);
             }
         });
     }
 
-    function addObjectTest(name: string, func: (provider: ethers.providers.Provider) => Promise<any>, expected: any, checkSkip?: CheckSkipFunc) {
+    function addObjectTest(name: string, func: (provider: corebc.providers.Provider) => Promise<any>, expected: any, checkSkip?: CheckSkipFunc) {
         testFunctions.push({
             name,
             networks: [ network ],
             checkSkip,
-            execute: async (provider: ethers.providers.Provider) => {
+            execute: async (provider: corebc.providers.Provider) => {
                 const value = await func(provider);
                 Object.keys(expected).forEach((key) => {
                     equals(`${ name }.${ key }`, value[key], expected[key]);
@@ -639,40 +639,40 @@ Object.keys(blockchainData).forEach((network) => {
     // - ENS name
     tests.addresses.forEach((test) => {
         if (test.balance) {
-            addSimpleTest(`fetches account balance: ${ test.address }`, (provider: ethers.providers.Provider) => {
+            addSimpleTest(`fetches account balance: ${ test.address }`, (provider: corebc.providers.Provider) => {
                 return provider.getBalance(test.address);
             }, test.balance);
         }
 
         if (test.code) {
-            addSimpleTest(`fetches account code: ${ test.address }`, (provider: ethers.providers.Provider) => {
+            addSimpleTest(`fetches account code: ${ test.address }`, (provider: corebc.providers.Provider) => {
                 return provider.getCode(test.address);
             }, test.code);
         }
 
         if (test.storage) {
             Object.keys(test.storage).forEach((position) => {
-                addSimpleTest(`fetches storage: ${ test.address }:${ position }`, (provider: ethers.providers.Provider) => {
+                addSimpleTest(`fetches storage: ${ test.address }:${ position }`, (provider: corebc.providers.Provider) => {
                     return provider.getStorageAt(test.address, bnify(position));
                 }, test.storage[position]);
             });
         }
 
         if (test.name) {
-            addSimpleTest(`fetches ENS name: ${ test.address }`, (provider: ethers.providers.Provider) => {
+            addSimpleTest(`fetches ENS name: ${ test.address }`, (provider: corebc.providers.Provider) => {
                 return provider.resolveName(test.name);
             }, test.address);
         }
     });
 
     tests.blocks.forEach((test) => {
-        addObjectTest(`fetches block (by number) #${ test.number }`, (provider: ethers.providers.Provider) => {
+        addObjectTest(`fetches block (by number) #${ test.number }`, (provider: corebc.providers.Provider) => {
             return provider.getBlock(test.number);
         }, test);
     });
 
     tests.blocks.forEach((test) => {
-        addObjectTest(`fetches block (by hash) ${ test.hash }`, (provider: ethers.providers.Provider) => {
+        addObjectTest(`fetches block (by hash) ${ test.hash }`, (provider: corebc.providers.Provider) => {
             return provider.getBlock(test.hash);
         }, test, (provider: string, network: string, test: TestDescription) => {
             return (provider === "EtherscanProvider");
@@ -681,7 +681,7 @@ Object.keys(blockchainData).forEach((network) => {
 
     tests.transactions.forEach((test) => {
         const hash = test.hash;
-        addObjectTest(`fetches transaction ${ hash }`, async (provider: ethers.providers.Provider) => {
+        addObjectTest(`fetches transaction ${ hash }`, async (provider: corebc.providers.Provider) => {
             const tx = await provider.getTransaction(hash);
 
             // This changes with every block
@@ -701,7 +701,7 @@ Object.keys(blockchainData).forEach((network) => {
 
     tests.transactionReceipts.forEach((test) => {
         const hash = test.transactionHash;
-        addObjectTest(`fetches transaction receipt ${ hash }`, async (provider: ethers.providers.Provider) => {
+        addObjectTest(`fetches transaction receipt ${ hash }`, async (provider: corebc.providers.Provider) => {
             const receipt = await provider.getTransactionReceipt(hash);
 
             if (test.status === null) {
@@ -723,14 +723,14 @@ Object.keys(blockchainData).forEach((network) => {
 });
 
 (function() {
-    function addErrorTest(code: string, func: (provider: ethers.providers.Provider) => Promise<any>) {
+    function addErrorTest(code: string, func: (provider: corebc.providers.Provider) => Promise<any>) {
         testFunctions.push({
             name: `throws correct ${ code } error`,
             networks: [ "ropsten" ],
             checkSkip: (provider: string, network: string, test: TestDescription) => {
                 return false;
             },
-            execute: async (provider: ethers.providers.Provider) => {
+            execute: async (provider: corebc.providers.Provider) => {
                 try {
                     const value = await func(provider);
                     console.log(value);
@@ -750,11 +750,11 @@ Object.keys(blockchainData).forEach((network) => {
     */
 
     // Wallet(id("foobar1234"))
-    addErrorTest(ethers.utils.Logger.errors.NONCE_EXPIRED, async (provider: ethers.providers.Provider) => {
+    addErrorTest(corebc.utils.Logger.errors.NONCE_EXPIRED, async (provider: corebc.providers.Provider) => {
         return provider.sendTransaction("0xf86480850218711a00825208940000000000000000000000000000000000000000038029a04320fd28c8e6c95da9229d960d14ffa3de81f83abe3ad9c189642c83d7d951f3a009aac89e04a8bafdcf618e21fed5e7b1144ca1083a301fd5fde28b0419eb63ce");
     });
 
-    addErrorTest(ethers.utils.Logger.errors.INSUFFICIENT_FUNDS, async (provider: ethers.providers.Provider) => {
+    addErrorTest(corebc.utils.Logger.errors.INSUFFICIENT_FUNDS, async (provider: corebc.providers.Provider) => {
 
         const txProps = {
             to: "0x8ba1f109551bD432803012645Ac136ddd64DBA72",
@@ -764,12 +764,12 @@ Object.keys(blockchainData).forEach((network) => {
             value: 1,
         };
 
-        const wallet = ethers.Wallet.createRandom("cc");
+        const wallet = corebc.Wallet.createRandom("cc");
         const tx = await wallet.signTransaction(txProps);
         return provider.sendTransaction(tx);
     });
 
-    addErrorTest(ethers.utils.Logger.errors.INSUFFICIENT_FUNDS, async (provider: ethers.providers.Provider) => {
+    addErrorTest(corebc.utils.Logger.errors.INSUFFICIENT_FUNDS, async (provider: corebc.providers.Provider) => {
         const txProps = {
             to: "0x8ba1f109551bD432803012645Ac136ddd64DBA72",
             energyPrice: 9000000000,
@@ -780,11 +780,11 @@ Object.keys(blockchainData).forEach((network) => {
             type: 0,
         };
 
-        const wallet = ethers.Wallet.createRandom("cc").connect(provider);
+        const wallet = corebc.Wallet.createRandom("cc").connect(provider);
         return wallet.sendTransaction(txProps);
     });
 
-    addErrorTest(ethers.utils.Logger.errors.UNPREDICTABLE_GAS_LIMIT, async (provider: ethers.providers.Provider) => {
+    addErrorTest(corebc.utils.Logger.errors.UNPREDICTABLE_GAS_LIMIT, async (provider: corebc.providers.Provider) => {
         return provider.estimateEnergy({
             to: "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e" // ENS contract
         });
@@ -799,7 +799,7 @@ testFunctions.push({
     checkSkip: (provider: string, network: string, test: TestDescription) => {
         return false;
     },
-    execute: async (provider: ethers.providers.Provider) => {
+    execute: async (provider: corebc.providers.Provider) => {
         const energyPrice = (await provider.getEnergyPrice()).mul(10);
 
         const wallet = fundWallet.connect(provider);
@@ -809,7 +809,7 @@ testFunctions.push({
         await waiter(3000);
 
         const b0 = await provider.getBalance(wallet.address);
-        assert.ok(b0.gt(ethers.constants.Zero), "balance is non-zero");
+        assert.ok(b0.gt(corebc.constants.Zero), "balance is non-zero");
 
         const tx = await wallet.sendTransaction({
             to: addr,
@@ -827,15 +827,15 @@ testFunctions.push({
 });
 
 describe("Test Provider Methods", function() {
-    let fundReceipt: Promise<ethers.providers.TransactionReceipt> = null;
+    let fundReceipt: Promise<corebc.providers.TransactionReceipt> = null;
     const faucet = "0x8210357f377E901f18E45294e86a2A32215Cc3C9";
 
     before(async function() {
         this.timeout(300000);
 
         // Get some ether from the faucet
-        const provider = ethers.getDefaultProvider("");
-        const funder = await ethers.utils.fetchJson(`https:/\/api.ethers.io/api/v1/?action=fundAccount&address=${ fundWallet.address.toLowerCase() }`);
+        const provider = corebc.getDefaultProvider("");
+        const funder = await corebc.utils.fetchJson(`https:/\/api.ethers.io/api/v1/?action=fundAccount&address=${ fundWallet.address.toLowerCase() }`);
         fundReceipt = provider.waitForTransaction(funder.hash);
         fundReceipt.then((receipt) => {
             console.log(`*** Funded: ${ fundWallet.address }`);
@@ -849,7 +849,7 @@ describe("Test Provider Methods", function() {
         await fundReceipt;
 
         // Refund all unused ether to the faucet
-        const provider = ethers.getDefaultProvider("");
+        const provider = corebc.getDefaultProvider("");
         const energyPrice = await provider.getEnergyPrice();
         const balance = await provider.getBalance(fundWallet.address);
         const tx = await fundWallet.connect(provider).sendTransaction({
@@ -934,7 +934,7 @@ describe("Test Basic Authentication", function() {
     function test(name: string, url: TestCase): void {
         it("tests " + name, function() {
             this.timeout(60000);
-            return ethers.utils.fetchJson(url).then((data) => {
+            return corebc.utils.fetchJson(url).then((data) => {
                 assert.equal(data.authenticated, true, "authenticates user");
             });
         });
@@ -965,7 +965,7 @@ describe("Test Basic Authentication", function() {
     it("tests insecure connections fail", function() {
         this.timeout(60000);
         assert.throws(() => {
-            return ethers.utils.fetchJson(insecure);
+            return corebc.utils.fetchJson(insecure);
         }, (error: Error) => {
             return ((<any>error).reason === "basic authentication requires a secure https url");
         }, "throws an exception for insecure connections");
@@ -1048,7 +1048,7 @@ describe("Resolve ENS avatar", function() {
     ].forEach((test) => {
         it(`Resolves avatar for ${ test.title }`, async function() {
             this.timeout(60000);
-            const provider = ethers.getDefaultProvider("ropsten", getApiKeys("ropsten"));
+            const provider = corebc.getDefaultProvider("ropsten", getApiKeys("ropsten"));
             const avatar = await provider.getAvatar(test.name);
             assert.equal(test.value, avatar, "avatar url");
         });
@@ -1060,7 +1060,7 @@ describe("Resolve ENS avatar", function() {
     ].forEach((test) => {
         it(`Resolves avatar for ${ test.title }`, async function() {
             this.timeout(60000);
-            const provider = ethers.getDefaultProvider("homestead", getApiKeys("homestead"));
+            const provider = corebc.getDefaultProvider("homestead", getApiKeys("homestead"));
             const avatar = await provider.getAvatar(test.name);
             assert.equal(avatar, test.value, "avatar url");
         });

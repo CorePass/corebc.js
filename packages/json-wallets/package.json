@@ -1,17 +1,17 @@
 {
   "author": "Richard Moore <me@ricmoo.com>",
   "dependencies": {
-    "@ethersproject/abstract-signer": "^5.5.0",
-    "@ethersproject/address": "^5.5.0",
-    "@ethersproject/bytes": "^5.5.0",
-    "@ethersproject/hdnode": "^5.5.0",
-    "@ethersproject/sha3": "^5.5.0",
-    "@ethersproject/logger": "^5.5.0",
-    "@ethersproject/pbkdf2": "^5.5.0",
-    "@ethersproject/properties": "^5.5.0",
-    "@ethersproject/random": "^5.5.0",
-    "@ethersproject/strings": "^5.5.0",
-    "@ethersproject/transactions": "^5.5.0",
+    "@corepass/corebc-abstract-signer": "^0.1.0",
+    "@corepass/corebc-address": "^0.1.0",
+    "@corepass/corebc-bytes": "^0.1.0",
+    "@corepass/corebc-hdnode": "^0.1.0",
+    "@corepass/corebc-sha3": "^0.1.0",
+    "@corepass/corebc-logger": "^0.1.0",
+    "@corepass/corebc-pbkdf2": "^0.1.0",
+    "@corepass/corebc-properties": "^0.1.0",
+    "@corepass/corebc-random": "^0.1.0",
+    "@corepass/corebc-strings": "^0.1.0",
+    "@corepass/corebc-transactions": "^0.1.0",
     "aes-js": "3.0.0",
     "scrypt-js": "3.0.1"
   },
@@ -34,7 +34,7 @@
   "license": "MIT",
   "main": "./lib/index.js",
   "module": "./lib.esm/index.js",
-  "name": "@ethersproject/json-wallets",
+  "name": "@corepass/corebc-json-wallets",
   "publishConfig": {
     "access": "public"
   },
@@ -49,5 +49,5 @@
   "sideEffects": false,
   "tarballHash": "0xde9c1ef5ff92f71418ec3430531320f776248a11e3e698caf551d0f164c29ae1",
   "types": "./lib/index.d.ts",
-  "version": "5.5.0"
+  "version": "0.1.0"
 }

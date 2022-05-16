@@ -20,7 +20,7 @@
   "license": "MIT",
   "main": "./lib/index.js",
   "module": "./lib.esm/index.js",
-  "name": "@ethersproject/logger",
+  "name": "@corepass/corebc-logger",
   "publishConfig": {
     "access": "public"
   },
@@ -35,5 +35,5 @@
   "sideEffects": false,
   "tarballHash": "0x7810ac41144c4a0c3d1b3fb597a803d53c3e0661b2f047d82741deb397ff7d6d",
   "types": "./lib/index.d.ts",
-  "version": "5.5.0"
+  "version": "0.1.0"
 }

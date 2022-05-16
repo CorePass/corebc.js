@@ -1,7 +1,7 @@
-import { BlockTag, FeeData, Provider, TransactionRequest, TransactionResponse } from "@ethersproject/abstract-provider";
-import { BigNumber, BigNumberish } from "@ethersproject/bignumber";
-import { Bytes, BytesLike } from "@ethersproject/bytes";
-import { Deferrable } from "@ethersproject/properties";
+import { BlockTag, FeeData, Provider, TransactionRequest, TransactionResponse } from "@corepass/corebc-abstract-provider";
+import { BigNumber, BigNumberish } from "@corepass/corebc-bignumber";
+import { Bytes, BytesLike } from "@corepass/corebc-bytes";
+import { Deferrable } from "@corepass/corebc-properties";
 export interface TypedDataDomain {
     name?: string;
     version?: string;

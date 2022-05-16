@@ -38,8 +38,8 @@
  *
  */
 
-import { arrayify, BytesLike } from "@ethersproject/bytes";
-import { defineReadOnly } from "@ethersproject/properties";
+import { arrayify, BytesLike } from "@corepass/corebc-bytes";
+import { defineReadOnly } from "@corepass/corebc-properties";
 
 export class BaseX {
     readonly alphabet: string;

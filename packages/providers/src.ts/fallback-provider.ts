@@ -1,17 +1,17 @@
 "use strict";
 
-import { Block, BlockWithTransactions, Provider } from "@ethersproject/abstract-provider";
-import { BigNumber } from "@ethersproject/bignumber";
-import { isHexString } from "@ethersproject/bytes";
-import { Network } from "@ethersproject/networks";
-import { deepCopy, defineReadOnly, shallowCopy } from "@ethersproject/properties";
-import { shuffled } from "@ethersproject/random";
-import { poll } from "@ethersproject/web";
+import { Block, BlockWithTransactions, Provider } from "@corepass/corebc-abstract-provider";
+import { BigNumber } from "@corepass/corebc-bignumber";
+import { isHexString } from "@corepass/corebc-bytes";
+import { Network } from "@corepass/corebc-networks";
+import { deepCopy, defineReadOnly, shallowCopy } from "@corepass/corebc-properties";
+import { shuffled } from "@corepass/corebc-random";
+import { poll } from "@corepass/corebc-web";
 
 import { BaseProvider } from "./base-provider";
 import { isCommunityResource } from "./formatter";
 
-import { Logger } from "@ethersproject/logger";
+import { Logger } from "@corepass/corebc-logger";
 import { version } from "./_version";
 const logger = new Logger(version);
 

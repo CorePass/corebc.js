@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getJsonWalletAddress = exports.isKeystoreWallet = exports.isCrowdsaleWallet = void 0;
-var address_1 = require("@ethersproject/address");
+var corebc_address_1 = require("@corepass/corebc-address");
 function isCrowdsaleWallet(json) {
     var data = null;
     try {
@@ -34,7 +34,7 @@ exports.isKeystoreWallet = isKeystoreWallet;
 function getJsonWalletAddress(json) {
     if (isCrowdsaleWallet(json)) {
         try {
-            return (0, address_1.getAddress)(JSON.parse(json).ethaddr);
+            return (0, corebc_address_1.getAddress)(JSON.parse(json).ethaddr);
         }
         catch (error) {
             return null;
@@ -42,7 +42,7 @@ function getJsonWalletAddress(json) {
     }
     if (isKeystoreWallet(json)) {
         try {
-            return (0, address_1.getAddress)(JSON.parse(json).address);
+            return (0, corebc_address_1.getAddress)(JSON.parse(json).address);
         }
         catch (error) {
             return null;

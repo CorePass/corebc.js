@@ -1,6 +1,6 @@
-import { Bytes, concat } from "@ethersproject/bytes";
-import { sha256 } from "@ethersproject/sha3";
-import { toUtf8Bytes } from "@ethersproject/strings";
+import { Bytes, concat } from "@corepass/corebc-bytes";
+import { sha256 } from "@corepass/corebc-sha3";
+import { toUtf8Bytes } from "@corepass/corebc-strings";
 
 export const messagePrefix = "\x19Core Signed Message:\n";
 

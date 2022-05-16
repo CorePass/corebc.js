@@ -16,9 +16,9 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ArrayCoder = exports.unpack = exports.pack = void 0;
-var logger_1 = require("@ethersproject/logger");
+var corebc_logger_1 = require("@corepass/corebc-logger");
 var _version_1 = require("../_version");
-var logger = new logger_1.Logger(_version_1.version);
+var logger = new corebc_logger_1.Logger(_version_1.version);
 var abstract_coder_1 = require("./abstract-coder");
 var anonymous_1 = require("./anonymous");
 function pack(writer, coders, values) {
@@ -31,14 +31,14 @@ function pack(writer, coders, values) {
         arrayValues = coders.map(function (coder) {
             var name = coder.localName;
             if (!name) {
-                logger.throwError("cannot encode object for signature with missing names", logger_1.Logger.errors.INVALID_ARGUMENT, {
+                logger.throwError("cannot encode object for signature with missing names", corebc_logger_1.Logger.errors.INVALID_ARGUMENT, {
                     argument: "values",
                     coder: coder,
                     value: values
                 });
             }
             if (unique_1[name]) {
-                logger.throwError("cannot encode object for signature with duplicate names", logger_1.Logger.errors.INVALID_ARGUMENT, {
+                logger.throwError("cannot encode object for signature with duplicate names", corebc_logger_1.Logger.errors.INVALID_ARGUMENT, {
                     argument: "values",
                     coder: coder,
                     value: values
@@ -95,7 +95,7 @@ function unpack(reader, coders) {
             }
             catch (error) {
                 // Cannot recover from this
-                if (error.code === logger_1.Logger.errors.BUFFER_OVERRUN) {
+                if (error.code === corebc_logger_1.Logger.errors.BUFFER_OVERRUN) {
                     throw error;
                 }
                 value = error;
@@ -110,7 +110,7 @@ function unpack(reader, coders) {
             }
             catch (error) {
                 // Cannot recover from this
-                if (error.code === logger_1.Logger.errors.BUFFER_OVERRUN) {
+                if (error.code === corebc_logger_1.Logger.errors.BUFFER_OVERRUN) {
                     throw error;
                 }
                 value = error;
@@ -218,7 +218,7 @@ var ArrayCoder = /** @class */ (function (_super) {
             // bytes as a link to the data). This could use a much
             // tighter bound, but we are erroring on the side of safety.
             if (count * 32 > reader._data.length) {
-                logger.throwError("insufficient data length", logger_1.Logger.errors.BUFFER_OVERRUN, {
+                logger.throwError("insufficient data length", corebc_logger_1.Logger.errors.BUFFER_OVERRUN, {
                     length: reader._data.length,
                     count: count
                 });

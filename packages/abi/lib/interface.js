@@ -16,26 +16,26 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Interface = exports.Indexed = exports.ErrorDescription = exports.TransactionDescription = exports.LogDescription = exports.checkResultErrors = void 0;
-var address_1 = require("@ethersproject/address");
-var bignumber_1 = require("@ethersproject/bignumber");
-var bytes_1 = require("@ethersproject/bytes");
-var hash_1 = require("@ethersproject/hash");
-var sha3_1 = require("@ethersproject/sha3");
-var properties_1 = require("@ethersproject/properties");
+var corebc_address_1 = require("@corepass/corebc-address");
+var corebc_bignumber_1 = require("@corepass/corebc-bignumber");
+var corebc_bytes_1 = require("@corepass/corebc-bytes");
+var corebc_hash_1 = require("@corepass/corebc-hash");
+var corebc_sha3_1 = require("@corepass/corebc-sha3");
+var corebc_properties_1 = require("@corepass/corebc-properties");
 var abi_coder_1 = require("./abi-coder");
 var abstract_coder_1 = require("./coders/abstract-coder");
 Object.defineProperty(exports, "checkResultErrors", { enumerable: true, get: function () { return abstract_coder_1.checkResultErrors; } });
 var fragments_1 = require("./fragments");
-var logger_1 = require("@ethersproject/logger");
+var corebc_logger_1 = require("@corepass/corebc-logger");
 var _version_1 = require("./_version");
-var logger = new logger_1.Logger(_version_1.version);
+var logger = new corebc_logger_1.Logger(_version_1.version);
 var LogDescription = /** @class */ (function (_super) {
     __extends(LogDescription, _super);
     function LogDescription() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
     return LogDescription;
-}(properties_1.Description));
+}(corebc_properties_1.Description));
 exports.LogDescription = LogDescription;
 var TransactionDescription = /** @class */ (function (_super) {
     __extends(TransactionDescription, _super);
@@ -43,7 +43,7 @@ var TransactionDescription = /** @class */ (function (_super) {
         return _super !== null && _super.apply(this, arguments) || this;
     }
     return TransactionDescription;
-}(properties_1.Description));
+}(corebc_properties_1.Description));
 exports.TransactionDescription = TransactionDescription;
 var ErrorDescription = /** @class */ (function (_super) {
     __extends(ErrorDescription, _super);
@@ -51,7 +51,7 @@ var ErrorDescription = /** @class */ (function (_super) {
         return _super !== null && _super.apply(this, arguments) || this;
     }
     return ErrorDescription;
-}(properties_1.Description));
+}(corebc_properties_1.Description));
 exports.ErrorDescription = ErrorDescription;
 var Indexed = /** @class */ (function (_super) {
     __extends(Indexed, _super);
@@ -62,7 +62,7 @@ var Indexed = /** @class */ (function (_super) {
         return !!(value && value._isIndexed);
     };
     return Indexed;
-}(properties_1.Description));
+}(corebc_properties_1.Description));
 exports.Indexed = Indexed;
 var BuiltinErrors = {
     "0x08c379a0": { signature: "Error(string)", name: "Error", inputs: ["string"], reason: true },
@@ -98,14 +98,14 @@ var Interface = /** @class */ (function () {
         else {
             abi = fragments;
         }
-        (0, properties_1.defineReadOnly)(this, "fragments", abi.map(function (fragment) {
+        (0, corebc_properties_1.defineReadOnly)(this, "fragments", abi.map(function (fragment) {
             return fragments_1.Fragment.from(fragment);
         }).filter(function (fragment) { return (fragment != null); }));
-        (0, properties_1.defineReadOnly)(this, "_abiCoder", (0, properties_1.getStatic)(_newTarget, "getAbiCoder")());
-        (0, properties_1.defineReadOnly)(this, "functions", {});
-        (0, properties_1.defineReadOnly)(this, "errors", {});
-        (0, properties_1.defineReadOnly)(this, "events", {});
-        (0, properties_1.defineReadOnly)(this, "structs", {});
+        (0, corebc_properties_1.defineReadOnly)(this, "_abiCoder", (0, corebc_properties_1.getStatic)(_newTarget, "getAbiCoder")());
+        (0, corebc_properties_1.defineReadOnly)(this, "functions", {});
+        (0, corebc_properties_1.defineReadOnly)(this, "errors", {});
+        (0, corebc_properties_1.defineReadOnly)(this, "events", {});
+        (0, corebc_properties_1.defineReadOnly)(this, "structs", {});
         // Add all fragments by their signature
         this.fragments.forEach(function (fragment) {
             var bucket = null;
@@ -116,7 +116,7 @@ var Interface = /** @class */ (function () {
                         return;
                     }
                     //checkNames(fragment, "input", fragment.inputs);
-                    (0, properties_1.defineReadOnly)(_this, "deploy", fragment);
+                    (0, corebc_properties_1.defineReadOnly)(_this, "deploy", fragment);
                     return;
                 case "function":
                     //checkNames(fragment, "input", fragment.inputs);
@@ -142,12 +142,12 @@ var Interface = /** @class */ (function () {
         });
         // If we do not have a constructor add a default
         if (!this.deploy) {
-            (0, properties_1.defineReadOnly)(this, "deploy", fragments_1.ConstructorFragment.from({
+            (0, corebc_properties_1.defineReadOnly)(this, "deploy", fragments_1.ConstructorFragment.from({
                 payable: false,
                 type: "constructor"
             }));
         }
-        (0, properties_1.defineReadOnly)(this, "_isInterface", true);
+        (0, corebc_properties_1.defineReadOnly)(this, "_isInterface", true);
     }
     Interface.prototype.format = function (format) {
         if (!format) {
@@ -168,17 +168,17 @@ var Interface = /** @class */ (function () {
         return abi_coder_1.defaultAbiCoder;
     };
     Interface.getAddress = function (address) {
-        return (0, address_1.getAddress)(address);
+        return (0, corebc_address_1.getAddress)(address);
     };
     Interface.getSighash = function (fragment) {
-        return (0, bytes_1.hexDataSlice)((0, hash_1.id)(fragment.format()), 0, 4);
+        return (0, corebc_bytes_1.hexDataSlice)((0, corebc_hash_1.id)(fragment.format()), 0, 4);
     };
     Interface.getEventTopic = function (eventFragment) {
-        return (0, hash_1.id)(eventFragment.format());
+        return (0, corebc_hash_1.id)(eventFragment.format());
     };
     // Find a function definition by any means necessary (unless it is ambiguous)
     Interface.prototype.getFunction = function (nameOrSignatureOrSighash) {
-        if ((0, bytes_1.isHexString)(nameOrSignatureOrSighash)) {
+        if ((0, corebc_bytes_1.isHexString)(nameOrSignatureOrSighash)) {
             for (var name_1 in this.functions) {
                 if (nameOrSignatureOrSighash === this.getSighash(name_1)) {
                     return this.functions[name_1];
@@ -207,7 +207,7 @@ var Interface = /** @class */ (function () {
     };
     // Find an event definition by any means necessary (unless it is ambiguous)
     Interface.prototype.getEvent = function (nameOrSignatureOrTopic) {
-        if ((0, bytes_1.isHexString)(nameOrSignatureOrTopic)) {
+        if ((0, corebc_bytes_1.isHexString)(nameOrSignatureOrTopic)) {
             var topichash = nameOrSignatureOrTopic.toLowerCase();
             for (var name_3 in this.events) {
                 if (topichash === this.getEventTopic(name_3)) {
@@ -237,8 +237,8 @@ var Interface = /** @class */ (function () {
     };
     // Find a function definition by any means necessary (unless it is ambiguous)
     Interface.prototype.getError = function (nameOrSignatureOrSighash) {
-        if ((0, bytes_1.isHexString)(nameOrSignatureOrSighash)) {
-            var getSighash = (0, properties_1.getStatic)(this.constructor, "getSighash");
+        if ((0, corebc_bytes_1.isHexString)(nameOrSignatureOrSighash)) {
+            var getSighash = (0, corebc_properties_1.getStatic)(this.constructor, "getSighash");
             for (var name_5 in this.errors) {
                 var error = this.errors[name_5];
                 if (nameOrSignatureOrSighash === getSighash(error)) {
@@ -281,14 +281,14 @@ var Interface = /** @class */ (function () {
                 }
             }
         }
-        return (0, properties_1.getStatic)(this.constructor, "getSighash")(fragment);
+        return (0, corebc_properties_1.getStatic)(this.constructor, "getSighash")(fragment);
     };
     // Get the topic (the bytes32 hash) used by Solidity to identify an event
     Interface.prototype.getEventTopic = function (eventFragment) {
         if (typeof (eventFragment) === "string") {
             eventFragment = this.getEvent(eventFragment);
         }
-        return (0, properties_1.getStatic)(this.constructor, "getEventTopic")(eventFragment);
+        return (0, corebc_properties_1.getStatic)(this.constructor, "getEventTopic")(eventFragment);
     };
     Interface.prototype._decodeParams = function (params, data) {
         return this._abiCoder.decode(params, data);
@@ -303,9 +303,9 @@ var Interface = /** @class */ (function () {
         if (typeof (fragment) === "string") {
             fragment = this.getError(fragment);
         }
-        var bytes = (0, bytes_1.arrayify)(data);
-        if ((0, bytes_1.hexlify)(bytes.slice(0, 4)) !== this.getSighash(fragment)) {
-            logger.throwArgumentError("data signature does not match error " + fragment.name + ".", "data", (0, bytes_1.hexlify)(bytes));
+        var bytes = (0, corebc_bytes_1.arrayify)(data);
+        if ((0, corebc_bytes_1.hexlify)(bytes.slice(0, 4)) !== this.getSighash(fragment)) {
+            logger.throwArgumentError("data signature does not match error " + fragment.name + ".", "data", (0, corebc_bytes_1.hexlify)(bytes));
         }
         return this._decodeParams(fragment.inputs, bytes.slice(4));
     };
@@ -313,7 +313,7 @@ var Interface = /** @class */ (function () {
         if (typeof (fragment) === "string") {
             fragment = this.getError(fragment);
         }
-        return (0, bytes_1.hexlify)((0, bytes_1.concat)([
+        return (0, corebc_bytes_1.hexlify)((0, corebc_bytes_1.concat)([
             this.getSighash(fragment),
             this._encodeParams(fragment.inputs, values || [])
         ]));
@@ -323,9 +323,9 @@ var Interface = /** @class */ (function () {
         if (typeof (functionFragment) === "string") {
             functionFragment = this.getFunction(functionFragment);
         }
-        var bytes = (0, bytes_1.arrayify)(data);
-        if ((0, bytes_1.hexlify)(bytes.slice(0, 4)) !== this.getSighash(functionFragment)) {
-            logger.throwArgumentError("data signature does not match function " + functionFragment.name + ".", "data", (0, bytes_1.hexlify)(bytes));
+        var bytes = (0, corebc_bytes_1.arrayify)(data);
+        if ((0, corebc_bytes_1.hexlify)(bytes.slice(0, 4)) !== this.getSighash(functionFragment)) {
+            logger.throwArgumentError("data signature does not match function " + functionFragment.name + ".", "data", (0, corebc_bytes_1.hexlify)(bytes));
         }
         return this._decodeParams(functionFragment.inputs, bytes.slice(4));
     };
@@ -334,7 +334,7 @@ var Interface = /** @class */ (function () {
         if (typeof (functionFragment) === "string") {
             functionFragment = this.getFunction(functionFragment);
         }
-        return (0, bytes_1.hexlify)((0, bytes_1.concat)([
+        return (0, corebc_bytes_1.hexlify)((0, corebc_bytes_1.concat)([
             this.getSighash(functionFragment),
             this._encodeParams(functionFragment.inputs, values || [])
         ]));
@@ -344,7 +344,7 @@ var Interface = /** @class */ (function () {
         if (typeof (functionFragment) === "string") {
             functionFragment = this.getFunction(functionFragment);
         }
-        var bytes = (0, bytes_1.arrayify)(data);
+        var bytes = (0, corebc_bytes_1.arrayify)(data);
         var reason = null;
         var errorArgs = null;
         var errorName = null;
@@ -357,7 +357,7 @@ var Interface = /** @class */ (function () {
                 catch (error) { }
                 break;
             case 4: {
-                var selector = (0, bytes_1.hexlify)(bytes.slice(0, 4));
+                var selector = (0, corebc_bytes_1.hexlify)(bytes.slice(0, 4));
                 var builtin = BuiltinErrors[selector];
                 if (builtin) {
                     errorArgs = this._abiCoder.decode(builtin.inputs, bytes.slice(4));
@@ -381,7 +381,7 @@ var Interface = /** @class */ (function () {
                 break;
             }
         }
-        return logger.throwError("call revert exception", logger_1.Logger.errors.CALL_EXCEPTION, {
+        return logger.throwError("call revert exception", corebc_logger_1.Logger.errors.CALL_EXCEPTION, {
             method: functionFragment.format(),
             errorArgs: errorArgs,
             errorName: errorName,
@@ -394,7 +394,7 @@ var Interface = /** @class */ (function () {
         if (typeof (functionFragment) === "string") {
             functionFragment = this.getFunction(functionFragment);
         }
-        return (0, bytes_1.hexlify)(this._abiCoder.encode(functionFragment.outputs, values || []));
+        return (0, corebc_bytes_1.hexlify)(this._abiCoder.encode(functionFragment.outputs, values || []));
     };
     // Create the filter for the event with search criteria (e.g. for xcb_filterLog)
     Interface.prototype.encodeFilterTopics = function (eventFragment, values) {
@@ -403,7 +403,7 @@ var Interface = /** @class */ (function () {
             eventFragment = this.getEvent(eventFragment);
         }
         if (values.length > eventFragment.inputs.length) {
-            logger.throwError("too many arguments for " + eventFragment.format(), logger_1.Logger.errors.UNEXPECTED_ARGUMENT, {
+            logger.throwError("too many arguments for " + eventFragment.format(), corebc_logger_1.Logger.errors.UNEXPECTED_ARGUMENT, {
                 argument: "values",
                 value: values
             });
@@ -414,16 +414,16 @@ var Interface = /** @class */ (function () {
         }
         var encodeTopic = function (param, value) {
             if (param.type === "string") {
-                return (0, hash_1.id)(value);
+                return (0, corebc_hash_1.id)(value);
             }
             else if (param.type === "bytes") {
-                return (0, sha3_1.sha256)((0, bytes_1.hexlify)(value));
+                return (0, corebc_sha3_1.sha256)((0, corebc_bytes_1.hexlify)(value));
             }
             // Check addresses are valid
             if (param.type === "address") {
                 _this._abiCoder.encode(["address"], [value]);
             }
-            return (0, bytes_1.hexZeroPad)((0, bytes_1.hexlify)(value), 32);
+            return (0, corebc_bytes_1.hexZeroPad)((0, corebc_bytes_1.hexlify)(value), 32);
         };
         values.forEach(function (value, index) {
             var param = eventFragment.inputs[index];
@@ -470,10 +470,10 @@ var Interface = /** @class */ (function () {
             var value = values[index];
             if (param.indexed) {
                 if (param.type === "string") {
-                    topics.push((0, hash_1.id)(value));
+                    topics.push((0, corebc_hash_1.id)(value));
                 }
                 else if (param.type === "bytes") {
-                    topics.push((0, sha3_1.sha256)(value));
+                    topics.push((0, corebc_sha3_1.sha256)(value));
                 }
                 else if (param.baseType === "tuple" || param.baseType === "array") {
                     // @TODO
@@ -500,8 +500,8 @@ var Interface = /** @class */ (function () {
         }
         if (topics != null && !eventFragment.anonymous) {
             var topicHash = this.getEventTopic(eventFragment);
-            if (!(0, bytes_1.isHexString)(topics[0], 32) || topics[0].toLowerCase() !== topicHash) {
-                logger.throwError("fragment/topic mismatch", logger_1.Logger.errors.INVALID_ARGUMENT, { argument: "topics[0]", expected: topicHash, value: topics[0] });
+            if (!(0, corebc_bytes_1.isHexString)(topics[0], 32) || topics[0].toLowerCase() !== topicHash) {
+                logger.throwError("fragment/topic mismatch", corebc_logger_1.Logger.errors.INVALID_ARGUMENT, { argument: "topics[0]", expected: topicHash, value: topics[0] });
             }
             topics = topics.slice(1);
         }
@@ -524,7 +524,7 @@ var Interface = /** @class */ (function () {
                 dynamic.push(false);
             }
         });
-        var resultIndexed = (topics != null) ? this._abiCoder.decode(indexed, (0, bytes_1.concat)(topics)) : null;
+        var resultIndexed = (topics != null) ? this._abiCoder.decode(indexed, (0, corebc_bytes_1.concat)(topics)) : null;
         var resultNonIndexed = this._abiCoder.decode(nonIndexed, data, true);
         var result = [];
         var nonIndexedIndex = 0, indexedIndex = 0;
@@ -596,7 +596,7 @@ var Interface = /** @class */ (function () {
             name: fragment.name,
             signature: fragment.format(),
             sighash: this.getSighash(fragment),
-            value: bignumber_1.BigNumber.from(tx.value || "0"),
+            value: corebc_bignumber_1.BigNumber.from(tx.value || "0"),
         });
     };
     // @TODO
@@ -620,7 +620,7 @@ var Interface = /** @class */ (function () {
         });
     };
     Interface.prototype.parseError = function (data) {
-        var hexData = (0, bytes_1.hexlify)(data);
+        var hexData = (0, corebc_bytes_1.hexlify)(data);
         var fragment = this.getError(hexData.substring(0, 10).toLowerCase());
         if (!fragment) {
             return null;

@@ -1,11 +1,11 @@
 {
   "author": "Richard Moore <me@ricmoo.com>",
   "dependencies": {
-    "@ethersproject/bignumber": "^5.5.0",
-    "@ethersproject/bytes": "^5.5.0",
-    "@ethersproject/sha3": "^5.5.0",
-    "@ethersproject/logger": "^5.5.0",
-    "@ethersproject/rlp": "^5.5.0"
+    "@corepass/corebc-bignumber": "^0.1.0",
+    "@corepass/corebc-bytes": "^0.1.0",
+    "@corepass/corebc-sha3": "^0.1.0",
+    "@corepass/corebc-logger": "^0.1.0",
+    "@corepass/corebc-rlp": "^0.1.0"
   },
   "description": "Utilities for handling Ethereum Addresses for ethers.",
   "ethereum": "donations.ethers.eth",
@@ -26,7 +26,7 @@
   "license": "MIT",
   "main": "./lib/index.js",
   "module": "./lib.esm/index.js",
-  "name": "@ethersproject/address",
+  "name": "@corepass/corebc-address",
   "publishConfig": {
     "access": "public"
   },
@@ -41,5 +41,5 @@
   "sideEffects": false,
   "tarballHash": "0xfa99c21467355e5473cdc8ce0e315c73cebad21c774010607622fa99f30f3b13",
   "types": "./lib/index.d.ts",
-  "version": "5.5.0"
+  "version": "0.1.0"
 }

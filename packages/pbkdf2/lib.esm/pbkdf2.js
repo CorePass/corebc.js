@@ -1,6 +1,6 @@
 "use strict";
-import { arrayify, hexlify } from "@ethersproject/bytes";
-import { computeHmac } from "@ethersproject/sha3";
+import { arrayify, hexlify } from "@corepass/corebc-bytes";
+import { computeHmac } from "@corepass/corebc-sha3";
 export function pbkdf2(password, salt, iterations, keylen, hashAlgorithm) {
     password = arrayify(password);
     salt = arrayify(salt);

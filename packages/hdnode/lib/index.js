@@ -1,17 +1,17 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getAccountPath = exports.isValidMnemonic = exports.entropyToMnemonic = exports.mnemonicToEntropy = exports.mnemonicToSeed = exports.HDNode = exports.defaultPath = void 0;
-var bytes_1 = require("@ethersproject/bytes");
-var strings_1 = require("@ethersproject/strings");
-var pbkdf2_1 = require("@ethersproject/pbkdf2");
-var properties_1 = require("@ethersproject/properties");
-var signing_key_1 = require("@ethersproject/signing-key");
-var sha3_1 = require("@ethersproject/sha3");
-var address_1 = require("@ethersproject/address");
-var wordlists_1 = require("@ethersproject/wordlists");
-var logger_1 = require("@ethersproject/logger");
+var corebc_bytes_1 = require("@corepass/corebc-bytes");
+var corebc_strings_1 = require("@corepass/corebc-strings");
+var corebc_pbkdf2_1 = require("@corepass/corebc-pbkdf2");
+var corebc_properties_1 = require("@corepass/corebc-properties");
+var corebc_signing_key_1 = require("@corepass/corebc-signing-key");
+var corebc_sha3_1 = require("@corepass/corebc-sha3");
+var corebc_address_1 = require("@corepass/corebc-address");
+var corebc_wordlists_1 = require("@corepass/corebc-wordlists");
+var corebc_logger_1 = require("@corepass/corebc-logger");
 var _version_1 = require("./_version");
-var logger = new logger_1.Logger(_version_1.version);
+var logger = new corebc_logger_1.Logger(_version_1.version);
 var HardenedBit = 0x80000000;
 // Returns a byte with the MSB bits set
 function getUpperMask(bits) {
@@ -23,10 +23,10 @@ function getLowerMask(bits) {
 }
 function getWordlist(wordlist) {
     if (wordlist == null) {
-        return wordlists_1.wordlists["en"];
+        return corebc_wordlists_1.wordlists["en"];
     }
     if (typeof (wordlist) === "string") {
-        var words = wordlists_1.wordlists[wordlist];
+        var words = corebc_wordlists_1.wordlists[wordlist];
         if (words == null) {
             logger.throwArgumentError("unknown locale", "wordlist", wordlist);
         }
@@ -35,9 +35,9 @@ function getWordlist(wordlist) {
     return wordlist;
 }
 function sha512Hash(password, salt) {
-    var p = (0, bytes_1.arrayify)(password);
-    var s = (0, bytes_1.arrayify)(salt);
-    return (0, bytes_1.arrayify)((0, pbkdf2_1.pbkdf2)(p, s, 2048, 57, "sha512"));
+    var p = (0, corebc_bytes_1.arrayify)(password);
+    var s = (0, corebc_bytes_1.arrayify)(salt);
+    return (0, corebc_bytes_1.arrayify)((0, corebc_pbkdf2_1.pbkdf2)(p, s, 2048, 57, "sha512"));
 }
 function concatKeyIndexSalt(prefix, key, index, salt) {
     var ind = new Uint8Array(4);
@@ -48,11 +48,11 @@ function concatKeyIndexSalt(prefix, key, index, salt) {
         ind[i] = j % 256;
         j = Math.floor(j / 256);
     }
-    var t = (0, bytes_1.concat)([p, key, ind]);
+    var t = (0, corebc_bytes_1.concat)([p, key, ind]);
     return sha512Hash(t, salt);
 }
 function addScalar(a, b) {
-    b = (0, bytes_1.concat)([b.slice(0, 53), "0x00000000"]);
+    b = (0, corebc_bytes_1.concat)([b.slice(0, 53), "0x00000000"]);
     b[0] &= 0xfc;
     var c = new Uint8Array(57);
     var hold = 0;
@@ -83,37 +83,37 @@ var HDNode = /** @class */ (function () {
             throw new Error("HDNode constructor cannot be called directly");
         }
         if (extendedPrivateKey) {
-            (0, properties_1.defineReadOnly)(this, "extendedPrivateKey", extendedPrivateKey);
-            var privateKey = (0, bytes_1.hexDataSlice)(extendedPrivateKey, 57, 114);
-            var signingKey = new signing_key_1.SigningKey(privateKey);
-            (0, properties_1.defineReadOnly)(this, "privateKey", signingKey.privateKey);
-            (0, properties_1.defineReadOnly)(this, "publicKey", signingKey.publicKey);
+            (0, corebc_properties_1.defineReadOnly)(this, "extendedPrivateKey", extendedPrivateKey);
+            var privateKey = (0, corebc_bytes_1.hexDataSlice)(extendedPrivateKey, 57, 114);
+            var signingKey = new corebc_signing_key_1.SigningKey(privateKey);
+            (0, corebc_properties_1.defineReadOnly)(this, "privateKey", signingKey.privateKey);
+            (0, corebc_properties_1.defineReadOnly)(this, "publicKey", signingKey.publicKey);
         }
         else {
-            (0, properties_1.defineReadOnly)(this, "extendedPrivateKey", null);
-            (0, properties_1.defineReadOnly)(this, "privateKey", null);
-            (0, properties_1.defineReadOnly)(this, "publicKey", (0, bytes_1.hexlify)(publicKey));
+            (0, corebc_properties_1.defineReadOnly)(this, "extendedPrivateKey", null);
+            (0, corebc_properties_1.defineReadOnly)(this, "privateKey", null);
+            (0, corebc_properties_1.defineReadOnly)(this, "publicKey", (0, corebc_bytes_1.hexlify)(publicKey));
         }
-        (0, properties_1.defineReadOnly)(this, "parentFingerprint", parentFingerprint);
-        (0, properties_1.defineReadOnly)(this, "fingerprint", (0, bytes_1.hexDataSlice)((0, sha3_1.ripemd160)((0, sha3_1.sha256)(this.publicKey)), 0, 4));
-        (0, properties_1.defineReadOnly)(this, "prefix", prefix);
-        (0, properties_1.defineReadOnly)(this, "address", (0, address_1.publicToAddress)(this.publicKey, prefix));
-        (0, properties_1.defineReadOnly)(this, "index", index);
-        (0, properties_1.defineReadOnly)(this, "depth", depth);
+        (0, corebc_properties_1.defineReadOnly)(this, "parentFingerprint", parentFingerprint);
+        (0, corebc_properties_1.defineReadOnly)(this, "fingerprint", (0, corebc_bytes_1.hexDataSlice)((0, corebc_sha3_1.ripemd160)((0, corebc_sha3_1.sha256)(this.publicKey)), 0, 4));
+        (0, corebc_properties_1.defineReadOnly)(this, "prefix", prefix);
+        (0, corebc_properties_1.defineReadOnly)(this, "address", (0, corebc_address_1.publicToAddress)(this.publicKey, prefix));
+        (0, corebc_properties_1.defineReadOnly)(this, "index", index);
+        (0, corebc_properties_1.defineReadOnly)(this, "depth", depth);
         if (mnemonicOrPath == null) {
             // From a source that does not preserve the path (e.g. extended keys)
-            (0, properties_1.defineReadOnly)(this, "mnemonic", null);
-            (0, properties_1.defineReadOnly)(this, "path", null);
+            (0, corebc_properties_1.defineReadOnly)(this, "mnemonic", null);
+            (0, corebc_properties_1.defineReadOnly)(this, "path", null);
         }
         else if (typeof (mnemonicOrPath) === "string") {
             // From a source that does not preserve the mnemonic (e.g. neutered)
-            (0, properties_1.defineReadOnly)(this, "mnemonic", null);
-            (0, properties_1.defineReadOnly)(this, "path", mnemonicOrPath);
+            (0, corebc_properties_1.defineReadOnly)(this, "mnemonic", null);
+            (0, corebc_properties_1.defineReadOnly)(this, "path", mnemonicOrPath);
         }
         else {
             // From a fully qualified source
-            (0, properties_1.defineReadOnly)(this, "mnemonic", mnemonicOrPath);
-            (0, properties_1.defineReadOnly)(this, "path", mnemonicOrPath.path);
+            (0, corebc_properties_1.defineReadOnly)(this, "mnemonic", mnemonicOrPath);
+            (0, corebc_properties_1.defineReadOnly)(this, "path", mnemonicOrPath.path);
         }
     }
     HDNode.prototype.neuter = function () {
@@ -126,7 +126,7 @@ var HDNode = /** @class */ (function () {
         if (!this.extendedPrivateKey) {
             throw new Error("cannot derive child of neutered node");
         }
-        var extendedPrivateKey = (0, bytes_1.arrayify)(this.extendedPrivateKey);
+        var extendedPrivateKey = (0, corebc_bytes_1.arrayify)(this.extendedPrivateKey);
         var salt = extendedPrivateKey.slice(0, 57);
         var key = extendedPrivateKey.slice(57, 114);
         var r0, r1;
@@ -135,11 +135,11 @@ var HDNode = /** @class */ (function () {
             r1 = concatKeyIndexSalt(0, key, index, salt);
         }
         else {
-            var pub = (0, bytes_1.arrayify)(this.publicKey);
+            var pub = (0, corebc_bytes_1.arrayify)(this.publicKey);
             r0 = concatKeyIndexSalt(3, pub, index, salt);
             r1 = concatKeyIndexSalt(2, pub, index, salt);
         }
-        var newKey = (0, bytes_1.hexlify)((0, bytes_1.concat)([r0, addScalar(key, r1)]));
+        var newKey = (0, corebc_bytes_1.hexlify)((0, corebc_bytes_1.concat)([r0, addScalar(key, r1)]));
         // Base path
         var path = this.path;
         if (path) {
@@ -188,7 +188,7 @@ var HDNode = /** @class */ (function () {
         return result;
     };
     HDNode._fromSeed = function (seed, mnemonic, prefix) {
-        var seedArray = (0, bytes_1.arrayify)(seed);
+        var seedArray = (0, corebc_bytes_1.arrayify)(seed);
         if (seedArray.length < 16 || seedArray.length > 64) {
             throw new Error("invalid seed");
         }
@@ -197,7 +197,7 @@ var HDNode = /** @class */ (function () {
         s2[56] |= 0x80;
         s2[55] |= 0x80;
         s2[55] &= 0xbf;
-        var key = (0, bytes_1.hexlify)((0, bytes_1.concat)([s1, s2]));
+        var key = (0, corebc_bytes_1.hexlify)((0, corebc_bytes_1.concat)([s1, s2]));
         return new HDNode(_constructorGuard, key, null, "0x00000000", prefix, 0, 0, mnemonic);
     };
     HDNode.fromMnemonic = function (mnemonic, prefix, password, wordlist) {
@@ -217,8 +217,8 @@ function mnemonicToSeed(mnemonic, password) {
     if (!password) {
         password = "";
     }
-    var salt = (0, strings_1.toUtf8Bytes)("mnemonic" + password, strings_1.UnicodeNormalizationForm.NFKD);
-    return (0, pbkdf2_1.pbkdf2)((0, strings_1.toUtf8Bytes)(mnemonic, strings_1.UnicodeNormalizationForm.NFKD), salt, 2048, 64, "sha512");
+    var salt = (0, corebc_strings_1.toUtf8Bytes)("mnemonic" + password, corebc_strings_1.UnicodeNormalizationForm.NFKD);
+    return (0, corebc_pbkdf2_1.pbkdf2)((0, corebc_strings_1.toUtf8Bytes)(mnemonic, corebc_strings_1.UnicodeNormalizationForm.NFKD), salt, 2048, 64, "sha512");
 }
 exports.mnemonicToSeed = mnemonicToSeed;
 function mnemonicToEntropy(mnemonic, wordlist) {
@@ -228,7 +228,7 @@ function mnemonicToEntropy(mnemonic, wordlist) {
     if ((words.length % 3) !== 0) {
         throw new Error("invalid mnemonic");
     }
-    var entropy = (0, bytes_1.arrayify)(new Uint8Array(Math.ceil(11 * words.length / 8)));
+    var entropy = (0, corebc_bytes_1.arrayify)(new Uint8Array(Math.ceil(11 * words.length / 8)));
     var offset = 0;
     for (var i = 0; i < words.length; i++) {
         var index = wordlist.getWordIndex(words[i].normalize("NFKD"));
@@ -245,16 +245,16 @@ function mnemonicToEntropy(mnemonic, wordlist) {
     var entropyBits = 32 * words.length / 3;
     var checksumBits = words.length / 3;
     var checksumMask = getUpperMask(checksumBits);
-    var checksum = (0, bytes_1.arrayify)((0, sha3_1.sha256)(entropy.slice(0, entropyBits / 8)))[0] & checksumMask;
+    var checksum = (0, corebc_bytes_1.arrayify)((0, corebc_sha3_1.sha256)(entropy.slice(0, entropyBits / 8)))[0] & checksumMask;
     if (checksum !== (entropy[entropy.length - 1] & checksumMask)) {
         throw new Error("invalid checksum");
     }
-    return (0, bytes_1.hexlify)(entropy.slice(0, entropyBits / 8));
+    return (0, corebc_bytes_1.hexlify)(entropy.slice(0, entropyBits / 8));
 }
 exports.mnemonicToEntropy = mnemonicToEntropy;
 function entropyToMnemonic(entropy, wordlist) {
     wordlist = getWordlist(wordlist);
-    entropy = (0, bytes_1.arrayify)(entropy);
+    entropy = (0, corebc_bytes_1.arrayify)(entropy);
     if ((entropy.length % 4) !== 0 || entropy.length < 16 || entropy.length > 32) {
         throw new Error("invalid entropy");
     }
@@ -278,7 +278,7 @@ function entropyToMnemonic(entropy, wordlist) {
     }
     // Compute the checksum bits
     var checksumBits = entropy.length / 4;
-    var checksum = (0, bytes_1.arrayify)((0, sha3_1.sha256)(entropy))[0] & getUpperMask(checksumBits);
+    var checksum = (0, corebc_bytes_1.arrayify)((0, corebc_sha3_1.sha256)(entropy))[0] & getUpperMask(checksumBits);
     // Shift the checksum into the word indices
     indices[indices.length - 1] <<= checksumBits;
     indices[indices.length - 1] |= (checksum >> (8 - checksumBits));

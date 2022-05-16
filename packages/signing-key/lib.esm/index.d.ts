@@ -1,4 +1,4 @@
-import { BytesLike } from "@ethersproject/bytes";
+import { BytesLike } from "@corepass/corebc-bytes";
 export declare class SigningKey {
     readonly privateKey: string;
     readonly publicKey: string;

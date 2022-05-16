@@ -17,10 +17,10 @@ var __extends = (this && this.__extends) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.IpcProvider = void 0;
 var net_1 = require("net");
-var properties_1 = require("@ethersproject/properties");
-var logger_1 = require("@ethersproject/logger");
+var corebc_properties_1 = require("@corepass/corebc-properties");
+var corebc_logger_1 = require("@corepass/corebc-logger");
 var _version_1 = require("./_version");
-var logger = new logger_1.Logger(_version_1.version);
+var logger = new corebc_logger_1.Logger(_version_1.version);
 var json_rpc_provider_1 = require("./json-rpc-provider");
 var IpcProvider = /** @class */ (function (_super) {
     __extends(IpcProvider, _super);
@@ -29,10 +29,10 @@ var IpcProvider = /** @class */ (function (_super) {
         var _this = this;
         logger.checkNew(_newTarget, IpcProvider);
         if (path == null) {
-            logger.throwError("missing path", logger_1.Logger.errors.MISSING_ARGUMENT, { arg: "path" });
+            logger.throwError("missing path", corebc_logger_1.Logger.errors.MISSING_ARGUMENT, { arg: "path" });
         }
         _this = _super.call(this, "ipc://" + path, network) || this;
-        (0, properties_1.defineReadOnly)(_this, "path", path);
+        (0, corebc_properties_1.defineReadOnly)(_this, "path", path);
         return _this;
     }
     // @TODO: Create a connection to the IPC path and use filters instead of polling for block

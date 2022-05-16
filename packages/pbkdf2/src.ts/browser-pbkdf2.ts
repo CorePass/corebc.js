@@ -1,7 +1,7 @@
 "use strict";
 
-import { arrayify, BytesLike, hexlify } from "@ethersproject/bytes";
-import { computeHmac, SupportedAlgorithm } from "@ethersproject/sha3";
+import { arrayify, BytesLike, hexlify } from "@corepass/corebc-bytes";
+import { computeHmac, SupportedAlgorithm } from "@corepass/corebc-sha3";
 
 export function pbkdf2(password: BytesLike, salt: BytesLike, iterations: number, keylen: number, hashAlgorithm: string): string {
     password = arrayify(password);

@@ -1,6 +1,5 @@
 {
   "_devDependencies": {
-    "@ethersproject/cli": "^5.0.0",
     "@types/bip39": "2.4.1",
     "@types/bitcoinjs-lib": "3.3.2",
     "bip39": "2.5.0",
@@ -16,10 +15,10 @@
     "./lib/disk-utils": "./lib/browser-disk-utils.js"
   },
   "dependencies": {
-    "@ethersproject/bignumber": "^5.5.0",
-    "@ethersproject/bytes": "^5.5.0",
-    "@ethersproject/strings": "^5.5.0",
-    "ethers": "^5.5.0",
+    "@corepass/corebc-bignumber": "^0.1.0",
+    "@corepass/corebc-bytes": "^0.1.0",
+    "@corepass/corebc-strings": "^0.1.0",
+    "corebc": "^0.1.0",
     "tiny-inflate": "1.0.3"
   },
   "description": "Testcases for Ethereum and scripts to generate testcases.",
@@ -41,7 +40,7 @@
   "license": "MIT",
   "main": "./lib/index.js",
   "module": "./lib.esm/index.js",
-  "name": "@ethersproject/testcases",
+  "name": "@corepass/corebc-testcases",
   "publishConfig": {
     "access": "public"
   },
@@ -55,5 +54,5 @@
   },
   "tarballHash": "0x55544681cc4b024c027542f43ca15342d21eddd6ace03af4b90014ce5be9d037",
   "types": "./lib/index.d.ts",
-  "version": "5.5.0"
+  "version": "0.1.0"
 }

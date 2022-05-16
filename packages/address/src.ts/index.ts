@@ -1,11 +1,11 @@
 "use strict";
 
-import { sha256 } from "@ethersproject/sha3";
-import { arrayify, BytesLike, concat, hexDataLength, hexDataSlice, stripZeros } from "@ethersproject/bytes";
-import { BigNumber, BigNumberish, _base16To36, _base36To16 } from "@ethersproject/bignumber";
-import { encode } from "@ethersproject/rlp";
+import { sha256 } from "@corepass/corebc-sha3";
+import { arrayify, BytesLike, concat, hexDataLength, hexDataSlice, stripZeros } from "@corepass/corebc-bytes";
+import { BigNumber, BigNumberish, _base16To36, _base36To16 } from "@corepass/corebc-bignumber";
+import { encode } from "@corepass/corebc-rlp";
 
-import { Logger } from "@ethersproject/logger";
+import { Logger } from "@corepass/corebc-logger";
 import { version } from "./_version";
 const logger = new Logger(version);
 

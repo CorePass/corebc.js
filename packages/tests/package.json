@@ -1,10 +1,9 @@
 {
   "author": "Richard Moore <me@ricmoo.com>",
   "dependencies": {
-    "@ethersproject/cli": "^5.5.0",
-    "@ethersproject/testcases": "^5.5.0",
+    "@corepass/corebc-testcases": "^0.1.0",
     "@types/mocha": "^5.2.0",
-    "ethers": "^5.5.0"
+    "corebc": "^0.1.0"
   },
   "description": "Testing package for ethers.",
   "ethereum": "donations.ethers.eth",
@@ -25,7 +24,7 @@
   "license": "MIT",
   "main": "./lib/index.js",
   "module": "./lib.esm/index.js",
-  "name": "@ethersproject/tests",
+  "name": "@corepass/corebc-tests",
   "publishConfig": {
     "access": "public"
   },
@@ -39,5 +38,5 @@
   },
   "tarballHash": "0x3b7e6bddf981907c52af4a410997a2bd01075042e3136f78ea39a01310d6283c",
   "types": "./lib/index.d.ts",
-  "version": "5.5.1"
+  "version": "0.1.0"
 }

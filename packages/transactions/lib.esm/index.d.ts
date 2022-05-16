@@ -1,5 +1,5 @@
-import { BigNumber, BigNumberish } from "@ethersproject/bignumber";
-import { BytesLike } from "@ethersproject/bytes";
+import { BigNumber, BigNumberish } from "@corepass/corebc-bignumber";
+import { BytesLike } from "@corepass/corebc-bytes";
 export declare type UnsignedTransaction = {
     to?: string;
     nonce?: number;

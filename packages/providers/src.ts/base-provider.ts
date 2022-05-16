@@ -3,22 +3,22 @@
 import {
     Block, BlockTag, BlockWithTransactions, EventType, Filter, FilterByBlockHash, ForkEvent,
     Listener, Log, Provider, TransactionReceipt, TransactionRequest, TransactionResponse
-} from "@ethersproject/abstract-provider";
-import { Base58 } from "@ethersproject/basex";
-import { BigNumber, BigNumberish } from "@ethersproject/bignumber";
-import { arrayify, concat, hexConcat, hexDataLength, hexDataSlice, hexlify, hexValue, hexZeroPad, isHexString } from "@ethersproject/bytes";
-import { HashZero } from "@ethersproject/constants";
-import { namehash } from "@ethersproject/hash";
-import { getNetwork, Network, Networkish } from "@ethersproject/networks";
-import { Deferrable, defineReadOnly, getStatic, resolveProperties } from "@ethersproject/properties";
-import { Transaction } from "@ethersproject/transactions";
-import { sha256 } from "@ethersproject/sha3";
-import { toUtf8Bytes, toUtf8String } from "@ethersproject/strings";
-import { fetchJson, poll } from "@ethersproject/web";
+} from "@corepass/corebc-abstract-provider";
+import { Base58 } from "@corepass/corebc-basex";
+import { BigNumber, BigNumberish } from "@corepass/corebc-bignumber";
+import { arrayify, concat, hexConcat, hexDataLength, hexDataSlice, hexlify, hexValue, hexZeroPad, isHexString } from "@corepass/corebc-bytes";
+import { HashZero } from "@corepass/corebc-constants";
+import { namehash } from "@corepass/corebc-hash";
+import { getNetwork, Network, Networkish } from "@corepass/corebc-networks";
+import { Deferrable, defineReadOnly, getStatic, resolveProperties } from "@corepass/corebc-properties";
+import { Transaction } from "@corepass/corebc-transactions";
+import { sha256 } from "@corepass/corebc-sha3";
+import { toUtf8Bytes, toUtf8String } from "@corepass/corebc-strings";
+import { fetchJson, poll } from "@corepass/corebc-web";
 
 import bech32 from "bech32";
 
-import { Logger } from "@ethersproject/logger";
+import { Logger } from "@corepass/corebc-logger";
 import { version } from "./_version";
 const logger = new Logger(version);
 

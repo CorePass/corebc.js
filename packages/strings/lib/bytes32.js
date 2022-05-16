@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.parseBytes32String = exports.formatBytes32String = void 0;
-var constants_1 = require("@ethersproject/constants");
-var bytes_1 = require("@ethersproject/bytes");
+var corebc_constants_1 = require("@corepass/corebc-constants");
+var corebc_bytes_1 = require("@corepass/corebc-bytes");
 var utf8_1 = require("./utf8");
 function formatBytes32String(text) {
     // Get the bytes
@@ -12,11 +12,11 @@ function formatBytes32String(text) {
         throw new Error("bytes32 string must be less than 32 bytes");
     }
     // Zero-pad (implicitly null-terminates)
-    return (0, bytes_1.hexlify)((0, bytes_1.concat)([bytes, constants_1.HashZero]).slice(0, 32));
+    return (0, corebc_bytes_1.hexlify)((0, corebc_bytes_1.concat)([bytes, corebc_constants_1.HashZero]).slice(0, 32));
 }
 exports.formatBytes32String = formatBytes32String;
 function parseBytes32String(bytes) {
-    var data = (0, bytes_1.arrayify)(bytes);
+    var data = (0, corebc_bytes_1.arrayify)(bytes);
     // Must be 32 bytes with a null-termination
     if (data.length !== 32) {
         throw new Error("invalid bytes32 - not 32 bytes long");

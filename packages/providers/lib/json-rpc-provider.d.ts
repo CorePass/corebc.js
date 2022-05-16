@@ -1,9 +1,9 @@
-import { Provider, TransactionRequest, TransactionResponse } from "@ethersproject/abstract-provider";
-import { Signer, TypedDataDomain, TypedDataField, TypedDataSigner } from "@ethersproject/abstract-signer";
-import { Bytes } from "@ethersproject/bytes";
-import { Network, Networkish } from "@ethersproject/networks";
-import { Deferrable } from "@ethersproject/properties";
-import { ConnectionInfo } from "@ethersproject/web";
+import { Provider, TransactionRequest, TransactionResponse } from "@corepass/corebc-abstract-provider";
+import { Signer, TypedDataDomain, TypedDataField, TypedDataSigner } from "@corepass/corebc-abstract-signer";
+import { Bytes } from "@corepass/corebc-bytes";
+import { Network, Networkish } from "@corepass/corebc-networks";
+import { Deferrable } from "@corepass/corebc-properties";
+import { ConnectionInfo } from "@corepass/corebc-web";
 import { BaseProvider, Event } from "./base-provider";
 export declare class JsonRpcSigner extends Signer implements TypedDataSigner {
     readonly provider: JsonRpcProvider;

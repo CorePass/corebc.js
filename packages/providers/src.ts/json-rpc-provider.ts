@@ -2,17 +2,17 @@
 
 // See: https://github.com/ethereum/wiki/wiki/JSON-RPC
 
-import { Provider, TransactionRequest, TransactionResponse } from "@ethersproject/abstract-provider";
-import { Signer, TypedDataDomain, TypedDataField, TypedDataSigner } from "@ethersproject/abstract-signer";
-import { BigNumber } from "@ethersproject/bignumber";
-import { Bytes, hexlify, hexValue, isHexString } from "@ethersproject/bytes";
-import { _TypedDataEncoder } from "@ethersproject/hash";
-import { Network, Networkish } from "@ethersproject/networks";
-import { checkProperties, deepCopy, Deferrable, defineReadOnly, getStatic, resolveProperties, shallowCopy } from "@ethersproject/properties";
-import { toUtf8Bytes } from "@ethersproject/strings";
-import { ConnectionInfo, fetchJson, poll } from "@ethersproject/web";
+import { Provider, TransactionRequest, TransactionResponse } from "@corepass/corebc-abstract-provider";
+import { Signer, TypedDataDomain, TypedDataField, TypedDataSigner } from "@corepass/corebc-abstract-signer";
+import { BigNumber } from "@corepass/corebc-bignumber";
+import { Bytes, hexlify, hexValue, isHexString } from "@corepass/corebc-bytes";
+import { _TypedDataEncoder } from "@corepass/corebc-hash";
+import { Network, Networkish } from "@corepass/corebc-networks";
+import { checkProperties, deepCopy, Deferrable, defineReadOnly, getStatic, resolveProperties, shallowCopy } from "@corepass/corebc-properties";
+import { toUtf8Bytes } from "@corepass/corebc-strings";
+import { ConnectionInfo, fetchJson, poll } from "@corepass/corebc-web";
 
-import { Logger } from "@ethersproject/logger";
+import { Logger } from "@corepass/corebc-logger";
 import { version } from "./_version";
 const logger = new Logger(version);
 

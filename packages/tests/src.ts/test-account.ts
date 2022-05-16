@@ -2,8 +2,8 @@
 
 import assert from 'assert';
 
-import { ethers } from "ethers";
-import { loadTests } from "@ethersproject/testcases";
+import { corebc } from "corebc";
+import { loadTests } from "@corepass/corebc-testcases";
 
 
 type TestCase = {
@@ -20,7 +20,7 @@ describe('Private key generation', function() {
     tests.forEach((test) => {
         if (!test.privateKey) { return; }
         it(('correctly converts private key - ' + test.name), function() {
-            let wallet = new ethers.Wallet(test.privateKey, test.prefix);
+            let wallet = new corebc.Wallet(test.privateKey, test.prefix);
             assert.equal(wallet.address.toLowerCase(), test.address.toLowerCase(),
                 'correctly computes privateKey - ' + test.privateKey);
         });

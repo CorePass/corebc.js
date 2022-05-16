@@ -1,6 +1,6 @@
 "use strict";
 
-import { arrayify } from "@ethersproject/bytes";
+import { arrayify } from "@corepass/corebc-bytes";
 
 import type { GetUrlResponse, Options } from "./types";
 

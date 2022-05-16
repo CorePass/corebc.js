@@ -1,18 +1,18 @@
 {
   "author": "Richard Moore <me@ricmoo.com>",
   "dependencies": {
-    "@ethersproject/abstract-signer": "^5.5.0",
-    "@ethersproject/basex": "^5.5.0",
-    "@ethersproject/bignumber": "^5.5.0",
-    "@ethersproject/bytes": "^5.5.0",
-    "@ethersproject/logger": "^5.5.0",
-    "@ethersproject/pbkdf2": "^5.5.0",
-    "@ethersproject/properties": "^5.5.0",
-    "@ethersproject/sha3": "^5.5.0",
-    "@ethersproject/signing-key": "^5.5.0",
-    "@ethersproject/strings": "^5.5.0",
-    "@ethersproject/transactions": "^5.5.0",
-    "@ethersproject/wordlists": "^5.5.0"
+    "@corepass/corebc-abstract-signer": "^0.1.0",
+    "@corepass/corebc-basex": "^0.1.0",
+    "@corepass/corebc-bignumber": "^0.1.0",
+    "@corepass/corebc-bytes": "^0.1.0",
+    "@corepass/corebc-logger": "^0.1.0",
+    "@corepass/corebc-pbkdf2": "^0.1.0",
+    "@corepass/corebc-properties": "^0.1.0",
+    "@corepass/corebc-sha3": "^0.1.0",
+    "@corepass/corebc-signing-key": "^0.1.0",
+    "@corepass/corebc-strings": "^0.1.0",
+    "@corepass/corebc-transactions": "^0.1.0",
+    "@corepass/corebc-wordlists": "^0.1.0"
   },
   "description": "BIP32 Hierarchal Deterministic Node operations.",
   "ethereum": "donations.ethers.eth",
@@ -33,7 +33,7 @@
   "license": "MIT",
   "main": "./lib/index.js",
   "module": "./lib.esm/index.js",
-  "name": "@ethersproject/hdnode",
+  "name": "@corepass/corebc-hdnode",
   "publishConfig": {
     "access": "public"
   },
@@ -48,5 +48,5 @@
   "sideEffects": false,
   "tarballHash": "0xe0380795f54dd16283bb2614baafa8ce9beb51856a8a99b48f44c8658db7876c",
   "types": "./lib/index.d.ts",
-  "version": "5.5.0"
+  "version": "0.1.0"
 }

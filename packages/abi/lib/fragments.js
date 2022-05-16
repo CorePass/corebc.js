@@ -16,11 +16,11 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ErrorFragment = exports.FunctionFragment = exports.ConstructorFragment = exports.EventFragment = exports.Fragment = exports.ParamType = exports.FormatTypes = void 0;
-var bignumber_1 = require("@ethersproject/bignumber");
-var properties_1 = require("@ethersproject/properties");
-var logger_1 = require("@ethersproject/logger");
+var corebc_bignumber_1 = require("@corepass/corebc-bignumber");
+var corebc_properties_1 = require("@corepass/corebc-properties");
+var corebc_logger_1 = require("@corepass/corebc-logger");
 var _version_1 = require("./_version");
-var logger = new logger_1.Logger(_version_1.version);
+var logger = new corebc_logger_1.Logger(_version_1.version);
 ;
 var _constructorGuard = {};
 var ModifiersBytes = { calldata: true, memory: true, storage: true };
@@ -210,7 +210,7 @@ function parseParamType(param, allowIndexed) {
 }
 function populate(object, params) {
     for (var key in params) {
-        (0, properties_1.defineReadOnly)(object, key, params[key]);
+        (0, corebc_properties_1.defineReadOnly)(object, key, params[key]);
     }
 }
 exports.FormatTypes = Object.freeze({
@@ -227,7 +227,7 @@ var paramTypeArray = new RegExp(/^(.*)\[([0-9]*)\]$/);
 var ParamType = /** @class */ (function () {
     function ParamType(constructorGuard, params) {
         if (constructorGuard !== _constructorGuard) {
-            logger.throwError("use fromString", logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
+            logger.throwError("use fromString", corebc_logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
                 operation: "new ParamType()"
             });
         }
@@ -345,7 +345,7 @@ function parseParams(value, allowIndex) {
 var Fragment = /** @class */ (function () {
     function Fragment(constructorGuard, params) {
         if (constructorGuard !== _constructorGuard) {
-            logger.throwError("use a static from method", logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
+            logger.throwError("use a static from method", corebc_logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
                 operation: "new Fragment()"
             });
         }
@@ -500,7 +500,7 @@ function parseEnergy(value, params) {
         if (!comps[1].match(/^[0-9]+$/)) {
             logger.throwArgumentError("invalid human-readable ABI signature energy", "value", value);
         }
-        params.energy = bignumber_1.BigNumber.from(comps[1]);
+        params.energy = corebc_bignumber_1.BigNumber.from(comps[1]);
         return comps[0];
     }
     return value;
@@ -611,7 +611,7 @@ var ConstructorFragment = /** @class */ (function (_super) {
             });
         }
         if (format === exports.FormatTypes.sighash) {
-            logger.throwError("cannot format a constructor for sighash", logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
+            logger.throwError("cannot format a constructor for sighash", corebc_logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
                 operation: "format(sighash)"
             });
         }
@@ -644,7 +644,7 @@ var ConstructorFragment = /** @class */ (function (_super) {
             inputs: (value.inputs ? value.inputs.map(ParamType.fromObject) : []),
             payable: state.payable,
             stateMutability: state.stateMutability,
-            energy: (value.energy ? bignumber_1.BigNumber.from(value.energy) : null)
+            energy: (value.energy ? corebc_bignumber_1.BigNumber.from(value.energy) : null)
         };
         return new ConstructorFragment(_constructorGuard, params);
     };
@@ -734,7 +734,7 @@ var FunctionFragment = /** @class */ (function (_super) {
             outputs: (value.outputs ? value.outputs.map(ParamType.fromObject) : []),
             payable: state.payable,
             stateMutability: state.stateMutability,
-            energy: (value.energy ? bignumber_1.BigNumber.from(value.energy) : null)
+            energy: (value.energy ? corebc_bignumber_1.BigNumber.from(value.energy) : null)
         };
         return new FunctionFragment(_constructorGuard, params);
     };

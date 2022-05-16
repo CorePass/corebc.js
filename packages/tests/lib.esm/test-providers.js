@@ -10,8 +10,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import assert from "assert";
 //import Web3HttpProvider from "web3-providers-http";
-import { ethers } from "ethers";
-const bnify = ethers.BigNumber.from;
+import { corebc } from "corebc";
+const bnify = corebc.BigNumber.from;
 const blockchainData = {
     homestead: {
         addresses: [
@@ -464,8 +464,8 @@ function equals(name, actual, expected) {
         if (actual == null) {
             assert.ok(false, name + " - actual big number null");
         }
-        expected = ethers.BigNumber.from(expected);
-        actual = ethers.BigNumber.from(actual);
+        expected = corebc.BigNumber.from(expected);
+        actual = corebc.BigNumber.from(actual);
         assert.ok(expected.eq(actual), name + " matches");
     }
     else if (Array.isArray(expected)) {
@@ -511,7 +511,7 @@ const allNetworks = ["default", "homestead", "ropsten", "rinkeby", "kovan", "goe
 // fail during CI because our default keys are pretty heavily used
 const _ApiKeys = {
     alchemy: "YrPw6SWb20vJDRFkhWq8aKnTQ8JRNRHM",
-    etherscan: "FPFGK6JSW2UHJJ2666FG93KP7WC999MNW7",
+    corebc: "FPFGK6JSW2UHJJ2666FG93KP7WC999MNW7",
     infura: "49a0efa3aaee4fd99797bfa94d8ce2f1",
 };
 const _ApiKeysPocket = {
@@ -524,7 +524,7 @@ function getApiKeys(network) {
     if (network === "default" || network == null) {
         network = "homestead";
     }
-    const apiKeys = ethers.utils.shallowCopy(_ApiKeys);
+    const apiKeys = corebc.utils.shallowCopy(_ApiKeys);
     apiKeys.pocket = _ApiKeysPocket[network];
     return apiKeys;
 }
@@ -534,9 +534,9 @@ const providerFunctions = [
         networks: allNetworks,
         create: (network) => {
             if (network == "default") {
-                return ethers.getDefaultProvider(null, getApiKeys(network));
+                return corebc.getDefaultProvider(null, getApiKeys(network));
             }
-            return ethers.getDefaultProvider(network, getApiKeys(network));
+            return corebc.getDefaultProvider(network, getApiKeys(network));
         }
     },
     /*
@@ -564,7 +564,7 @@ const providerFunctions = [
     }
 ];
 // This wallet can be funded and used for various test cases
-const fundWallet = ethers.Wallet.createRandom("cc");
+const fundWallet = corebc.Wallet.createRandom("cc");
 const testFunctions = [];
 Object.keys(blockchainData).forEach((network) => {
     function addSimpleTest(name, func, expected) {
@@ -694,10 +694,10 @@ Object.keys(blockchainData).forEach((network) => {
     });
     */
     // Wallet(id("foobar1234"))
-    addErrorTest(ethers.utils.Logger.errors.NONCE_EXPIRED, (provider) => __awaiter(this, void 0, void 0, function* () {
+    addErrorTest(corebc.utils.Logger.errors.NONCE_EXPIRED, (provider) => __awaiter(this, void 0, void 0, function* () {
         return provider.sendTransaction("0xf86480850218711a00825208940000000000000000000000000000000000000000038029a04320fd28c8e6c95da9229d960d14ffa3de81f83abe3ad9c189642c83d7d951f3a009aac89e04a8bafdcf618e21fed5e7b1144ca1083a301fd5fde28b0419eb63ce");
     }));
-    addErrorTest(ethers.utils.Logger.errors.INSUFFICIENT_FUNDS, (provider) => __awaiter(this, void 0, void 0, function* () {
+    addErrorTest(corebc.utils.Logger.errors.INSUFFICIENT_FUNDS, (provider) => __awaiter(this, void 0, void 0, function* () {
         const txProps = {
             to: "0x8ba1f109551bD432803012645Ac136ddd64DBA72",
             energyPrice: 9000000000,
@@ -705,11 +705,11 @@ Object.keys(blockchainData).forEach((network) => {
             networkId: 3,
             value: 1,
         };
-        const wallet = ethers.Wallet.createRandom("cc");
+        const wallet = corebc.Wallet.createRandom("cc");
         const tx = yield wallet.signTransaction(txProps);
         return provider.sendTransaction(tx);
     }));
-    addErrorTest(ethers.utils.Logger.errors.INSUFFICIENT_FUNDS, (provider) => __awaiter(this, void 0, void 0, function* () {
+    addErrorTest(corebc.utils.Logger.errors.INSUFFICIENT_FUNDS, (provider) => __awaiter(this, void 0, void 0, function* () {
         const txProps = {
             to: "0x8ba1f109551bD432803012645Ac136ddd64DBA72",
             energyPrice: 9000000000,
@@ -718,10 +718,10 @@ Object.keys(blockchainData).forEach((network) => {
             // @TODO: Remove this once all providers are eip-1559 savvy
             type: 0,
         };
-        const wallet = ethers.Wallet.createRandom("cc").connect(provider);
+        const wallet = corebc.Wallet.createRandom("cc").connect(provider);
         return wallet.sendTransaction(txProps);
     }));
-    addErrorTest(ethers.utils.Logger.errors.UNPREDICTABLE_GAS_LIMIT, (provider) => __awaiter(this, void 0, void 0, function* () {
+    addErrorTest(corebc.utils.Logger.errors.UNPREDICTABLE_GAS_LIMIT, (provider) => __awaiter(this, void 0, void 0, function* () {
         return provider.estimateEnergy({
             to: "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e" // ENS contract
         });
@@ -741,7 +741,7 @@ testFunctions.push({
         const addr = "0x8210357f377E901f18E45294e86a2A32215Cc3C9";
         yield waiter(3000);
         const b0 = yield provider.getBalance(wallet.address);
-        assert.ok(b0.gt(ethers.constants.Zero), "balance is non-zero");
+        assert.ok(b0.gt(corebc.constants.Zero), "balance is non-zero");
         const tx = yield wallet.sendTransaction({
             to: addr,
             value: 123,
@@ -760,8 +760,8 @@ describe("Test Provider Methods", function () {
         return __awaiter(this, void 0, void 0, function* () {
             this.timeout(300000);
             // Get some ether from the faucet
-            const provider = ethers.getDefaultProvider("");
-            const funder = yield ethers.utils.fetchJson(`https:/\/api.ethers.io/api/v1/?action=fundAccount&address=${fundWallet.address.toLowerCase()}`);
+            const provider = corebc.getDefaultProvider("");
+            const funder = yield corebc.utils.fetchJson(`https:/\/api.ethers.io/api/v1/?action=fundAccount&address=${fundWallet.address.toLowerCase()}`);
             fundReceipt = provider.waitForTransaction(funder.hash);
             fundReceipt.then((receipt) => {
                 console.log(`*** Funded: ${fundWallet.address}`);
@@ -774,7 +774,7 @@ describe("Test Provider Methods", function () {
             // Wait until the funding is complete
             yield fundReceipt;
             // Refund all unused ether to the faucet
-            const provider = ethers.getDefaultProvider("");
+            const provider = corebc.getDefaultProvider("");
             const energyPrice = yield provider.getEnergyPrice();
             const balance = yield provider.getBalance(fundWallet.address);
             const tx = yield fundWallet.connect(provider).sendTransaction({
@@ -846,7 +846,7 @@ describe("Test Basic Authentication", function () {
     function test(name, url) {
         it("tests " + name, function () {
             this.timeout(60000);
-            return ethers.utils.fetchJson(url).then((data) => {
+            return corebc.utils.fetchJson(url).then((data) => {
                 assert.equal(data.authenticated, true, "authenticates user");
             });
         });
@@ -872,7 +872,7 @@ describe("Test Basic Authentication", function () {
     it("tests insecure connections fail", function () {
         this.timeout(60000);
         assert.throws(() => {
-            return ethers.utils.fetchJson(insecure);
+            return corebc.utils.fetchJson(insecure);
         }, (error) => {
             return (error.reason === "basic authentication requires a secure https url");
         }, "throws an exception for insecure connections");
@@ -944,7 +944,7 @@ describe("Resolve ENS avatar", function () {
         it(`Resolves avatar for ${test.title}`, function () {
             return __awaiter(this, void 0, void 0, function* () {
                 this.timeout(60000);
-                const provider = ethers.getDefaultProvider("ropsten", getApiKeys("ropsten"));
+                const provider = corebc.getDefaultProvider("ropsten", getApiKeys("ropsten"));
                 const avatar = yield provider.getAvatar(test.name);
                 assert.equal(test.value, avatar, "avatar url");
             });
@@ -957,7 +957,7 @@ describe("Resolve ENS avatar", function () {
         it(`Resolves avatar for ${test.title}`, function () {
             return __awaiter(this, void 0, void 0, function* () {
                 this.timeout(60000);
-                const provider = ethers.getDefaultProvider("homestead", getApiKeys("homestead"));
+                const provider = corebc.getDefaultProvider("homestead", getApiKeys("homestead"));
                 const avatar = yield provider.getAvatar(test.name);
                 assert.equal(avatar, test.value, "avatar url");
             });

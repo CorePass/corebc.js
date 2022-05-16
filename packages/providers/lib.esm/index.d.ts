@@ -1,6 +1,6 @@
-import { Block, BlockTag, EventType, FeeData, Filter, Log, Listener, Provider, TransactionReceipt, TransactionRequest, TransactionResponse } from "@ethersproject/abstract-provider";
-import { getNetwork } from "@ethersproject/networks";
-import { Network, Networkish } from "@ethersproject/networks";
+import { Block, BlockTag, EventType, FeeData, Filter, Log, Listener, Provider, TransactionReceipt, TransactionRequest, TransactionResponse } from "@corepass/corebc-abstract-provider";
+import { getNetwork } from "@corepass/corebc-networks";
+import { Network, Networkish } from "@corepass/corebc-networks";
 import { BaseProvider, EnsProvider, EnsResolver, Resolver } from "./base-provider";
 import { FallbackProvider, FallbackProviderConfig } from "./fallback-provider";
 import { IpcProvider } from "./ipc-provider";

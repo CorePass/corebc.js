@@ -5,11 +5,11 @@ import _ripemd160 from 'bcrypto/lib/ripemd160-browser';
 // @ts-ignore
 import sha3 from 'bcrypto/lib/sha3-browser';
 
-import { arrayify, BytesLike, hexlify } from "@ethersproject/bytes";
+import { arrayify, BytesLike, hexlify } from "@corepass/corebc-bytes";
 
 import { SupportedAlgorithm } from "./types";
 
-import { Logger } from "@ethersproject/logger";
+import { Logger } from "@corepass/corebc-logger";
 import { version } from "./_version";
 const logger = new Logger(version);
 

@@ -3,17 +3,17 @@
 // See: https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki
 // See: https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki
 
-import { ExternallyOwnedAccount } from "@ethersproject/abstract-signer";
-import { arrayify, BytesLike, concat, hexDataSlice, hexlify } from "@ethersproject/bytes";
-import { toUtf8Bytes, UnicodeNormalizationForm } from "@ethersproject/strings";
-import { pbkdf2 } from "@ethersproject/pbkdf2";
-import { defineReadOnly } from "@ethersproject/properties";
-import { SigningKey } from "@ethersproject/signing-key";
-import { ripemd160, sha256 } from "@ethersproject/sha3";
-import { publicToAddress } from "@ethersproject/address";
-import { Wordlist, wordlists } from "@ethersproject/wordlists";
+import { ExternallyOwnedAccount } from "@corepass/corebc-abstract-signer";
+import { arrayify, BytesLike, concat, hexDataSlice, hexlify } from "@corepass/corebc-bytes";
+import { toUtf8Bytes, UnicodeNormalizationForm } from "@corepass/corebc-strings";
+import { pbkdf2 } from "@corepass/corebc-pbkdf2";
+import { defineReadOnly } from "@corepass/corebc-properties";
+import { SigningKey } from "@corepass/corebc-signing-key";
+import { ripemd160, sha256 } from "@corepass/corebc-sha3";
+import { publicToAddress } from "@corepass/corebc-address";
+import { Wordlist, wordlists } from "@corepass/corebc-wordlists";
 
-import { Logger } from "@ethersproject/logger";
+import { Logger } from "@corepass/corebc-logger";
 import { version } from "./_version";
 const logger = new Logger(version);
 

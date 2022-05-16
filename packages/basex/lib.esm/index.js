@@ -37,8 +37,8 @@
  * IN THE SOFTWARE.
  *
  */
-import { arrayify } from "@ethersproject/bytes";
-import { defineReadOnly } from "@ethersproject/properties";
+import { arrayify } from "@corepass/corebc-bytes";
+import { defineReadOnly } from "@corepass/corebc-properties";
 export class BaseX {
     constructor(alphabet) {
         defineReadOnly(this, "alphabet", alphabet);

@@ -16,8 +16,8 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.langJa = void 0;
-var bytes_1 = require("@ethersproject/bytes");
-var strings_1 = require("@ethersproject/strings");
+var corebc_bytes_1 = require("@corepass/corebc-bytes");
+var corebc_strings_1 = require("@corepass/corebc-strings");
 var wordlist_1 = require("./wordlist");
 var data = [
     // 4-kana words
@@ -39,7 +39,7 @@ var data = [
 var mapping = "~~AzB~X~a~KN~Q~D~S~C~G~E~Y~p~L~I~O~eH~g~V~hxyumi~~U~~Z~~v~~s~~dkoblPjfnqwMcRTr~W~~~F~~~~~Jt";
 var wordlist = null;
 function hex(word) {
-    return (0, bytes_1.hexlify)((0, strings_1.toUtf8Bytes)(word));
+    return (0, corebc_bytes_1.hexlify)((0, corebc_strings_1.toUtf8Bytes)(word));
 }
 var KiYoKu = "0xe3818de38284e3818f";
 var KyoKu = "0xe3818de38283e3818f";
@@ -51,13 +51,13 @@ function loadWords(lang) {
     // Transforms for normalizing (sort is a not quite UTF-8)
     var transform = {};
     // Delete the diacritic marks
-    transform[(0, strings_1.toUtf8String)([227, 130, 154])] = false;
-    transform[(0, strings_1.toUtf8String)([227, 130, 153])] = false;
+    transform[(0, corebc_strings_1.toUtf8String)([227, 130, 154])] = false;
+    transform[(0, corebc_strings_1.toUtf8String)([227, 130, 153])] = false;
     // Some simple transforms that sort out most of the order
-    transform[(0, strings_1.toUtf8String)([227, 130, 133])] = (0, strings_1.toUtf8String)([227, 130, 134]);
-    transform[(0, strings_1.toUtf8String)([227, 129, 163])] = (0, strings_1.toUtf8String)([227, 129, 164]);
-    transform[(0, strings_1.toUtf8String)([227, 130, 131])] = (0, strings_1.toUtf8String)([227, 130, 132]);
-    transform[(0, strings_1.toUtf8String)([227, 130, 135])] = (0, strings_1.toUtf8String)([227, 130, 136]);
+    transform[(0, corebc_strings_1.toUtf8String)([227, 130, 133])] = (0, corebc_strings_1.toUtf8String)([227, 130, 134]);
+    transform[(0, corebc_strings_1.toUtf8String)([227, 129, 163])] = (0, corebc_strings_1.toUtf8String)([227, 129, 164]);
+    transform[(0, corebc_strings_1.toUtf8String)([227, 130, 131])] = (0, corebc_strings_1.toUtf8String)([227, 130, 132]);
+    transform[(0, corebc_strings_1.toUtf8String)([227, 130, 135])] = (0, corebc_strings_1.toUtf8String)([227, 130, 136]);
     // Normalize words using the transform
     function normalize(word) {
         var result = "";
@@ -97,7 +97,7 @@ function loadWords(lang) {
                 word.push((k & 0x40) ? 130 : 129);
                 word.push((k & 0x3f) + 128);
             }
-            wordlist.push((0, strings_1.toUtf8String)(word));
+            wordlist.push((0, corebc_strings_1.toUtf8String)(word));
         }
     }
     wordlist.sort(sortJapanese);

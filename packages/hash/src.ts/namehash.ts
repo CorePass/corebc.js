@@ -1,8 +1,8 @@
-import { concat, hexlify } from "@ethersproject/bytes";
-import { nameprep, toUtf8Bytes } from "@ethersproject/strings";
-import { sha256 } from "@ethersproject/sha3";
+import { concat, hexlify } from "@corepass/corebc-bytes";
+import { nameprep, toUtf8Bytes } from "@corepass/corebc-strings";
+import { sha256 } from "@corepass/corebc-sha3";
 
-import { Logger } from "@ethersproject/logger";
+import { Logger } from "@corepass/corebc-logger";
 import { version } from "./_version";
 const logger = new Logger(version);
 

@@ -10,7 +10,7 @@
 //   See: https://eips.ethereum.org/EIPS/eip-1052
 
 
-import { ethers } from "ethers";
+import { corebc } from "corebc";
 
 export enum OpcodeMemoryAccess {
     write = "write",
@@ -28,11 +28,11 @@ export class Opcode {
     readonly doc: string;
 
     constructor(mnemonic: string, value: number, delta: number, alpha: number, doc?: string) {
-        ethers.utils.defineReadOnly(this, "mnemonic", mnemonic);
-        ethers.utils.defineReadOnly(this, "value", value);
-        ethers.utils.defineReadOnly(this, "delta", delta);
-        ethers.utils.defineReadOnly(this, "alpha", alpha);
-        ethers.utils.defineReadOnly(this, "doc", doc || null);
+        corebc.utils.defineReadOnly(this, "mnemonic", mnemonic);
+        corebc.utils.defineReadOnly(this, "value", value);
+        corebc.utils.defineReadOnly(this, "delta", delta);
+        corebc.utils.defineReadOnly(this, "alpha", alpha);
+        corebc.utils.defineReadOnly(this, "doc", doc || null);
     }
 
     // Returns if this opcode is a jump

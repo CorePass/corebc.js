@@ -52,10 +52,10 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UrlJsonRpcProvider = exports.StaticJsonRpcProvider = void 0;
-var properties_1 = require("@ethersproject/properties");
-var logger_1 = require("@ethersproject/logger");
+var corebc_properties_1 = require("@corepass/corebc-properties");
+var corebc_logger_1 = require("@corepass/corebc-logger");
 var _version_1 = require("./_version");
-var logger = new logger_1.Logger(_version_1.version);
+var logger = new corebc_logger_1.Logger(_version_1.version);
 var json_rpc_provider_1 = require("./json-rpc-provider");
 // A StaticJsonRpcProvider is useful when you *know* for certain that
 // the backend will never change, as it never calls xcb_networkId to
@@ -85,12 +85,12 @@ var StaticJsonRpcProvider = /** @class */ (function (_super) {
                     case 1:
                         network = _a.sent();
                         if (!network) {
-                            logger.throwError("no network detected", logger_1.Logger.errors.UNKNOWN_ERROR, {});
+                            logger.throwError("no network detected", corebc_logger_1.Logger.errors.UNKNOWN_ERROR, {});
                         }
                         // If still not set, set it
                         if (this._network == null) {
                             // A static network does not support "any"
-                            (0, properties_1.defineReadOnly)(this, "_network", network);
+                            (0, corebc_properties_1.defineReadOnly)(this, "_network", network);
                             this.emit("network", network, null);
                         }
                         _a.label = 2;
@@ -109,16 +109,16 @@ var UrlJsonRpcProvider = /** @class */ (function (_super) {
         var _this = this;
         logger.checkAbstract(_newTarget, UrlJsonRpcProvider);
         // Normalize the Network and API Key
-        network = (0, properties_1.getStatic)(_newTarget, "getNetwork")(network);
-        apiKey = (0, properties_1.getStatic)(_newTarget, "getApiKey")(apiKey);
-        var connection = (0, properties_1.getStatic)(_newTarget, "getUrl")(network, apiKey);
+        network = (0, corebc_properties_1.getStatic)(_newTarget, "getNetwork")(network);
+        apiKey = (0, corebc_properties_1.getStatic)(_newTarget, "getApiKey")(apiKey);
+        var connection = (0, corebc_properties_1.getStatic)(_newTarget, "getUrl")(network, apiKey);
         _this = _super.call(this, connection, network) || this;
         if (typeof (apiKey) === "string") {
-            (0, properties_1.defineReadOnly)(_this, "apiKey", apiKey);
+            (0, corebc_properties_1.defineReadOnly)(_this, "apiKey", apiKey);
         }
         else if (apiKey != null) {
             Object.keys(apiKey).forEach(function (key) {
-                (0, properties_1.defineReadOnly)(_this, key, apiKey[key]);
+                (0, corebc_properties_1.defineReadOnly)(_this, key, apiKey[key]);
             });
         }
         return _this;
@@ -130,7 +130,7 @@ var UrlJsonRpcProvider = /** @class */ (function (_super) {
         return false;
     };
     UrlJsonRpcProvider.prototype.getSigner = function (address) {
-        return logger.throwError("API provider does not support signing", logger_1.Logger.errors.UNSUPPORTED_OPERATION, { operation: "getSigner" });
+        return logger.throwError("API provider does not support signing", corebc_logger_1.Logger.errors.UNSUPPORTED_OPERATION, { operation: "getSigner" });
     };
     UrlJsonRpcProvider.prototype.listAccounts = function () {
         return Promise.resolve([]);
@@ -143,7 +143,7 @@ var UrlJsonRpcProvider = /** @class */ (function (_super) {
     // API key will have been sanitized by the getApiKey first, so any validation
     // or transformations can be done there.
     UrlJsonRpcProvider.getUrl = function (network, apiKey) {
-        return logger.throwError("not implemented; sub-classes must override getUrl", logger_1.Logger.errors.NOT_IMPLEMENTED, {
+        return logger.throwError("not implemented; sub-classes must override getUrl", corebc_logger_1.Logger.errors.NOT_IMPLEMENTED, {
             operation: "getUrl"
         });
     };

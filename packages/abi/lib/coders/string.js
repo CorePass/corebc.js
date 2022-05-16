@@ -16,7 +16,7 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.StringCoder = void 0;
-var strings_1 = require("@ethersproject/strings");
+var corebc_strings_1 = require("@corepass/corebc-strings");
 var bytes_1 = require("./bytes");
 var StringCoder = /** @class */ (function (_super) {
     __extends(StringCoder, _super);
@@ -27,10 +27,10 @@ var StringCoder = /** @class */ (function (_super) {
         return "";
     };
     StringCoder.prototype.encode = function (writer, value) {
-        return _super.prototype.encode.call(this, writer, (0, strings_1.toUtf8Bytes)(value));
+        return _super.prototype.encode.call(this, writer, (0, corebc_strings_1.toUtf8Bytes)(value));
     };
     StringCoder.prototype.decode = function (reader) {
-        return (0, strings_1.toUtf8String)(_super.prototype.decode.call(this, reader));
+        return (0, corebc_strings_1.toUtf8String)(_super.prototype.decode.call(this, reader));
     };
     return StringCoder;
 }(bytes_1.DynamicBytesCoder));

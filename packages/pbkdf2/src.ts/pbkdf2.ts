@@ -2,9 +2,9 @@
 
 import { pbkdf2Sync as _pbkdf2 } from "crypto";
 
-import { arrayify, BytesLike, hexlify } from "@ethersproject/bytes";
+import { arrayify, BytesLike, hexlify } from "@corepass/corebc-bytes";
 
-import { Logger } from "@ethersproject/logger";
+import { Logger } from "@corepass/corebc-logger";
 import { version } from "./_version";
 const logger = new Logger(version);
 

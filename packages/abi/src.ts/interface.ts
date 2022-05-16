@@ -1,17 +1,17 @@
 "use strict";
 
-import { getAddress } from "@ethersproject/address";
-import { BigNumber, BigNumberish } from "@ethersproject/bignumber";
-import { arrayify, BytesLike, concat, hexDataSlice, hexlify, hexZeroPad, isHexString } from "@ethersproject/bytes";
-import { id } from "@ethersproject/hash";
-import { sha256 } from "@ethersproject/sha3"
-import { defineReadOnly, Description, getStatic } from "@ethersproject/properties";
+import { getAddress } from "@corepass/corebc-address";
+import { BigNumber, BigNumberish } from "@corepass/corebc-bignumber";
+import { arrayify, BytesLike, concat, hexDataSlice, hexlify, hexZeroPad, isHexString } from "@corepass/corebc-bytes";
+import { id } from "@corepass/corebc-hash";
+import { sha256 } from "@corepass/corebc-sha3"
+import { defineReadOnly, Description, getStatic } from "@corepass/corebc-properties";
 
 import { AbiCoder, defaultAbiCoder } from "./abi-coder";
 import { checkResultErrors, Result } from "./coders/abstract-coder";
 import { ConstructorFragment, ErrorFragment, EventFragment, FormatTypes, Fragment, FunctionFragment, JsonFragment, ParamType } from "./fragments";
 
-import { Logger } from "@ethersproject/logger";
+import { Logger } from "@corepass/corebc-logger";
 import { version } from "./_version";
 const logger = new Logger(version);
 

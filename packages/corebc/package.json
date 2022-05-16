@@ -1,0 +1,67 @@
+{
+  "author": "Richard Moore <me@ricmoo.com>",
+  "browser-old": "./dist/ethers.umd.js",
+  "dependencies": {
+    "@corepass/corebc-abi": "^0.1.0",
+    "@corepass/corebc-abstract-provider": "^0.1.0",
+    "@corepass/corebc-abstract-signer": "^0.1.0",
+    "@corepass/corebc-address": "^0.1.0",
+    "@corepass/corebc-base64": "^0.1.0",
+    "@corepass/corebc-basex": "^0.1.0",
+    "@corepass/corebc-bignumber": "^0.1.0",
+    "@corepass/corebc-bytes": "^0.1.0",
+    "@corepass/corebc-constants": "^0.1.0",
+    "@corepass/corebc-contracts": "^0.1.0",
+    "@corepass/corebc-hash": "^0.1.0",
+    "@corepass/corebc-hdnode": "^0.1.0",
+    "@corepass/corebc-json-wallets": "^0.1.0",
+    "@corepass/corebc-logger": "^0.1.0",
+    "@corepass/corebc-networks": "^0.1.0",
+    "@corepass/corebc-pbkdf2": "^0.1.0",
+    "@corepass/corebc-properties": "^0.1.0",
+    "@corepass/corebc-providers": "^0.1.0",
+    "@corepass/corebc-random": "^0.1.0",
+    "@corepass/corebc-rlp": "^0.1.0",
+    "@corepass/corebc-sha3": "^0.1.0",
+    "@corepass/corebc-signing-key": "^0.1.0",
+    "@corepass/corebc-solidity": "^0.1.0",
+    "@corepass/corebc-strings": "^0.1.0",
+    "@corepass/corebc-transactions": "^0.1.0",
+    "@corepass/corebc-units": "^0.1.0",
+    "@corepass/corebc-wallet": "^0.1.0",
+    "@corepass/corebc-web": "^0.1.0",
+    "@corepass/corebc-wordlists": "^0.1.0"
+  },
+  "description": "Umbrella package for most common Ethers libraries.",
+  "ethereum": "donations.ethers.eth",
+  "funding": [
+    {
+      "type": "individual",
+      "url": "https://gitcoin.co/grants/13/ethersjs-complete-simple-and-tiny-2"
+    },
+    {
+      "type": "individual",
+      "url": "https://www.buymeacoffee.com/ricmoo"
+    }
+  ],
+  "keywords": [
+    "Ethereum",
+    "ethers"
+  ],
+  "license": "MIT",
+  "main": "./lib/index.js",
+  "module": "./lib.esm/index.js",
+  "name": "corebc",
+  "repository": {
+    "directory": "packages/ethers",
+    "type": "git",
+    "url": "git://github.com/ethers-io/ethers.js.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "sideEffects": false,
+  "tarballHash": "0x5524e230bf0cb7cfc55f49f6684ca222fadc45c9efd38da9f8524174798c0ac2",
+  "types": "./lib/index.d.ts",
+  "version": "0.1.0"
+}

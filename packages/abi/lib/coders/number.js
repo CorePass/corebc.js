@@ -16,8 +16,8 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NumberCoder = void 0;
-var bignumber_1 = require("@ethersproject/bignumber");
-var constants_1 = require("@ethersproject/constants");
+var corebc_bignumber_1 = require("@corepass/corebc-bignumber");
+var corebc_constants_1 = require("@corepass/corebc-constants");
 var abstract_coder_1 = require("./abstract-coder");
 var NumberCoder = /** @class */ (function (_super) {
     __extends(NumberCoder, _super);
@@ -33,16 +33,16 @@ var NumberCoder = /** @class */ (function (_super) {
         return 0;
     };
     NumberCoder.prototype.encode = function (writer, value) {
-        var v = bignumber_1.BigNumber.from(value);
+        var v = corebc_bignumber_1.BigNumber.from(value);
         // Check bounds are safe for encoding
-        var maxUintValue = constants_1.MaxUint256.mask(writer.wordSize * 8);
+        var maxUintValue = corebc_constants_1.MaxUint256.mask(writer.wordSize * 8);
         if (this.signed) {
             var bounds = maxUintValue.mask(this.size * 8 - 1);
-            if (v.gt(bounds) || v.lt(bounds.add(constants_1.One).mul(constants_1.NegativeOne))) {
+            if (v.gt(bounds) || v.lt(bounds.add(corebc_constants_1.One).mul(corebc_constants_1.NegativeOne))) {
                 this._throwError("value out-of-bounds", value);
             }
         }
-        else if (v.lt(constants_1.Zero) || v.gt(maxUintValue.mask(this.size * 8))) {
+        else if (v.lt(corebc_constants_1.Zero) || v.gt(maxUintValue.mask(this.size * 8))) {
             this._throwError("value out-of-bounds", value);
         }
         v = v.toTwos(this.size * 8).mask(this.size * 8);

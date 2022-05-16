@@ -1,6 +1,6 @@
-import { ExternallyOwnedAccount } from "@ethersproject/abstract-signer";
-import { BytesLike } from "@ethersproject/bytes";
-import { Wordlist } from "@ethersproject/wordlists";
+import { ExternallyOwnedAccount } from "@corepass/corebc-abstract-signer";
+import { BytesLike } from "@corepass/corebc-bytes";
+import { Wordlist } from "@corepass/corebc-wordlists";
 export declare const defaultPath = "m/44'/654'/0'/0'/5";
 export interface Mnemonic {
     readonly phrase: string;

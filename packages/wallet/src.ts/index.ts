@@ -1,20 +1,20 @@
 "use strict";
 
-import { extractPrefix, getAddress, publicToAddress } from "@ethersproject/address";
-import { Provider, TransactionRequest } from "@ethersproject/abstract-provider";
-import { ExternallyOwnedAccount, Signer, TypedDataDomain, TypedDataField, TypedDataSigner } from "@ethersproject/abstract-signer";
-import { arrayify, Bytes, BytesLike, concat, hexDataSlice, isHexString } from "@ethersproject/bytes";
-import { hashMessage, _TypedDataEncoder } from "@ethersproject/hash";
-import { defaultPath, HDNode, entropyToMnemonic, Mnemonic } from "@ethersproject/hdnode";
-import { sha256 } from "@ethersproject/sha3";
-import { defineReadOnly, resolveProperties } from "@ethersproject/properties";
-import { randomBytes } from "@ethersproject/random";
-import { SigningKey } from "@ethersproject/signing-key";
-import { decryptJsonWallet, decryptJsonWalletSync, encryptKeystore, ProgressCallback } from "@ethersproject/json-wallets";
-import { computeAddress, recoverAddress, serialize, UnsignedTransaction } from "@ethersproject/transactions";
-import { Wordlist } from "@ethersproject/wordlists";
+import { extractPrefix, getAddress, publicToAddress } from "@corepass/corebc-address";
+import { Provider, TransactionRequest } from "@corepass/corebc-abstract-provider";
+import { ExternallyOwnedAccount, Signer, TypedDataDomain, TypedDataField, TypedDataSigner } from "@corepass/corebc-abstract-signer";
+import { arrayify, Bytes, BytesLike, concat, hexDataSlice, isHexString } from "@corepass/corebc-bytes";
+import { hashMessage, _TypedDataEncoder } from "@corepass/corebc-hash";
+import { defaultPath, HDNode, entropyToMnemonic, Mnemonic } from "@corepass/corebc-hdnode";
+import { sha256 } from "@corepass/corebc-sha3";
+import { defineReadOnly, resolveProperties } from "@corepass/corebc-properties";
+import { randomBytes } from "@corepass/corebc-random";
+import { SigningKey } from "@corepass/corebc-signing-key";
+import { decryptJsonWallet, decryptJsonWalletSync, encryptKeystore, ProgressCallback } from "@corepass/corebc-json-wallets";
+import { computeAddress, recoverAddress, serialize, UnsignedTransaction } from "@corepass/corebc-transactions";
+import { Wordlist } from "@corepass/corebc-wordlists";
 
-import { Logger } from "@ethersproject/logger";
+import { Logger } from "@corepass/corebc-logger";
 import { version } from "./_version";
 const logger = new Logger(version);
 

@@ -5,8 +5,8 @@ import fs from "fs";
 import { colorify } from "../log";
 import { resolve } from "../path";
 
-const sourceEthers = fs.readFileSync(resolve("packages/ethers/src.ts/ethers.ts")).toString();
-const targets = sourceEthers.match(/export\s*{\s*((.|\s)*)}/)[1].trim();
+const sourceCorebc = fs.readFileSync(resolve("packages/corebc/src.ts/corebc.ts")).toString();
+const targets = sourceCorebc.match(/export\s*{\s*((.|\s)*)}/)[1].trim();
 
 ////////////////////
 // Begin template
@@ -16,21 +16,21 @@ const output = `"use strict";
 
 // To modify this file, you must update ./misc/admin/lib/cmds/update-exports.js
 
-import * as ethers from "./ethers";
+import * as corebc from "./corebc";
 
 try {
     const anyGlobal = (window as any);
 
-    if (anyGlobal._ethers == null) {
-        anyGlobal._ethers = ethers;
+    if (anyGlobal._corebc == null) {
+        anyGlobal._corebc = corebc;
     }
 } catch (error) { }
 
-export { ethers };
+export { corebc };
 
 export {
     ${ targets }
-} from "./ethers";
+} from "./corebc";
 `;
 
 ////////////////////
@@ -39,4 +39,4 @@ export {
 
 console.log(colorify.bold(`Flattening exports...`))
 
-fs.writeFileSync(resolve("packages/ethers/src.ts/index.ts"), output);
+fs.writeFileSync(resolve("packages/corebc/src.ts/index.ts"), output);

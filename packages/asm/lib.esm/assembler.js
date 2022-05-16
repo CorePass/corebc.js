@@ -14,20 +14,20 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 // - When checking name collisions, verify no collision in javascript
 import { dirname, resolve } from "path";
 import vm from "vm";
-import { ethers } from "ethers";
+import { corebc } from "corebc";
 import { Opcode } from "./opcodes";
 import { parse as _parse, parser as _parser } from "./_parser";
 import { version } from "./_version";
-const logger = new ethers.utils.Logger(version);
+const logger = new corebc.utils.Logger(version);
 const Guard = {};
 function hexConcat(values) {
-    return ethers.utils.hexlify(ethers.utils.concat(values.map((v) => {
+    return corebc.utils.hexlify(corebc.utils.concat(values.map((v) => {
         if (v instanceof Opcode) {
             return [v.value];
         }
         if (typeof (v) === "number") {
             if (v >= 0 && v <= 255 && !(v % 1)) {
-                return ethers.utils.hexlify(v);
+                return corebc.utils.hexlify(v);
             }
             else {
                 throw new Error("invalid number: " + v);
@@ -45,9 +45,9 @@ function repeat(char, length) {
 }
 class Script {
     constructor(filename, callback) {
-        ethers.utils.defineReadOnly(this, "filename", filename);
-        ethers.utils.defineReadOnly(this, "contextObject", this._baseContext(callback));
-        ethers.utils.defineReadOnly(this, "context", vm.createContext(this.contextObject));
+        corebc.utils.defineReadOnly(this, "filename", filename);
+        corebc.utils.defineReadOnly(this, "contextObject", this._baseContext(callback));
+        corebc.utils.defineReadOnly(this, "context", vm.createContext(this.contextObject));
     }
     _baseContext(callback) {
         return new Proxy({
@@ -55,35 +55,35 @@ class Script {
             __dirname: dirname(this.filename),
             console: console,
             Uint8Array: Uint8Array,
-            ethers: ethers,
-            utils: ethers.utils,
-            BigNumber: ethers.BigNumber,
-            arrayify: ethers.utils.arrayify,
+            corebc: corebc,
+            utils: corebc.utils,
+            BigNumber: corebc.BigNumber,
+            arrayify: corebc.utils.arrayify,
             concat: hexConcat,
-            hexlify: ethers.utils.hexlify,
+            hexlify: corebc.utils.hexlify,
             zeroPad: function (value, length) {
-                return ethers.utils.hexlify(ethers.utils.zeroPad(value, length));
+                return corebc.utils.hexlify(corebc.utils.zeroPad(value, length));
             },
-            id: ethers.utils.id,
-            namehash: ethers.utils.namehash,
-            sha256: ethers.utils.sha256,
-            parseEther: ethers.utils.parseEther,
-            formatEther: ethers.utils.formatEther,
-            parseUnits: ethers.utils.parseUnits,
-            formatUnits: ethers.utils.formatUnits,
+            id: corebc.utils.id,
+            namehash: corebc.utils.namehash,
+            sha256: corebc.utils.sha256,
+            parseEther: corebc.utils.parseEther,
+            formatEther: corebc.utils.formatEther,
+            parseUnits: corebc.utils.parseUnits,
+            formatUnits: corebc.utils.formatUnits,
             randomBytes: function (length) {
-                return ethers.utils.hexlify(ethers.utils.randomBytes(length));
+                return corebc.utils.hexlify(corebc.utils.randomBytes(length));
             },
-            toUtf8Bytes: ethers.utils.toUtf8Bytes,
-            toUtf8String: ethers.utils.toUtf8String,
-            formatBytes32String: ethers.utils.formatBytes32String,
-            parseBytes32String: ethers.utils.parseBytes32String,
+            toUtf8Bytes: corebc.utils.toUtf8Bytes,
+            toUtf8String: corebc.utils.toUtf8String,
+            formatBytes32String: corebc.utils.formatBytes32String,
+            parseBytes32String: corebc.utils.parseBytes32String,
             Opcode: Opcode,
             sighash: function (signature) {
-                return ethers.utils.id(ethers.utils.FunctionFragment.from(signature).format()).substring(0, 10);
+                return corebc.utils.id(corebc.utils.FunctionFragment.from(signature).format()).substring(0, 10);
             },
             topichash: function (signature) {
-                return ethers.utils.id(ethers.utils.EventFragment.from(signature).format());
+                return corebc.utils.id(corebc.utils.EventFragment.from(signature).format());
             },
             assemble: assemble,
             disassemble: disassemble,
@@ -128,10 +128,10 @@ export class Node {
             throwError("cannot instantiate class", location);
         }
         logger.checkAbstract(new.target, Node);
-        ethers.utils.defineReadOnly(this, "location", Object.freeze(location));
-        ethers.utils.defineReadOnly(this, "tag", `node-${nextTag++}-${this.constructor.name}`);
+        corebc.utils.defineReadOnly(this, "location", Object.freeze(location));
+        corebc.utils.defineReadOnly(this, "tag", `node-${nextTag++}-${this.constructor.name}`);
         for (const key in options) {
-            ethers.utils.defineReadOnly(this, key, options[key]);
+            corebc.utils.defineReadOnly(this, key, options[key]);
         }
     }
     // Note: EVERY node must call assemble with `this`, even if only with
@@ -180,12 +180,12 @@ export class ValueNode extends Node {
     }
     getPushLiteral(value) {
         // Convert value into a hexstring
-        const hex = ethers.utils.hexlify(value);
+        const hex = corebc.utils.hexlify(value);
         if (hex === "0x") {
             throwError("invalid literal: 0x", this.location);
         }
         // Make sure it will fit into a push
-        const length = ethers.utils.hexDataLength(hex);
+        const length = corebc.utils.hexDataLength(hex);
         if (length === 0 || length > 32) {
             throwError(`literal out of range: ${hex}`, this.location);
         }
@@ -204,11 +204,11 @@ export class LiteralNode extends ValueNode {
                     visit(this, this.value);
                 }
                 else {
-                    visit(this, ethers.BigNumber.from(this.value).toHexString());
+                    visit(this, corebc.BigNumber.from(this.value).toHexString());
                 }
             }
             else {
-                visit(this, this.getPushLiteral(ethers.BigNumber.from(this.value)));
+                visit(this, this.getPushLiteral(corebc.BigNumber.from(this.value)));
             }
             assembler.end(this);
         });
@@ -275,8 +275,8 @@ export class LinkNode extends ValueNode {
                             throwError("jump too large!", this.location);
                         }
                         literal = this.getPushLiteral(here - value + w);
-                        if (ethers.utils.hexDataLength(literal) <= w) {
-                            literal = ethers.utils.hexZeroPad(literal, w);
+                        if (corebc.utils.hexDataLength(literal) <= w) {
+                            literal = corebc.utils.hexZeroPad(literal, w);
                             break;
                         }
                     }
@@ -321,7 +321,7 @@ export class OpcodeNode extends ValueNode {
                 yield this.operands[i].assemble(assembler, visit);
             }
             // Append this opcode
-            visit(this, ethers.utils.hexlify(this.opcode.value));
+            visit(this, corebc.utils.hexlify(this.opcode.value));
             assembler.end(this);
         });
     }
@@ -355,7 +355,7 @@ export class OpcodeNode extends ValueNode {
 export class LabelledNode extends Node {
     constructor(guard, location, name, values) {
         logger.checkAbstract(new.target, LabelledNode);
-        values = ethers.utils.shallowCopy(values || {});
+        values = corebc.utils.shallowCopy(values || {});
         values.name = name;
         super(guard, location, values);
     }
@@ -364,7 +364,7 @@ export class LabelNode extends LabelledNode {
     assemble(assembler, visit) {
         return __awaiter(this, void 0, void 0, function* () {
             assembler.start(this);
-            visit(this, ethers.utils.hexlify(Opcode.from("JUMPDEST").value));
+            visit(this, corebc.utils.hexlify(Opcode.from("JUMPDEST").value));
             assembler.end(this);
         });
     }
@@ -388,7 +388,7 @@ export class PaddingNode extends ValueNode {
             assembler.start(this);
             const padding = new Uint8Array(this._length);
             padding.fill(0);
-            visit(this, ethers.utils.hexlify(padding));
+            visit(this, corebc.utils.hexlify(padding));
             assembler.end(this);
         });
     }
@@ -396,7 +396,7 @@ export class PaddingNode extends ValueNode {
 export class DataNode extends LabelledNode {
     constructor(guard, location, name, data) {
         super(guard, location, name, { data });
-        ethers.utils.defineReadOnly(this, "padding", new PaddingNode(Guard, this.location));
+        corebc.utils.defineReadOnly(this, "padding", new PaddingNode(Guard, this.location));
     }
     assemble(assembler, visit) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -410,7 +410,7 @@ export class DataNode extends LabelledNode {
             // We pad data if is contains PUSH opcodes that would overrun
             // the data, which could eclipse valid operations (since the
             // VM won't execute or jump within PUSH operations)
-            const bytecode = ethers.utils.concat(this.data.map((d) => assembler.getBytecode(d)));
+            const bytecode = corebc.utils.concat(this.data.map((d) => assembler.getBytecode(d)));
             // Replay the data as bytecode, skipping PUSH data
             let i = 0;
             while (i < bytecode.length) {
@@ -447,10 +447,10 @@ export class EvaluationNode extends ValueNode {
             const result = yield assembler.evaluate(this.script, this);
             if (this.verbatim) {
                 if (typeof (result) === "number") {
-                    visit(this, ethers.BigNumber.from(result).toHexString());
+                    visit(this, corebc.BigNumber.from(result).toHexString());
                 }
                 else {
-                    visit(this, ethers.utils.hexlify(result));
+                    visit(this, corebc.utils.hexlify(result));
                 }
             }
             else {
@@ -511,13 +511,13 @@ export class ScopeNode extends LabelledNode {
 export function disassemble(bytecode) {
     const ops = [];
     const offsets = {};
-    const bytes = ethers.utils.arrayify(bytecode, { allowMissingPrefix: true });
+    const bytes = corebc.utils.arrayify(bytecode, { allowMissingPrefix: true });
     let i = 0;
     let oob = false;
     while (i < bytes.length) {
         let opcode = Opcode.from(bytes[i]);
         if (!opcode) {
-            opcode = new Opcode(`unknown (${ethers.utils.hexlify(bytes[i])})`, bytes[i], 0, 0);
+            opcode = new Opcode(`unknown (${corebc.utils.hexlify(bytes[i])})`, bytes[i], 0, 0);
         }
         else if (oob && opcode.mnemonic === "JUMPDEST") {
             opcode = new Opcode(`JUMPDEST (invalid; OOB!!)`, bytes[i], 0, 0);
@@ -532,8 +532,8 @@ export function disassemble(bytecode) {
         i++;
         const push = opcode.isPush();
         if (push) {
-            const data = ethers.utils.hexlify(bytes.slice(i, i + push));
-            if (ethers.utils.hexDataLength(data) === push) {
+            const data = corebc.utils.hexlify(bytes.slice(i, i + push));
+            if (corebc.utils.hexDataLength(data) === push) {
                 op.pushValue = data;
                 op.length += push;
                 i += push;
@@ -565,7 +565,7 @@ export function disassemble(bytecode) {
         if (offset < bytes.length) {
             result.set(bytes.slice(offset));
         }
-        return ethers.utils.arrayify(result);
+        return corebc.utils.arrayify(result);
     };
     ops.byteLength = bytes.length;
     return ops;
@@ -574,7 +574,7 @@ export function formatBytecode(bytecode) {
     const lines = [];
     bytecode.forEach((op) => {
         const opcode = op.opcode;
-        let offset = ethers.utils.hexZeroPad(ethers.utils.hexlify(op.offset), 2);
+        let offset = corebc.utils.hexZeroPad(corebc.utils.hexlify(op.offset), 2);
         if (opcode.isValidJumpDest()) {
             offset += "*";
         }
@@ -597,8 +597,8 @@ export function formatBytecode(bytecode) {
 }
 class Assembler {
     constructor(root, positionIndependentCode) {
-        ethers.utils.defineReadOnly(this, "root", root);
-        ethers.utils.defineReadOnly(this, "positionIndependentCode", !!positionIndependentCode);
+        corebc.utils.defineReadOnly(this, "root", root);
+        corebc.utils.defineReadOnly(this, "positionIndependentCode", !!positionIndependentCode);
         const nodes = {};
         const labels = {};
         const parents = {};
@@ -612,7 +612,7 @@ class Assembler {
             if (node instanceof LabelledNode) {
                 // Check for duplicate labels
                 if (labels[node.name]) {
-                    logger.throwError(("duplicate label: " + node.name), ethers.utils.Logger.errors.UNSUPPORTED_OPERATION, {});
+                    logger.throwError(("duplicate label: " + node.name), corebc.utils.Logger.errors.UNSUPPORTED_OPERATION, {});
                 }
                 labels[node.name] = node;
             }
@@ -622,7 +622,7 @@ class Assembler {
             if (node instanceof LinkNode) {
                 const target = labels[node.label];
                 if (!target) {
-                    logger.throwError(("missing label: " + node.label), ethers.utils.Logger.errors.UNSUPPORTED_OPERATION, {});
+                    logger.throwError(("missing label: " + node.label), corebc.utils.Logger.errors.UNSUPPORTED_OPERATION, {});
                 }
             }
             // Build the parent structure
@@ -630,9 +630,9 @@ class Assembler {
                 parents[child.tag] = node;
             });
         });
-        ethers.utils.defineReadOnly(this, "labels", Object.freeze(labels));
-        ethers.utils.defineReadOnly(this, "nodes", Object.freeze(nodes));
-        ethers.utils.defineReadOnly(this, "_parents", Object.freeze(parents));
+        corebc.utils.defineReadOnly(this, "labels", Object.freeze(labels));
+        corebc.utils.defineReadOnly(this, "nodes", Object.freeze(nodes));
+        corebc.utils.defineReadOnly(this, "_parents", Object.freeze(parents));
     }
     // Link operations
     getTarget(label) {
@@ -683,9 +683,9 @@ class Assembler {
         }
         const info = this.nodes[target.tag];
         // Return the offset is relative to its scope
-        const bytes = Array.prototype.slice.call(ethers.utils.arrayify(info.bytecode));
-        ethers.utils.defineReadOnly(bytes, "ast", target);
-        ethers.utils.defineReadOnly(bytes, "source", target.location.source);
+        const bytes = Array.prototype.slice.call(corebc.utils.arrayify(info.bytecode));
+        corebc.utils.defineReadOnly(bytes, "ast", target);
+        corebc.utils.defineReadOnly(bytes, "source", target.location.source);
         if (!((target instanceof DataNode) || (target instanceof ScopeNode))) {
             throwError("invalid link value lookup", source.location);
         }
@@ -703,19 +703,19 @@ class Assembler {
             Object.defineProperty(bytes, "offset", {
                 get: function () { throwError(`cannot access ${target.name}.offset from ${source.tag}`, this.location); }
             });
-            ethers.utils.defineReadOnly(bytes, "_freeze", function () { });
+            corebc.utils.defineReadOnly(bytes, "_freeze", function () { });
         }
         // Add the offset relative to the scope; unless the offset has
         // been marked as invalid, in which case accessing it will fail
         if (safeOffset) {
             bytes.offset = info.offset - this.nodes[sourceScope.tag].offset;
             let frozen = false;
-            ethers.utils.defineReadOnly(bytes, "_freeze", function () {
+            corebc.utils.defineReadOnly(bytes, "_freeze", function () {
                 if (frozen) {
                     return;
                 }
                 frozen = true;
-                ethers.utils.defineReadOnly(bytes, "offset", bytes.offset);
+                corebc.utils.defineReadOnly(bytes, "offset", bytes.offset);
             });
         }
         return bytes;
@@ -859,10 +859,10 @@ class SemanticChecker extends Assembler {
 class CodeGenerationAssembler extends Assembler {
     constructor(root, options) {
         super(root, !!options.positionIndependentCode);
-        ethers.utils.defineReadOnly(this, "retry", ((options.retry != null) ? options.retry : 512));
-        ethers.utils.defineReadOnly(this, "filename", resolve(options.filename || "./contract.asm"));
-        ethers.utils.defineReadOnly(this, "defines", Object.freeze(options.defines || {}));
-        ethers.utils.defineReadOnly(this, "_stack", []);
+        corebc.utils.defineReadOnly(this, "retry", ((options.retry != null) ? options.retry : 512));
+        corebc.utils.defineReadOnly(this, "filename", resolve(options.filename || "./contract.asm"));
+        corebc.utils.defineReadOnly(this, "defines", Object.freeze(options.defines || {}));
+        corebc.utils.defineReadOnly(this, "_stack", []);
         this.reset();
     }
     _didChange() {
@@ -918,7 +918,7 @@ class CodeGenerationAssembler extends Assembler {
             else {
                 this._checks.push(() => {
                     const check = super.getLinkValue(target, source);
-                    if (check.offset === result.offset && ethers.utils.hexlify(check) === ethers.utils.hexlify(result)) {
+                    if (check.offset === result.offset && corebc.utils.hexlify(check) === corebc.utils.hexlify(result)) {
                         return true;
                     }
                     return false;
@@ -928,7 +928,7 @@ class CodeGenerationAssembler extends Assembler {
         catch (error) {
             this._checks.push(() => {
                 const check = super.getLinkValue(target, source);
-                return (ethers.utils.hexlify(check) === ethers.utils.hexlify(result));
+                return (corebc.utils.hexlify(check) === corebc.utils.hexlify(result));
             });
         }
         return result;
@@ -996,7 +996,7 @@ class CodeGenerationAssembler extends Assembler {
                         bytecode
                     ]);
                 });
-                offset += ethers.utils.hexDataLength(bytecode);
+                offset += corebc.utils.hexDataLength(bytecode);
             });
             this._runChecks();
         });
@@ -1031,7 +1031,7 @@ class CodeGenerationAssembler extends Assembler {
                     return this.getBytecode(target);
                 }
             }
-            return logger.throwError(`unable to assemble; ${this.retry} attempts failed to generate stable bytecode`, ethers.utils.Logger.errors.UNKNOWN_ERROR, {});
+            return logger.throwError(`unable to assemble; ${this.retry} attempts failed to generate stable bytecode`, corebc.utils.Logger.errors.UNKNOWN_ERROR, {});
         });
     }
 }

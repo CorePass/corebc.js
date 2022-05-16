@@ -1,7 +1,7 @@
 'use strict';
 import assert from 'assert';
-import { ethers } from "ethers";
-import { loadTests } from "@ethersproject/testcases";
+import { corebc } from "corebc";
+import { loadTests } from "@corepass/corebc-testcases";
 describe('Private key generation', function () {
     let tests = loadTests('accounts');
     tests.forEach((test) => {
@@ -9,7 +9,7 @@ describe('Private key generation', function () {
             return;
         }
         it(('correctly converts private key - ' + test.name), function () {
-            let wallet = new ethers.Wallet(test.privateKey, test.prefix);
+            let wallet = new corebc.Wallet(test.privateKey, test.prefix);
             assert.equal(wallet.address.toLowerCase(), test.address.toLowerCase(), 'correctly computes privateKey - ' + test.privateKey);
         });
     });

@@ -1,9 +1,9 @@
-import { BigNumber, BigNumberish } from "@ethersproject/bignumber";
-import { BytesLike } from "@ethersproject/bytes";
-import { Network } from "@ethersproject/networks";
-import { Deferrable, Description } from "@ethersproject/properties";
-import { Transaction } from "@ethersproject/transactions";
-import { OnceBlockable } from "@ethersproject/web";
+import { BigNumber, BigNumberish } from "@corepass/corebc-bignumber";
+import { BytesLike } from "@corepass/corebc-bytes";
+import { Network } from "@corepass/corebc-networks";
+import { Deferrable, Description } from "@corepass/corebc-properties";
+import { Transaction } from "@corepass/corebc-transactions";
+import { OnceBlockable } from "@corepass/corebc-web";
 export declare type TransactionRequest = {
     to?: string;
     from?: string;

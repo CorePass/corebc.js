@@ -2,16 +2,16 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.defaultAbiCoder = exports.AbiCoder = void 0;
 // See: https://github.com/ethereum/wiki/wiki/Ethereum-Contract-ABI
-var bytes_1 = require("@ethersproject/bytes");
-var properties_1 = require("@ethersproject/properties");
-var logger_1 = require("@ethersproject/logger");
+var corebc_bytes_1 = require("@corepass/corebc-bytes");
+var corebc_properties_1 = require("@corepass/corebc-properties");
+var corebc_logger_1 = require("@corepass/corebc-logger");
 var _version_1 = require("./_version");
-var logger = new logger_1.Logger(_version_1.version);
+var logger = new corebc_logger_1.Logger(_version_1.version);
 var abstract_coder_1 = require("./coders/abstract-coder");
 var address_1 = require("./coders/address");
 var array_1 = require("./coders/array");
 var boolean_1 = require("./coders/boolean");
-var bytes_2 = require("./coders/bytes");
+var bytes_1 = require("./coders/bytes");
 var fixed_bytes_1 = require("./coders/fixed-bytes");
 var null_1 = require("./coders/null");
 var number_1 = require("./coders/number");
@@ -24,7 +24,7 @@ var AbiCoder = /** @class */ (function () {
     function AbiCoder(coerceFunc) {
         var _newTarget = this.constructor;
         logger.checkNew(_newTarget, AbiCoder);
-        (0, properties_1.defineReadOnly)(this, "coerceFunc", coerceFunc || null);
+        (0, corebc_properties_1.defineReadOnly)(this, "coerceFunc", coerceFunc || null);
     }
     AbiCoder.prototype._getCoder = function (param) {
         var _this = this;
@@ -36,7 +36,7 @@ var AbiCoder = /** @class */ (function () {
             case "string":
                 return new string_1.StringCoder(param.name);
             case "bytes":
-                return new bytes_2.BytesCoder(param.name);
+                return new bytes_1.BytesCoder(param.name);
             case "array":
                 return new array_1.ArrayCoder(this._getCoder(param.arrayChildren), param.arrayLength, param.name);
             case "tuple":
@@ -82,7 +82,7 @@ var AbiCoder = /** @class */ (function () {
     AbiCoder.prototype.encode = function (types, values) {
         var _this = this;
         if (types.length !== values.length) {
-            logger.throwError("types/values length mismatch", logger_1.Logger.errors.INVALID_ARGUMENT, {
+            logger.throwError("types/values length mismatch", corebc_logger_1.Logger.errors.INVALID_ARGUMENT, {
                 count: { types: types.length, values: values.length },
                 value: { types: types, values: values }
             });
@@ -97,7 +97,7 @@ var AbiCoder = /** @class */ (function () {
         var _this = this;
         var coders = types.map(function (type) { return _this._getCoder(fragments_1.ParamType.from(type)); });
         var coder = new tuple_1.TupleCoder(coders, "_");
-        return coder.decode(this._getReader((0, bytes_1.arrayify)(data), loose));
+        return coder.decode(this._getReader((0, corebc_bytes_1.arrayify)(data), loose));
     };
     return AbiCoder;
 }());

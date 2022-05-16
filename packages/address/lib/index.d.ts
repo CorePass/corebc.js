@@ -1,5 +1,5 @@
-import { BytesLike } from "@ethersproject/bytes";
-import { BigNumberish } from "@ethersproject/bignumber";
+import { BytesLike } from "@corepass/corebc-bytes";
+import { BigNumberish } from "@corepass/corebc-bignumber";
 export declare function getAddress(address: string): string;
 export declare function isAddress(address: string): boolean;
 export declare function extractPrefix(address: string): string;
