@@ -15,11 +15,11 @@ export function ripemd160(data: BytesLike): string {
 }
 
 export function sha256(data: BytesLike): string {
-    return "0x" + createHash("sha256").update(Buffer.from(arrayify(data))).digest("hex")
+    return "0x" + createHash("sha3-256").update(Buffer.from(arrayify(data))).digest("hex")
 }
 
 export function sha512(data: BytesLike): string {
-    return "0x" + createHash("sha512").update(Buffer.from(arrayify(data))).digest("hex")
+    return "0x" + createHash("sha3-512").update(Buffer.from(arrayify(data))).digest("hex")
 }
 
 export function computeHmac(algorithm: SupportedAlgorithm, key: BytesLike, data: BytesLike): string {

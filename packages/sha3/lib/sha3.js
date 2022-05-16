@@ -12,11 +12,11 @@ function ripemd160(data) {
 }
 exports.ripemd160 = ripemd160;
 function sha256(data) {
-    return "0x" + (0, crypto_1.createHash)("sha256").update(Buffer.from((0, corebc_bytes_1.arrayify)(data))).digest("hex");
+    return "0x" + (0, crypto_1.createHash)("sha3-256").update(Buffer.from((0, corebc_bytes_1.arrayify)(data))).digest("hex");
 }
 exports.sha256 = sha256;
 function sha512(data) {
-    return "0x" + (0, crypto_1.createHash)("sha512").update(Buffer.from((0, corebc_bytes_1.arrayify)(data))).digest("hex");
+    return "0x" + (0, crypto_1.createHash)("sha3-512").update(Buffer.from((0, corebc_bytes_1.arrayify)(data))).digest("hex");
 }
 exports.sha512 = sha512;
 function computeHmac(algorithm, key, data) {
