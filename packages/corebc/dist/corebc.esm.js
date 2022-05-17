@@ -31749,6 +31749,15 @@ function handleNumber(value) {
     }
     return BigNumber.from(value);
 }
+const unsignedTransactionFields = [
+    { name: "nonce", maxLength: 32, numeric: true },
+    { name: "energyPrice", maxLength: 32, numeric: true },
+    { name: "energyLimit", maxLength: 32, numeric: true },
+    { name: "to", length: 22 },
+    { name: "value", maxLength: 32, numeric: true },
+    { name: "data" },
+    { name: "networkId", maxLength: 32, numeric: true },
+];
 const transactionFields = [
     { name: "nonce", maxLength: 32, numeric: true },
     { name: "energyPrice", maxLength: 32, numeric: true },
@@ -31772,7 +31781,7 @@ function recoverAddress(digest, signature, prefix) {
 function serialize(transaction, signature) {
     checkProperties(transaction, allowedTransactionKeys$2);
     const raw = [];
-    transactionFields.forEach(function (fieldInfo) {
+    (!!signature ? transactionFields : unsignedTransactionFields).forEach(function (fieldInfo) {
         let value = transaction[fieldInfo.name] || ([]);
         const options = {};
         if (fieldInfo.numeric) {
@@ -31802,20 +31811,22 @@ function parse(rawTransaction) {
     if (transaction.length !== 7 && transaction.length !== 8) {
         logger$n.throwArgumentError("invalid raw transaction", "rawTransaction", rawTransaction);
     }
+    const isSigned = transaction.length === 8;
     const tx = {
         nonce: handleNumber(transaction[0]).toNumber(),
         energyPrice: handleNumber(transaction[1]),
         energyLimit: handleNumber(transaction[2]),
-        networkId: handleNumber(transaction[3]).toNumber(),
-        to: handleAddress(transaction[4]),
-        value: handleNumber(transaction[5]),
-        data: transaction[6],
+        networkId: handleNumber(transaction[isSigned ? 3 : 6]).toNumber(),
+        to: handleAddress(transaction[isSigned ? 4 : 3]),
+        value: handleNumber(transaction[isSigned ? 5 : 4]),
+        data: transaction[isSigned ? 6 : 5],
     };
-    tx.hash = sha256(encode(transaction.slice(0, 7)));
     if (transaction.length === 8) {
-        tx.signature = transaction[7];
         const prefix = networkIdToPrefix(tx.networkId);
-        tx.from = recoverAddress(tx.hash, tx.signature, prefix);
+        const digest = sha256(serialize(tx));
+        tx.hash = sha256(serialize(tx, transaction[7]));
+        tx.from = recoverAddress(digest, transaction[7], prefix);
+        tx.signature = transaction[7];
     }
     return tx;
 }

@@ -32492,6 +32492,15 @@
 	    }
 	    return lib$2.BigNumber.from(value);
 	}
+	var unsignedTransactionFields = [
+	    { name: "nonce", maxLength: 32, numeric: true },
+	    { name: "energyPrice", maxLength: 32, numeric: true },
+	    { name: "energyLimit", maxLength: 32, numeric: true },
+	    { name: "to", length: 22 },
+	    { name: "value", maxLength: 32, numeric: true },
+	    { name: "data" },
+	    { name: "networkId", maxLength: 32, numeric: true },
+	];
 	var transactionFields = [
 	    { name: "nonce", maxLength: 32, numeric: true },
 	    { name: "energyPrice", maxLength: 32, numeric: true },
@@ -32517,7 +32526,7 @@
 	function serialize(transaction, signature) {
 	    (0, lib$3.checkProperties)(transaction, allowedTransactionKeys);
 	    var raw = [];
-	    transactionFields.forEach(function (fieldInfo) {
+	    (!!signature ? transactionFields : unsignedTransactionFields).forEach(function (fieldInfo) {
 	        var value = transaction[fieldInfo.name] || ([]);
 	        var options = {};
 	        if (fieldInfo.numeric) {
@@ -32548,20 +32557,22 @@
 	    if (transaction.length !== 7 && transaction.length !== 8) {
 	        logger.throwArgumentError("invalid raw transaction", "rawTransaction", rawTransaction);
 	    }
+	    var isSigned = transaction.length === 8;
 	    var tx = {
 	        nonce: handleNumber(transaction[0]).toNumber(),
 	        energyPrice: handleNumber(transaction[1]),
 	        energyLimit: handleNumber(transaction[2]),
-	        networkId: handleNumber(transaction[3]).toNumber(),
-	        to: handleAddress(transaction[4]),
-	        value: handleNumber(transaction[5]),
-	        data: transaction[6],
+	        networkId: handleNumber(transaction[isSigned ? 3 : 6]).toNumber(),
+	        to: handleAddress(transaction[isSigned ? 4 : 3]),
+	        value: handleNumber(transaction[isSigned ? 5 : 4]),
+	        data: transaction[isSigned ? 6 : 5],
 	    };
-	    tx.hash = (0, lib$4.sha256)(RLP.encode(transaction.slice(0, 7)));
 	    if (transaction.length === 8) {
-	        tx.signature = transaction[7];
 	        var prefix = (0, lib$6.networkIdToPrefix)(tx.networkId);
-	        tx.from = recoverAddress(tx.hash, tx.signature, prefix);
+	        var digest = (0, lib$4.sha256)(serialize(tx));
+	        tx.hash = (0, lib$4.sha256)(serialize(tx, transaction[7]));
+	        tx.from = recoverAddress(digest, transaction[7], prefix);
+	        tx.signature = transaction[7];
 	    }
 	    return tx;
 	}
