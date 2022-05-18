@@ -1,9 +1,9 @@
 /// <reference types="node" />
-import { Block, BlockTag, BlockWithTransactions, EventType, Filter, FilterByBlockHash, Listener, Log, Provider, TransactionReceipt, TransactionRequest, TransactionResponse } from "@ethersproject/abstract-provider";
-import { BigNumber, BigNumberish } from "@ethersproject/bignumber";
-import { Network, Networkish } from "@ethersproject/networks";
-import { Deferrable } from "@ethersproject/properties";
-import { Transaction } from "@ethersproject/transactions";
+import { Block, BlockTag, BlockWithTransactions, EventType, Filter, FilterByBlockHash, Listener, Log, Provider, TransactionReceipt, TransactionRequest, TransactionResponse } from "@corepass/corebc-abstract-provider";
+import { BigNumber, BigNumberish } from "@corepass/corebc-bignumber";
+import { Network, Networkish } from "@corepass/corebc-networks";
+import { Deferrable } from "@corepass/corebc-properties";
+import { Transaction } from "@corepass/corebc-transactions";
 import { Formatter } from "./formatter";
 export declare class Event {
     readonly listener: Listener;
@@ -75,8 +75,8 @@ export declare class BaseProvider extends Provider implements EnsProvider {
      *
      *  A Promise<Network> that resolves only once the provider is ready.
      *
-     *  Sub-classes that call the super with a network without a chainId
-     *  MUST set this. Standard named networks have a known chainId.
+     *  Sub-classes that call the super with a network without a networkId
+     *  MUST set this. Standard named networks have a known networkId.
      *
      */
     constructor(network: Networkish | Promise<Network>);
@@ -107,7 +107,7 @@ export declare class BaseProvider extends Provider implements EnsProvider {
         startBlock: number;
     }): Promise<TransactionReceipt>;
     getBlockNumber(): Promise<number>;
-    getGasPrice(): Promise<BigNumber>;
+    getEnergyPrice(): Promise<BigNumber>;
     getBalance(addressOrName: string | Promise<string>, blockTag?: BlockTag | Promise<BlockTag>): Promise<BigNumber>;
     getTransactionCount(addressOrName: string | Promise<string>, blockTag?: BlockTag | Promise<BlockTag>): Promise<number>;
     getCode(addressOrName: string | Promise<string>, blockTag?: BlockTag | Promise<BlockTag>): Promise<string>;
@@ -117,7 +117,7 @@ export declare class BaseProvider extends Provider implements EnsProvider {
     _getTransactionRequest(transaction: Deferrable<TransactionRequest>): Promise<Transaction>;
     _getFilter(filter: Filter | FilterByBlockHash | Promise<Filter | FilterByBlockHash>): Promise<Filter | FilterByBlockHash>;
     call(transaction: Deferrable<TransactionRequest>, blockTag?: BlockTag | Promise<BlockTag>): Promise<string>;
-    estimateGas(transaction: Deferrable<TransactionRequest>): Promise<BigNumber>;
+    estimateEnergy(transaction: Deferrable<TransactionRequest>): Promise<BigNumber>;
     _getAddress(addressOrName: string | Promise<string>): Promise<string>;
     _getBlock(blockHashOrBlockTag: BlockTag | string | Promise<BlockTag | string>, includeTransactions?: boolean): Promise<Block | BlockWithTransactions>;
     getBlock(blockHashOrBlockTag: BlockTag | string | Promise<BlockTag | string>): Promise<Block>;

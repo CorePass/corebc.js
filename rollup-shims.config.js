@@ -13,7 +13,7 @@ export default {
     output: {
         file: `packages/shims/dist/index.js`,
         format: "umd",
-        name: `_ethers_shims`,
+        name: `_corebc_shims`,
         exports: "named"
     },
     context: "window",

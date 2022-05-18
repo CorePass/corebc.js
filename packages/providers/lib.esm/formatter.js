@@ -1,11 +1,11 @@
 "use strict";
-import { getAddress, getContractAddress } from "@ethersproject/address";
-import { BigNumber } from "@ethersproject/bignumber";
-import { hexDataLength, hexDataSlice, hexValue, hexZeroPad, isHexString } from "@ethersproject/bytes";
-import { AddressZero } from "@ethersproject/constants";
-import { shallowCopy } from "@ethersproject/properties";
-import { accessListify, parse as parseTransaction } from "@ethersproject/transactions";
-import { Logger } from "@ethersproject/logger";
+import { getAddress, getContractAddress } from "@corepass/corebc-address";
+import { BigNumber } from "@corepass/corebc-bignumber";
+import { hexDataLength, hexDataSlice, hexValue, hexZeroPad, isHexString } from "@corepass/corebc-bytes";
+import { AddressZero } from "@corepass/corebc-constants";
+import { shallowCopy } from "@corepass/corebc-properties";
+import { parse as parseTransaction } from "@corepass/corebc-transactions";
+import { Logger } from "@corepass/corebc-logger";
 import { version } from "./_version";
 const logger = new Logger(version);
 export class Formatter {
@@ -26,41 +26,30 @@ export class Formatter {
         const strictData = (v) => { return this.data(v, true); };
         formats.transaction = {
             hash: hash,
-            type: type,
-            accessList: Formatter.allowNull(this.accessList.bind(this), null),
             blockHash: Formatter.allowNull(hash, null),
             blockNumber: Formatter.allowNull(number, null),
             transactionIndex: Formatter.allowNull(number, null),
             confirmations: Formatter.allowNull(number, null),
             from: address,
-            // either (gasPrice) or (maxPriorityFeePerGas + maxFeePerGas)
+            // either (energyPrice) or (maxPriorityFeePerEnergy + maxFeePerEnergy)
             // must be set
-            gasPrice: Formatter.allowNull(bigNumber),
-            maxPriorityFeePerGas: Formatter.allowNull(bigNumber),
-            maxFeePerGas: Formatter.allowNull(bigNumber),
-            gasLimit: bigNumber,
+            energyPrice: Formatter.allowNull(bigNumber),
+            energyLimit: bigNumber,
             to: Formatter.allowNull(address, null),
             value: bigNumber,
             nonce: number,
             data: data,
-            r: Formatter.allowNull(this.uint256),
-            s: Formatter.allowNull(this.uint256),
-            v: Formatter.allowNull(number),
             creates: Formatter.allowNull(address, null),
             raw: Formatter.allowNull(data),
         };
         formats.transactionRequest = {
             from: Formatter.allowNull(address),
             nonce: Formatter.allowNull(number),
-            gasLimit: Formatter.allowNull(bigNumber),
-            gasPrice: Formatter.allowNull(bigNumber),
-            maxPriorityFeePerGas: Formatter.allowNull(bigNumber),
-            maxFeePerGas: Formatter.allowNull(bigNumber),
+            energyLimit: Formatter.allowNull(bigNumber),
+            energyPrice: Formatter.allowNull(bigNumber),
             to: Formatter.allowNull(address),
             value: Formatter.allowNull(bigNumber),
             data: Formatter.allowNull(strictData),
-            type: Formatter.allowNull(number),
-            accessList: Formatter.allowNull(this.accessList.bind(this), null),
         };
         formats.receiptLog = {
             transactionIndex: number,
@@ -79,15 +68,15 @@ export class Formatter {
             transactionIndex: number,
             // should be allowNull(hash), but broken-EIP-658 support is handled in receipt
             root: Formatter.allowNull(hex),
-            gasUsed: bigNumber,
+            energyUsed: bigNumber,
             logsBloom: Formatter.allowNull(data),
             blockHash: hash,
             transactionHash: hash,
             logs: Formatter.arrayOf(this.receiptLog.bind(this)),
             blockNumber: number,
             confirmations: Formatter.allowNull(number, null),
-            cumulativeGasUsed: bigNumber,
-            effectiveGasPrice: Formatter.allowNull(bigNumber),
+            cumulativeEnergyUsed: bigNumber,
+            effectiveEnergyPrice: Formatter.allowNull(bigNumber),
             status: Formatter.allowNull(number),
             type: type
         };
@@ -98,12 +87,12 @@ export class Formatter {
             timestamp: number,
             nonce: Formatter.allowNull(hex),
             difficulty: this.difficulty.bind(this),
-            gasLimit: bigNumber,
-            gasUsed: bigNumber,
+            energyLimit: bigNumber,
+            energyUsed: bigNumber,
             miner: address,
             extraData: data,
             transactions: Formatter.allowNull(Formatter.arrayOf(hash)),
-            baseFeePerGas: Formatter.allowNull(bigNumber)
+            baseFeePerEnergy: Formatter.allowNull(bigNumber)
         };
         formats.blockWithTransactions = shallowCopy(formats.block);
         formats.blockWithTransactions.transactions = Formatter.allowNull(Formatter.arrayOf(this.transactionResponse.bind(this)));
@@ -126,9 +115,6 @@ export class Formatter {
             logIndex: number,
         };
         return formats;
-    }
-    accessList(accessList) {
-        return accessListify(accessList || []);
     }
     // Requires a BigNumberish that is within the IEEE754 safe integer range; returns a number
     // Strict! Used on input.
@@ -260,13 +246,13 @@ export class Formatter {
         return Formatter.check(this.formats.transactionRequest, value);
     }
     transactionResponse(transaction) {
-        // Rename gas to gasLimit
-        if (transaction.gas != null && transaction.gasLimit == null) {
-            transaction.gasLimit = transaction.gas;
+        // Rename energy to energyLimit
+        if (transaction.energy != null && transaction.energyLimit == null) {
+            transaction.energyLimit = transaction.energy;
         }
         // Some clients (TestRPC) do strange things like return 0x0 for the
         // 0 address; correct this to be a real address
-        if (transaction.to && BigNumber.from(transaction.to).isZero()) {
+        if (transaction.to && BigNumber.from(getAddress(transaction.to)).isZero()) {
             transaction.to = "0x0000000000000000000000000000000000000000";
         }
         // Rename input to data
@@ -277,37 +263,13 @@ export class Formatter {
         if (transaction.to == null && transaction.creates == null) {
             transaction.creates = this.contractAddress(transaction);
         }
-        if ((transaction.type === 1 || transaction.type === 2) && transaction.accessList == null) {
-            transaction.accessList = [];
-        }
         const result = Formatter.check(this.formats.transaction, transaction);
-        if (transaction.chainId != null) {
-            let chainId = transaction.chainId;
-            if (isHexString(chainId)) {
-                chainId = BigNumber.from(chainId).toNumber();
+        if (transaction.networkId != null) {
+            let networkId = transaction.networkId;
+            if (isHexString(networkId)) {
+                networkId = BigNumber.from(networkId).toNumber();
             }
-            result.chainId = chainId;
-        }
-        else {
-            let chainId = transaction.networkId;
-            // geth-etc returns chainId
-            if (chainId == null && result.v == null) {
-                chainId = transaction.chainId;
-            }
-            if (isHexString(chainId)) {
-                chainId = BigNumber.from(chainId).toNumber();
-            }
-            if (typeof (chainId) !== "number" && result.v != null) {
-                chainId = (result.v - 35) / 2;
-                if (chainId < 0) {
-                    chainId = 0;
-                }
-                chainId = parseInt(chainId);
-            }
-            if (typeof (chainId) !== "number") {
-                chainId = 0;
-            }
-            result.chainId = chainId;
+            result.networkId = networkId;
         }
         // 0x0000... should actually be null
         if (result.blockHash && result.blockHash.replace(/0/g, "") === "x") {

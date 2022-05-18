@@ -1,7 +1,7 @@
 {
   "author": "Richard Moore <me@ricmoo.com>",
   "dependencies": {
-    "@ethersproject/logger": "^5.5.0"
+    "@corepass/corebc-logger": "^0.1.0"
   },
   "description": "Network definitions for ethers.",
   "ethereum": "donations.ethers.eth",
@@ -22,7 +22,7 @@
   "license": "MIT",
   "main": "./lib/index.js",
   "module": "./lib.esm/index.js",
-  "name": "@ethersproject/networks",
+  "name": "@corepass/corebc-networks",
   "publishConfig": {
     "access": "public"
   },
@@ -35,7 +35,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "sideEffects": false,
-  "tarballHash": "0x2931e2310821894c67e06da78a55d7477ba6d12fcdfca3d4cdffa8a5aeaeb442",
+  "tarballHash": "0xf88fa7fdccbe5d9b54bad6cb09e461801917783cd8f8619c3c61ab7a335e2238",
   "types": "./lib/index.d.ts",
-  "version": "5.5.2"
+  "version": "0.1.1"
 }

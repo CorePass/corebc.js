@@ -1,7 +1,7 @@
 {
   "author": "Richard Moore <me@ricmoo.com>",
   "dependencies": {
-    "@ethersproject/logger": "^5.5.0"
+    "@corepass/corebc-logger": "^0.1.0"
   },
   "description": "Bytes utility functions for ethers.",
   "ethereum": "donations.ethers.eth",
@@ -22,7 +22,7 @@
   "license": "MIT",
   "main": "./lib/index.js",
   "module": "./lib.esm/index.js",
-  "name": "@ethersproject/bytes",
+  "name": "@corepass/corebc-bytes",
   "publishConfig": {
     "access": "public"
   },
@@ -37,7 +37,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "sideEffects": false,
-  "tarballHash": "0x1daef684cc067d9e39c56da0288767a1d0d210074513e60fac0b86d8243278fc",
+  "tarballHash": "0xf26cae5acf030d425885cd3abec11b7e019789898a539f5c01900a18bad0a118",
   "types": "./lib/index.d.ts",
-  "version": "5.5.0"
+  "version": "0.1.1"
 }

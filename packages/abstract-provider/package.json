@@ -1,13 +1,13 @@
 {
   "author": "Richard Moore <me@ricmoo.com>",
   "dependencies": {
-    "@ethersproject/bignumber": "^5.5.0",
-    "@ethersproject/bytes": "^5.5.0",
-    "@ethersproject/logger": "^5.5.0",
-    "@ethersproject/networks": "^5.5.0",
-    "@ethersproject/properties": "^5.5.0",
-    "@ethersproject/transactions": "^5.5.0",
-    "@ethersproject/web": "^5.5.0"
+    "@corepass/corebc-bignumber": "^0.1.0",
+    "@corepass/corebc-bytes": "^0.1.0",
+    "@corepass/corebc-logger": "^0.1.0",
+    "@corepass/corebc-networks": "^0.1.0",
+    "@corepass/corebc-properties": "^0.1.0",
+    "@corepass/corebc-transactions": "^0.1.0",
+    "@corepass/corebc-web": "^0.1.0"
   },
   "description": "An Abstract Class for describing an Ethereum Provider for ethers.",
   "ethereum": "donations.ethers.eth",
@@ -28,7 +28,7 @@
   "license": "MIT",
   "main": "./lib/index.js",
   "module": "./lib.esm/index.js",
-  "name": "@ethersproject/abstract-provider",
+  "name": "@corepass/corebc-abstract-provider",
   "publishConfig": {
     "access": "public"
   },
@@ -41,7 +41,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "sideEffects": false,
-  "tarballHash": "0x2bfa68ddd70e2bae7207dbdca73308cf780b5a896a2b8fcc518a912192898860",
+  "tarballHash": "0xf65cbdb04f932195b8dfec1bf1f78bc081db995d4d624fa166e2ccedb515b68f",
   "types": "./lib/index.d.ts",
-  "version": "5.5.1"
+  "version": "0.1.1"
 }

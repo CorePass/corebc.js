@@ -8,24 +8,21 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { checkResultErrors, Indexed, Interface } from "@ethersproject/abi";
-import { Provider } from "@ethersproject/abstract-provider";
-import { Signer, VoidSigner } from "@ethersproject/abstract-signer";
-import { getAddress, getContractAddress } from "@ethersproject/address";
-import { BigNumber } from "@ethersproject/bignumber";
-import { arrayify, concat, hexlify, isBytes, isHexString } from "@ethersproject/bytes";
-import { defineReadOnly, deepCopy, getStatic, resolveProperties, shallowCopy } from "@ethersproject/properties";
-import { accessListify } from "@ethersproject/transactions";
-import { Logger } from "@ethersproject/logger";
+import { checkResultErrors, Indexed, Interface } from "@corepass/corebc-abi";
+import { Provider } from "@corepass/corebc-abstract-provider";
+import { Signer, VoidSigner } from "@corepass/corebc-abstract-signer";
+import { getAddress, getContractAddress } from "@corepass/corebc-address";
+import { BigNumber } from "@corepass/corebc-bignumber";
+import { arrayify, concat, hexlify, isBytes, isHexString } from "@corepass/corebc-bytes";
+import { defineReadOnly, deepCopy, getStatic, resolveProperties, shallowCopy } from "@corepass/corebc-properties";
+import { Logger } from "@corepass/corebc-logger";
 import { version } from "./_version";
 const logger = new Logger(version);
 ;
 ;
 ///////////////////////////////
 const allowedTransactionKeys = {
-    chainId: true, data: true, from: true, gasLimit: true, gasPrice: true, nonce: true, to: true, value: true,
-    type: true, accessList: true,
-    maxFeePerGas: true, maxPriorityFeePerGas: true,
+    networkId: true, data: true, from: true, energyLimit: true, energyPrice: true, nonce: true, to: true, value: true,
     customData: true
 };
 function resolveName(resolver, nameOrPromise) {
@@ -132,30 +129,18 @@ function populateTransaction(contract, fragment, args) {
         if (ro.nonce != null) {
             tx.nonce = BigNumber.from(ro.nonce).toNumber();
         }
-        if (ro.gasLimit != null) {
-            tx.gasLimit = BigNumber.from(ro.gasLimit);
+        if (ro.energyLimit != null) {
+            tx.energyLimit = BigNumber.from(ro.energyLimit);
         }
-        if (ro.gasPrice != null) {
-            tx.gasPrice = BigNumber.from(ro.gasPrice);
-        }
-        if (ro.maxFeePerGas != null) {
-            tx.maxFeePerGas = BigNumber.from(ro.maxFeePerGas);
-        }
-        if (ro.maxPriorityFeePerGas != null) {
-            tx.maxPriorityFeePerGas = BigNumber.from(ro.maxPriorityFeePerGas);
+        if (ro.energyPrice != null) {
+            tx.energyPrice = BigNumber.from(ro.energyPrice);
         }
         if (ro.from != null) {
             tx.from = ro.from;
         }
-        if (ro.type != null) {
-            tx.type = ro.type;
-        }
-        if (ro.accessList != null) {
-            tx.accessList = accessListify(ro.accessList);
-        }
-        // If there was no "gasLimit" override, but the ABI specifies a default, use it
-        if (tx.gasLimit == null && fragment.gas != null) {
-            // Compute the intrinsic gas cost for this transaction
+        // If there was no "energyLimit" override, but the ABI specifies a default, use it
+        if (tx.energyLimit == null && fragment.energy != null) {
+            // Compute the intrinsic energy cost for this transaction
             // @TODO: This is based on the yellow paper as of Petersburg; this is something
             // we may wish to parameterize in v6 as part of the Network object. Since this
             // is always a non-nil to address, we can ignore G_create, but may wish to add
@@ -168,7 +153,7 @@ function populateTransaction(contract, fragment, args) {
                     intrinsic += 64;
                 }
             }
-            tx.gasLimit = BigNumber.from(fragment.gas).add(intrinsic);
+            tx.energyLimit = BigNumber.from(fragment.energy).add(intrinsic);
         }
         // Populate "value" override
         if (ro.value) {
@@ -186,14 +171,10 @@ function populateTransaction(contract, fragment, args) {
         }
         // Remove the overrides
         delete overrides.nonce;
-        delete overrides.gasLimit;
-        delete overrides.gasPrice;
+        delete overrides.energyLimit;
+        delete overrides.energyPrice;
         delete overrides.from;
         delete overrides.value;
-        delete overrides.type;
-        delete overrides.accessList;
-        delete overrides.maxFeePerGas;
-        delete overrides.maxPriorityFeePerGas;
         delete overrides.customData;
         // Make sure there are no stray overrides, which may indicate a
         // typo or using an unsupported key.
@@ -218,11 +199,11 @@ function buildEstimate(contract, fragment) {
         return __awaiter(this, void 0, void 0, function* () {
             if (!signerOrProvider) {
                 logger.throwError("estimate require a provider or signer", Logger.errors.UNSUPPORTED_OPERATION, {
-                    operation: "estimateGas"
+                    operation: "estimateEnergy"
                 });
             }
             const tx = yield populateTransaction(contract, fragment, args);
-            return yield signerOrProvider.estimateGas(tx);
+            return yield signerOrProvider.estimateEnergy(tx);
         });
     };
 }
@@ -491,7 +472,7 @@ export class BaseContract {
             logger.throwArgumentError("invalid signer or provider", "signerOrProvider", signerOrProvider);
         }
         defineReadOnly(this, "callStatic", {});
-        defineReadOnly(this, "estimateGas", {});
+        defineReadOnly(this, "estimateEnergy", {});
         defineReadOnly(this, "functions", {});
         defineReadOnly(this, "populateTransaction", {});
         defineReadOnly(this, "filters", {});
@@ -575,8 +556,8 @@ export class BaseContract {
             if (this.populateTransaction[signature] == null) {
                 defineReadOnly(this.populateTransaction, signature, buildPopulate(this, fragment));
             }
-            if (this.estimateGas[signature] == null) {
-                defineReadOnly(this.estimateGas, signature, buildEstimate(this, fragment));
+            if (this.estimateEnergy[signature] == null) {
+                defineReadOnly(this.estimateEnergy, signature, buildEstimate(this, fragment));
             }
         });
         Object.keys(uniqueNames).forEach((name) => {
@@ -604,8 +585,8 @@ export class BaseContract {
             if (this.populateTransaction[name] == null) {
                 defineReadOnly(this.populateTransaction, name, this.populateTransaction[signature]);
             }
-            if (this.estimateGas[name] == null) {
-                defineReadOnly(this.estimateGas, name, this.estimateGas[signature]);
+            if (this.estimateEnergy[name] == null) {
+                defineReadOnly(this.estimateEnergy, name, this.estimateEnergy[signature]);
             }
         });
     }

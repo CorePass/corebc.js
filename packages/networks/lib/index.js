@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getNetwork = void 0;
-var logger_1 = require("@ethersproject/logger");
+var corebc_logger_1 = require("@corepass/corebc-logger");
 var _version_1 = require("./_version");
-var logger = new logger_1.Logger(_version_1.version);
+var logger = new corebc_logger_1.Logger(_version_1.version);
 ;
 function isRenetworkable(value) {
     return (value && typeof (value.renetwork) === "function");
@@ -85,72 +85,72 @@ function etcDefaultProvider(url, network) {
     return func;
 }
 var homestead = {
-    chainId: 1,
+    networkId: 1,
     ensAddress: "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e",
     name: "homestead",
     _defaultProvider: ethDefaultProvider("homestead")
 };
 var ropsten = {
-    chainId: 3,
+    networkId: 3,
     ensAddress: "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e",
     name: "ropsten",
     _defaultProvider: ethDefaultProvider("ropsten")
 };
 var classicMordor = {
-    chainId: 63,
+    networkId: 63,
     name: "classicMordor",
     _defaultProvider: etcDefaultProvider("https://www.ethercluster.com/mordor", "classicMordor")
 };
 // See: https://chainlist.org
 var networks = {
-    unspecified: { chainId: 0, name: "unspecified" },
+    unspecified: { networkId: 0, name: "unspecified" },
     homestead: homestead,
     mainnet: homestead,
-    morden: { chainId: 2, name: "morden" },
+    morden: { networkId: 2, name: "morden" },
     ropsten: ropsten,
     testnet: ropsten,
     rinkeby: {
-        chainId: 4,
+        networkId: 4,
         ensAddress: "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e",
         name: "rinkeby",
         _defaultProvider: ethDefaultProvider("rinkeby")
     },
     kovan: {
-        chainId: 42,
+        networkId: 42,
         name: "kovan",
         _defaultProvider: ethDefaultProvider("kovan")
     },
     goerli: {
-        chainId: 5,
+        networkId: 5,
         ensAddress: "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e",
         name: "goerli",
         _defaultProvider: ethDefaultProvider("goerli")
     },
-    kintsugi: { chainId: 1337702, name: "kintsugi" },
+    kintsugi: { networkId: 1337702, name: "kintsugi" },
     // ETC (See: #351)
     classic: {
-        chainId: 61,
+        networkId: 61,
         name: "classic",
         _defaultProvider: etcDefaultProvider("https:/\/www.ethercluster.com/etc", "classic")
     },
-    classicMorden: { chainId: 62, name: "classicMorden" },
+    classicMorden: { networkId: 62, name: "classicMorden" },
     classicMordor: classicMordor,
     classicTestnet: classicMordor,
     classicKotti: {
-        chainId: 6,
+        networkId: 6,
         name: "classicKotti",
         _defaultProvider: etcDefaultProvider("https:/\/www.ethercluster.com/kotti", "classicKotti")
     },
-    xdai: { chainId: 100, name: "xdai" },
-    matic: { chainId: 137, name: "matic" },
-    maticmum: { chainId: 80001, name: "maticmum" },
-    optimism: { chainId: 10, name: "optimism" },
-    "optimism-kovan": { chainId: 69, name: "optimism-kovan" },
-    "optimism-goerli": { chainId: 420, name: "optimism-goerli" },
-    arbitrum: { chainId: 42161, name: "arbitrum" },
-    "arbitrum-rinkeby": { chainId: 421611, name: "arbitrum-rinkeby" },
-    bnb: { chainId: 56, name: "bnb" },
-    bnbt: { chainId: 97, name: "bnbt" },
+    xdai: { networkId: 100, name: "xdai" },
+    matic: { networkId: 137, name: "matic" },
+    maticmum: { networkId: 80001, name: "maticmum" },
+    optimism: { networkId: 10, name: "optimism" },
+    "optimism-kovan": { networkId: 69, name: "optimism-kovan" },
+    "optimism-goerli": { networkId: 420, name: "optimism-goerli" },
+    arbitrum: { networkId: 42161, name: "arbitrum" },
+    "arbitrum-rinkeby": { networkId: 421611, name: "arbitrum-rinkeby" },
+    bnb: { networkId: 56, name: "bnb" },
+    bnbt: { networkId: 97, name: "bnbt" },
 };
 /**
  *  getNetwork
@@ -166,17 +166,17 @@ function getNetwork(network) {
     if (typeof (network) === "number") {
         for (var name_1 in networks) {
             var standard_1 = networks[name_1];
-            if (standard_1.chainId === network) {
+            if (standard_1.networkId === network) {
                 return {
                     name: standard_1.name,
-                    chainId: standard_1.chainId,
+                    networkId: standard_1.networkId,
                     ensAddress: (standard_1.ensAddress || null),
                     _defaultProvider: (standard_1._defaultProvider || null)
                 };
             }
         }
         return {
-            chainId: network,
+            networkId: network,
             name: "unknown"
         };
     }
@@ -187,7 +187,7 @@ function getNetwork(network) {
         }
         return {
             name: standard_2.name,
-            chainId: standard_2.chainId,
+            networkId: standard_2.networkId,
             ensAddress: standard_2.ensAddress,
             _defaultProvider: (standard_2._defaultProvider || null)
         };
@@ -195,14 +195,14 @@ function getNetwork(network) {
     var standard = networks[network.name];
     // Not a standard network; check that it is a valid network in general
     if (!standard) {
-        if (typeof (network.chainId) !== "number") {
-            logger.throwArgumentError("invalid network chainId", "network", network);
+        if (typeof (network.networkId) !== "number") {
+            logger.throwArgumentError("invalid network networkId", "network", network);
         }
         return network;
     }
-    // Make sure the chainId matches the expected network chainId (or is 0; disable EIP-155)
-    if (network.chainId !== 0 && network.chainId !== standard.chainId) {
-        logger.throwArgumentError("network chainId mismatch", "network", network);
+    // Make sure the networkId matches the expected network networkId (or is 0; disable EIP-155)
+    if (network.networkId !== 0 && network.networkId !== standard.networkId) {
+        logger.throwArgumentError("network networkId mismatch", "network", network);
     }
     // @TODO: In the next major version add an attach function to a defaultProvider
     // class and move the _defaultProvider internal to this file (extend Network)
@@ -218,7 +218,7 @@ function getNetwork(network) {
     // Standard Network (allow overriding the ENS address)
     return {
         name: network.name,
-        chainId: standard.chainId,
+        networkId: standard.networkId,
         ensAddress: (network.ensAddress || standard.ensAddress || null),
         _defaultProvider: defaultProvider
     };

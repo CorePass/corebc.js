@@ -2,10 +2,10 @@
 
 import { connect } from "net";
 
-import { defineReadOnly } from "@ethersproject/properties";
-import { Networkish } from "@ethersproject/networks";
+import { defineReadOnly } from "@corepass/corebc-properties";
+import { Networkish } from "@corepass/corebc-networks";
 
-import { Logger } from "@ethersproject/logger";
+import { Logger } from "@corepass/corebc-logger";
 import { version } from "./_version";
 const logger = new Logger(version);
 

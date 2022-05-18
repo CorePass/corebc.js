@@ -7,20 +7,6 @@ export declare type DataOptions = {
 export interface Hexable {
     toHexString(): string;
 }
-export declare type SignatureLike = {
-    r: string;
-    s?: string;
-    _vs?: string;
-    recoveryParam?: number;
-    v?: number;
-} | BytesLike;
-export interface Signature {
-    r: string;
-    s: string;
-    _vs: string;
-    recoveryParam: number;
-    v: number;
-}
 export declare function isBytesLike(value: any): value is BytesLike;
 export declare function isBytes(value: any): value is Bytes;
 export declare function arrayify(value: BytesLike | Hexable | number, options?: DataOptions): Uint8Array;
@@ -35,6 +21,4 @@ export declare function hexConcat(items: ReadonlyArray<BytesLike>): string;
 export declare function hexValue(value: BytesLike | Hexable | number | bigint): string;
 export declare function hexStripZeros(value: BytesLike): string;
 export declare function hexZeroPad(value: BytesLike, length: number): string;
-export declare function splitSignature(signature: SignatureLike): Signature;
-export declare function joinSignature(signature: SignatureLike): string;
 //# sourceMappingURL=index.d.ts.map

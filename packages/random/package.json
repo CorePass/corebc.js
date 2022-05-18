@@ -7,8 +7,8 @@
     "./lib/random": "./lib/browser-random.js"
   },
   "dependencies": {
-    "@ethersproject/bytes": "^5.5.0",
-    "@ethersproject/logger": "^5.5.0"
+    "@corepass/corebc-bytes": "^0.1.0",
+    "@corepass/corebc-logger": "^0.1.0"
   },
   "description": "Random utility functions for ethers.",
   "ethereum": "donations.ethers.eth",
@@ -30,7 +30,7 @@
   "license": "MIT",
   "main": "./lib/index.js",
   "module": "./lib.esm/index.js",
-  "name": "@ethersproject/random",
+  "name": "@corepass/corebc-random",
   "publishConfig": {
     "access": "public"
   },
@@ -43,7 +43,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "sideEffects": false,
-  "tarballHash": "0xd86bc70a8ab1aee5abed32106f2ee9a1e16f27a0a04264596ce69927a95a5681",
+  "tarballHash": "0x7113220d43465c09ddc380e71753c8745493435ab502ebac59d9819fb98d24bf",
   "types": "./lib/index.d.ts",
-  "version": "5.5.1"
+  "version": "0.1.1"
 }

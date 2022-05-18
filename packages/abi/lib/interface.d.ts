@@ -1,6 +1,6 @@
-import { BigNumber, BigNumberish } from "@ethersproject/bignumber";
-import { BytesLike } from "@ethersproject/bytes";
-import { Description } from "@ethersproject/properties";
+import { BigNumber, BigNumberish } from "@corepass/corebc-bignumber";
+import { BytesLike } from "@corepass/corebc-bytes";
+import { Description } from "@corepass/corebc-properties";
 import { AbiCoder } from "./abi-coder";
 import { checkResultErrors, Result } from "./coders/abstract-coder";
 import { ConstructorFragment, ErrorFragment, EventFragment, Fragment, FunctionFragment, JsonFragment, ParamType } from "./fragments";

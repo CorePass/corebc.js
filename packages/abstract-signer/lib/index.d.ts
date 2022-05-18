@@ -1,11 +1,11 @@
-import { BlockTag, FeeData, Provider, TransactionRequest, TransactionResponse } from "@ethersproject/abstract-provider";
-import { BigNumber, BigNumberish } from "@ethersproject/bignumber";
-import { Bytes, BytesLike } from "@ethersproject/bytes";
-import { Deferrable } from "@ethersproject/properties";
+import { BlockTag, FeeData, Provider, TransactionRequest, TransactionResponse } from "@corepass/corebc-abstract-provider";
+import { BigNumber, BigNumberish } from "@corepass/corebc-bignumber";
+import { Bytes, BytesLike } from "@corepass/corebc-bytes";
+import { Deferrable } from "@corepass/corebc-properties";
 export interface TypedDataDomain {
     name?: string;
     version?: string;
-    chainId?: BigNumberish;
+    networkId?: BigNumberish;
     verifyingContract?: string;
     salt?: BytesLike;
 }
@@ -30,11 +30,11 @@ export declare abstract class Signer {
     constructor();
     getBalance(blockTag?: BlockTag): Promise<BigNumber>;
     getTransactionCount(blockTag?: BlockTag): Promise<number>;
-    estimateGas(transaction: Deferrable<TransactionRequest>): Promise<BigNumber>;
+    estimateEnergy(transaction: Deferrable<TransactionRequest>): Promise<BigNumber>;
     call(transaction: Deferrable<TransactionRequest>, blockTag?: BlockTag): Promise<string>;
     sendTransaction(transaction: Deferrable<TransactionRequest>): Promise<TransactionResponse>;
-    getChainId(): Promise<number>;
-    getGasPrice(): Promise<BigNumber>;
+    getNetworkId(): Promise<number>;
+    getEnergyPrice(): Promise<BigNumber>;
     getFeeData(): Promise<FeeData>;
     resolveName(name: string): Promise<string>;
     checkTransaction(transaction: Deferrable<TransactionRequest>): Deferrable<TransactionRequest>;

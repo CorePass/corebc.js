@@ -1,7 +1,7 @@
 {
   "author": "Richard Moore <me@ricmoo.com>",
   "dependencies": {
-    "@ethersproject/bignumber": "^5.5.0"
+    "@corepass/corebc-bignumber": "^0.1.0"
   },
   "description": "Common Ethereum constants used for ethers.",
   "ethereum": "donations.ethers.eth",
@@ -22,7 +22,7 @@
   "license": "MIT",
   "main": "./lib/index.js",
   "module": "./lib.esm/index.js",
-  "name": "@ethersproject/constants",
+  "name": "@corepass/corebc-constants",
   "publishConfig": {
     "access": "public"
   },
@@ -35,7 +35,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "sideEffects": false,
-  "tarballHash": "0xd76d5e19c938fe7efb26a4d99a62beb100369872e99cf82cc7dbce414097f58d",
+  "tarballHash": "0x930ccad89dd3dc58bbf4af72599a864b198a786fc5c12b177d022166eaf7a72a",
   "types": "./lib/index.d.ts",
-  "version": "5.5.0"
+  "version": "0.1.1"
 }

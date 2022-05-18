@@ -9,7 +9,7 @@ exports.Opcode = exports.OpcodeMemoryAccess = void 0;
 //   See: https://eips.ethereum.org/EIPS/eip-1014
 // EXTCODEHASH
 //   See: https://eips.ethereum.org/EIPS/eip-1052
-var ethers_1 = require("ethers");
+var corebc_1 = require("@corepass/corebc");
 var OpcodeMemoryAccess;
 (function (OpcodeMemoryAccess) {
     OpcodeMemoryAccess["write"] = "write";
@@ -19,11 +19,11 @@ var OpcodeMemoryAccess;
 ;
 var Opcode = /** @class */ (function () {
     function Opcode(mnemonic, value, delta, alpha, doc) {
-        ethers_1.ethers.utils.defineReadOnly(this, "mnemonic", mnemonic);
-        ethers_1.ethers.utils.defineReadOnly(this, "value", value);
-        ethers_1.ethers.utils.defineReadOnly(this, "delta", delta);
-        ethers_1.ethers.utils.defineReadOnly(this, "alpha", alpha);
-        ethers_1.ethers.utils.defineReadOnly(this, "doc", doc || null);
+        corebc_1.corebc.utils.defineReadOnly(this, "mnemonic", mnemonic);
+        corebc_1.corebc.utils.defineReadOnly(this, "value", value);
+        corebc_1.corebc.utils.defineReadOnly(this, "delta", delta);
+        corebc_1.corebc.utils.defineReadOnly(this, "alpha", alpha);
+        corebc_1.corebc.utils.defineReadOnly(this, "doc", doc || null);
     }
     // Returns if this opcode is a jump
     Opcode.prototype.isJump = function () {
@@ -105,7 +105,7 @@ var _Opcodes = {
     calldatacopy: { value: 0x37, delta: 3, alpha: 0, doc: "calldatacopy(dstMemoryIndex, dataIndex, length)", memory: "write" },
     codesize: { value: 0x38, delta: 0, alpha: 1, doc: "myCodeLength = codesize" },
     codecopy: { value: 0x39, delta: 3, alpha: 0, doc: "codecopy(dstMemoryIndex, codeIndex, length)", memory: "write" },
-    gasprice: { value: 0x3a, delta: 0, alpha: 1, doc: "txGasPrice = gasprice" },
+    energyprice: { value: 0x3a, delta: 0, alpha: 1, doc: "txEnergyPrice = energyprice" },
     extcodesize: { value: 0x3b, delta: 1, alpha: 1, doc: "otherCodeLength = extcodesize(address)" },
     extcodecopy: { value: 0x3c, delta: 4, alpha: 0, doc: "extcodecopy(address, dstMemoryIndex, extcodeIndex, length)", memory: "write" },
     returndatasize: { value: 0x3d, delta: 0, alpha: 1, doc: "v = returndatasize" },
@@ -117,8 +117,8 @@ var _Opcodes = {
     timestamp: { value: 0x42, delta: 0, alpha: 1, doc: "now = timestamp" },
     number: { value: 0x43, delta: 0, alpha: 1, doc: "blockNumber = number" },
     difficulty: { value: 0x44, delta: 0, alpha: 1, doc: "diff = difficulty" },
-    gaslimit: { value: 0x45, delta: 0, alpha: 1, doc: "gas = gaslimit" },
-    chainid: { value: 0x46, delta: 0, alpha: 1, doc: "chainid = chainid" },
+    energylimit: { value: 0x45, delta: 0, alpha: 1, doc: "energy = energylimit" },
+    networkId: { value: 0x46, delta: 0, alpha: 1, doc: "networkId = networkId" },
     selfbalance: { value: 0x47, delta: 0, alpha: 1, doc: "bal = selfbalance" },
     // Stack, Memory, Storage and Flow Operations
     pop: { value: 0x50, delta: 1, alpha: 0, doc: "stackTopValue = pop" },
@@ -131,7 +131,7 @@ var _Opcodes = {
     jumpi: { value: 0x57, delta: 2, alpha: 0, doc: "jumpi(target, notZero)" },
     pc: { value: 0x58, delta: 0, alpha: 1, doc: "programCounter = pc" },
     msize: { value: 0x59, delta: 0, alpha: 1, doc: "currentMemorySize = msize" },
-    gas: { value: 0x5a, delta: 0, alpha: 1, doc: "remainingGas = gas" },
+    energy: { value: 0x5a, delta: 0, alpha: 1, doc: "remainingEnergy = energy" },
     jumpdest: { value: 0x5b, delta: 0, alpha: 0, doc: "jumpdest" },
     // Push Operations
     push1: { value: 0x60, delta: 0, alpha: 1 },
@@ -208,12 +208,12 @@ var _Opcodes = {
     log4: { value: 0xa4, delta: 6, alpha: 0, nonStatic: true, memory: "read" },
     // System Operations
     create: { value: 0xf0, delta: 3, alpha: 1, doc: "address = create(value, index, length)", nonStatic: true, memory: "read" },
-    call: { value: 0xf1, delta: 7, alpha: 1, doc: "v = call(gasLimit, address, value, inputIndex, inputLength, outputIndex, outputLength)", nonStatic: true, memory: "full" },
+    call: { value: 0xf1, delta: 7, alpha: 1, doc: "v = call(energyLimit, address, value, inputIndex, inputLength, outputIndex, outputLength)", nonStatic: true, memory: "full" },
     callcode: { value: 0xf2, delta: 7, alpha: 1, doc: "v = callcode(@TODO)", nonStatic: true, memory: "full" },
     "return": { value: 0xf3, delta: 2, alpha: 0, doc: "return(index, length)", memory: "read" },
-    delegatecall: { value: 0xf4, delta: 6, alpha: 1, doc: "v = delegatecall(gasLimit, address, inputIndex, inputLength, outputIndex, outputLength)", nonStatic: true, memory: "full" },
+    delegatecall: { value: 0xf4, delta: 6, alpha: 1, doc: "v = delegatecall(energyLimit, address, inputIndex, inputLength, outputIndex, outputLength)", nonStatic: true, memory: "full" },
     create2: { value: 0xf5, delta: 4, alpha: 1, doc: "address = create2(value, index, length, salt)", nonStatic: true, memory: "read" },
-    staticcall: { value: 0xfa, delta: 6, alpha: 1, doc: "v = staticcall(gasLimit, address, inputIndex, inputLength, outputIndex, outputLength)", memory: "full" },
+    staticcall: { value: 0xfa, delta: 6, alpha: 1, doc: "v = staticcall(energyLimit, address, inputIndex, inputLength, outputIndex, outputLength)", memory: "full" },
     revert: { value: 0xfd, delta: 2, alpha: 0, doc: "revert(returnDataOffset, returnDataLength)", memory: "read" },
     invalid: { value: 0xfe, delta: 0, alpha: 0, doc: "invalid" },
     suicide: { value: 0xff, delta: 1, alpha: 0, doc: "suicide(targetAddress)", nonStatic: true },

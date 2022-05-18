@@ -2,8 +2,8 @@
 
 import assert from "assert";
 
-import { ethers } from "ethers";
-import { loadTests, randomNumber, TestCase } from "@ethersproject/testcases";
+import { corebc } from "@corepass/corebc";
+import { loadTests, randomNumber, TestCase } from "@corepass/corebc-testcases";
 
 function randomCase(seed: string, text: string): string {
     return text.split("").map(function(c, index) {
@@ -36,12 +36,12 @@ describe('Test HD Node Derivation is Case Agnostic', function() {
 
         it("Normalizes case - " + test.name, function() {
             this.timeout(10000);
-            let wordlist = (<{ [ locale: string ]: ethers.Wordlist }>(ethers.wordlists))[test.locale];
+            let wordlist = (<{ [ locale: string ]: corebc.Wordlist }>(corebc.wordlists))[test.locale];
 
-            let rootNode = ethers.utils.HDNode.fromMnemonic(test.mnemonic, test.password || null, wordlist);
+            let rootNode = corebc.utils.HDNode.fromMnemonic(test.mnemonic, test.prefix, test.password || null, wordlist);
 
             let altMnemonic = randomCase(test.name, test.mnemonic);
-            let altNode = ethers.utils.HDNode.fromMnemonic(altMnemonic, test.password || null, wordlist);
+            let altNode = corebc.utils.HDNode.fromMnemonic(altMnemonic, test.prefix, test.password || null, wordlist);
 
             assert.equal(altNode.privateKey, rootNode.privateKey, altMnemonic);
         });
@@ -63,14 +63,14 @@ describe('Test HD Node Derivation from Seed', function() {
         it('Derives the HD nodes - ' + test.name, function() {
             this.timeout(10000);
 
-            let rootNode = ethers.utils.HDNode.fromSeed(test.seed);
+            let rootNode = corebc.utils.HDNode.fromSeed(test.seed, test.prefix);
             test.hdnodes.forEach((nodeTest) => {
 
                 let node = rootNode.derivePath(nodeTest.path);
                 assert.equal(node.privateKey, nodeTest.privateKey,
                     'Generates privateKey - ' + nodeTest.privateKey);
 
-                let wallet = new ethers.Wallet(node.privateKey);
+                let wallet = new corebc.Wallet(node.privateKey, test.prefix);
                 assert.equal(wallet.address.toLowerCase(), nodeTest.address,
                     'Generates address - ' + nodeTest.privateKey);
             });
@@ -93,7 +93,7 @@ describe('Test HD Node Derivation from Mnemonic', function() {
         it('Derives the HD nodes - ' + test.name, function() {
             this.timeout(10000);
 
-            let rootNode = ethers.utils.HDNode.fromMnemonic(test.mnemonic, test.password || null);
+            let rootNode = corebc.utils.HDNode.fromMnemonic(test.mnemonic, test.password || null);
             test.hdnodes.forEach((nodeTest) => {
 
                 let node = rootNode.derivePath(nodeTest.path);
@@ -107,7 +107,7 @@ describe('Test HD Node Derivation from Mnemonic', function() {
                 assert.equal(node.mnemonic.path, nodeTest.path,
                     'Matches mnemonic.path - ' + nodeTest.privateKey);
 
-                let wallet = new ethers.Wallet(node.privateKey);
+                let wallet = new corebc.Wallet(node.privateKey, test.prefix);
                 assert.equal(wallet.address.toLowerCase(), nodeTest.address,
                     'Generates address - ' + nodeTest.privateKey);
             });
@@ -127,52 +127,27 @@ describe('Test HD Mnemonic Phrases', function testMnemonic() {
         it(('converts mnemonic phrases - ' + test.name), function() {
             this.timeout(1000000);
 
-            assert.equal(ethers.utils.mnemonicToSeed(test.mnemonic, test.password), test.seed,
+            assert.equal(corebc.utils.mnemonicToSeed(test.mnemonic, test.password), test.seed,
                 'Converts mnemonic to seed - ' + test.mnemonic + ':' + test.password);
 
             // Test default english
             if (test.locale === "en") {
-                assert.equal(ethers.utils.entropyToMnemonic(test.entropy), test.mnemonic,
+                assert.equal(corebc.utils.entropyToMnemonic(test.entropy), test.mnemonic,
                     "Converts entropy to mnemonic " + test.name + " (default en)");
 
-                assert.equal(ethers.utils.mnemonicToEntropy(test.mnemonic), test.entropy,
+                assert.equal(corebc.utils.mnemonicToEntropy(test.mnemonic), test.entropy,
                     "Converts mnemonic to entropy - " + test.mnemonic + " (default en)");
             }
 
-            let wordlist = (<{ [ locale: string ]: ethers.Wordlist }>(ethers.wordlists))[test.locale];
+            let wordlist = (<{ [ locale: string ]: corebc.Wordlist }>(corebc.wordlists))[test.locale];
 
-            let mnemonic = ethers.utils.entropyToMnemonic(test.entropy, wordlist);
+            let mnemonic = corebc.utils.entropyToMnemonic(test.entropy, wordlist);
             assert.equal(mnemonic.normalize('NFKD'), test.mnemonic.normalize('NFKD'),
                 'Converts entropy to mnemonic ' + test.name);
 
-            assert.equal(ethers.utils.mnemonicToEntropy(test.mnemonic, wordlist), test.entropy,
+            assert.equal(corebc.utils.mnemonicToEntropy(test.mnemonic, wordlist), test.entropy,
                 'Converts mnemonic to entropy - ' + test.mnemonic);
         });
-    });
-});
-
-describe("HD Extended Keys", function() {
-    const root = ethers.utils.HDNode.fromSeed("0xdeadbeefdeadbeefdeadbeefdeadbeef");
-    const root42 = root.derivePath("42");
-
-    it("exports and imports xpriv extended keys", function() {
-        const xpriv = root.extendedKey;
-        const node = ethers.utils.HDNode.fromExtendedKey(xpriv);
-
-        assert.equal(root.address, node.address, "address matches");
-
-        const node42 = node.derivePath("42");
-        assert.equal(root42.address, node42.address, "address matches");
-    });
-
-    it("exports and imports xpub extended keys", function() {
-        const xpub = root.neuter().extendedKey;
-        const node = ethers.utils.HDNode.fromExtendedKey(xpub);
-
-        assert.equal(root.address, node.address, "address matches");
-
-        const node42 = node.derivePath("42");
-        assert.equal(root42.address, node42.address, "address matches");
     });
 });
 
@@ -183,7 +158,7 @@ describe("HD error cases", function() {
         "m/44/foobar"
     ];
 
-    const root = ethers.utils.HDNode.fromSeed("0xdeadbeefdeadbeefdeadbeefdeadbeef");
+    const root = corebc.utils.HDNode.fromSeed("0xdeadbeefdeadbeefdeadbeefdeadbeef", "cc");
 
     testInvalid.forEach((path) => {
         it(`fails on path "${ path }"`, function() {
@@ -215,12 +190,12 @@ describe("HD error cases", function() {
         const shortMnemonic = "abandon abandon abandon abandon";
 
         // Test the validate functions
-        assert.ok(ethers.utils.isValidMnemonic(zeroMnemonicCS));
-        assert.ok(!ethers.utils.isValidMnemonic(zeroMnemonic));
-        assert.ok(!ethers.utils.isValidMnemonic(shortMnemonic));
+        assert.ok(corebc.utils.isValidMnemonic(zeroMnemonicCS));
+        assert.ok(!corebc.utils.isValidMnemonic(zeroMnemonic));
+        assert.ok(!corebc.utils.isValidMnemonic(shortMnemonic));
 
         assert.throws(() => {
-            ethers.utils.mnemonicToEntropy(shortMnemonic);
+            corebc.utils.mnemonicToEntropy(shortMnemonic);
         }, (error: any) => {
             return true;
         });
@@ -228,7 +203,7 @@ describe("HD error cases", function() {
 
     it("fails on invalid checksum", function() {
         assert.throws(() => {
-            ethers.utils.mnemonicToEntropy(zeroMnemonic);
+            corebc.utils.mnemonicToEntropy(zeroMnemonic);
         }, (error: any) => {
             return true;
         });
@@ -236,7 +211,7 @@ describe("HD error cases", function() {
 
     it("fails on unknown locale", function() {
         assert.throws(() => {
-            ethers.utils.HDNode.fromMnemonic(zeroMnemonicCS, "foobar", "xx");
+            corebc.utils.HDNode.fromMnemonic(zeroMnemonicCS, "foobar", "xx");
         }, (error: any) => {
             return true;
         });

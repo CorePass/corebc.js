@@ -1,15 +1,14 @@
 {
   "_ethers.alias": {
-    "elliptic.js": "browser-elliptic.js"
+    "ed448.js": "browser-ed448.js"
   },
   "author": "Richard Moore <me@ricmoo.com>",
   "dependencies": {
-    "@ethersproject/bytes": "^5.5.0",
-    "@ethersproject/logger": "^5.5.0",
-    "@ethersproject/properties": "^5.5.0",
-    "bn.js": "^4.11.9",
-    "elliptic": "6.5.4",
-    "hash.js": "1.1.7"
+    "@corepass/corebc-bytes": "^0.1.0",
+    "@corepass/corebc-logger": "^0.1.0",
+    "@corepass/corebc-properties": "^0.1.0",
+    "bcrypto": "^5.4.0",
+    "bn.js": "^4.11.9"
   },
   "description": "Elliptic curve library functions for the secp256k1 curve.",
   "ethereum": "donations.ethers.eth",
@@ -30,7 +29,7 @@
   "license": "MIT",
   "main": "./lib/index.js",
   "module": "./lib.esm/index.js",
-  "name": "@ethersproject/signing-key",
+  "name": "@corepass/corebc-signing-key",
   "publishConfig": {
     "access": "public"
   },
@@ -43,7 +42,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "sideEffects": false,
-  "tarballHash": "0x9e61d2950f60b2f90be25d609141fb557629e5fa95b69cfa90aed534c467c561",
+  "tarballHash": "0xeb1b2136df21495776ad57b15ee73b05780230a6fba579b4500f8376d835b5dc",
   "types": "./lib/index.d.ts",
-  "version": "5.5.0"
+  "version": "0.1.1"
 }

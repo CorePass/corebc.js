@@ -1,14 +1,14 @@
 "use strict";
 
-import { BigNumber } from "@ethersproject/bignumber";
-import { Network, Networkish } from "@ethersproject/networks";
-import { defineReadOnly } from "@ethersproject/properties";
+import { BigNumber } from "@corepass/corebc-bignumber";
+import { Network, Networkish } from "@corepass/corebc-networks";
+import { defineReadOnly } from "@corepass/corebc-properties";
 
 import { Event } from "./base-provider";
 import { JsonRpcProvider } from "./json-rpc-provider";
 import { WebSocket } from "./ws";
 
-import { Logger } from "@ethersproject/logger";
+import { Logger } from "@corepass/corebc-logger";
 import { version } from "./_version";
 const logger = new Logger(version);
 
@@ -122,7 +122,7 @@ export class WebSocketProvider extends JsonRpcProvider {
 
                 }
 
-            } else if (result.method === "eth_subscription") {
+            } else if (result.method === "xcb_subscription") {
                 // Subscription...
                 const sub = this._subs[result.params.subscription];
                 if (sub) {
@@ -212,7 +212,7 @@ export class WebSocketProvider extends JsonRpcProvider {
         let subIdPromise = this._subIds[tag];
         if (subIdPromise == null) {
             subIdPromise = Promise.all(param).then((param) => {
-                return this.send("eth_subscribe", param);
+                return this.send("xcb_subscribe", param);
             });
             this._subIds[tag] = subIdPromise;
         }
@@ -300,7 +300,7 @@ export class WebSocketProvider extends JsonRpcProvider {
        subId.then((subId) => {
             if (!this._subs[subId]) { return; }
             delete this._subs[subId];
-            this.send("eth_unsubscribe", [ subId ]);
+            this.send("xcb_unsubscribe", [ subId ]);
         });
     }
 

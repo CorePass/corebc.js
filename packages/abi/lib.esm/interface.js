@@ -1,14 +1,14 @@
 "use strict";
-import { getAddress } from "@ethersproject/address";
-import { BigNumber } from "@ethersproject/bignumber";
-import { arrayify, concat, hexDataSlice, hexlify, hexZeroPad, isHexString } from "@ethersproject/bytes";
-import { id } from "@ethersproject/hash";
-import { keccak256 } from "@ethersproject/keccak256";
-import { defineReadOnly, Description, getStatic } from "@ethersproject/properties";
+import { getAddress } from "@corepass/corebc-address";
+import { BigNumber } from "@corepass/corebc-bignumber";
+import { arrayify, concat, hexDataSlice, hexlify, hexZeroPad, isHexString } from "@corepass/corebc-bytes";
+import { id } from "@corepass/corebc-hash";
+import { sha256 } from "@corepass/corebc-sha3";
+import { defineReadOnly, Description, getStatic } from "@corepass/corebc-properties";
 import { defaultAbiCoder } from "./abi-coder";
 import { checkResultErrors } from "./coders/abstract-coder";
 import { ConstructorFragment, EventFragment, FormatTypes, Fragment, FunctionFragment, ParamType } from "./fragments";
-import { Logger } from "@ethersproject/logger";
+import { Logger } from "@corepass/corebc-logger";
 import { version } from "./_version";
 const logger = new Logger(version);
 export { checkResultErrors };
@@ -296,7 +296,7 @@ export class Interface {
             this._encodeParams(functionFragment.inputs, values || [])
         ]));
     }
-    // Decode the result from a function call (e.g. from eth_call)
+    // Decode the result from a function call (e.g. from xcb_call)
     decodeFunctionResult(functionFragment, data) {
         if (typeof (functionFragment) === "string") {
             functionFragment = this.getFunction(functionFragment);
@@ -343,14 +343,14 @@ export class Interface {
             errorArgs, errorName, errorSignature, reason
         });
     }
-    // Encode the result for a function call (e.g. for eth_call)
+    // Encode the result for a function call (e.g. for xcb_call)
     encodeFunctionResult(functionFragment, values) {
         if (typeof (functionFragment) === "string") {
             functionFragment = this.getFunction(functionFragment);
         }
         return hexlify(this._abiCoder.encode(functionFragment.outputs, values || []));
     }
-    // Create the filter for the event with search criteria (e.g. for eth_filterLog)
+    // Create the filter for the event with search criteria (e.g. for xcb_filterLog)
     encodeFilterTopics(eventFragment, values) {
         if (typeof (eventFragment) === "string") {
             eventFragment = this.getEvent(eventFragment);
@@ -370,7 +370,7 @@ export class Interface {
                 return id(value);
             }
             else if (param.type === "bytes") {
-                return keccak256(hexlify(value));
+                return sha256(hexlify(value));
             }
             // Check addresses are valid
             if (param.type === "address") {
@@ -425,7 +425,7 @@ export class Interface {
                     topics.push(id(value));
                 }
                 else if (param.type === "bytes") {
-                    topics.push(keccak256(value));
+                    topics.push(sha256(value));
                 }
                 else if (param.baseType === "tuple" || param.baseType === "array") {
                     // @TODO

@@ -16,11 +16,11 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ErrorFragment = exports.FunctionFragment = exports.ConstructorFragment = exports.EventFragment = exports.Fragment = exports.ParamType = exports.FormatTypes = void 0;
-var bignumber_1 = require("@ethersproject/bignumber");
-var properties_1 = require("@ethersproject/properties");
-var logger_1 = require("@ethersproject/logger");
+var corebc_bignumber_1 = require("@corepass/corebc-bignumber");
+var corebc_properties_1 = require("@corepass/corebc-properties");
+var corebc_logger_1 = require("@corepass/corebc-logger");
 var _version_1 = require("./_version");
-var logger = new logger_1.Logger(_version_1.version);
+var logger = new corebc_logger_1.Logger(_version_1.version);
 ;
 var _constructorGuard = {};
 var ModifiersBytes = { calldata: true, memory: true, storage: true };
@@ -210,7 +210,7 @@ function parseParamType(param, allowIndexed) {
 }
 function populate(object, params) {
     for (var key in params) {
-        (0, properties_1.defineReadOnly)(object, key, params[key]);
+        (0, corebc_properties_1.defineReadOnly)(object, key, params[key]);
     }
 }
 exports.FormatTypes = Object.freeze({
@@ -227,7 +227,7 @@ var paramTypeArray = new RegExp(/^(.*)\[([0-9]*)\]$/);
 var ParamType = /** @class */ (function () {
     function ParamType(constructorGuard, params) {
         if (constructorGuard !== _constructorGuard) {
-            logger.throwError("use fromString", logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
+            logger.throwError("use fromString", corebc_logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
                 operation: "new ParamType()"
             });
         }
@@ -345,7 +345,7 @@ function parseParams(value, allowIndex) {
 var Fragment = /** @class */ (function () {
     function Fragment(constructorGuard, params) {
         if (constructorGuard !== _constructorGuard) {
-            logger.throwError("use a static from method", logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
+            logger.throwError("use a static from method", corebc_logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
                 operation: "new Fragment()"
             });
         }
@@ -490,17 +490,17 @@ var EventFragment = /** @class */ (function (_super) {
     return EventFragment;
 }(Fragment));
 exports.EventFragment = EventFragment;
-function parseGas(value, params) {
-    params.gas = null;
+function parseEnergy(value, params) {
+    params.energy = null;
     var comps = value.split("@");
     if (comps.length !== 1) {
         if (comps.length > 2) {
             logger.throwArgumentError("invalid human-readable ABI signature", "value", value);
         }
         if (!comps[1].match(/^[0-9]+$/)) {
-            logger.throwArgumentError("invalid human-readable ABI signature gas", "value", value);
+            logger.throwArgumentError("invalid human-readable ABI signature energy", "value", value);
         }
-        params.gas = bignumber_1.BigNumber.from(comps[1]);
+        params.energy = corebc_bignumber_1.BigNumber.from(comps[1]);
         return comps[0];
     }
     return value;
@@ -606,12 +606,12 @@ var ConstructorFragment = /** @class */ (function (_super) {
                 type: "constructor",
                 stateMutability: ((this.stateMutability !== "nonpayable") ? this.stateMutability : undefined),
                 payable: this.payable,
-                gas: (this.gas ? this.gas.toNumber() : undefined),
+                energy: (this.energy ? this.energy.toNumber() : undefined),
                 inputs: this.inputs.map(function (input) { return JSON.parse(input.format(format)); })
             });
         }
         if (format === exports.FormatTypes.sighash) {
-            logger.throwError("cannot format a constructor for sighash", logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
+            logger.throwError("cannot format a constructor for sighash", corebc_logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
                 operation: "format(sighash)"
             });
         }
@@ -644,13 +644,13 @@ var ConstructorFragment = /** @class */ (function (_super) {
             inputs: (value.inputs ? value.inputs.map(ParamType.fromObject) : []),
             payable: state.payable,
             stateMutability: state.stateMutability,
-            gas: (value.gas ? bignumber_1.BigNumber.from(value.gas) : null)
+            energy: (value.energy ? corebc_bignumber_1.BigNumber.from(value.energy) : null)
         };
         return new ConstructorFragment(_constructorGuard, params);
     };
     ConstructorFragment.fromString = function (value) {
         var params = { type: "constructor" };
-        value = parseGas(value, params);
+        value = parseEnergy(value, params);
         var parens = value.match(regexParen);
         if (!parens || parens[1].trim() !== "constructor") {
             logger.throwArgumentError("invalid constructor string", "value", value);
@@ -684,7 +684,7 @@ var FunctionFragment = /** @class */ (function (_super) {
                 constant: this.constant,
                 stateMutability: ((this.stateMutability !== "nonpayable") ? this.stateMutability : undefined),
                 payable: this.payable,
-                gas: (this.gas ? this.gas.toNumber() : undefined),
+                energy: (this.energy ? this.energy.toNumber() : undefined),
                 inputs: this.inputs.map(function (input) { return JSON.parse(input.format(format)); }),
                 outputs: this.outputs.map(function (output) { return JSON.parse(output.format(format)); }),
             });
@@ -706,8 +706,8 @@ var FunctionFragment = /** @class */ (function (_super) {
             if (this.outputs && this.outputs.length) {
                 result += "returns (" + this.outputs.map(function (output) { return output.format(format); }).join(", ") + ") ";
             }
-            if (this.gas != null) {
-                result += "@" + this.gas.toString() + " ";
+            if (this.energy != null) {
+                result += "@" + this.energy.toString() + " ";
             }
         }
         return result.trim();
@@ -734,13 +734,13 @@ var FunctionFragment = /** @class */ (function (_super) {
             outputs: (value.outputs ? value.outputs.map(ParamType.fromObject) : []),
             payable: state.payable,
             stateMutability: state.stateMutability,
-            gas: (value.gas ? bignumber_1.BigNumber.from(value.gas) : null)
+            energy: (value.energy ? corebc_bignumber_1.BigNumber.from(value.energy) : null)
         };
         return new FunctionFragment(_constructorGuard, params);
     };
     FunctionFragment.fromString = function (value) {
         var params = { type: "function" };
-        value = parseGas(value, params);
+        value = parseEnergy(value, params);
         var comps = value.split(" returns ");
         if (comps.length > 2) {
             logger.throwArgumentError("invalid function string", "value", value);

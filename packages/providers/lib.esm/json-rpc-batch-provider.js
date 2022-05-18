@@ -1,5 +1,5 @@
-import { deepCopy } from "@ethersproject/properties";
-import { fetchJson } from "@ethersproject/web";
+import { deepCopy } from "@corepass/corebc-properties";
+import { fetchJson } from "@corepass/corebc-web";
 import { JsonRpcProvider } from "./json-rpc-provider";
 // Experimental
 export class JsonRpcBatchProvider extends JsonRpcProvider {

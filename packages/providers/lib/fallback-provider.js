@@ -52,17 +52,17 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.FallbackProvider = void 0;
-var abstract_provider_1 = require("@ethersproject/abstract-provider");
-var bignumber_1 = require("@ethersproject/bignumber");
-var bytes_1 = require("@ethersproject/bytes");
-var properties_1 = require("@ethersproject/properties");
-var random_1 = require("@ethersproject/random");
-var web_1 = require("@ethersproject/web");
+var corebc_abstract_provider_1 = require("@corepass/corebc-abstract-provider");
+var corebc_bignumber_1 = require("@corepass/corebc-bignumber");
+var corebc_bytes_1 = require("@corepass/corebc-bytes");
+var corebc_properties_1 = require("@corepass/corebc-properties");
+var corebc_random_1 = require("@corepass/corebc-random");
+var corebc_web_1 = require("@corepass/corebc-web");
 var base_provider_1 = require("./base-provider");
 var formatter_1 = require("./formatter");
-var logger_1 = require("@ethersproject/logger");
+var corebc_logger_1 = require("@corepass/corebc-logger");
 var _version_1 = require("./_version");
-var logger = new logger_1.Logger(_version_1.version);
+var logger = new corebc_logger_1.Logger(_version_1.version);
 function now() { return (new Date()).getTime(); }
 // Returns to network as long as all agree, or null if any is null.
 // Throws an error if any two networks do not match.
@@ -76,7 +76,7 @@ function checkNetworks(networks) {
         }
         if (result) {
             // Make sure the network matches the previous networks
-            if (!(result.name === network.name && result.chainId === network.chainId &&
+            if (!(result.name === network.name && result.networkId === network.networkId &&
                 ((result.ensAddress === network.ensAddress) || (result.ensAddress == null && network.ensAddress == null)))) {
                 logger.throwArgumentError("provider mismatch", "networks", networks);
             }
@@ -111,7 +111,7 @@ function serialize(value) {
     else if (typeof (value) === "string") {
         return value;
     }
-    else if (bignumber_1.BigNumber.isBigNumber(value)) {
+    else if (corebc_bignumber_1.BigNumber.isBigNumber(value)) {
         return value.toString();
     }
     else if (Array.isArray(value)) {
@@ -159,11 +159,11 @@ function stall(duration) {
     return { cancel: cancel, getPromise: getPromise, wait: wait };
 }
 var ForwardErrors = [
-    logger_1.Logger.errors.CALL_EXCEPTION,
-    logger_1.Logger.errors.INSUFFICIENT_FUNDS,
-    logger_1.Logger.errors.NONCE_EXPIRED,
-    logger_1.Logger.errors.REPLACEMENT_UNDERPRICED,
-    logger_1.Logger.errors.UNPREDICTABLE_GAS_LIMIT
+    corebc_logger_1.Logger.errors.CALL_EXCEPTION,
+    corebc_logger_1.Logger.errors.INSUFFICIENT_FUNDS,
+    corebc_logger_1.Logger.errors.NONCE_EXPIRED,
+    corebc_logger_1.Logger.errors.REPLACEMENT_UNDERPRICED,
+    corebc_logger_1.Logger.errors.UNPREDICTABLE_GAS_LIMIT
 ];
 var ForwardProperties = [
     "address",
@@ -244,7 +244,7 @@ function getProcessFunc(provider, method, params) {
                 }
                 return provider._highestBlockNumber;
             };
-        case "getGasPrice":
+        case "getEnergyPrice":
             // Return the middle (round index up) value, similar to median
             // but do not average even entries and choose the higher.
             // Malicious actors must compromise 50% of the nodes to lie.
@@ -265,7 +265,7 @@ function getProcessFunc(provider, method, params) {
         case "getCode":
         case "getStorageAt":
         case "call":
-        case "estimateGas":
+        case "estimateEnergy":
         case "getLogs":
             break;
         // We drop the confirmations from transactions as it is approximate
@@ -275,7 +275,7 @@ function getProcessFunc(provider, method, params) {
                 if (tx == null) {
                     return null;
                 }
-                tx = (0, properties_1.shallowCopy)(tx);
+                tx = (0, corebc_properties_1.shallowCopy)(tx);
                 tx.confirmations = -1;
                 return serialize(tx);
             };
@@ -288,9 +288,9 @@ function getProcessFunc(provider, method, params) {
                     if (block == null) {
                         return null;
                     }
-                    block = (0, properties_1.shallowCopy)(block);
+                    block = (0, corebc_properties_1.shallowCopy)(block);
                     block.transactions = block.transactions.map(function (tx) {
-                        tx = (0, properties_1.shallowCopy)(tx);
+                        tx = (0, corebc_properties_1.shallowCopy)(tx);
                         tx.confirmations = -1;
                         return tx;
                     });
@@ -323,7 +323,7 @@ function waitForSync(config, blockNumber) {
             if ((provider.blockNumber != null && provider.blockNumber >= blockNumber) || blockNumber === -1) {
                 return [2 /*return*/, provider];
             }
-            return [2 /*return*/, (0, web_1.poll)(function () {
+            return [2 /*return*/, (0, corebc_web_1.poll)(function () {
                     return new Promise(function (resolve, reject) {
                         setTimeout(function () {
                             // We are synced
@@ -352,7 +352,7 @@ function getRunner(config, currentBlockNumber, method, params) {
                     _a = method;
                     switch (_a) {
                         case "getBlockNumber": return [3 /*break*/, 1];
-                        case "getGasPrice": return [3 /*break*/, 1];
+                        case "getEnergyPrice": return [3 /*break*/, 1];
                         case "getEtherPrice": return [3 /*break*/, 2];
                         case "getBalance": return [3 /*break*/, 3];
                         case "getTransactionCount": return [3 /*break*/, 3];
@@ -360,7 +360,7 @@ function getRunner(config, currentBlockNumber, method, params) {
                         case "getStorageAt": return [3 /*break*/, 6];
                         case "getBlock": return [3 /*break*/, 9];
                         case "call": return [3 /*break*/, 12];
-                        case "estimateGas": return [3 /*break*/, 12];
+                        case "estimateEnergy": return [3 /*break*/, 12];
                         case "getTransaction": return [3 /*break*/, 15];
                         case "getTransactionReceipt": return [3 /*break*/, 15];
                         case "getLogs": return [3 /*break*/, 16];
@@ -373,28 +373,28 @@ function getRunner(config, currentBlockNumber, method, params) {
                     }
                     return [3 /*break*/, 19];
                 case 3:
-                    if (!(params.blockTag && (0, bytes_1.isHexString)(params.blockTag))) return [3 /*break*/, 5];
+                    if (!(params.blockTag && (0, corebc_bytes_1.isHexString)(params.blockTag))) return [3 /*break*/, 5];
                     return [4 /*yield*/, waitForSync(config, currentBlockNumber)];
                 case 4:
                     provider = _b.sent();
                     _b.label = 5;
                 case 5: return [2 /*return*/, provider[method](params.address, params.blockTag || "latest")];
                 case 6:
-                    if (!(params.blockTag && (0, bytes_1.isHexString)(params.blockTag))) return [3 /*break*/, 8];
+                    if (!(params.blockTag && (0, corebc_bytes_1.isHexString)(params.blockTag))) return [3 /*break*/, 8];
                     return [4 /*yield*/, waitForSync(config, currentBlockNumber)];
                 case 7:
                     provider = _b.sent();
                     _b.label = 8;
                 case 8: return [2 /*return*/, provider.getStorageAt(params.address, params.position, params.blockTag || "latest")];
                 case 9:
-                    if (!(params.blockTag && (0, bytes_1.isHexString)(params.blockTag))) return [3 /*break*/, 11];
+                    if (!(params.blockTag && (0, corebc_bytes_1.isHexString)(params.blockTag))) return [3 /*break*/, 11];
                     return [4 /*yield*/, waitForSync(config, currentBlockNumber)];
                 case 10:
                     provider = _b.sent();
                     _b.label = 11;
                 case 11: return [2 /*return*/, provider[(params.includeTransactions ? "getBlockWithTransactions" : "getBlock")](params.blockTag || params.blockHash)];
                 case 12:
-                    if (!(params.blockTag && (0, bytes_1.isHexString)(params.blockTag))) return [3 /*break*/, 14];
+                    if (!(params.blockTag && (0, corebc_bytes_1.isHexString)(params.blockTag))) return [3 /*break*/, 14];
                     return [4 /*yield*/, waitForSync(config, currentBlockNumber)];
                 case 13:
                     provider = _b.sent();
@@ -403,13 +403,13 @@ function getRunner(config, currentBlockNumber, method, params) {
                 case 15: return [2 /*return*/, provider[method](params.transactionHash)];
                 case 16:
                     filter = params.filter;
-                    if (!((filter.fromBlock && (0, bytes_1.isHexString)(filter.fromBlock)) || (filter.toBlock && (0, bytes_1.isHexString)(filter.toBlock)))) return [3 /*break*/, 18];
+                    if (!((filter.fromBlock && (0, corebc_bytes_1.isHexString)(filter.fromBlock)) || (filter.toBlock && (0, corebc_bytes_1.isHexString)(filter.toBlock)))) return [3 /*break*/, 18];
                     return [4 /*yield*/, waitForSync(config, currentBlockNumber)];
                 case 17:
                     provider = _b.sent();
                     _b.label = 18;
                 case 18: return [2 /*return*/, provider.getLogs(filter)];
-                case 19: return [2 /*return*/, logger.throwError("unknown method error", logger_1.Logger.errors.UNKNOWN_ERROR, {
+                case 19: return [2 /*return*/, logger.throwError("unknown method error", corebc_logger_1.Logger.errors.UNKNOWN_ERROR, {
                         method: method,
                         params: params
                     })];
@@ -427,12 +427,12 @@ var FallbackProvider = /** @class */ (function (_super) {
             logger.throwArgumentError("missing providers", "providers", providers);
         }
         var providerConfigs = providers.map(function (configOrProvider, index) {
-            if (abstract_provider_1.Provider.isProvider(configOrProvider)) {
+            if (corebc_abstract_provider_1.Provider.isProvider(configOrProvider)) {
                 var stallTimeout = (0, formatter_1.isCommunityResource)(configOrProvider) ? 2000 : 750;
                 var priority = 1;
                 return Object.freeze({ provider: configOrProvider, weight: 1, stallTimeout: stallTimeout, priority: priority });
             }
-            var config = (0, properties_1.shallowCopy)(configOrProvider);
+            var config = (0, corebc_properties_1.shallowCopy)(configOrProvider);
             if (config.priority == null) {
                 config.priority = 1;
             }
@@ -467,8 +467,8 @@ var FallbackProvider = /** @class */ (function (_super) {
         }
         _this = _super.call(this, networkOrReady) || this;
         // Preserve a copy, so we do not get mutated
-        (0, properties_1.defineReadOnly)(_this, "providerConfigs", Object.freeze(providerConfigs));
-        (0, properties_1.defineReadOnly)(_this, "quorum", quorum);
+        (0, corebc_properties_1.defineReadOnly)(_this, "providerConfigs", Object.freeze(providerConfigs));
+        (0, corebc_properties_1.defineReadOnly)(_this, "quorum", quorum);
         _this._highestBlockNumber = -1;
         return _this;
     }
@@ -519,7 +519,7 @@ var FallbackProvider = /** @class */ (function (_super) {
                         _a.label = 4;
                     case 4:
                         processFunc = getProcessFunc(this, method, params);
-                        configs = (0, random_1.shuffled)(this.providerConfigs.map(properties_1.shallowCopy));
+                        configs = (0, corebc_random_1.shuffled)(this.providerConfigs.map(corebc_properties_1.shallowCopy));
                         configs.sort(function (a, b) { return (a.priority - b.priority); });
                         currentBlockNumber = this._highestBlockNumber;
                         i = 0;
@@ -546,7 +546,7 @@ var FallbackProvider = /** @class */ (function (_super) {
                                                         action: "request",
                                                         rid: rid,
                                                         backend: exposeDebugConfig(config, now()),
-                                                        request: { method: method, params: (0, properties_1.deepCopy)(params) },
+                                                        request: { method: method, params: (0, corebc_properties_1.deepCopy)(params) },
                                                         provider: _this
                                                     });
                                                 }
@@ -558,7 +558,7 @@ var FallbackProvider = /** @class */ (function (_super) {
                                                         action: "request",
                                                         rid: rid,
                                                         backend: exposeDebugConfig(config, now()),
-                                                        request: { method: method, params: (0, properties_1.deepCopy)(params) },
+                                                        request: { method: method, params: (0, corebc_properties_1.deepCopy)(params) },
                                                         provider: _this
                                                     });
                                                 }
@@ -568,7 +568,7 @@ var FallbackProvider = /** @class */ (function (_super) {
                                                     action: "request",
                                                     rid: rid,
                                                     backend: exposeDebugConfig(config, null),
-                                                    request: { method: method, params: (0, properties_1.deepCopy)(params) },
+                                                    request: { method: method, params: (0, corebc_properties_1.deepCopy)(params) },
                                                     provider: this_1
                                                 });
                                             }
@@ -679,7 +679,7 @@ var FallbackProvider = /** @class */ (function (_super) {
                             }
                             c.cancelled = true;
                         });
-                        return [2 /*return*/, logger.throwError("failed to meet quorum", logger_1.Logger.errors.SERVER_ERROR, {
+                        return [2 /*return*/, logger.throwError("failed to meet quorum", corebc_logger_1.Logger.errors.SERVER_ERROR, {
                                 method: method,
                                 params: params,
                                 //results: configs.map((c) => c.result),

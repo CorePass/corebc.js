@@ -1,5 +1,5 @@
-import { BytesLike } from "@ethersproject/bytes";
-import { BigNumber, BigNumberish } from "@ethersproject/bignumber";
+import { BytesLike } from "@corepass/corebc-bytes";
+import { BigNumber, BigNumberish } from "@corepass/corebc-bignumber";
 export interface Result extends ReadonlyArray<any> {
     readonly [key: string]: any;
 }

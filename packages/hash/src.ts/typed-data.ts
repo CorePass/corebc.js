@@ -1,11 +1,11 @@
-import { TypedDataDomain, TypedDataField } from "@ethersproject/abstract-signer";
-import { getAddress } from "@ethersproject/address";
-import { BigNumber, BigNumberish } from "@ethersproject/bignumber";
-import { arrayify, BytesLike, hexConcat, hexlify, hexZeroPad, isHexString } from "@ethersproject/bytes";
-import { keccak256 } from "@ethersproject/keccak256";
-import { deepCopy, defineReadOnly, shallowCopy } from "@ethersproject/properties";
+import { TypedDataDomain, TypedDataField } from "@corepass/corebc-abstract-signer";
+import { getAddress } from "@corepass/corebc-address";
+import { BigNumber, BigNumberish } from "@corepass/corebc-bignumber";
+import { arrayify, BytesLike, hexConcat, hexlify, hexZeroPad, isHexString } from "@corepass/corebc-bytes";
+import { sha256 } from "@corepass/corebc-sha3";
+import { deepCopy, defineReadOnly, shallowCopy } from "@corepass/corebc-properties";
 
-import { Logger } from "@ethersproject/logger";
+import { Logger } from "@corepass/corebc-logger";
 import { version } from "./_version";
 const logger = new Logger(version);
 
@@ -34,13 +34,13 @@ const hexFalse = hexZeroPad(Zero.toHexString(), 32);
 const domainFieldTypes: Record<string, string> = {
     name: "string",
     version: "string",
-    chainId: "uint256",
+    networkId: "uint256",
     verifyingContract: "address",
     salt: "bytes32"
 };
 
 const domainFieldNames: Array<string> = [
-    "name", "version", "chainId", "verifyingContract", "salt"
+    "name", "version", "networkId", "verifyingContract", "salt"
 ];
 
 function checkString(key: string): (value: any) => string {
@@ -55,11 +55,11 @@ function checkString(key: string): (value: any) => string {
 const domainChecks: Record<string, (value: any) => any> = {
     name: checkString("name"),
     version: checkString("version"),
-    chainId: function(value: any) {
+    networkId: function(value: any) {
         try {
             return BigNumber.from(value).toString()
         } catch (error) { }
-        return logger.throwArgumentError(`invalid domain value for "chainId"`, "domain.chainId", value);
+        return logger.throwArgumentError(`invalid domain value for "networkId"`, "domain.networkId", value);
     },
     verifyingContract: function(value: any) {
         try {
@@ -131,7 +131,7 @@ function getBaseEncoder(type: string): (value: any) => string {
             return ((!value) ? hexFalse: hexTrue);
         };
         case "bytes": return function(value: BytesLike) {
-            return keccak256(value);
+            return sha256(value);
         };
         case "string": return function(value: string) {
             return id(value);
@@ -277,10 +277,10 @@ export class TypedDataEncoder {
 
                 let result = value.map(subEncoder);
                 if (this._types[subtype]) {
-                    result = result.map(keccak256);
+                    result = result.map(sha256);
                 }
 
-                return keccak256(hexConcat(result));
+                return sha256(hexConcat(result));
             };
         }
 
@@ -291,7 +291,7 @@ export class TypedDataEncoder {
             return (value: Record<string, any>) => {
                 const values = fields.map(({ name, type }) => {
                     const result = this.getEncoder(type)(value[name]);
-                    if (this._types[type]) { return keccak256(result); }
+                    if (this._types[type]) { return sha256(result); }
                     return result;
                 });
                 values.unshift(encodedType);
@@ -315,7 +315,7 @@ export class TypedDataEncoder {
     }
 
     hashStruct(name: string, value: Record<string, any>): string {
-        return keccak256(this.encodeData(name, value));
+        return sha256(this.encodeData(name, value));
     }
 
     encode(value: Record<string, any>): string {
@@ -398,7 +398,7 @@ export class TypedDataEncoder {
     }
 
     static hash(domain: TypedDataDomain, types: Record<string, Array<TypedDataField>>, value: Record<string, any>): string {
-        return keccak256(TypedDataEncoder.encode(domain, types, value));
+        return sha256(TypedDataEncoder.encode(domain, types, value));
     }
 
     // Replaces all address types with ENS names with their looked up address

@@ -1,7 +1,7 @@
 'use strict';
 import assert from 'assert';
-import { ethers } from "ethers";
-import { loadTests } from "@ethersproject/testcases";
+import { corebc } from "@corepass/corebc";
+import { loadTests } from "@corepass/corebc-testcases";
 function checkWordlist(content, wordlist) {
     let words = content.split('\n');
     it('matches wordlists for ' + wordlist.locale, function () {
@@ -26,7 +26,7 @@ function checkWordlist(content, wordlist) {
 describe('Check Wordlists', function () {
     let tests = loadTests("wordlists");
     tests.forEach((test) => {
-        let wordlist = (ethers.wordlists)[test.locale];
+        let wordlist = (corebc.wordlists)[test.locale];
         if (wordlist == null) {
             return;
         }

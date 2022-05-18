@@ -16,7 +16,7 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.FixedBytesCoder = void 0;
-var bytes_1 = require("@ethersproject/bytes");
+var corebc_bytes_1 = require("@corepass/corebc-bytes");
 var abstract_coder_1 = require("./abstract-coder");
 // @TODO: Merge this with bytes
 var FixedBytesCoder = /** @class */ (function (_super) {
@@ -32,14 +32,14 @@ var FixedBytesCoder = /** @class */ (function (_super) {
         return ("0x0000000000000000000000000000000000000000000000000000000000000000").substring(0, 2 + this.size * 2);
     };
     FixedBytesCoder.prototype.encode = function (writer, value) {
-        var data = (0, bytes_1.arrayify)(value);
+        var data = (0, corebc_bytes_1.arrayify)(value);
         if (data.length !== this.size) {
             this._throwError("incorrect data length", value);
         }
         return writer.writeBytes(data);
     };
     FixedBytesCoder.prototype.decode = function (reader) {
-        return reader.coerce(this.name, (0, bytes_1.hexlify)(reader.readBytes(this.size)));
+        return reader.coerce(this.name, (0, corebc_bytes_1.hexlify)(reader.readBytes(this.size)));
     };
     return FixedBytesCoder;
 }(abstract_coder_1.Coder));

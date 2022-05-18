@@ -59,11 +59,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var assert_1 = __importDefault(require("assert"));
-var ethers_1 = require("ethers");
-var testcases_1 = require("@ethersproject/testcases");
+var corebc_1 = require("@corepass/corebc");
+var corebc_testcases_1 = require("@corepass/corebc-testcases");
 var utils = __importStar(require("./utils"));
 describe('Test JSON Wallets', function () {
-    var tests = (0, testcases_1.loadTests)('wallets');
+    var tests = (0, corebc_testcases_1.loadTests)('wallets');
     tests.forEach(function (test) {
         it(('decrypts wallet - ' + test.name), function () {
             return __awaiter(this, void 0, void 0, function () {
@@ -73,9 +73,9 @@ describe('Test JSON Wallets', function () {
                         case 0:
                             this.timeout(1200000);
                             if (test.hasAddress) {
-                                assert_1.default.ok((ethers_1.ethers.utils.getJsonWalletAddress(test.json) !== null), 'detect encrypted JSON wallet');
+                                assert_1.default.ok((corebc_1.corebc.utils.getJsonWalletAddress(test.json) !== null), 'detect encrypted JSON wallet');
                             }
-                            return [4 /*yield*/, ethers_1.ethers.Wallet.fromEncryptedJson(test.json, test.password)];
+                            return [4 /*yield*/, corebc_1.corebc.Wallet.fromEncryptedJson(test.json, test.password)];
                         case 1:
                             wallet = _a.sent();
                             assert_1.default.equal(wallet.privateKey, test.privateKey, 'generated correct private key - ' + wallet.privateKey);
@@ -87,7 +87,7 @@ describe('Test JSON Wallets', function () {
                             assert_1.default.equal(walletAddress.toLowerCase(), test.address, 'generate correct address - ' + wallet.address);
                             // Test connect
                             {
-                                provider = new ethers_1.ethers.providers.EtherscanProvider();
+                                provider = corebc_1.corebc.getDefaultProvider("");
                                 walletConnected = wallet.connect(provider);
                                 assert_1.default.equal(walletConnected.provider, provider, "provider is connected");
                                 assert_1.default.ok((wallet.provider == null), "original wallet provider is null");
@@ -95,12 +95,12 @@ describe('Test JSON Wallets', function () {
                             }
                             // Make sure it can accept a SigningKey
                             {
-                                wallet2 = new ethers_1.ethers.Wallet(wallet._signingKey());
+                                wallet2 = new corebc_1.corebc.Wallet(wallet._signingKey(), wallet.prefix);
                                 assert_1.default.equal(wallet2.privateKey, test.privateKey, 'generated correct private key - ' + wallet2.privateKey);
                             }
                             // Test the sync decryption (this wallet is light, so it is safe)
                             if (test.name === "life") {
-                                wallet2 = ethers_1.ethers.Wallet.fromEncryptedJsonSync(test.json, test.password);
+                                wallet2 = corebc_1.corebc.Wallet.fromEncryptedJsonSync(test.json, test.password);
                                 assert_1.default.equal(wallet2.privateKey, test.privateKey, 'generated correct private key - ' + wallet2.privateKey);
                             }
                             if (test.mnemonic) {
@@ -115,11 +115,11 @@ describe('Test JSON Wallets', function () {
     // A few extra test cases to test encrypting/decrypting
     ['one', 'two', 'three'].forEach(function (i) {
         var password = 'foobar' + i;
-        var wallet = ethers_1.ethers.Wallet.createRandom({ path: "m/56'/82", extraEntropy: utils.randomHexString('test-' + i, 32) });
+        var wallet = corebc_1.corebc.Wallet.createRandom("cc", { path: "m/56'/82", extraEntropy: utils.randomHexString('test-' + i, 32) });
         it('encrypts and decrypts a random wallet - ' + i, function () {
             this.timeout(1200000);
             return wallet.encrypt(password).then(function (json) {
-                return ethers_1.ethers.Wallet.fromEncryptedJson(json, password).then(function (decryptedWallet) {
+                return corebc_1.corebc.Wallet.fromEncryptedJson(json, password).then(function (decryptedWallet) {
                     assert_1.default.equal(decryptedWallet.address, wallet.address, 'decrypted wallet - ' + wallet.privateKey);
                     assert_1.default.equal(decryptedWallet.mnemonic.phrase, wallet.mnemonic.phrase, "decrypted wallet mnemonic - " + wallet.privateKey);
                     assert_1.default.equal(decryptedWallet.mnemonic.path, wallet.mnemonic.path, "decrypted wallet path - " + wallet.privateKey);
@@ -135,11 +135,11 @@ describe('Test JSON Wallets', function () {
 describe('Test Transaction Signing and Parsing', function () {
     function checkTransaction(parsedTransaction, test) {
         var transaction = {};
-        ['nonce', 'gasLimit', 'gasPrice', 'to', 'value', 'data'].forEach(function (key) {
+        ['nonce', 'energyLimit', 'energyPrice', 'to', 'value', 'data'].forEach(function (key) {
             var expected = test[key];
             var value = parsedTransaction[key];
-            if (["gasLimit", "gasPrice", "value"].indexOf(key) >= 0) {
-                assert_1.default.ok((ethers_1.ethers.BigNumber.isBigNumber(value)), 'parsed into a big number - ' + key);
+            if (["energyLimit", "energyPrice", "value"].indexOf(key) >= 0) {
+                assert_1.default.ok((corebc_1.corebc.BigNumber.isBigNumber(value)), 'parsed into a big number - ' + key);
                 value = value.toHexString();
                 if (!expected || expected === '0x') {
                     expected = '0x00';
@@ -147,7 +147,7 @@ describe('Test Transaction Signing and Parsing', function () {
             }
             else if (key === 'nonce') {
                 assert_1.default.equal(typeof (value), 'number', 'parse into a number - nonce');
-                value = ethers_1.ethers.utils.hexlify(value);
+                value = corebc_1.corebc.utils.hexlify(value);
                 if (!expected || expected === '0x') {
                     expected = '0x00';
                 }
@@ -160,7 +160,7 @@ describe('Test Transaction Signing and Parsing', function () {
             else if (key === 'to') {
                 if (value) {
                     // Make sure the address is valid
-                    ethers_1.ethers.utils.getAddress(value);
+                    corebc_1.corebc.utils.getAddress(value);
                     value = value.toLowerCase();
                 }
             }
@@ -169,51 +169,51 @@ describe('Test Transaction Signing and Parsing', function () {
         });
         return transaction;
     }
-    var tests = (0, testcases_1.loadTests)('transactions');
+    var tests = (0, corebc_testcases_1.loadTests)('transactions');
     tests.forEach(function (test) {
         it(('parses and signs transaction - ' + test.name), function () {
             this.timeout(120000);
-            var signingKey = new ethers_1.ethers.utils.SigningKey(test.privateKey);
+            var signingKey = new corebc_1.corebc.utils.SigningKey(test.privateKey);
             var signDigest = signingKey.signDigest.bind(signingKey);
             // Legacy parsing unsigned transaction
-            checkTransaction(ethers_1.ethers.utils.parseTransaction(test.unsignedTransaction), test);
-            var parsedTransaction = ethers_1.ethers.utils.parseTransaction(test.signedTransaction);
+            checkTransaction(corebc_1.corebc.utils.parseTransaction(test.unsignedTransaction), test);
+            var parsedTransaction = corebc_1.corebc.utils.parseTransaction(test.signedTransaction);
             var transaction = checkTransaction(parsedTransaction, test);
             // Legacy signed transaction ecrecover
-            assert_1.default.equal(parsedTransaction.from, ethers_1.ethers.utils.getAddress(test.accountAddress), 'computed from');
+            assert_1.default.equal(parsedTransaction.from, corebc_1.corebc.utils.getAddress(test.accountAddress), 'computed from');
             // Legacy transaction chain ID
-            assert_1.default.equal(parsedTransaction.chainId, 0, 'parses chainId (legacy)');
+            assert_1.default.equal(parsedTransaction.networkId, 0, 'parses networkId (legacy)');
             // Legacy serializes unsigned transaction
             (function () {
-                var unsignedTx = ethers_1.ethers.utils.serializeTransaction(transaction);
+                var unsignedTx = corebc_1.corebc.utils.serializeTransaction(transaction);
                 assert_1.default.equal(unsignedTx, test.unsignedTransaction, 'serializes unsigned transaction (legacy)');
                 // Legacy signed serialized transaction
-                var signature = signDigest(ethers_1.ethers.utils.keccak256(unsignedTx));
-                assert_1.default.equal(ethers_1.ethers.utils.serializeTransaction(transaction, signature), test.signedTransaction, 'signs transaction (legacy)');
+                var signature = signDigest(corebc_1.corebc.utils.sha256(unsignedTx));
+                assert_1.default.equal(corebc_1.corebc.utils.serializeTransaction(transaction, signature), test.signedTransaction, 'signs transaction (legacy)');
             })();
             // EIP155
             // EIP-155 parsing unsigned transaction
-            var parsedUnsignedTransactionChainId5 = ethers_1.ethers.utils.parseTransaction(test.unsignedTransactionChainId5);
-            checkTransaction(parsedUnsignedTransactionChainId5, test);
-            assert_1.default.equal(parsedUnsignedTransactionChainId5.chainId, 5, 'parses chainId (eip155)');
+            var parsedUnsignedTransactionNetworkId5 = corebc_1.corebc.utils.parseTransaction(test.unsignedTransactionNetworkId5);
+            checkTransaction(parsedUnsignedTransactionNetworkId5, test);
+            assert_1.default.equal(parsedUnsignedTransactionNetworkId5.networkId, 5, 'parses networkId (eip155)');
             // EIP-155 fields
-            var parsedTransactionChainId5 = ethers_1.ethers.utils.parseTransaction(test.signedTransactionChainId5);
+            var parsedTransactionNetworkId5 = corebc_1.corebc.utils.parseTransaction(test.signedTransactionNetworkId5);
             ['data', 'from', 'nonce', 'to'].forEach(function (key) {
-                assert_1.default.equal(parsedTransaction[key], parsedTransactionChainId5[key], 'parses ' + key + ' (eip155)');
+                assert_1.default.equal(parsedTransaction[key], parsedTransactionNetworkId5[key], 'parses ' + key + ' (eip155)');
             });
-            ['gasLimit', 'gasPrice', 'value'].forEach(function (key) {
-                assert_1.default.ok(parsedTransaction[key].eq(parsedTransactionChainId5[key]), 'parses ' + key + ' (eip155)');
+            ['energyLimit', 'energyPrice', 'value'].forEach(function (key) {
+                assert_1.default.ok(parsedTransaction[key].eq(parsedTransactionNetworkId5[key]), 'parses ' + key + ' (eip155)');
             });
             // EIP-155 chain ID
-            assert_1.default.equal(parsedTransactionChainId5.chainId, 5, 'parses chainId (eip155)');
-            transaction.chainId = 5;
+            assert_1.default.equal(parsedTransactionNetworkId5.networkId, 5, 'parses networkId (eip155)');
+            transaction.networkId = 5;
             (function () {
                 // EIP-155 serialized unsigned transaction
-                var unsignedTx = ethers_1.ethers.utils.serializeTransaction(transaction);
-                assert_1.default.equal(unsignedTx, test.unsignedTransactionChainId5, 'serializes unsigned transaction (eip155) ');
+                var unsignedTx = corebc_1.corebc.utils.serializeTransaction(transaction);
+                assert_1.default.equal(unsignedTx, test.unsignedTransactionNetworkId5, 'serializes unsigned transaction (eip155) ');
                 // EIP-155 signed serialized transaction
-                var signature = signDigest(ethers_1.ethers.utils.keccak256(unsignedTx));
-                assert_1.default.equal(ethers_1.ethers.utils.serializeTransaction(transaction, signature), test.signedTransactionChainId5, 'signs transaction (eip155)');
+                var signature = signDigest(corebc_1.corebc.utils.sha256(unsignedTx));
+                assert_1.default.equal(corebc_1.corebc.utils.serializeTransaction(transaction, signature), test.signedTransactionNetworkId5, 'signs transaction (eip155)');
             })();
         });
     });
@@ -225,20 +225,20 @@ describe('Test Transaction Signing and Parsing', function () {
                     switch (_a.label) {
                         case 0:
                             this.timeout(120000);
-                            wallet = new ethers_1.ethers.Wallet(test.privateKey);
+                            wallet = new corebc_1.corebc.Wallet(test.privateKey, test.prefix);
                             transaction = {
                                 to: test.to,
                                 data: test.data,
-                                gasLimit: test.gasLimit,
-                                gasPrice: test.gasPrice,
+                                energyLimit: test.energyLimit,
+                                energyPrice: test.energyPrice,
                                 value: test.value,
                                 nonce: ((test.nonce) === "0x") ? 0 : test.nonce,
-                                chainId: 5
+                                networkId: 5
                             };
                             return [4 /*yield*/, wallet.signTransaction(transaction)];
                         case 1:
                             signedTx = _a.sent();
-                            assert_1.default.equal(signedTx, test.signedTransactionChainId5);
+                            assert_1.default.equal(signedTx, test.signedTransactionNetworkId5);
                             return [2 /*return*/];
                     }
                 });
@@ -250,6 +250,7 @@ describe('Test Signing Messages', function () {
     var tests = [
         // See: https://etherscan.io/verifySig/57
         {
+            prefix: "cc",
             address: '0x14791697260E4c9A71f18484C9f997B308e59325',
             name: 'string("hello world")',
             message: 'hello world',
@@ -259,18 +260,20 @@ describe('Test Signing Messages', function () {
         },
         // See: https://github.com/ethers-io/ethers.js/issues/80
         {
+            prefix: "cc",
             address: '0xD351c7c627ad5531Edb9587f4150CaF393c33E87',
             name: 'bytes(0x47173285...4cb01fad)',
-            message: ethers_1.ethers.utils.arrayify('0x47173285a8d7341e5e972fc677286384f802f8ef42a5ec5f03bbfa254cb01fad'),
+            message: corebc_1.corebc.utils.arrayify('0x47173285a8d7341e5e972fc677286384f802f8ef42a5ec5f03bbfa254cb01fad'),
             messageHash: '0x93100cc9477ba6522a2d7d5e83d0e075b167224ed8aa0c5860cfd47fa9f22797',
             privateKey: '0x51d1d6047622bca92272d36b297799ecc152dc2ef91b229debf84fc41e8c73ee',
             signature: '0x546f0c996fa4cfbf2b68fd413bfb477f05e44e66545d7782d87d52305831cd055fc9943e513297d0f6755ad1590a5476bf7d1761d4f9dc07dfe473824bbdec751b'
         },
         // See: https://github.com/ethers-io/ethers.js/issues/85
         {
+            prefix: "cc",
             address: '0xe7deA7e64B62d1Ca52f1716f29cd27d4FE28e3e1',
             name: 'zero-prefixed signature',
-            message: ethers_1.ethers.utils.arrayify(ethers_1.ethers.utils.id('0x7f23b5eed5bc7e89f267f339561b2697faab234a2')),
+            message: corebc_1.corebc.utils.arrayify(corebc_1.corebc.utils.id('0x7f23b5eed5bc7e89f267f339561b2697faab234a2')),
             messageHash: '0x06c9d148d268f9a13d8f94f4ce351b0beff3b9ba69f23abbf171168202b2dd67',
             privateKey: '0x09a11afa58d6014843fd2c5fd4e21e7fadf96ca2d8ce9934af6b8e204314f25c',
             signature: '0x7222038446034a0425b6e3f0cc3594f0d979c656206408f937c37a8180bb1bea047d061e4ded4aeac77fa86eb02d42ba7250964ac3eb9da1337090258ce798491c'
@@ -279,7 +282,7 @@ describe('Test Signing Messages', function () {
     tests.forEach(function (test) {
         it(('signs a message "' + test.name + '"'), function () {
             this.timeout(120000);
-            var wallet = new ethers_1.ethers.Wallet(test.privateKey);
+            var wallet = new corebc_1.corebc.Wallet(test.privateKey, test.prefix);
             return wallet.signMessage(test.message).then(function (signature) {
                 assert_1.default.equal(signature, test.signature, 'computes message signature');
             });
@@ -288,23 +291,23 @@ describe('Test Signing Messages', function () {
     tests.forEach(function (test) {
         it(('verifies a message "' + test.name + '"'), function () {
             this.timeout(120000);
-            var address = ethers_1.ethers.utils.verifyMessage(test.message, test.signature);
+            var address = corebc_1.corebc.utils.verifyMessage(test.message, test.signature, test.prefix);
             assert_1.default.equal(address, test.address, 'verifies message signature');
         });
     });
     tests.forEach(function (test) {
         it(('hashes a message "' + test.name + '"'), function () {
             this.timeout(120000);
-            var hash = ethers_1.ethers.utils.hashMessage(test.message);
+            var hash = corebc_1.corebc.utils.hashMessage(test.message);
             assert_1.default.equal(hash, test.messageHash, 'calculates message hash');
         });
     });
 });
 describe("Serialize Transactions", function () {
     it("allows odd-length numeric values", function () {
-        ethers_1.ethers.utils.serializeTransaction({
-            gasLimit: "0x1",
-            gasPrice: "0x1",
+        corebc_1.corebc.utils.serializeTransaction({
+            energyLimit: "0x1",
+            energyPrice: "0x1",
             value: "0x1"
         });
         //console.log(result);
@@ -313,10 +316,10 @@ describe("Serialize Transactions", function () {
 describe("Wallet Errors", function () {
     it("fails on privateKey/address mismatch", function () {
         assert_1.default.throws(function () {
-            var wallet = new ethers_1.ethers.Wallet({
+            var wallet = new corebc_1.corebc.Wallet({
                 privateKey: "0x6a73cd9b03647e83ef937888a5258a26e4c766dbf41ddd974f15e32d09cfe9c0",
                 address: "0x3f4f037dfc910a3517b9a5b23cf036ffae01a5a7"
-            });
+            }, "cc");
             console.log(wallet);
         }, function (error) {
             return error.reason === "privateKey/address mismatch";
@@ -324,13 +327,13 @@ describe("Wallet Errors", function () {
     });
     it("fails on mnemonic/address mismatch", function () {
         assert_1.default.throws(function () {
-            var wallet = new ethers_1.ethers.Wallet({
+            var wallet = new corebc_1.corebc.Wallet({
                 privateKey: "0x6a73cd9b03647e83ef937888a5258a26e4c766dbf41ddd974f15e32d09cfe9c0",
                 address: "0x4Dfe3BF68c80f19083FF90E6a852fC876AE7429b",
                 mnemonic: {
                     phrase: "pact grief smile usage kind pledge river excess garbage mixed olive receive"
                 }
-            });
+            }, "cc");
             console.log(wallet);
         }, function (error) {
             return error.reason === "mnemonic/address mismatch";
@@ -338,7 +341,7 @@ describe("Wallet Errors", function () {
     });
     it("fails on from mismatch", function () {
         var _this = this;
-        var wallet = new ethers_1.ethers.Wallet("0x6a73cd9b03647e83ef937888a5258a26e4c766dbf41ddd974f15e32d09cfe9c0");
+        var wallet = new corebc_1.corebc.Wallet("0x6a73cd9b03647e83ef937888a5258a26e4c766dbf41ddd974f15e32d09cfe9c0", "cc");
         return new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
             var error_1;
             return __generator(this, function (_a) {
@@ -353,7 +356,7 @@ describe("Wallet Errors", function () {
                         return [3 /*break*/, 3];
                     case 2:
                         error_1 = _a.sent();
-                        if (error_1.code === ethers_1.ethers.utils.Logger.errors.INVALID_ARGUMENT && error_1.argument === "transaction.from") {
+                        if (error_1.code === corebc_1.corebc.utils.Logger.errors.INVALID_ARGUMENT && error_1.argument === "transaction.from") {
                             resolve(true);
                             return [2 /*return*/];
                         }

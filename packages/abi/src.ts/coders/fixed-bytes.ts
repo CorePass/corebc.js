@@ -1,6 +1,6 @@
 "use strict";
 
-import { arrayify, BytesLike, hexlify } from "@ethersproject/bytes";
+import { arrayify, BytesLike, hexlify } from "@corepass/corebc-bytes";
 
 import { Coder, Reader, Writer } from "./abstract-coder";
 

@@ -95,7 +95,7 @@ export var ErrorCode;
     //  - errorArgs?: The EIP848 error parameters
     //  - reason: The reason (only for EIP848 "Error(string)")
     ErrorCode["CALL_EXCEPTION"] = "CALL_EXCEPTION";
-    // Insufficient funds (< value + gasLimit * gasPrice)
+    // Insufficient funds (< value + energyLimit * energyPrice)
     //   - transaction: the transaction attempted
     ErrorCode["INSUFFICIENT_FUNDS"] = "INSUFFICIENT_FUNDS";
     // Nonce has already been used
@@ -104,10 +104,10 @@ export var ErrorCode;
     // The replacement fee for the transaction is too low
     //   - transaction: the transaction attempted
     ErrorCode["REPLACEMENT_UNDERPRICED"] = "REPLACEMENT_UNDERPRICED";
-    // The gas limit could not be estimated
-    //   - transaction: the transaction passed to estimateGas
+    // The energy limit could not be estimated
+    //   - transaction: the transaction passed to estimateEnergy
     ErrorCode["UNPREDICTABLE_GAS_LIMIT"] = "UNPREDICTABLE_GAS_LIMIT";
-    // The transaction was replaced by one with a higher gas price
+    // The transaction was replaced by one with a higher energy price
     //   - reason: "cancelled", "replaced" or "repriced"
     //   - cancelled: true if reason == "cancelled" or reason == "replaced")
     //   - hash: original transaction hash

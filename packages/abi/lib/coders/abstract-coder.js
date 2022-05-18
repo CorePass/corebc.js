@@ -1,12 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Reader = exports.Writer = exports.Coder = exports.checkResultErrors = void 0;
-var bytes_1 = require("@ethersproject/bytes");
-var bignumber_1 = require("@ethersproject/bignumber");
-var properties_1 = require("@ethersproject/properties");
-var logger_1 = require("@ethersproject/logger");
+var corebc_bytes_1 = require("@corepass/corebc-bytes");
+var corebc_bignumber_1 = require("@corepass/corebc-bignumber");
+var corebc_properties_1 = require("@corepass/corebc-properties");
+var corebc_logger_1 = require("@corepass/corebc-logger");
 var _version_1 = require("../_version");
-var logger = new logger_1.Logger(_version_1.version);
+var logger = new corebc_logger_1.Logger(_version_1.version);
 function checkResultErrors(result) {
     // Find the first error (if any)
     var errors = [];
@@ -45,14 +45,14 @@ var Coder = /** @class */ (function () {
 exports.Coder = Coder;
 var Writer = /** @class */ (function () {
     function Writer(wordSize) {
-        (0, properties_1.defineReadOnly)(this, "wordSize", wordSize || 32);
+        (0, corebc_properties_1.defineReadOnly)(this, "wordSize", wordSize || 32);
         this._data = [];
         this._dataLength = 0;
         this._padding = new Uint8Array(wordSize);
     }
     Object.defineProperty(Writer.prototype, "data", {
         get: function () {
-            return (0, bytes_1.hexConcat)(this._data);
+            return (0, corebc_bytes_1.hexConcat)(this._data);
         },
         enumerable: false,
         configurable: true
@@ -68,27 +68,27 @@ var Writer = /** @class */ (function () {
         return data.length;
     };
     Writer.prototype.appendWriter = function (writer) {
-        return this._writeData((0, bytes_1.concat)(writer._data));
+        return this._writeData((0, corebc_bytes_1.concat)(writer._data));
     };
     // Arrayish items; padded on the right to wordSize
     Writer.prototype.writeBytes = function (value) {
-        var bytes = (0, bytes_1.arrayify)(value);
+        var bytes = (0, corebc_bytes_1.arrayify)(value);
         var paddingOffset = bytes.length % this.wordSize;
         if (paddingOffset) {
-            bytes = (0, bytes_1.concat)([bytes, this._padding.slice(paddingOffset)]);
+            bytes = (0, corebc_bytes_1.concat)([bytes, this._padding.slice(paddingOffset)]);
         }
         return this._writeData(bytes);
     };
     Writer.prototype._getValue = function (value) {
-        var bytes = (0, bytes_1.arrayify)(bignumber_1.BigNumber.from(value));
+        var bytes = (0, corebc_bytes_1.arrayify)(corebc_bignumber_1.BigNumber.from(value));
         if (bytes.length > this.wordSize) {
-            logger.throwError("value out-of-bounds", logger_1.Logger.errors.BUFFER_OVERRUN, {
+            logger.throwError("value out-of-bounds", corebc_logger_1.Logger.errors.BUFFER_OVERRUN, {
                 length: this.wordSize,
                 offset: bytes.length
             });
         }
         if (bytes.length % this.wordSize) {
-            bytes = (0, bytes_1.concat)([this._padding.slice(bytes.length % this.wordSize), bytes]);
+            bytes = (0, corebc_bytes_1.concat)([this._padding.slice(bytes.length % this.wordSize), bytes]);
         }
         return bytes;
     };
@@ -110,14 +110,14 @@ var Writer = /** @class */ (function () {
 exports.Writer = Writer;
 var Reader = /** @class */ (function () {
     function Reader(data, wordSize, coerceFunc, allowLoose) {
-        (0, properties_1.defineReadOnly)(this, "_data", (0, bytes_1.arrayify)(data));
-        (0, properties_1.defineReadOnly)(this, "wordSize", wordSize || 32);
-        (0, properties_1.defineReadOnly)(this, "_coerceFunc", coerceFunc);
-        (0, properties_1.defineReadOnly)(this, "allowLoose", allowLoose);
+        (0, corebc_properties_1.defineReadOnly)(this, "_data", (0, corebc_bytes_1.arrayify)(data));
+        (0, corebc_properties_1.defineReadOnly)(this, "wordSize", wordSize || 32);
+        (0, corebc_properties_1.defineReadOnly)(this, "_coerceFunc", coerceFunc);
+        (0, corebc_properties_1.defineReadOnly)(this, "allowLoose", allowLoose);
         this._offset = 0;
     }
     Object.defineProperty(Reader.prototype, "data", {
-        get: function () { return (0, bytes_1.hexlify)(this._data); },
+        get: function () { return (0, corebc_bytes_1.hexlify)(this._data); },
         enumerable: false,
         configurable: true
     });
@@ -147,7 +147,7 @@ var Reader = /** @class */ (function () {
                 alignedLength = length;
             }
             else {
-                logger.throwError("data out-of-bounds", logger_1.Logger.errors.BUFFER_OVERRUN, {
+                logger.throwError("data out-of-bounds", corebc_logger_1.Logger.errors.BUFFER_OVERRUN, {
                     length: this._data.length,
                     offset: this._offset + alignedLength
                 });
@@ -165,7 +165,7 @@ var Reader = /** @class */ (function () {
         return bytes.slice(0, length);
     };
     Reader.prototype.readValue = function () {
-        return bignumber_1.BigNumber.from(this.readBytes(this.wordSize));
+        return corebc_bignumber_1.BigNumber.from(this.readBytes(this.wordSize));
     };
     return Reader;
 }());

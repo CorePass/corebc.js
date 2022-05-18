@@ -1,6 +1,6 @@
 "use strict";
 
-import { toUtf8String } from "@ethersproject/strings";
+import { toUtf8String } from "@corepass/corebc-strings";
 
 import { Wordlist } from "./wordlist";
 

@@ -8,15 +8,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { Provider } from "@ethersproject/abstract-provider";
-import { BigNumber } from "@ethersproject/bignumber";
-import { isHexString } from "@ethersproject/bytes";
-import { deepCopy, defineReadOnly, shallowCopy } from "@ethersproject/properties";
-import { shuffled } from "@ethersproject/random";
-import { poll } from "@ethersproject/web";
+import { Provider } from "@corepass/corebc-abstract-provider";
+import { BigNumber } from "@corepass/corebc-bignumber";
+import { isHexString } from "@corepass/corebc-bytes";
+import { deepCopy, defineReadOnly, shallowCopy } from "@corepass/corebc-properties";
+import { shuffled } from "@corepass/corebc-random";
+import { poll } from "@corepass/corebc-web";
 import { BaseProvider } from "./base-provider";
 import { isCommunityResource } from "./formatter";
-import { Logger } from "@ethersproject/logger";
+import { Logger } from "@corepass/corebc-logger";
 import { version } from "./_version";
 const logger = new Logger(version);
 function now() { return (new Date()).getTime(); }
@@ -32,7 +32,7 @@ function checkNetworks(networks) {
         }
         if (result) {
             // Make sure the network matches the previous networks
-            if (!(result.name === network.name && result.chainId === network.chainId &&
+            if (!(result.name === network.name && result.networkId === network.networkId &&
                 ((result.ensAddress === network.ensAddress) || (result.ensAddress == null && network.ensAddress == null)))) {
                 logger.throwArgumentError("provider mismatch", "networks", networks);
             }
@@ -200,7 +200,7 @@ function getProcessFunc(provider, method, params) {
                 }
                 return provider._highestBlockNumber;
             };
-        case "getGasPrice":
+        case "getEnergyPrice":
             // Return the middle (round index up) value, similar to median
             // but do not average even entries and choose the higher.
             // Malicious actors must compromise 50% of the nodes to lie.
@@ -221,7 +221,7 @@ function getProcessFunc(provider, method, params) {
         case "getCode":
         case "getStorageAt":
         case "call":
-        case "estimateGas":
+        case "estimateEnergy":
         case "getLogs":
             break;
         // We drop the confirmations from transactions as it is approximate
@@ -300,7 +300,7 @@ function getRunner(config, currentBlockNumber, method, params) {
         let provider = config.provider;
         switch (method) {
             case "getBlockNumber":
-            case "getGasPrice":
+            case "getEnergyPrice":
                 return provider[method]();
             case "getEtherPrice":
                 if (provider.getEtherPrice) {
@@ -325,7 +325,7 @@ function getRunner(config, currentBlockNumber, method, params) {
                 }
                 return provider[(params.includeTransactions ? "getBlockWithTransactions" : "getBlock")](params.blockTag || params.blockHash);
             case "call":
-            case "estimateGas":
+            case "estimateEnergy":
                 if (params.blockTag && isHexString(params.blockTag)) {
                     provider = yield waitForSync(config, currentBlockNumber);
                 }

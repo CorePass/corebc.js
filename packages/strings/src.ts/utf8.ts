@@ -1,8 +1,8 @@
 "use strict";
 
-import { arrayify, BytesLike } from "@ethersproject/bytes";
+import { arrayify, BytesLike } from "@corepass/corebc-bytes";
 
-import { Logger } from "@ethersproject/logger";
+import { Logger } from "@corepass/corebc-logger";
 import { version } from "./_version";
 const logger = new Logger(version);
 

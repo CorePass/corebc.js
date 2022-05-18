@@ -1,17 +1,17 @@
 "use strict";
 
-import { Block, BlockWithTransactions, Provider } from "@ethersproject/abstract-provider";
-import { BigNumber } from "@ethersproject/bignumber";
-import { isHexString } from "@ethersproject/bytes";
-import { Network } from "@ethersproject/networks";
-import { deepCopy, defineReadOnly, shallowCopy } from "@ethersproject/properties";
-import { shuffled } from "@ethersproject/random";
-import { poll } from "@ethersproject/web";
+import { Block, BlockWithTransactions, Provider } from "@corepass/corebc-abstract-provider";
+import { BigNumber } from "@corepass/corebc-bignumber";
+import { isHexString } from "@corepass/corebc-bytes";
+import { Network } from "@corepass/corebc-networks";
+import { deepCopy, defineReadOnly, shallowCopy } from "@corepass/corebc-properties";
+import { shuffled } from "@corepass/corebc-random";
+import { poll } from "@corepass/corebc-web";
 
 import { BaseProvider } from "./base-provider";
 import { isCommunityResource } from "./formatter";
 
-import { Logger } from "@ethersproject/logger";
+import { Logger } from "@corepass/corebc-logger";
 import { version } from "./_version";
 const logger = new Logger(version);
 
@@ -30,7 +30,7 @@ function checkNetworks(networks: Array<Network>): Network {
 
         if (result) {
             // Make sure the network matches the previous networks
-            if (!(result.name === network.name && result.chainId === network.chainId &&
+            if (!(result.name === network.name && result.networkId === network.networkId &&
                 ((result.ensAddress === network.ensAddress) || (result.ensAddress == null && network.ensAddress == null)))) {
 
                 logger.throwArgumentError("provider mismatch", "networks", networks);
@@ -249,7 +249,7 @@ function getProcessFunc(provider: FallbackProvider, method: string, params: { [ 
                 return provider._highestBlockNumber;
             };
 
-        case "getGasPrice":
+        case "getEnergyPrice":
             // Return the middle (round index up) value, similar to median
             // but do not average even entries and choose the higher.
             // Malicious actors must compromise 50% of the nodes to lie.
@@ -272,7 +272,7 @@ function getProcessFunc(provider: FallbackProvider, method: string, params: { [ 
         case "getCode":
         case "getStorageAt":
         case "call":
-        case "estimateGas":
+        case "estimateEnergy":
         case "getLogs":
             break;
 
@@ -352,7 +352,7 @@ async function getRunner(config: RunningConfig, currentBlockNumber: number, meth
 
     switch (method) {
         case "getBlockNumber":
-        case "getGasPrice":
+        case "getEnergyPrice":
             return provider[method]();
         case "getEtherPrice":
             if ((<any>provider).getEtherPrice) {
@@ -377,7 +377,7 @@ async function getRunner(config: RunningConfig, currentBlockNumber: number, meth
             }
             return provider[(params.includeTransactions ? "getBlockWithTransactions": "getBlock")](params.blockTag || params.blockHash);
         case "call":
-        case "estimateGas":
+        case "estimateEnergy":
             if (params.blockTag && isHexString(params.blockTag)) {
                 provider = await waitForSync(config, currentBlockNumber)
             }

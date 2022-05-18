@@ -3,22 +3,22 @@
 import {
     Block, BlockTag, BlockWithTransactions, EventType, Filter, FilterByBlockHash, ForkEvent,
     Listener, Log, Provider, TransactionReceipt, TransactionRequest, TransactionResponse
-} from "@ethersproject/abstract-provider";
-import { Base58 } from "@ethersproject/basex";
-import { BigNumber, BigNumberish } from "@ethersproject/bignumber";
-import { arrayify, concat, hexConcat, hexDataLength, hexDataSlice, hexlify, hexValue, hexZeroPad, isHexString } from "@ethersproject/bytes";
-import { HashZero } from "@ethersproject/constants";
-import { namehash } from "@ethersproject/hash";
-import { getNetwork, Network, Networkish } from "@ethersproject/networks";
-import { Deferrable, defineReadOnly, getStatic, resolveProperties } from "@ethersproject/properties";
-import { Transaction } from "@ethersproject/transactions";
-import { sha256 } from "@ethersproject/sha2";
-import { toUtf8Bytes, toUtf8String } from "@ethersproject/strings";
-import { fetchJson, poll } from "@ethersproject/web";
+} from "@corepass/corebc-abstract-provider";
+import { Base58 } from "@corepass/corebc-basex";
+import { BigNumber, BigNumberish } from "@corepass/corebc-bignumber";
+import { arrayify, concat, hexConcat, hexDataLength, hexDataSlice, hexlify, hexValue, hexZeroPad, isHexString } from "@corepass/corebc-bytes";
+import { HashZero } from "@corepass/corebc-constants";
+import { namehash } from "@corepass/corebc-hash";
+import { getNetwork, Network, Networkish } from "@corepass/corebc-networks";
+import { Deferrable, defineReadOnly, getStatic, resolveProperties } from "@corepass/corebc-properties";
+import { Transaction } from "@corepass/corebc-transactions";
+import { sha256 } from "@corepass/corebc-sha3";
+import { toUtf8Bytes, toUtf8String } from "@corepass/corebc-strings";
+import { fetchJson, poll } from "@corepass/corebc-web";
 
 import bech32 from "bech32";
 
-import { Logger } from "@ethersproject/logger";
+import { Logger } from "@corepass/corebc-logger";
 import { version } from "./_version";
 const logger = new Logger(version);
 
@@ -625,8 +625,8 @@ export class BaseProvider extends Provider implements EnsProvider {
      *
      *  A Promise<Network> that resolves only once the provider is ready.
      *
-     *  Sub-classes that call the super with a network without a chainId
-     *  MUST set this. Standard named networks have a known chainId.
+     *  Sub-classes that call the super with a network without a networkId
+     *  MUST set this. Standard named networks have a known networkId.
      *
      */
 
@@ -961,7 +961,7 @@ export class BaseProvider extends Provider implements EnsProvider {
         // only an external call for backends which can have the underlying
         // network change spontaneously
         const currentNetwork = await this.detectNetwork();
-        if (network.chainId !== currentNetwork.chainId) {
+        if (network.networkId !== currentNetwork.networkId) {
 
             // We are allowing network changes, things can get complex fast;
             // make sure you know what you are doing if you use "any"
@@ -1228,15 +1228,15 @@ export class BaseProvider extends Provider implements EnsProvider {
         return this._getInternalBlockNumber(0);
     }
 
-    async getGasPrice(): Promise<BigNumber> {
+    async getEnergyPrice(): Promise<BigNumber> {
         await this.getNetwork();
 
-        const result = await this.perform("getGasPrice", { });
+        const result = await this.perform("getEnergyPrice", { });
         try {
             return BigNumber.from(result);
         } catch (error) {
             return logger.throwError("bad result from backend", Logger.errors.SERVER_ERROR, {
-                method: "getGasPrice",
+                method: "getEnergyPrice",
                 result, error
             });
         }
@@ -1387,7 +1387,7 @@ export class BaseProvider extends Provider implements EnsProvider {
             tx[key] = Promise.resolve(values[key]).then((v) => (v ? this._getAddress(v): null))
         });
 
-        ["gasLimit", "gasPrice", "maxFeePerGas", "maxPriorityFeePerGas", "value"].forEach((key) => {
+        ["energyLimit", "energyPrice", "maxFeePerEnergy", "maxPriorityFeePerEnergy", "value"].forEach((key) => {
             if (values[key] == null) { return; }
             tx[key] = Promise.resolve(values[key]).then((v) => (v ? BigNumber.from(v): null));
         });
@@ -1396,10 +1396,6 @@ export class BaseProvider extends Provider implements EnsProvider {
             if (values[key] == null) { return; }
             tx[key] = Promise.resolve(values[key]).then((v) => ((v != null) ? v: null));
         });
-
-        if (values.accessList) {
-            tx.accessList = this.formatter.accessList(values.accessList);
-        }
 
         ["data"].forEach((key) => {
             if (values[key] == null) { return; }
@@ -1449,18 +1445,18 @@ export class BaseProvider extends Provider implements EnsProvider {
         }
     }
 
-    async estimateGas(transaction: Deferrable<TransactionRequest>): Promise<BigNumber> {
+    async estimateEnergy(transaction: Deferrable<TransactionRequest>): Promise<BigNumber> {
         await this.getNetwork();
         const params = await resolveProperties({
             transaction: this._getTransactionRequest(transaction)
         });
 
-        const result = await this.perform("estimateGas", params);
+        const result = await this.perform("estimateEnergy", params);
         try {
             return BigNumber.from(result);
         } catch (error) {
             return logger.throwError("bad result from backend", Logger.errors.SERVER_ERROR, {
-                method: "estimateGas",
+                method: "estimateEnergy",
                 params, result, error
             });
         }

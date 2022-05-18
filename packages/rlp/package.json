@@ -1,8 +1,8 @@
 {
   "author": "Richard Moore <me@ricmoo.com>",
   "dependencies": {
-    "@ethersproject/bytes": "^5.5.0",
-    "@ethersproject/logger": "^5.5.0"
+    "@corepass/corebc-bytes": "^0.1.0",
+    "@corepass/corebc-logger": "^0.1.0"
   },
   "description": "Recursive-Length Prefix (RLP) coder.",
   "ethereum": "donations.ethers.eth",
@@ -24,7 +24,7 @@
   "license": "MIT",
   "main": "./lib/index.js",
   "module": "./lib.esm/index.js",
-  "name": "@ethersproject/rlp",
+  "name": "@corepass/corebc-rlp",
   "publishConfig": {
     "access": "public"
   },
@@ -37,7 +37,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "sideEffects": false,
-  "tarballHash": "0x3a18e443290623d16781f485fde8b646180e1a7a03bdf1cc0d918c709ec97db2",
+  "tarballHash": "0x6607efd70953f0e85257adc70bf153830133858f22436b35f061a96fae82e24e",
   "types": "./lib/index.d.ts",
-  "version": "5.5.0"
+  "version": "0.1.1"
 }

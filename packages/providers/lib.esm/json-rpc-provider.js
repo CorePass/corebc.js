@@ -8,19 +8,18 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { Signer } from "@ethersproject/abstract-signer";
-import { BigNumber } from "@ethersproject/bignumber";
-import { hexlify, hexValue, isHexString } from "@ethersproject/bytes";
-import { _TypedDataEncoder } from "@ethersproject/hash";
-import { checkProperties, deepCopy, defineReadOnly, getStatic, resolveProperties, shallowCopy } from "@ethersproject/properties";
-import { toUtf8Bytes } from "@ethersproject/strings";
-import { accessListify } from "@ethersproject/transactions";
-import { fetchJson, poll } from "@ethersproject/web";
-import { Logger } from "@ethersproject/logger";
+import { Signer } from "@corepass/corebc-abstract-signer";
+import { BigNumber } from "@corepass/corebc-bignumber";
+import { hexlify, hexValue, isHexString } from "@corepass/corebc-bytes";
+import { _TypedDataEncoder } from "@corepass/corebc-hash";
+import { checkProperties, deepCopy, defineReadOnly, getStatic, resolveProperties, shallowCopy } from "@corepass/corebc-properties";
+import { toUtf8Bytes } from "@corepass/corebc-strings";
+import { fetchJson, poll } from "@corepass/corebc-web";
+import { Logger } from "@corepass/corebc-logger";
 import { version } from "./_version";
 const logger = new Logger(version);
 import { BaseProvider } from "./base-provider";
-const errorGas = ["call", "estimateGas"];
+const errorEnergy = ["call", "estimateEnergy"];
 function checkError(method, error, params) {
     // Undo the "convenience" some nodes are attempting to prevent backwards
     // incompatibility; maybe for v6 consider forwarding reverts as errors
@@ -45,8 +44,8 @@ function checkError(method, error, params) {
     }
     message = (message || "").toLowerCase();
     const transaction = params.transaction || params.signedTransaction;
-    // "insufficient funds for gas * price + value + cost(data)"
-    if (message.match(/insufficient funds|base fee exceeds gas limit/)) {
+    // "insufficient funds for energy * price + value + cost(data)"
+    if (message.match(/insufficient funds|base fee exceeds energy limit/)) {
         logger.throwError("insufficient funds for intrinsic transaction cost", Logger.errors.INSUFFICIENT_FUNDS, {
             error, method, transaction
         });
@@ -69,8 +68,8 @@ function checkError(method, error, params) {
             error, method, transaction
         });
     }
-    if (errorGas.indexOf(method) >= 0 && message.match(/gas required exceeds allowance|always failing transaction|execution reverted/)) {
-        logger.throwError("cannot estimate gas; transaction may fail or may require manual gas limit", Logger.errors.UNPREDICTABLE_GAS_LIMIT, {
+    if (errorEnergy.indexOf(method) >= 0 && message.match(/energy required exceeds allowance|always failing transaction|execution reverted/)) {
+        logger.throwError("cannot estimate energy; transaction may fail or may require manual energy limit", Logger.errors.UNPREDICTABLE_GAS_LIMIT, {
             error, method, transaction
         });
     }
@@ -133,7 +132,7 @@ export class JsonRpcSigner extends Signer {
         if (this._address) {
             return Promise.resolve(this._address);
         }
-        return this.provider.send("eth_accounts", []).then((accounts) => {
+        return this.provider.send("xcb_accounts", []).then((accounts) => {
             if (accounts.length <= this._index) {
                 logger.throwError("unknown account #" + this._index, Logger.errors.UNSUPPORTED_OPERATION, {
                     operation: "getAddress"
@@ -150,13 +149,13 @@ export class JsonRpcSigner extends Signer {
             }
             return address;
         });
-        // The JSON-RPC for eth_sendTransaction uses 90000 gas; if the user
+        // The JSON-RPC for xcb_sendTransaction uses 90000 energy; if the user
         // wishes to use this, it is easy to specify explicitly, otherwise
         // we look it up for them.
-        if (transaction.gasLimit == null) {
+        if (transaction.energyLimit == null) {
             const estimate = shallowCopy(transaction);
             estimate.from = fromAddress;
-            transaction.gasLimit = this.provider.estimateGas(estimate);
+            transaction.energyLimit = this.provider.estimateEnergy(estimate);
         }
         if (transaction.to != null) {
             transaction.to = Promise.resolve(transaction.to).then((to) => __awaiter(this, void 0, void 0, function* () {
@@ -183,7 +182,7 @@ export class JsonRpcSigner extends Signer {
                 tx.from = sender;
             }
             const hexTx = this.provider.constructor.hexlifyTransaction(tx, { from: true });
-            return this.provider.send("eth_sendTransaction", [hexTx]).then((hash) => {
+            return this.provider.send("xcb_sendTransaction", [hexTx]).then((hash) => {
                 return hash;
             }, (error) => {
                 return checkError("sendTransaction", error, hexTx);
@@ -230,8 +229,7 @@ export class JsonRpcSigner extends Signer {
         return __awaiter(this, void 0, void 0, function* () {
             const data = ((typeof (message) === "string") ? toUtf8Bytes(message) : message);
             const address = yield this.getAddress();
-            // https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_sign
-            return yield this.provider.send("eth_sign", [address.toLowerCase(), hexlify(data)]);
+            return yield this.provider.send("xcb_sign", [address.toLowerCase(), hexlify(data)]);
         });
     }
     _signTypedData(domain, types, value) {
@@ -241,7 +239,7 @@ export class JsonRpcSigner extends Signer {
                 return this.provider.resolveName(name);
             });
             const address = yield this.getAddress();
-            return yield this.provider.send("eth_signTypedData_v4", [
+            return yield this.provider.send("xcb_signTypedData_v4", [
                 address.toLowerCase(),
                 JSON.stringify(_TypedDataEncoder.getPayload(populated.domain, types, populated.value))
             ]);
@@ -261,11 +259,11 @@ class UncheckedJsonRpcSigner extends JsonRpcSigner {
             return {
                 hash: hash,
                 nonce: null,
-                gasLimit: null,
-                gasPrice: null,
+                energyLimit: null,
+                energyPrice: null,
                 data: null,
                 value: null,
-                chainId: null,
+                networkId: null,
                 confirmations: 0,
                 from: null,
                 wait: (confirmations) => { return this.provider.waitForTransaction(hash, confirmations); }
@@ -274,9 +272,7 @@ class UncheckedJsonRpcSigner extends JsonRpcSigner {
     }
 }
 const allowedTransactionKeys = {
-    chainId: true, data: true, gasLimit: true, gasPrice: true, nonce: true, to: true, value: true,
-    type: true, accessList: true,
-    maxFeePerGas: true, maxPriorityFeePerGas: true
+    networkId: true, data: true, energyLimit: true, energyPrice: true, nonce: true, to: true, value: true,
 };
 export class JsonRpcProvider extends BaseProvider {
     constructor(url, network) {
@@ -331,24 +327,24 @@ export class JsonRpcProvider extends BaseProvider {
     _uncachedDetectNetwork() {
         return __awaiter(this, void 0, void 0, function* () {
             yield timer(0);
-            let chainId = null;
+            let networkId = null;
             try {
-                chainId = yield this.send("eth_chainId", []);
+                networkId = yield this.send("xcb_networkId", []);
             }
             catch (error) {
                 try {
-                    chainId = yield this.send("net_version", []);
+                    networkId = yield this.send("net_version", []);
                 }
                 catch (error) { }
             }
-            if (chainId != null) {
+            if (networkId != null) {
                 const getNetwork = getStatic(this.constructor, "getNetwork");
                 try {
-                    return getNetwork(BigNumber.from(chainId).toNumber());
+                    return getNetwork(BigNumber.from(networkId).toNumber());
                 }
                 catch (error) {
                     return logger.throwError("could not detect network", Logger.errors.NETWORK_ERROR, {
-                        chainId: chainId,
+                        networkId: networkId,
                         event: "invalidNetwork",
                         serverError: error
                     });
@@ -366,7 +362,7 @@ export class JsonRpcProvider extends BaseProvider {
         return this.getSigner(addressOrIndex).connectUnchecked();
     }
     listAccounts() {
-        return this.send("eth_accounts", []).then((accounts) => {
+        return this.send("xcb_accounts", []).then((accounts) => {
             return accounts.map((a) => this.formatter.address(a));
         });
     }
@@ -384,7 +380,7 @@ export class JsonRpcProvider extends BaseProvider {
         });
         // We can expand this in the future to any call, but for now these
         // are the biggest wins and do not require any serializing parameters.
-        const cache = (["eth_chainId", "eth_blockNumber"].indexOf(method) >= 0);
+        const cache = (["xcb_networkId", "xcb_blockNumber"].indexOf(method) >= 0);
         if (cache && this._cache[method]) {
             return this._cache[method];
         }
@@ -417,44 +413,44 @@ export class JsonRpcProvider extends BaseProvider {
     prepareRequest(method, params) {
         switch (method) {
             case "getBlockNumber":
-                return ["eth_blockNumber", []];
-            case "getGasPrice":
-                return ["eth_gasPrice", []];
+                return ["xcb_blockNumber", []];
+            case "getEnergyPrice":
+                return ["xcb_energyPrice", []];
             case "getBalance":
-                return ["eth_getBalance", [getLowerCase(params.address), params.blockTag]];
+                return ["xcb_getBalance", [getLowerCase(params.address), params.blockTag]];
             case "getTransactionCount":
-                return ["eth_getTransactionCount", [getLowerCase(params.address), params.blockTag]];
+                return ["xcb_getTransactionCount", [getLowerCase(params.address), params.blockTag]];
             case "getCode":
-                return ["eth_getCode", [getLowerCase(params.address), params.blockTag]];
+                return ["xcb_getCode", [getLowerCase(params.address), params.blockTag]];
             case "getStorageAt":
-                return ["eth_getStorageAt", [getLowerCase(params.address), params.position, params.blockTag]];
+                return ["xcb_getStorageAt", [getLowerCase(params.address), params.position, params.blockTag]];
             case "sendTransaction":
-                return ["eth_sendRawTransaction", [params.signedTransaction]];
+                return ["xcb_sendRawTransaction", [params.signedTransaction]];
             case "getBlock":
                 if (params.blockTag) {
-                    return ["eth_getBlockByNumber", [params.blockTag, !!params.includeTransactions]];
+                    return ["xcb_getBlockByNumber", [params.blockTag, !!params.includeTransactions]];
                 }
                 else if (params.blockHash) {
-                    return ["eth_getBlockByHash", [params.blockHash, !!params.includeTransactions]];
+                    return ["xcb_getBlockByHash", [params.blockHash, !!params.includeTransactions]];
                 }
                 return null;
             case "getTransaction":
-                return ["eth_getTransactionByHash", [params.transactionHash]];
+                return ["xcb_getTransactionByHash", [params.transactionHash]];
             case "getTransactionReceipt":
-                return ["eth_getTransactionReceipt", [params.transactionHash]];
+                return ["xcb_getTransactionReceipt", [params.transactionHash]];
             case "call": {
                 const hexlifyTransaction = getStatic(this.constructor, "hexlifyTransaction");
-                return ["eth_call", [hexlifyTransaction(params.transaction, { from: true }), params.blockTag]];
+                return ["xcb_call", [hexlifyTransaction(params.transaction, { from: true }), params.blockTag]];
             }
-            case "estimateGas": {
+            case "estimateEnergy": {
                 const hexlifyTransaction = getStatic(this.constructor, "hexlifyTransaction");
-                return ["eth_estimateGas", [hexlifyTransaction(params.transaction, { from: true })]];
+                return ["xcb_estimateEnergy", [hexlifyTransaction(params.transaction, { from: true })]];
             }
             case "getLogs":
                 if (params.filter && params.filter.address != null) {
                     params.filter.address = getLowerCase(params.filter.address);
                 }
-                return ["eth_getLogs", [params.filter]];
+                return ["xcb_getLogs", [params.filter]];
             default:
                 break;
         }
@@ -464,13 +460,13 @@ export class JsonRpcProvider extends BaseProvider {
         return __awaiter(this, void 0, void 0, function* () {
             // Legacy networks do not like the type field being passed along (which
             // is fair), so we delete type if it is 0 and a non-EIP-1559 network
-            if (method === "call" || method === "estimateGas") {
+            if (method === "call" || method === "estimateEnergy") {
                 const tx = params.transaction;
                 if (tx && tx.type != null && BigNumber.from(tx.type).isZero()) {
                     // If there are no EIP-1559 properties, it might be non-EIP-a559
-                    if (tx.maxFeePerGas == null && tx.maxPriorityFeePerGas == null) {
+                    if (tx.maxFeePerEnergy == null && tx.maxPriorityFeePerEnergy == null) {
                         const feeData = yield this.getFeeData();
-                        if (feeData.maxFeePerGas == null && feeData.maxPriorityFeePerGas == null) {
+                        if (feeData.maxFeePerEnergy == null && feeData.maxPriorityFeePerEnergy == null) {
                             // Network doesn't know about EIP-1559 (and hence type)
                             params = shallowCopy(params);
                             params.transaction = shallowCopy(tx);
@@ -502,11 +498,11 @@ export class JsonRpcProvider extends BaseProvider {
             return;
         }
         const self = this;
-        const pendingFilter = this.send("eth_newPendingTransactionFilter", []);
+        const pendingFilter = this.send("xcb_newPendingTransactionFilter", []);
         this._pendingFilter = pendingFilter;
         pendingFilter.then(function (filterId) {
             function poll() {
-                self.send("eth_getFilterChanges", [filterId]).then(function (hashes) {
+                self.send("xcb_getFilterChanges", [filterId]).then(function (hashes) {
                     if (self._pendingFilter != pendingFilter) {
                         return null;
                     }
@@ -526,7 +522,7 @@ export class JsonRpcProvider extends BaseProvider {
                     });
                 }).then(function () {
                     if (self._pendingFilter != pendingFilter) {
-                        self.send("eth_uninstallFilter", [filterId]);
+                        self.send("xcb_uninstallFilter", [filterId]);
                         return;
                     }
                     setTimeout(function () { poll(); }, 0);
@@ -544,7 +540,7 @@ export class JsonRpcProvider extends BaseProvider {
         super._stopEvent(event);
     }
     // Convert an ethers.js transaction into a JSON-RPC transaction
-    //  - gasLimit => gas
+    //  - energyLimit => energy
     //  - All values hexlified
     //  - All numeric values zero-striped
     //  - All addresses are lowercased
@@ -565,13 +561,13 @@ export class JsonRpcProvider extends BaseProvider {
         checkProperties(transaction, allowed);
         const result = {};
         // Some nodes (INFURA ropsten; INFURA mainnet is fine) do not like leading zeros.
-        ["gasLimit", "gasPrice", "type", "maxFeePerGas", "maxPriorityFeePerGas", "nonce", "value"].forEach(function (key) {
+        ["energyLimit", "energyPrice", "nonce", "value"].forEach(function (key) {
             if (transaction[key] == null) {
                 return;
             }
             const value = hexValue(transaction[key]);
-            if (key === "gasLimit") {
-                key = "gas";
+            if (key === "energyLimit") {
+                key = "energy";
             }
             result[key] = value;
         });
@@ -581,9 +577,6 @@ export class JsonRpcProvider extends BaseProvider {
             }
             result[key] = hexlify(transaction[key]);
         });
-        if (transaction.accessList) {
-            result["accessList"] = accessListify(transaction.accessList);
-        }
         return result;
     }
 }

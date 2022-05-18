@@ -52,12 +52,12 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Provider = exports.TransactionOrderForkEvent = exports.TransactionForkEvent = exports.BlockForkEvent = exports.ForkEvent = void 0;
-var bignumber_1 = require("@ethersproject/bignumber");
-var bytes_1 = require("@ethersproject/bytes");
-var properties_1 = require("@ethersproject/properties");
-var logger_1 = require("@ethersproject/logger");
+var corebc_bignumber_1 = require("@corepass/corebc-bignumber");
+var corebc_bytes_1 = require("@corepass/corebc-bytes");
+var corebc_properties_1 = require("@corepass/corebc-properties");
+var corebc_logger_1 = require("@corepass/corebc-logger");
 var _version_1 = require("./_version");
-var logger = new logger_1.Logger(_version_1.version);
+var logger = new corebc_logger_1.Logger(_version_1.version);
 ;
 ;
 //export type CallTransactionable = {
@@ -72,13 +72,13 @@ var ForkEvent = /** @class */ (function (_super) {
         return !!(value && value._isForkEvent);
     };
     return ForkEvent;
-}(properties_1.Description));
+}(corebc_properties_1.Description));
 exports.ForkEvent = ForkEvent;
 var BlockForkEvent = /** @class */ (function (_super) {
     __extends(BlockForkEvent, _super);
     function BlockForkEvent(blockHash, expiry) {
         var _this = this;
-        if (!(0, bytes_1.isHexString)(blockHash, 32)) {
+        if (!(0, corebc_bytes_1.isHexString)(blockHash, 32)) {
             logger.throwArgumentError("invalid blockHash", "blockHash", blockHash);
         }
         _this = _super.call(this, {
@@ -96,7 +96,7 @@ var TransactionForkEvent = /** @class */ (function (_super) {
     __extends(TransactionForkEvent, _super);
     function TransactionForkEvent(hash, expiry) {
         var _this = this;
-        if (!(0, bytes_1.isHexString)(hash, 32)) {
+        if (!(0, corebc_bytes_1.isHexString)(hash, 32)) {
             logger.throwArgumentError("invalid transaction hash", "hash", hash);
         }
         _this = _super.call(this, {
@@ -114,10 +114,10 @@ var TransactionOrderForkEvent = /** @class */ (function (_super) {
     __extends(TransactionOrderForkEvent, _super);
     function TransactionOrderForkEvent(beforeHash, afterHash, expiry) {
         var _this = this;
-        if (!(0, bytes_1.isHexString)(beforeHash, 32)) {
+        if (!(0, corebc_bytes_1.isHexString)(beforeHash, 32)) {
             logger.throwArgumentError("invalid transaction hash", "beforeHash", beforeHash);
         }
-        if (!(0, bytes_1.isHexString)(afterHash, 32)) {
+        if (!(0, corebc_bytes_1.isHexString)(afterHash, 32)) {
             logger.throwArgumentError("invalid transaction hash", "afterHash", afterHash);
         }
         _this = _super.call(this, {
@@ -138,32 +138,32 @@ var Provider = /** @class */ (function () {
     function Provider() {
         var _newTarget = this.constructor;
         logger.checkAbstract(_newTarget, Provider);
-        (0, properties_1.defineReadOnly)(this, "_isProvider", true);
+        (0, corebc_properties_1.defineReadOnly)(this, "_isProvider", true);
     }
     Provider.prototype.getFeeData = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var _a, block, gasPrice, maxFeePerGas, maxPriorityFeePerGas;
+            var _a, block, energyPrice, maxFeePerEnergy, maxPriorityFeePerEnergy;
             return __generator(this, function (_b) {
                 switch (_b.label) {
-                    case 0: return [4 /*yield*/, (0, properties_1.resolveProperties)({
+                    case 0: return [4 /*yield*/, (0, corebc_properties_1.resolveProperties)({
                             block: this.getBlock("latest"),
-                            gasPrice: this.getGasPrice().catch(function (error) {
+                            energyPrice: this.getEnergyPrice().catch(function (error) {
                                 // @TODO: Why is this now failing on Calaveras?
                                 //console.log(error);
                                 return null;
                             })
                         })];
                     case 1:
-                        _a = _b.sent(), block = _a.block, gasPrice = _a.gasPrice;
-                        maxFeePerGas = null, maxPriorityFeePerGas = null;
-                        if (block && block.baseFeePerGas) {
+                        _a = _b.sent(), block = _a.block, energyPrice = _a.energyPrice;
+                        maxFeePerEnergy = null, maxPriorityFeePerEnergy = null;
+                        if (block && block.baseFeePerEnergy) {
                             // We may want to compute this more accurately in the future,
                             // using the formula "check if the base fee is correct".
                             // See: https://eips.ethereum.org/EIPS/eip-1559
-                            maxPriorityFeePerGas = bignumber_1.BigNumber.from("2500000000");
-                            maxFeePerGas = block.baseFeePerGas.mul(2).add(maxPriorityFeePerGas);
+                            maxPriorityFeePerEnergy = corebc_bignumber_1.BigNumber.from("2500000000");
+                            maxFeePerEnergy = block.baseFeePerEnergy.mul(2).add(maxPriorityFeePerEnergy);
                         }
-                        return [2 /*return*/, { maxFeePerGas: maxFeePerGas, maxPriorityFeePerGas: maxPriorityFeePerGas, gasPrice: gasPrice }];
+                        return [2 /*return*/, { maxFeePerEnergy: maxFeePerEnergy, maxPriorityFeePerEnergy: maxPriorityFeePerEnergy, energyPrice: energyPrice }];
                 }
             });
         });

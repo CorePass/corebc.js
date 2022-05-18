@@ -1,17 +1,12 @@
-import { Fragment, Indexed, Interface, JsonFragment, Result } from "@ethersproject/abi";
-import { Block, BlockTag, Listener, Log, Provider, TransactionReceipt, TransactionRequest, TransactionResponse } from "@ethersproject/abstract-provider";
-import { Signer } from "@ethersproject/abstract-signer";
-import { BigNumber, BigNumberish } from "@ethersproject/bignumber";
-import { BytesLike } from "@ethersproject/bytes";
-import { AccessList, AccessListish } from "@ethersproject/transactions";
+import { Fragment, Indexed, Interface, JsonFragment, Result } from "@corepass/corebc-abi";
+import { Block, BlockTag, Listener, Log, Provider, TransactionReceipt, TransactionRequest, TransactionResponse } from "@corepass/corebc-abstract-provider";
+import { Signer } from "@corepass/corebc-abstract-signer";
+import { BigNumber, BigNumberish } from "@corepass/corebc-bignumber";
+import { BytesLike } from "@corepass/corebc-bytes";
 export interface Overrides {
-    gasLimit?: BigNumberish | Promise<BigNumberish>;
-    gasPrice?: BigNumberish | Promise<BigNumberish>;
-    maxFeePerGas?: BigNumberish | Promise<BigNumberish>;
-    maxPriorityFeePerGas?: BigNumberish | Promise<BigNumberish>;
+    energyLimit?: BigNumberish | Promise<BigNumberish>;
+    energyPrice?: BigNumberish | Promise<BigNumberish>;
     nonce?: BigNumberish | Promise<BigNumberish>;
-    type?: number;
-    accessList?: AccessListish;
     customData?: Record<string, any>;
 }
 export interface PayableOverrides extends Overrides {
@@ -25,15 +20,11 @@ export interface PopulatedTransaction {
     to?: string;
     from?: string;
     nonce?: number;
-    gasLimit?: BigNumber;
-    gasPrice?: BigNumber;
+    networkId?: number;
+    energyLimit?: BigNumber;
+    energyPrice?: BigNumber;
     data?: string;
     value?: BigNumber;
-    chainId?: number;
-    type?: number;
-    accessList?: AccessList;
-    maxFeePerGas?: BigNumber;
-    maxPriorityFeePerGas?: BigNumber;
     customData?: Record<string, any>;
 }
 export declare type EventFilter = {
@@ -84,7 +75,7 @@ export declare class BaseContract {
     readonly callStatic: {
         [name: string]: ContractFunction;
     };
-    readonly estimateGas: {
+    readonly estimateEnergy: {
         [name: string]: ContractFunction<BigNumber>;
     };
     readonly populateTransaction: {

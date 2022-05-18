@@ -37,13 +37,13 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.poll = exports.fetchJson = exports._fetchData = void 0;
-var base64_1 = require("@ethersproject/base64");
-var bytes_1 = require("@ethersproject/bytes");
-var properties_1 = require("@ethersproject/properties");
-var strings_1 = require("@ethersproject/strings");
-var logger_1 = require("@ethersproject/logger");
+var corebc_base64_1 = require("@corepass/corebc-base64");
+var corebc_bytes_1 = require("@corepass/corebc-bytes");
+var corebc_properties_1 = require("@corepass/corebc-properties");
+var corebc_strings_1 = require("@corepass/corebc-strings");
+var corebc_logger_1 = require("@corepass/corebc-logger");
 var _version_1 = require("./_version");
-var logger = new logger_1.Logger(_version_1.version);
+var logger = new corebc_logger_1.Logger(_version_1.version);
 var geturl_1 = require("./geturl");
 function staller(duration) {
     return new Promise(function (resolve) {
@@ -57,15 +57,15 @@ function bodyify(value, type) {
     if (typeof (value) === "string") {
         return value;
     }
-    if ((0, bytes_1.isBytesLike)(value)) {
+    if ((0, corebc_bytes_1.isBytesLike)(value)) {
         if (type && (type.split("/")[0] === "text" || type.split(";")[0].trim() === "application/json")) {
             try {
-                return (0, strings_1.toUtf8String)(value);
+                return (0, corebc_strings_1.toUtf8String)(value);
             }
             catch (error) { }
             ;
         }
-        return (0, bytes_1.hexlify)(value);
+        return (0, corebc_bytes_1.hexlify)(value);
     }
     return value;
 }
@@ -112,12 +112,12 @@ function _fetchData(connection, body, processFunc) {
         options.allowGzip = !!connection.allowGzip;
         if (connection.user != null && connection.password != null) {
             if (url.substring(0, 6) !== "https:" && connection.allowInsecureAuthentication !== true) {
-                logger.throwError("basic authentication requires a secure https url", logger_1.Logger.errors.INVALID_ARGUMENT, { argument: "url", url: url, user: connection.user, password: "[REDACTED]" });
+                logger.throwError("basic authentication requires a secure https url", corebc_logger_1.Logger.errors.INVALID_ARGUMENT, { argument: "url", url: url, user: connection.user, password: "[REDACTED]" });
             }
             var authorization = connection.user + ":" + connection.password;
             headers["authorization"] = {
                 key: "Authorization",
-                value: "Basic " + (0, base64_1.encode)((0, strings_1.toUtf8Bytes)(authorization))
+                value: "Basic " + (0, corebc_base64_1.encode)((0, corebc_strings_1.toUtf8Bytes)(authorization))
             };
         }
     }
@@ -129,7 +129,7 @@ function _fetchData(connection, body, processFunc) {
                 statusCode: 200,
                 statusMessage: "OK",
                 headers: { "content-type": dataMatch[1] },
-                body: (0, base64_1.decode)(dataMatch[2])
+                body: (0, corebc_base64_1.decode)(dataMatch[2])
             };
             var result = response.body;
             if (processFunc) {
@@ -138,7 +138,7 @@ function _fetchData(connection, body, processFunc) {
             return Promise.resolve(result);
         }
         catch (error) {
-            logger.throwError("processing response error", logger_1.Logger.errors.SERVER_ERROR, {
+            logger.throwError("processing response error", corebc_logger_1.Logger.errors.SERVER_ERROR, {
                 body: bodyify(dataMatch[1], dataMatch[2]),
                 error: error,
                 requestBody: null,
@@ -172,7 +172,7 @@ function _fetchData(connection, body, processFunc) {
                         return;
                     }
                     timer = null;
-                    reject(logger.makeError("timeout", logger_1.Logger.errors.TIMEOUT, {
+                    reject(logger.makeError("timeout", corebc_logger_1.Logger.errors.TIMEOUT, {
                         requestBody: bodyify(options.body, flatHeaders["content-type"]),
                         requestMethod: options.method,
                         timeout: timeout,
@@ -245,7 +245,7 @@ function _fetchData(connection, body, processFunc) {
                         response = error_1.response;
                         if (response == null) {
                             runningTimeout.cancel();
-                            logger.throwError("missing response", logger_1.Logger.errors.SERVER_ERROR, {
+                            logger.throwError("missing response", corebc_logger_1.Logger.errors.SERVER_ERROR, {
                                 requestBody: bodyify(options.body, flatHeaders["content-type"]),
                                 requestMethod: options.method,
                                 serverError: error_1,
@@ -260,7 +260,7 @@ function _fetchData(connection, body, processFunc) {
                         }
                         else if (response.statusCode < 200 || response.statusCode >= 300) {
                             runningTimeout.cancel();
-                            logger.throwError("bad response", logger_1.Logger.errors.SERVER_ERROR, {
+                            logger.throwError("bad response", corebc_logger_1.Logger.errors.SERVER_ERROR, {
                                 status: response.statusCode,
                                 headers: response.headers,
                                 body: bodyify(body_1, ((response.headers) ? response.headers["content-type"] : null)),
@@ -298,7 +298,7 @@ function _fetchData(connection, body, processFunc) {
                         return [3 /*break*/, 19];
                     case 17:
                         runningTimeout.cancel();
-                        logger.throwError("processing response error", logger_1.Logger.errors.SERVER_ERROR, {
+                        logger.throwError("processing response error", corebc_logger_1.Logger.errors.SERVER_ERROR, {
                             body: bodyify(body_1, ((response.headers) ? response.headers["content-type"] : null)),
                             error: error_2,
                             requestBody: bodyify(options.body, flatHeaders["content-type"]),
@@ -314,7 +314,7 @@ function _fetchData(connection, body, processFunc) {
                     case 19:
                         attempt++;
                         return [3 /*break*/, 1];
-                    case 20: return [2 /*return*/, logger.throwError("failed response", logger_1.Logger.errors.SERVER_ERROR, {
+                    case 20: return [2 /*return*/, logger.throwError("failed response", corebc_logger_1.Logger.errors.SERVER_ERROR, {
                             requestBody: bodyify(options.body, flatHeaders["content-type"]),
                             requestMethod: options.method,
                             url: url
@@ -331,10 +331,10 @@ function fetchJson(connection, json, processFunc) {
         var result = null;
         if (value != null) {
             try {
-                result = JSON.parse((0, strings_1.toUtf8String)(value));
+                result = JSON.parse((0, corebc_strings_1.toUtf8String)(value));
             }
             catch (error) {
-                logger.throwError("invalid JSON", logger_1.Logger.errors.SERVER_ERROR, {
+                logger.throwError("invalid JSON", corebc_logger_1.Logger.errors.SERVER_ERROR, {
                     body: value,
                     error: error
                 });
@@ -350,13 +350,13 @@ function fetchJson(connection, json, processFunc) {
     // - convert the json to bytes
     var body = null;
     if (json != null) {
-        body = (0, strings_1.toUtf8Bytes)(json);
+        body = (0, corebc_strings_1.toUtf8Bytes)(json);
         // Create a connection with the content-type set for JSON
-        var updated = (typeof (connection) === "string") ? ({ url: connection }) : (0, properties_1.shallowCopy)(connection);
+        var updated = (typeof (connection) === "string") ? ({ url: connection }) : (0, corebc_properties_1.shallowCopy)(connection);
         if (updated.headers) {
             var hasContentType = (Object.keys(updated.headers).filter(function (k) { return (k.toLowerCase() === "content-type"); }).length) !== 0;
             if (!hasContentType) {
-                updated.headers = (0, properties_1.shallowCopy)(updated.headers);
+                updated.headers = (0, corebc_properties_1.shallowCopy)(updated.headers);
                 updated.headers["content-type"] = "application/json";
             }
         }
@@ -372,7 +372,7 @@ function poll(func, options) {
     if (!options) {
         options = {};
     }
-    options = (0, properties_1.shallowCopy)(options);
+    options = (0, corebc_properties_1.shallowCopy)(options);
     if (options.floor == null) {
         options.floor = 0;
     }

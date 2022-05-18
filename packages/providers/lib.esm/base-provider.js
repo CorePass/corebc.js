@@ -8,19 +8,19 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { ForkEvent, Provider } from "@ethersproject/abstract-provider";
-import { Base58 } from "@ethersproject/basex";
-import { BigNumber } from "@ethersproject/bignumber";
-import { arrayify, concat, hexConcat, hexDataLength, hexDataSlice, hexlify, hexValue, hexZeroPad, isHexString } from "@ethersproject/bytes";
-import { HashZero } from "@ethersproject/constants";
-import { namehash } from "@ethersproject/hash";
-import { getNetwork } from "@ethersproject/networks";
-import { defineReadOnly, getStatic, resolveProperties } from "@ethersproject/properties";
-import { sha256 } from "@ethersproject/sha2";
-import { toUtf8Bytes, toUtf8String } from "@ethersproject/strings";
-import { fetchJson, poll } from "@ethersproject/web";
+import { ForkEvent, Provider } from "@corepass/corebc-abstract-provider";
+import { Base58 } from "@corepass/corebc-basex";
+import { BigNumber } from "@corepass/corebc-bignumber";
+import { arrayify, concat, hexConcat, hexDataLength, hexDataSlice, hexlify, hexValue, hexZeroPad, isHexString } from "@corepass/corebc-bytes";
+import { HashZero } from "@corepass/corebc-constants";
+import { namehash } from "@corepass/corebc-hash";
+import { getNetwork } from "@corepass/corebc-networks";
+import { defineReadOnly, getStatic, resolveProperties } from "@corepass/corebc-properties";
+import { sha256 } from "@corepass/corebc-sha3";
+import { toUtf8Bytes, toUtf8String } from "@corepass/corebc-strings";
+import { fetchJson, poll } from "@corepass/corebc-web";
 import bech32 from "bech32";
-import { Logger } from "@ethersproject/logger";
+import { Logger } from "@corepass/corebc-logger";
 import { version } from "./_version";
 const logger = new Logger(version);
 import { Formatter } from "./formatter";
@@ -508,8 +508,8 @@ export class BaseProvider extends Provider {
      *
      *  A Promise<Network> that resolves only once the provider is ready.
      *
-     *  Sub-classes that call the super with a network without a chainId
-     *  MUST set this. Standard named networks have a known chainId.
+     *  Sub-classes that call the super with a network without a networkId
+     *  MUST set this. Standard named networks have a known networkId.
      *
      */
     constructor(network) {
@@ -807,7 +807,7 @@ export class BaseProvider extends Provider {
             // only an external call for backends which can have the underlying
             // network change spontaneously
             const currentNetwork = yield this.detectNetwork();
-            if (network.chainId !== currentNetwork.chainId) {
+            if (network.networkId !== currentNetwork.networkId) {
                 // We are allowing network changes, things can get complex fast;
                 // make sure you know what you are doing if you use "any"
                 if (this.anyNetwork) {
@@ -1066,16 +1066,16 @@ export class BaseProvider extends Provider {
             return this._getInternalBlockNumber(0);
         });
     }
-    getGasPrice() {
+    getEnergyPrice() {
         return __awaiter(this, void 0, void 0, function* () {
             yield this.getNetwork();
-            const result = yield this.perform("getGasPrice", {});
+            const result = yield this.perform("getEnergyPrice", {});
             try {
                 return BigNumber.from(result);
             }
             catch (error) {
                 return logger.throwError("bad result from backend", Logger.errors.SERVER_ERROR, {
-                    method: "getGasPrice",
+                    method: "getEnergyPrice",
                     result, error
                 });
             }
@@ -1234,7 +1234,7 @@ export class BaseProvider extends Provider {
                 }
                 tx[key] = Promise.resolve(values[key]).then((v) => (v ? this._getAddress(v) : null));
             });
-            ["gasLimit", "gasPrice", "maxFeePerGas", "maxPriorityFeePerGas", "value"].forEach((key) => {
+            ["energyLimit", "energyPrice", "maxFeePerEnergy", "maxPriorityFeePerEnergy", "value"].forEach((key) => {
                 if (values[key] == null) {
                     return;
                 }
@@ -1246,9 +1246,6 @@ export class BaseProvider extends Provider {
                 }
                 tx[key] = Promise.resolve(values[key]).then((v) => ((v != null) ? v : null));
             });
-            if (values.accessList) {
-                tx.accessList = this.formatter.accessList(values.accessList);
-            }
             ["data"].forEach((key) => {
                 if (values[key] == null) {
                     return;
@@ -1299,19 +1296,19 @@ export class BaseProvider extends Provider {
             }
         });
     }
-    estimateGas(transaction) {
+    estimateEnergy(transaction) {
         return __awaiter(this, void 0, void 0, function* () {
             yield this.getNetwork();
             const params = yield resolveProperties({
                 transaction: this._getTransactionRequest(transaction)
             });
-            const result = yield this.perform("estimateGas", params);
+            const result = yield this.perform("estimateEnergy", params);
             try {
                 return BigNumber.from(result);
             }
             catch (error) {
                 return logger.throwError("bad result from backend", Logger.errors.SERVER_ERROR, {
-                    method: "estimateGas",
+                    method: "estimateEnergy",
                     params, result, error
                 });
             }

@@ -25,9 +25,6 @@
       "path": "./packages/constants"
     },
     {
-      "path": "./packages/keccak256"
-    },
-    {
       "path": "./packages/networks"
     },
     {
@@ -43,10 +40,10 @@
       "path": "./packages/rlp"
     },
     {
-      "path": "./packages/address"
+      "path": "./packages/sha3"
     },
     {
-      "path": "./packages/sha2"
+      "path": "./packages/address"
     },
     {
       "path": "./packages/pbkdf2"
@@ -100,19 +97,10 @@
       "path": "./packages/wallet"
     },
     {
-      "path": "./packages/ethers"
+      "path": "./packages/corebc"
     },
     {
       "path": "./packages/asm"
-    },
-    {
-      "path": "./packages/cli"
-    },
-    {
-      "path": "./packages/experimental"
-    },
-    {
-      "path": "./packages/hardware-wallets"
     },
     {
       "path": "./packages/testcases"

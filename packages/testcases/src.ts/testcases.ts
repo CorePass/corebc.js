@@ -13,7 +13,6 @@ export interface BigNumber {
 
 export interface Hash {
     data: string;
-    keccak256: string;
     sha256: string;
     sha512: string;
 };
@@ -32,6 +31,7 @@ export interface HDWallet {
     password?: string;
     entropy: string;
     mnemonic: string;
+    prefix: string;
 
     hdnodes: Array<HDWalletNode>
 };
@@ -86,18 +86,19 @@ export interface Unit {
 export interface SignedTransaction {
     name: string;
 
+    prefix: string;
     accountAddress: string;
     privateKey: string;
 
     signedTransaction: string
     unsignedTransaction: string;
 
-    signedTransactionChainId5: string
-    unsignedTransactionChainId5: string;
+    signedTransactionNetworkId5: string
+    unsignedTransactionNetworkId5: string;
 
     nonce: number;
-    gasLimit: string;
-    gasPrice: string;
+    energyLimit: string;
+    energyPrice: string;
     to: string;
     value: string;
     data: string;
@@ -108,17 +109,18 @@ export interface TypedTransaction {
 
     key: string;
     address: string;
+    prefix: string;
 
     tx: {
         type?: number;
         data?: string;
-        gasLimit?: string;
-        maxPriorityFeePerGas: string;
-        maxFeePerGas: string;
+        energyLimit?: string;
+        maxPriorityFeePerEnergy: string;
+        maxFeePerEnergy: string;
         nonce: number;
         to: string;
         value: string;
-        chainId: number;
+        networkId: number;
         accessList: Array<{
             address: string,
             storageKeys: Array<string>
@@ -132,10 +134,11 @@ export interface TypedTransaction {
 export interface Eip712 {
     name: string;
 
+    prefix: string;
     domain: {
         name: string;
         version?: string;
-        chainId?: number;
+        networkId?: number;
         verifyingContract?: string;
         salt?: string;
     },

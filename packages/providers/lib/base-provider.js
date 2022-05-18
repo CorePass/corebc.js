@@ -55,21 +55,21 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BaseProvider = exports.Resolver = exports.Event = void 0;
-var abstract_provider_1 = require("@ethersproject/abstract-provider");
-var basex_1 = require("@ethersproject/basex");
-var bignumber_1 = require("@ethersproject/bignumber");
-var bytes_1 = require("@ethersproject/bytes");
-var constants_1 = require("@ethersproject/constants");
-var hash_1 = require("@ethersproject/hash");
-var networks_1 = require("@ethersproject/networks");
-var properties_1 = require("@ethersproject/properties");
-var sha2_1 = require("@ethersproject/sha2");
-var strings_1 = require("@ethersproject/strings");
-var web_1 = require("@ethersproject/web");
+var corebc_abstract_provider_1 = require("@corepass/corebc-abstract-provider");
+var corebc_basex_1 = require("@corepass/corebc-basex");
+var corebc_bignumber_1 = require("@corepass/corebc-bignumber");
+var corebc_bytes_1 = require("@corepass/corebc-bytes");
+var corebc_constants_1 = require("@corepass/corebc-constants");
+var corebc_hash_1 = require("@corepass/corebc-hash");
+var corebc_networks_1 = require("@corepass/corebc-networks");
+var corebc_properties_1 = require("@corepass/corebc-properties");
+var corebc_sha3_1 = require("@corepass/corebc-sha3");
+var corebc_strings_1 = require("@corepass/corebc-strings");
+var corebc_web_1 = require("@corepass/corebc-web");
 var bech32_1 = __importDefault(require("bech32"));
-var logger_1 = require("@ethersproject/logger");
+var corebc_logger_1 = require("@corepass/corebc-logger");
 var _version_1 = require("./_version");
-var logger = new logger_1.Logger(_version_1.version);
+var logger = new corebc_logger_1.Logger(_version_1.version);
 var formatter_1 = require("./formatter");
 //////////////////////////////
 // Event Serializeing
@@ -77,7 +77,7 @@ function checkTopic(topic) {
     if (topic == null) {
         return "null";
     }
-    if ((0, bytes_1.hexDataLength)(topic) !== 32) {
+    if ((0, corebc_bytes_1.hexDataLength)(topic) !== 32) {
         logger.throwArgumentError("invalid topic", "topic", topic);
     }
     return topic.toLowerCase();
@@ -122,7 +122,7 @@ function deserializeTopics(data) {
 function getEventTag(eventName) {
     if (typeof (eventName) === "string") {
         eventName = eventName.toLowerCase();
-        if ((0, bytes_1.hexDataLength)(eventName) === 32) {
+        if ((0, corebc_bytes_1.hexDataLength)(eventName) === 32) {
             return "tx:" + eventName;
         }
         if (eventName.indexOf(":") === -1) {
@@ -132,7 +132,7 @@ function getEventTag(eventName) {
     else if (Array.isArray(eventName)) {
         return "filter:*:" + serializeTopics(eventName);
     }
-    else if (abstract_provider_1.ForkEvent.isForkEvent(eventName)) {
+    else if (corebc_abstract_provider_1.ForkEvent.isForkEvent(eventName)) {
         logger.warn("not implemented");
         throw new Error("not implemented");
     }
@@ -168,9 +168,9 @@ function stall(duration) {
 var PollableEvents = ["block", "network", "pending", "poll"];
 var Event = /** @class */ (function () {
     function Event(tag, listener, once) {
-        (0, properties_1.defineReadOnly)(this, "tag", tag);
-        (0, properties_1.defineReadOnly)(this, "listener", listener);
-        (0, properties_1.defineReadOnly)(this, "once", once);
+        (0, corebc_properties_1.defineReadOnly)(this, "tag", tag);
+        (0, corebc_properties_1.defineReadOnly)(this, "listener", listener);
+        (0, corebc_properties_1.defineReadOnly)(this, "once", once);
     }
     Object.defineProperty(Event.prototype, "event", {
         get: function () {
@@ -240,11 +240,11 @@ var coinInfos = {
     "700": { symbol: "xdai", ilk: "eth" },
 };
 function bytes32ify(value) {
-    return (0, bytes_1.hexZeroPad)(bignumber_1.BigNumber.from(value).toHexString(), 32);
+    return (0, corebc_bytes_1.hexZeroPad)(corebc_bignumber_1.BigNumber.from(value).toHexString(), 32);
 }
 // Compute the Base58Check encoded data (checksum is first 4 bytes of sha256d)
 function base58Encode(data) {
-    return basex_1.Base58.encode((0, bytes_1.concat)([data, (0, bytes_1.hexDataSlice)((0, sha2_1.sha256)((0, sha2_1.sha256)(data)), 0, 4)]));
+    return corebc_basex_1.Base58.encode((0, corebc_bytes_1.concat)([data, (0, corebc_bytes_1.hexDataSlice)((0, corebc_sha3_1.sha256)((0, corebc_sha3_1.sha256)(data)), 0, 4)]));
 }
 var matcherIpfs = new RegExp("^(ipfs):/\/(.*)$", "i");
 var matchers = [
@@ -255,7 +255,7 @@ var matchers = [
 ];
 function _parseString(result) {
     try {
-        return (0, strings_1.toUtf8String)(_parseBytes(result));
+        return (0, corebc_strings_1.toUtf8String)(_parseBytes(result));
     }
     catch (error) { }
     return null;
@@ -264,9 +264,9 @@ function _parseBytes(result) {
     if (result === "0x") {
         return null;
     }
-    var offset = bignumber_1.BigNumber.from((0, bytes_1.hexDataSlice)(result, 0, 32)).toNumber();
-    var length = bignumber_1.BigNumber.from((0, bytes_1.hexDataSlice)(result, offset, offset + 32)).toNumber();
-    return (0, bytes_1.hexDataSlice)(result, offset + 32, offset + 32 + length);
+    var offset = corebc_bignumber_1.BigNumber.from((0, corebc_bytes_1.hexDataSlice)(result, 0, 32)).toNumber();
+    var length = corebc_bignumber_1.BigNumber.from((0, corebc_bytes_1.hexDataSlice)(result, offset, offset + 32)).toNumber();
+    return (0, corebc_bytes_1.hexDataSlice)(result, offset + 32, offset + 32 + length);
 }
 // Trim off the ipfs:// prefix and return the default gateway URL
 function getIpfsLink(link) {
@@ -284,10 +284,10 @@ function getIpfsLink(link) {
 var Resolver = /** @class */ (function () {
     // The resolvedAddress is only for creating a ReverseLookup resolver
     function Resolver(provider, address, name, resolvedAddress) {
-        (0, properties_1.defineReadOnly)(this, "provider", provider);
-        (0, properties_1.defineReadOnly)(this, "name", name);
-        (0, properties_1.defineReadOnly)(this, "address", provider.formatter.address(address));
-        (0, properties_1.defineReadOnly)(this, "_resolvedAddress", resolvedAddress);
+        (0, corebc_properties_1.defineReadOnly)(this, "provider", provider);
+        (0, corebc_properties_1.defineReadOnly)(this, "name", name);
+        (0, corebc_properties_1.defineReadOnly)(this, "address", provider.formatter.address(address));
+        (0, corebc_properties_1.defineReadOnly)(this, "_resolvedAddress", resolvedAddress);
     }
     Resolver.prototype._fetchBytes = function (selector, parameters) {
         return __awaiter(this, void 0, void 0, function () {
@@ -297,7 +297,7 @@ var Resolver = /** @class */ (function () {
                     case 0:
                         tx = {
                             to: this.address,
-                            data: (0, bytes_1.hexConcat)([selector, (0, hash_1.namehash)(this.name), (parameters || "0x")])
+                            data: (0, corebc_bytes_1.hexConcat)([selector, (0, corebc_hash_1.namehash)(this.name), (parameters || "0x")])
                         };
                         _b.label = 1;
                     case 1:
@@ -307,7 +307,7 @@ var Resolver = /** @class */ (function () {
                     case 2: return [2 /*return*/, _a.apply(void 0, [_b.sent()])];
                     case 3:
                         error_1 = _b.sent();
-                        if (error_1.code === logger_1.Logger.errors.CALL_EXCEPTION) {
+                        if (error_1.code === corebc_logger_1.Logger.errors.CALL_EXCEPTION) {
                             return [2 /*return*/, null];
                         }
                         return [2 /*return*/, null];
@@ -319,21 +319,21 @@ var Resolver = /** @class */ (function () {
     Resolver.prototype._getAddress = function (coinType, hexBytes) {
         var coinInfo = coinInfos[String(coinType)];
         if (coinInfo == null) {
-            logger.throwError("unsupported coin type: " + coinType, logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
+            logger.throwError("unsupported coin type: " + coinType, corebc_logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
                 operation: "getAddress(" + coinType + ")"
             });
         }
         if (coinInfo.ilk === "eth") {
             return this.provider.formatter.address(hexBytes);
         }
-        var bytes = (0, bytes_1.arrayify)(hexBytes);
+        var bytes = (0, corebc_bytes_1.arrayify)(hexBytes);
         // P2PKH: OP_DUP OP_HASH160 <pubKeyHash> OP_EQUALVERIFY OP_CHECKSIG
         if (coinInfo.p2pkh != null) {
             var p2pkh = hexBytes.match(/^0x76a9([0-9a-f][0-9a-f])([0-9a-f]*)88ac$/);
             if (p2pkh) {
                 var length_1 = parseInt(p2pkh[1], 16);
                 if (p2pkh[2].length === length_1 * 2 && length_1 >= 1 && length_1 <= 75) {
-                    return base58Encode((0, bytes_1.concat)([[coinInfo.p2pkh], ("0x" + p2pkh[2])]));
+                    return base58Encode((0, corebc_bytes_1.concat)([[coinInfo.p2pkh], ("0x" + p2pkh[2])]));
                 }
             }
         }
@@ -343,7 +343,7 @@ var Resolver = /** @class */ (function () {
             if (p2sh) {
                 var length_2 = parseInt(p2sh[1], 16);
                 if (p2sh[2].length === length_2 * 2 && length_2 >= 1 && length_2 <= 75) {
-                    return base58Encode((0, bytes_1.concat)([[coinInfo.p2sh], ("0x" + p2sh[2])]));
+                    return base58Encode((0, corebc_bytes_1.concat)([[coinInfo.p2sh], ("0x" + p2sh[2])]));
                 }
             }
         }
@@ -383,19 +383,19 @@ var Resolver = /** @class */ (function () {
                         _a.trys.push([1, 3, , 4]);
                         transaction = {
                             to: this.address,
-                            data: ("0x3b3b57de" + (0, hash_1.namehash)(this.name).substring(2))
+                            data: ("0x3b3b57de" + (0, corebc_hash_1.namehash)(this.name).substring(2))
                         };
                         return [4 /*yield*/, this.provider.call(transaction)];
                     case 2:
                         hexBytes_1 = _a.sent();
                         // No address
-                        if (hexBytes_1 === "0x" || hexBytes_1 === constants_1.HashZero) {
+                        if (hexBytes_1 === "0x" || hexBytes_1 === corebc_constants_1.HashZero) {
                             return [2 /*return*/, null];
                         }
                         return [2 /*return*/, this.provider.formatter.callAddress(hexBytes_1)];
                     case 3:
                         error_2 = _a.sent();
-                        if (error_2.code === logger_1.Logger.errors.CALL_EXCEPTION) {
+                        if (error_2.code === corebc_logger_1.Logger.errors.CALL_EXCEPTION) {
                             return [2 /*return*/, null];
                         }
                         throw error_2;
@@ -408,7 +408,7 @@ var Resolver = /** @class */ (function () {
                         }
                         address = this._getAddress(coinType, hexBytes);
                         if (address == null) {
-                            logger.throwError("invalid or unsupported coin data", logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
+                            logger.throwError("invalid or unsupported coin data", corebc_logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
                                 operation: "getAddress(" + coinType + ")",
                                 coinType: coinType,
                                 data: hexBytes
@@ -480,11 +480,11 @@ var Resolver = /** @class */ (function () {
                         return [4 /*yield*/, this.provider.formatter.address(comps[0])];
                     case 10:
                         addr = _h.sent();
-                        tokenId = (0, bytes_1.hexZeroPad)(bignumber_1.BigNumber.from(comps[1]).toHexString(), 32);
+                        tokenId = (0, corebc_bytes_1.hexZeroPad)(corebc_bignumber_1.BigNumber.from(comps[1]).toHexString(), 32);
                         if (!(scheme === "erc721")) return [3 /*break*/, 12];
                         _d = (_c = this.provider.formatter).callAddress;
                         return [4 /*yield*/, this.provider.call({
-                                to: addr, data: (0, bytes_1.hexConcat)(["0x6352211e", tokenId])
+                                to: addr, data: (0, corebc_bytes_1.hexConcat)(["0x6352211e", tokenId])
                             })];
                     case 11:
                         tokenOwner = _d.apply(_c, [_h.sent()]);
@@ -495,9 +495,9 @@ var Resolver = /** @class */ (function () {
                         return [3 /*break*/, 14];
                     case 12:
                         if (!(scheme === "erc1155")) return [3 /*break*/, 14];
-                        _f = (_e = bignumber_1.BigNumber).from;
+                        _f = (_e = corebc_bignumber_1.BigNumber).from;
                         return [4 /*yield*/, this.provider.call({
-                                to: addr, data: (0, bytes_1.hexConcat)(["0x00fdd58e", (0, bytes_1.hexZeroPad)(owner, 32), tokenId])
+                                to: addr, data: (0, corebc_bytes_1.hexConcat)(["0x00fdd58e", (0, corebc_bytes_1.hexZeroPad)(owner, 32), tokenId])
                             })];
                     case 13:
                         balance = _f.apply(_e, [_h.sent()]);
@@ -509,7 +509,7 @@ var Resolver = /** @class */ (function () {
                     case 14:
                         tx = {
                             to: this.provider.formatter.address(comps[0]),
-                            data: (0, bytes_1.hexConcat)([selector, tokenId])
+                            data: (0, corebc_bytes_1.hexConcat)([selector, tokenId])
                         };
                         _g = _parseString;
                         return [4 /*yield*/, this.provider.call(tx)];
@@ -529,7 +529,7 @@ var Resolver = /** @class */ (function () {
                             metadataUrl = getIpfsLink(metadataUrl);
                         }
                         linkage.push({ type: "metadata-url", content: metadataUrl });
-                        return [4 /*yield*/, (0, web_1.fetchJson)(metadataUrl)];
+                        return [4 /*yield*/, (0, corebc_web_1.fetchJson)(metadataUrl)];
                     case 16:
                         metadata = _h.sent();
                         if (!metadata) {
@@ -581,7 +581,7 @@ var Resolver = /** @class */ (function () {
                         if (ipfs) {
                             length_4 = parseInt(ipfs[3], 16);
                             if (ipfs[4].length === length_4 * 2) {
-                                return [2 /*return*/, "ipfs:/\/" + basex_1.Base58.encode("0x" + ipfs[1])];
+                                return [2 /*return*/, "ipfs:/\/" + corebc_basex_1.Base58.encode("0x" + ipfs[1])];
                             }
                         }
                         swarm = hexBytes.match(/^0xe40101fa011b20([0-9a-f]*)$/);
@@ -590,7 +590,7 @@ var Resolver = /** @class */ (function () {
                                 return [2 /*return*/, "bzz:/\/" + swarm[1]];
                             }
                         }
-                        return [2 /*return*/, logger.throwError("invalid or unsupported content hash data", logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
+                        return [2 /*return*/, logger.throwError("invalid or unsupported content hash data", corebc_logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
                                 operation: "getContentHash()",
                                 data: hexBytes
                             })];
@@ -604,21 +604,21 @@ var Resolver = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        keyBytes = (0, strings_1.toUtf8Bytes)(key);
+                        keyBytes = (0, corebc_strings_1.toUtf8Bytes)(key);
                         // The nodehash consumes the first slot, so the string pointer targets
                         // offset 64, with the length at offset 64 and data starting at offset 96
-                        keyBytes = (0, bytes_1.concat)([bytes32ify(64), bytes32ify(keyBytes.length), keyBytes]);
+                        keyBytes = (0, corebc_bytes_1.concat)([bytes32ify(64), bytes32ify(keyBytes.length), keyBytes]);
                         // Pad to word-size (32 bytes)
                         if ((keyBytes.length % 32) !== 0) {
-                            keyBytes = (0, bytes_1.concat)([keyBytes, (0, bytes_1.hexZeroPad)("0x", 32 - (key.length % 32))]);
+                            keyBytes = (0, corebc_bytes_1.concat)([keyBytes, (0, corebc_bytes_1.hexZeroPad)("0x", 32 - (key.length % 32))]);
                         }
-                        return [4 /*yield*/, this._fetchBytes("0x59d1d43c", (0, bytes_1.hexlify)(keyBytes))];
+                        return [4 /*yield*/, this._fetchBytes("0x59d1d43c", (0, corebc_bytes_1.hexlify)(keyBytes))];
                     case 1:
                         hexBytes = _a.sent();
                         if (hexBytes == null || hexBytes === "0x") {
                             return [2 /*return*/, null];
                         }
-                        return [2 /*return*/, (0, strings_1.toUtf8String)(hexBytes)];
+                        return [2 /*return*/, (0, corebc_strings_1.toUtf8String)(hexBytes)];
                 }
             });
         });
@@ -635,14 +635,14 @@ var BaseProvider = /** @class */ (function (_super) {
      *
      *  A Promise<Network> that resolves only once the provider is ready.
      *
-     *  Sub-classes that call the super with a network without a chainId
-     *  MUST set this. Standard named networks have a known chainId.
+     *  Sub-classes that call the super with a network without a networkId
+     *  MUST set this. Standard named networks have a known networkId.
      *
      */
     function BaseProvider(network) {
         var _newTarget = this.constructor;
         var _this = this;
-        logger.checkNew(_newTarget, abstract_provider_1.Provider);
+        logger.checkNew(_newTarget, corebc_abstract_provider_1.Provider);
         _this = _super.call(this) || this;
         // Events being listened to
         _this._events = [];
@@ -651,7 +651,7 @@ var BaseProvider = /** @class */ (function (_super) {
         // If network is any, this Provider allows the underlying
         // network to change dynamically, and we auto-detect the
         // current network
-        (0, properties_1.defineReadOnly)(_this, "anyNetwork", (network === "any"));
+        (0, corebc_properties_1.defineReadOnly)(_this, "anyNetwork", (network === "any"));
         if (_this.anyNetwork) {
             network = _this.detectNetwork();
         }
@@ -663,9 +663,9 @@ var BaseProvider = /** @class */ (function (_super) {
             _this._ready().catch(function (error) { });
         }
         else {
-            var knownNetwork = (0, properties_1.getStatic)(_newTarget, "getNetwork")(network);
+            var knownNetwork = (0, corebc_properties_1.getStatic)(_newTarget, "getNetwork")(network);
             if (knownNetwork) {
-                (0, properties_1.defineReadOnly)(_this, "_network", knownNetwork);
+                (0, corebc_properties_1.defineReadOnly)(_this, "_network", knownNetwork);
                 _this.emit("network", knownNetwork, null);
             }
             else {
@@ -707,7 +707,7 @@ var BaseProvider = /** @class */ (function (_super) {
                         // This should never happen; every Provider sub-class should have
                         // suggested a network by here (or have thrown).
                         if (!network) {
-                            logger.throwError("no network detected", logger_1.Logger.errors.UNKNOWN_ERROR, {});
+                            logger.throwError("no network detected", corebc_logger_1.Logger.errors.UNKNOWN_ERROR, {});
                         }
                         // Possible this call stacked so do not call defineReadOnly again
                         if (this._network == null) {
@@ -715,7 +715,7 @@ var BaseProvider = /** @class */ (function (_super) {
                                 this._network = network;
                             }
                             else {
-                                (0, properties_1.defineReadOnly)(this, "_network", network);
+                                (0, corebc_properties_1.defineReadOnly)(this, "_network", network);
                             }
                             this.emit("network", network, null);
                         }
@@ -731,12 +731,12 @@ var BaseProvider = /** @class */ (function (_super) {
         // any change is reflected); otherwise this cannot change
         get: function () {
             var _this = this;
-            return (0, web_1.poll)(function () {
+            return (0, corebc_web_1.poll)(function () {
                 return _this._ready().then(function (network) {
                     return network;
                 }, function (error) {
                     // If the network isn't running yet, we will wait
-                    if (error.code === logger_1.Logger.errors.NETWORK_ERROR && error.event === "noNetwork") {
+                    if (error.code === corebc_logger_1.Logger.errors.NETWORK_ERROR && error.event === "noNetwork") {
                         return undefined;
                     }
                     throw error;
@@ -755,7 +755,7 @@ var BaseProvider = /** @class */ (function (_super) {
     };
     // @TODO: Remove this and just use getNetwork
     BaseProvider.getNetwork = function (network) {
-        return (0, networks_1.getNetwork)((network == null) ? "homestead" : network);
+        return (0, corebc_networks_1.getNetwork)((network == null) ? "homestead" : network);
     };
     // Fetches the blockNumber, but will reuse any result that is less
     // than maxAge old or has been requested since the last request
@@ -797,7 +797,7 @@ var BaseProvider = /** @class */ (function (_super) {
                     case 6: return [3 /*break*/, 2];
                     case 7:
                         reqTime = getTime();
-                        checkInternalBlockNumber = (0, properties_1.resolveProperties)({
+                        checkInternalBlockNumber = (0, corebc_properties_1.resolveProperties)({
                             blockNumber: this.perform("getBlockNumber", {}),
                             networkError: this.getNetwork().then(function (network) { return (null); }, function (error) { return (error); })
                         }).then(function (_a) {
@@ -810,7 +810,7 @@ var BaseProvider = /** @class */ (function (_super) {
                                 throw networkError;
                             }
                             var respTime = getTime();
-                            blockNumber = bignumber_1.BigNumber.from(blockNumber).toNumber();
+                            blockNumber = corebc_bignumber_1.BigNumber.from(blockNumber).toNumber();
                             if (blockNumber < _this._maxInternalBlockNumber) {
                                 blockNumber = _this._maxInternalBlockNumber;
                             }
@@ -868,7 +868,7 @@ var BaseProvider = /** @class */ (function (_super) {
                         }
                         if (Math.abs((this._emitted.block) - blockNumber) > 1000) {
                             logger.warn("network block skew detected; skipping block events (emitted=" + this._emitted.block + " blockNumber" + blockNumber + ")");
-                            this.emit("error", logger.makeError("network block skew detected", logger_1.Logger.errors.NETWORK_ERROR, {
+                            this.emit("error", logger.makeError("network block skew detected", corebc_logger_1.Logger.errors.NETWORK_ERROR, {
                                 blockNumber: blockNumber,
                                 event: "blockSkew",
                                 previousBlockNumber: this._emitted.block
@@ -912,13 +912,13 @@ var BaseProvider = /** @class */ (function (_super) {
                         this._events.forEach(function (event) {
                             switch (event.type) {
                                 case "tx": {
-                                    var hash_2 = event.hash;
-                                    var runner = _this.getTransactionReceipt(hash_2).then(function (receipt) {
+                                    var hash_1 = event.hash;
+                                    var runner = _this.getTransactionReceipt(hash_1).then(function (receipt) {
                                         if (!receipt || receipt.blockNumber == null) {
                                             return null;
                                         }
-                                        _this._emitted["t:" + hash_2] = receipt.blockNumber;
-                                        _this.emit(hash_2, receipt);
+                                        _this._emitted["t:" + hash_1] = receipt.blockNumber;
+                                        _this.emit(hash_1, receipt);
                                         return null;
                                     }).catch(function (error) { _this.emit("error", error); });
                                     runners.push(runner);
@@ -972,7 +972,7 @@ var BaseProvider = /** @class */ (function (_super) {
     BaseProvider.prototype.detectNetwork = function () {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
-                return [2 /*return*/, logger.throwError("provider does not support network detection", logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
+                return [2 /*return*/, logger.throwError("provider does not support network detection", corebc_logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
                         operation: "provider.detectNetwork"
                     })];
             });
@@ -989,7 +989,7 @@ var BaseProvider = /** @class */ (function (_super) {
                         return [4 /*yield*/, this.detectNetwork()];
                     case 2:
                         currentNetwork = _a.sent();
-                        if (!(network.chainId !== currentNetwork.chainId)) return [3 /*break*/, 5];
+                        if (!(network.networkId !== currentNetwork.networkId)) return [3 /*break*/, 5];
                         if (!this.anyNetwork) return [3 /*break*/, 4];
                         this._network = currentNetwork;
                         // Reset all internal block number guards and caches
@@ -1009,7 +1009,7 @@ var BaseProvider = /** @class */ (function (_super) {
                         _a.sent();
                         return [2 /*return*/, this._network];
                     case 4:
-                        error = logger.makeError("underlying network changed", logger_1.Logger.errors.NETWORK_ERROR, {
+                        error = logger.makeError("underlying network changed", corebc_logger_1.Logger.errors.NETWORK_ERROR, {
                             event: "changed",
                             network: network,
                             detectedNetwork: currentNetwork
@@ -1238,7 +1238,7 @@ var BaseProvider = /** @class */ (function (_super) {
                                                                         reason = "cancelled";
                                                                     }
                                                                     // Explain why we were replaced
-                                                                    reject(logger.makeError("transaction was replaced", logger_1.Logger.errors.TRANSACTION_REPLACED, {
+                                                                    reject(logger.makeError("transaction was replaced", corebc_logger_1.Logger.errors.TRANSACTION_REPLACED, {
                                                                         cancelled: (reason === "replaced" || reason === "cancelled"),
                                                                         reason: reason,
                                                                         replacement: this._wrapTransaction(tx),
@@ -1283,7 +1283,7 @@ var BaseProvider = /** @class */ (function (_super) {
                                         if (alreadyDone()) {
                                             return;
                                         }
-                                        reject(logger.makeError("timeout exceeded", logger_1.Logger.errors.TIMEOUT, { timeout: timeout }));
+                                        reject(logger.makeError("timeout exceeded", corebc_logger_1.Logger.errors.TIMEOUT, { timeout: timeout }));
                                     }, timeout);
                                     if (timer_1.unref) {
                                         timer_1.unref();
@@ -1302,7 +1302,7 @@ var BaseProvider = /** @class */ (function (_super) {
             });
         });
     };
-    BaseProvider.prototype.getGasPrice = function () {
+    BaseProvider.prototype.getEnergyPrice = function () {
         return __awaiter(this, void 0, void 0, function () {
             var result;
             return __generator(this, function (_a) {
@@ -1310,15 +1310,15 @@ var BaseProvider = /** @class */ (function (_super) {
                     case 0: return [4 /*yield*/, this.getNetwork()];
                     case 1:
                         _a.sent();
-                        return [4 /*yield*/, this.perform("getGasPrice", {})];
+                        return [4 /*yield*/, this.perform("getEnergyPrice", {})];
                     case 2:
                         result = _a.sent();
                         try {
-                            return [2 /*return*/, bignumber_1.BigNumber.from(result)];
+                            return [2 /*return*/, corebc_bignumber_1.BigNumber.from(result)];
                         }
                         catch (error) {
-                            return [2 /*return*/, logger.throwError("bad result from backend", logger_1.Logger.errors.SERVER_ERROR, {
-                                    method: "getGasPrice",
+                            return [2 /*return*/, logger.throwError("bad result from backend", corebc_logger_1.Logger.errors.SERVER_ERROR, {
+                                    method: "getEnergyPrice",
                                     result: result,
                                     error: error
                                 })];
@@ -1336,7 +1336,7 @@ var BaseProvider = /** @class */ (function (_super) {
                     case 0: return [4 /*yield*/, this.getNetwork()];
                     case 1:
                         _a.sent();
-                        return [4 /*yield*/, (0, properties_1.resolveProperties)({
+                        return [4 /*yield*/, (0, corebc_properties_1.resolveProperties)({
                                 address: this._getAddress(addressOrName),
                                 blockTag: this._getBlockTag(blockTag)
                             })];
@@ -1346,10 +1346,10 @@ var BaseProvider = /** @class */ (function (_super) {
                     case 3:
                         result = _a.sent();
                         try {
-                            return [2 /*return*/, bignumber_1.BigNumber.from(result)];
+                            return [2 /*return*/, corebc_bignumber_1.BigNumber.from(result)];
                         }
                         catch (error) {
-                            return [2 /*return*/, logger.throwError("bad result from backend", logger_1.Logger.errors.SERVER_ERROR, {
+                            return [2 /*return*/, logger.throwError("bad result from backend", corebc_logger_1.Logger.errors.SERVER_ERROR, {
                                     method: "getBalance",
                                     params: params,
                                     result: result,
@@ -1369,7 +1369,7 @@ var BaseProvider = /** @class */ (function (_super) {
                     case 0: return [4 /*yield*/, this.getNetwork()];
                     case 1:
                         _a.sent();
-                        return [4 /*yield*/, (0, properties_1.resolveProperties)({
+                        return [4 /*yield*/, (0, corebc_properties_1.resolveProperties)({
                                 address: this._getAddress(addressOrName),
                                 blockTag: this._getBlockTag(blockTag)
                             })];
@@ -1379,10 +1379,10 @@ var BaseProvider = /** @class */ (function (_super) {
                     case 3:
                         result = _a.sent();
                         try {
-                            return [2 /*return*/, bignumber_1.BigNumber.from(result).toNumber()];
+                            return [2 /*return*/, corebc_bignumber_1.BigNumber.from(result).toNumber()];
                         }
                         catch (error) {
-                            return [2 /*return*/, logger.throwError("bad result from backend", logger_1.Logger.errors.SERVER_ERROR, {
+                            return [2 /*return*/, logger.throwError("bad result from backend", corebc_logger_1.Logger.errors.SERVER_ERROR, {
                                     method: "getTransactionCount",
                                     params: params,
                                     result: result,
@@ -1402,7 +1402,7 @@ var BaseProvider = /** @class */ (function (_super) {
                     case 0: return [4 /*yield*/, this.getNetwork()];
                     case 1:
                         _a.sent();
-                        return [4 /*yield*/, (0, properties_1.resolveProperties)({
+                        return [4 /*yield*/, (0, corebc_properties_1.resolveProperties)({
                                 address: this._getAddress(addressOrName),
                                 blockTag: this._getBlockTag(blockTag)
                             })];
@@ -1412,10 +1412,10 @@ var BaseProvider = /** @class */ (function (_super) {
                     case 3:
                         result = _a.sent();
                         try {
-                            return [2 /*return*/, (0, bytes_1.hexlify)(result)];
+                            return [2 /*return*/, (0, corebc_bytes_1.hexlify)(result)];
                         }
                         catch (error) {
-                            return [2 /*return*/, logger.throwError("bad result from backend", logger_1.Logger.errors.SERVER_ERROR, {
+                            return [2 /*return*/, logger.throwError("bad result from backend", corebc_logger_1.Logger.errors.SERVER_ERROR, {
                                     method: "getCode",
                                     params: params,
                                     result: result,
@@ -1435,10 +1435,10 @@ var BaseProvider = /** @class */ (function (_super) {
                     case 0: return [4 /*yield*/, this.getNetwork()];
                     case 1:
                         _a.sent();
-                        return [4 /*yield*/, (0, properties_1.resolveProperties)({
+                        return [4 /*yield*/, (0, corebc_properties_1.resolveProperties)({
                                 address: this._getAddress(addressOrName),
                                 blockTag: this._getBlockTag(blockTag),
-                                position: Promise.resolve(position).then(function (p) { return (0, bytes_1.hexValue)(p); })
+                                position: Promise.resolve(position).then(function (p) { return (0, corebc_bytes_1.hexValue)(p); })
                             })];
                     case 2:
                         params = _a.sent();
@@ -1446,10 +1446,10 @@ var BaseProvider = /** @class */ (function (_super) {
                     case 3:
                         result = _a.sent();
                         try {
-                            return [2 /*return*/, (0, bytes_1.hexlify)(result)];
+                            return [2 /*return*/, (0, corebc_bytes_1.hexlify)(result)];
                         }
                         catch (error) {
-                            return [2 /*return*/, logger.throwError("bad result from backend", logger_1.Logger.errors.SERVER_ERROR, {
+                            return [2 /*return*/, logger.throwError("bad result from backend", corebc_logger_1.Logger.errors.SERVER_ERROR, {
                                     method: "getStorageAt",
                                     params: params,
                                     result: result,
@@ -1464,13 +1464,13 @@ var BaseProvider = /** @class */ (function (_super) {
     // This should be called by any subclass wrapping a TransactionResponse
     BaseProvider.prototype._wrapTransaction = function (tx, hash, startBlock) {
         var _this = this;
-        if (hash != null && (0, bytes_1.hexDataLength)(hash) !== 32) {
+        if (hash != null && (0, corebc_bytes_1.hexDataLength)(hash) !== 32) {
             throw new Error("invalid response - sendTransaction");
         }
         var result = tx;
         // Check the hash we expect is the same as the hash the server reported
         if (hash != null && tx.hash !== hash) {
-            logger.throwError("Transaction hash mismatch from Provider.sendTransaction.", logger_1.Logger.errors.UNKNOWN_ERROR, { expectedHash: tx.hash, returnedHash: hash });
+            logger.throwError("Transaction hash mismatch from Provider.sendTransaction.", corebc_logger_1.Logger.errors.UNKNOWN_ERROR, { expectedHash: tx.hash, returnedHash: hash });
         }
         result.wait = function (confirms, timeout) { return __awaiter(_this, void 0, void 0, function () {
             var replacement, receipt;
@@ -1503,7 +1503,7 @@ var BaseProvider = /** @class */ (function (_super) {
                         // No longer pending, allow the polling loop to garbage collect this
                         this._emitted["t:" + tx.hash] = receipt.blockNumber;
                         if (receipt.status === 0) {
-                            logger.throwError("transaction failed", logger_1.Logger.errors.CALL_EXCEPTION, {
+                            logger.throwError("transaction failed", corebc_logger_1.Logger.errors.CALL_EXCEPTION, {
                                 transactionHash: tx.hash,
                                 transaction: tx,
                                 receipt: receipt
@@ -1523,7 +1523,7 @@ var BaseProvider = /** @class */ (function (_super) {
                     case 0: return [4 /*yield*/, this.getNetwork()];
                     case 1:
                         _a.sent();
-                        return [4 /*yield*/, Promise.resolve(signedTransaction).then(function (t) { return (0, bytes_1.hexlify)(t); })];
+                        return [4 /*yield*/, Promise.resolve(signedTransaction).then(function (t) { return (0, corebc_bytes_1.hexlify)(t); })];
                     case 2:
                         hexTx = _a.sent();
                         tx = this.formatter.transaction(signedTransaction);
@@ -1566,11 +1566,11 @@ var BaseProvider = /** @class */ (function (_super) {
                             }
                             tx[key] = Promise.resolve(values[key]).then(function (v) { return (v ? _this._getAddress(v) : null); });
                         });
-                        ["gasLimit", "gasPrice", "maxFeePerGas", "maxPriorityFeePerGas", "value"].forEach(function (key) {
+                        ["energyLimit", "energyPrice", "maxFeePerEnergy", "maxPriorityFeePerEnergy", "value"].forEach(function (key) {
                             if (values[key] == null) {
                                 return;
                             }
-                            tx[key] = Promise.resolve(values[key]).then(function (v) { return (v ? bignumber_1.BigNumber.from(v) : null); });
+                            tx[key] = Promise.resolve(values[key]).then(function (v) { return (v ? corebc_bignumber_1.BigNumber.from(v) : null); });
                         });
                         ["type"].forEach(function (key) {
                             if (values[key] == null) {
@@ -1578,17 +1578,14 @@ var BaseProvider = /** @class */ (function (_super) {
                             }
                             tx[key] = Promise.resolve(values[key]).then(function (v) { return ((v != null) ? v : null); });
                         });
-                        if (values.accessList) {
-                            tx.accessList = this.formatter.accessList(values.accessList);
-                        }
                         ["data"].forEach(function (key) {
                             if (values[key] == null) {
                                 return;
                             }
-                            tx[key] = Promise.resolve(values[key]).then(function (v) { return (v ? (0, bytes_1.hexlify)(v) : null); });
+                            tx[key] = Promise.resolve(values[key]).then(function (v) { return (v ? (0, corebc_bytes_1.hexlify)(v) : null); });
                         });
                         _b = (_a = this.formatter).transactionRequest;
-                        return [4 /*yield*/, (0, properties_1.resolveProperties)(tx)];
+                        return [4 /*yield*/, (0, corebc_properties_1.resolveProperties)(tx)];
                     case 2: return [2 /*return*/, _b.apply(_a, [_c.sent()])];
                 }
             });
@@ -1620,7 +1617,7 @@ var BaseProvider = /** @class */ (function (_super) {
                             result[key] = _this._getBlockTag(filter[key]);
                         });
                         _b = (_a = this.formatter).filter;
-                        return [4 /*yield*/, (0, properties_1.resolveProperties)(result)];
+                        return [4 /*yield*/, (0, corebc_properties_1.resolveProperties)(result)];
                     case 2: return [2 /*return*/, _b.apply(_a, [_c.sent()])];
                 }
             });
@@ -1634,7 +1631,7 @@ var BaseProvider = /** @class */ (function (_super) {
                     case 0: return [4 /*yield*/, this.getNetwork()];
                     case 1:
                         _a.sent();
-                        return [4 /*yield*/, (0, properties_1.resolveProperties)({
+                        return [4 /*yield*/, (0, corebc_properties_1.resolveProperties)({
                                 transaction: this._getTransactionRequest(transaction),
                                 blockTag: this._getBlockTag(blockTag)
                             })];
@@ -1644,10 +1641,10 @@ var BaseProvider = /** @class */ (function (_super) {
                     case 3:
                         result = _a.sent();
                         try {
-                            return [2 /*return*/, (0, bytes_1.hexlify)(result)];
+                            return [2 /*return*/, (0, corebc_bytes_1.hexlify)(result)];
                         }
                         catch (error) {
-                            return [2 /*return*/, logger.throwError("bad result from backend", logger_1.Logger.errors.SERVER_ERROR, {
+                            return [2 /*return*/, logger.throwError("bad result from backend", corebc_logger_1.Logger.errors.SERVER_ERROR, {
                                     method: "call",
                                     params: params,
                                     result: result,
@@ -1659,7 +1656,7 @@ var BaseProvider = /** @class */ (function (_super) {
             });
         });
     };
-    BaseProvider.prototype.estimateGas = function (transaction) {
+    BaseProvider.prototype.estimateEnergy = function (transaction) {
         return __awaiter(this, void 0, void 0, function () {
             var params, result;
             return __generator(this, function (_a) {
@@ -1667,20 +1664,20 @@ var BaseProvider = /** @class */ (function (_super) {
                     case 0: return [4 /*yield*/, this.getNetwork()];
                     case 1:
                         _a.sent();
-                        return [4 /*yield*/, (0, properties_1.resolveProperties)({
+                        return [4 /*yield*/, (0, corebc_properties_1.resolveProperties)({
                                 transaction: this._getTransactionRequest(transaction)
                             })];
                     case 2:
                         params = _a.sent();
-                        return [4 /*yield*/, this.perform("estimateGas", params)];
+                        return [4 /*yield*/, this.perform("estimateEnergy", params)];
                     case 3:
                         result = _a.sent();
                         try {
-                            return [2 /*return*/, bignumber_1.BigNumber.from(result)];
+                            return [2 /*return*/, corebc_bignumber_1.BigNumber.from(result)];
                         }
                         catch (error) {
-                            return [2 /*return*/, logger.throwError("bad result from backend", logger_1.Logger.errors.SERVER_ERROR, {
-                                    method: "estimateGas",
+                            return [2 /*return*/, logger.throwError("bad result from backend", corebc_logger_1.Logger.errors.SERVER_ERROR, {
+                                    method: "estimateEnergy",
                                     params: params,
                                     result: result,
                                     error: error
@@ -1706,7 +1703,7 @@ var BaseProvider = /** @class */ (function (_super) {
                     case 2:
                         address = _a.sent();
                         if (address == null) {
-                            logger.throwError("ENS name not configured", logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
+                            logger.throwError("ENS name not configured", corebc_logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
                                 operation: "resolveName(" + JSON.stringify(addressOrName) + ")"
                             });
                         }
@@ -1731,7 +1728,7 @@ var BaseProvider = /** @class */ (function (_super) {
                         params = {
                             includeTransactions: !!includeTransactions
                         };
-                        if (!(0, bytes_1.isHexString)(blockHashOrBlockTag, 32)) return [3 /*break*/, 3];
+                        if (!(0, corebc_bytes_1.isHexString)(blockHashOrBlockTag, 32)) return [3 /*break*/, 3];
                         params.blockHash = blockHashOrBlockTag;
                         return [3 /*break*/, 6];
                     case 3:
@@ -1740,7 +1737,7 @@ var BaseProvider = /** @class */ (function (_super) {
                         return [4 /*yield*/, this._getBlockTag(blockHashOrBlockTag)];
                     case 4:
                         _a.blockTag = _b.sent();
-                        if ((0, bytes_1.isHexString)(params.blockTag)) {
+                        if ((0, corebc_bytes_1.isHexString)(params.blockTag)) {
                             blockNumber = parseInt(params.blockTag.substring(2), 16);
                         }
                         return [3 /*break*/, 6];
@@ -1748,7 +1745,7 @@ var BaseProvider = /** @class */ (function (_super) {
                         error_8 = _b.sent();
                         logger.throwArgumentError("invalid block hash or block tag", "blockHashOrBlockTag", blockHashOrBlockTag);
                         return [3 /*break*/, 6];
-                    case 6: return [2 /*return*/, (0, web_1.poll)(function () { return __awaiter(_this, void 0, void 0, function () {
+                    case 6: return [2 /*return*/, (0, corebc_web_1.poll)(function () { return __awaiter(_this, void 0, void 0, function () {
                             var block, blockNumber_1, i, tx, confirmations, blockWithTxs;
                             var _this = this;
                             return __generator(this, function (_a) {
@@ -1833,7 +1830,7 @@ var BaseProvider = /** @class */ (function (_super) {
                     case 2:
                         transactionHash = _a.sent();
                         params = { transactionHash: this.formatter.hash(transactionHash, true) };
-                        return [2 /*return*/, (0, web_1.poll)(function () { return __awaiter(_this, void 0, void 0, function () {
+                        return [2 /*return*/, (0, corebc_web_1.poll)(function () { return __awaiter(_this, void 0, void 0, function () {
                                 var result, tx, blockNumber, confirmations;
                                 return __generator(this, function (_a) {
                                     switch (_a.label) {
@@ -1882,7 +1879,7 @@ var BaseProvider = /** @class */ (function (_super) {
                     case 2:
                         transactionHash = _a.sent();
                         params = { transactionHash: this.formatter.hash(transactionHash, true) };
-                        return [2 /*return*/, (0, web_1.poll)(function () { return __awaiter(_this, void 0, void 0, function () {
+                        return [2 /*return*/, (0, corebc_web_1.poll)(function () { return __awaiter(_this, void 0, void 0, function () {
                                 var result, receipt, blockNumber, confirmations;
                                 return __generator(this, function (_a) {
                                     switch (_a.label) {
@@ -1930,7 +1927,7 @@ var BaseProvider = /** @class */ (function (_super) {
                     case 0: return [4 /*yield*/, this.getNetwork()];
                     case 1:
                         _a.sent();
-                        return [4 /*yield*/, (0, properties_1.resolveProperties)({ filter: this._getFilter(filter) })];
+                        return [4 /*yield*/, (0, corebc_properties_1.resolveProperties)({ filter: this._getFilter(filter) })];
                     case 2:
                         params = _a.sent();
                         return [4 /*yield*/, this.perform("getLogs", params)];
@@ -1999,7 +1996,7 @@ var BaseProvider = /** @class */ (function (_super) {
                         return [2 /*return*/, new Resolver(this, address, name)];
                     case 2:
                         error_9 = _a.sent();
-                        if (error_9.code === logger_1.Logger.errors.CALL_EXCEPTION) {
+                        if (error_9.code === corebc_logger_1.Logger.errors.CALL_EXCEPTION) {
                             return [2 /*return*/, null];
                         }
                         throw error_9;
@@ -2018,11 +2015,11 @@ var BaseProvider = /** @class */ (function (_super) {
                         network = _c.sent();
                         // No ENS...
                         if (!network.ensAddress) {
-                            logger.throwError("network does not support ENS", logger_1.Logger.errors.UNSUPPORTED_OPERATION, { operation: "ENS", network: network.name });
+                            logger.throwError("network does not support ENS", corebc_logger_1.Logger.errors.UNSUPPORTED_OPERATION, { operation: "ENS", network: network.name });
                         }
                         transaction = {
                             to: network.ensAddress,
-                            data: ("0x0178b8bf" + (0, hash_1.namehash)(name).substring(2))
+                            data: ("0x0178b8bf" + (0, corebc_hash_1.namehash)(name).substring(2))
                         };
                         _c.label = 2;
                     case 2:
@@ -2032,7 +2029,7 @@ var BaseProvider = /** @class */ (function (_super) {
                     case 3: return [2 /*return*/, _b.apply(_a, [_c.sent()])];
                     case 4:
                         error_10 = _c.sent();
-                        if (error_10.code === logger_1.Logger.errors.CALL_EXCEPTION) {
+                        if (error_10.code === corebc_logger_1.Logger.errors.CALL_EXCEPTION) {
                             return [2 /*return*/, null];
                         }
                         throw error_10;
@@ -2055,7 +2052,7 @@ var BaseProvider = /** @class */ (function (_super) {
                         }
                         catch (error) {
                             // If is is a hexstring, the address is bad (See #694)
-                            if ((0, bytes_1.isHexString)(name)) {
+                            if ((0, corebc_bytes_1.isHexString)(name)) {
                                 throw error;
                             }
                         }
@@ -2090,15 +2087,15 @@ var BaseProvider = /** @class */ (function (_super) {
                         if (!resolverAddress) {
                             return [2 /*return*/, null];
                         }
-                        _a = bytes_1.arrayify;
+                        _a = corebc_bytes_1.arrayify;
                         return [4 /*yield*/, this.call({
                                 to: resolverAddress,
-                                data: ("0x691f3431" + (0, hash_1.namehash)(reverseName).substring(2))
+                                data: ("0x691f3431" + (0, corebc_hash_1.namehash)(reverseName).substring(2))
                             })];
                     case 3:
                         bytes = _a.apply(void 0, [_b.sent()]);
                         // Strip off the dynamic string pointer (0x20)
-                        if (bytes.length < 32 || !bignumber_1.BigNumber.from(bytes.slice(0, 32)).eq(32)) {
+                        if (bytes.length < 32 || !corebc_bignumber_1.BigNumber.from(bytes.slice(0, 32)).eq(32)) {
                             return [2 /*return*/, null];
                         }
                         bytes = bytes.slice(32);
@@ -2106,13 +2103,13 @@ var BaseProvider = /** @class */ (function (_super) {
                         if (bytes.length < 32) {
                             return [2 /*return*/, null];
                         }
-                        length = bignumber_1.BigNumber.from(bytes.slice(0, 32)).toNumber();
+                        length = corebc_bignumber_1.BigNumber.from(bytes.slice(0, 32)).toNumber();
                         bytes = bytes.slice(32);
                         // Length longer than available data
                         if (length > bytes.length) {
                             return [2 /*return*/, null];
                         }
-                        name = (0, strings_1.toUtf8String)(bytes.slice(0, length));
+                        name = (0, corebc_strings_1.toUtf8String)(bytes.slice(0, length));
                         return [4 /*yield*/, this.resolveName(name)];
                     case 4:
                         addr = _b.sent();
@@ -2131,7 +2128,7 @@ var BaseProvider = /** @class */ (function (_super) {
                 switch (_a.label) {
                     case 0:
                         resolver = null;
-                        if (!(0, bytes_1.isHexString)(nameOrAddress)) return [3 /*break*/, 2];
+                        if (!(0, corebc_bytes_1.isHexString)(nameOrAddress)) return [3 /*break*/, 2];
                         address = this.formatter.address(nameOrAddress);
                         reverseName = address.substring(2).toLowerCase() + ".addr.reverse";
                         return [4 /*yield*/, this._getResolver(reverseName)];
@@ -2162,7 +2159,7 @@ var BaseProvider = /** @class */ (function (_super) {
         });
     };
     BaseProvider.prototype.perform = function (method, params) {
-        return logger.throwError(method + " not implemented", logger_1.Logger.errors.NOT_IMPLEMENTED, { operation: method });
+        return logger.throwError(method + " not implemented", corebc_logger_1.Logger.errors.NOT_IMPLEMENTED, { operation: method });
     };
     BaseProvider.prototype._startEvent = function (event) {
         this.polling = (this._events.filter(function (e) { return e.pollable(); }).length > 0);
@@ -2269,6 +2266,6 @@ var BaseProvider = /** @class */ (function (_super) {
         return this;
     };
     return BaseProvider;
-}(abstract_provider_1.Provider));
+}(corebc_abstract_provider_1.Provider));
 exports.BaseProvider = BaseProvider;
 //# sourceMappingURL=base-provider.js.map

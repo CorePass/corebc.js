@@ -3,16 +3,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Wordlist = exports.logger = void 0;
 // This gets overridden by rollup
 var exportWordlist = false;
-var hash_1 = require("@ethersproject/hash");
-var properties_1 = require("@ethersproject/properties");
-var logger_1 = require("@ethersproject/logger");
+var corebc_hash_1 = require("@corepass/corebc-hash");
+var corebc_properties_1 = require("@corepass/corebc-properties");
+var corebc_logger_1 = require("@corepass/corebc-logger");
 var _version_1 = require("./_version");
-exports.logger = new logger_1.Logger(_version_1.version);
+exports.logger = new corebc_logger_1.Logger(_version_1.version);
 var Wordlist = /** @class */ (function () {
     function Wordlist(locale) {
         var _newTarget = this.constructor;
         exports.logger.checkAbstract(_newTarget, Wordlist);
-        (0, properties_1.defineReadOnly)(this, "locale", locale);
+        (0, corebc_properties_1.defineReadOnly)(this, "locale", locale);
     }
     // Subclasses may override this
     Wordlist.prototype.split = function (mnemonic) {
@@ -32,7 +32,7 @@ var Wordlist = /** @class */ (function () {
             }
             words.push(word);
         }
-        return (0, hash_1.id)(words.join("\n") + "\n");
+        return (0, corebc_hash_1.id)(words.join("\n") + "\n");
     };
     Wordlist.register = function (lang, name) {
         if (!name) {
@@ -44,7 +44,7 @@ var Wordlist = /** @class */ (function () {
                 var anyGlobal = window;
                 if (anyGlobal._ethers && anyGlobal._ethers.wordlists) {
                     if (!anyGlobal._ethers.wordlists[name]) {
-                        (0, properties_1.defineReadOnly)(anyGlobal._ethers.wordlists, name, lang);
+                        (0, corebc_properties_1.defineReadOnly)(anyGlobal._ethers.wordlists, name, lang);
                     }
                 }
             }

@@ -1,7 +1,7 @@
 "use strict";
 
-import { getAddress } from "@ethersproject/address";
-import { hexZeroPad } from "@ethersproject/bytes";
+import { getAddress } from "@corepass/corebc-address";
+import { hexZeroPad } from "@corepass/corebc-bytes";
 
 import { Coder, Reader, Writer } from "./abstract-coder";
 

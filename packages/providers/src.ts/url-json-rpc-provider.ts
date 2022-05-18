@@ -1,11 +1,11 @@
 
 "use strict";
 
-import { Network, Networkish } from "@ethersproject/networks";
-import { defineReadOnly, getStatic } from "@ethersproject/properties";
-import { ConnectionInfo } from "@ethersproject/web";
+import { Network, Networkish } from "@corepass/corebc-networks";
+import { defineReadOnly, getStatic } from "@corepass/corebc-properties";
+import { ConnectionInfo } from "@corepass/corebc-web";
 
-import { Logger } from "@ethersproject/logger";
+import { Logger } from "@corepass/corebc-logger";
 import { version } from "./_version";
 const logger = new Logger(version);
 
@@ -15,7 +15,7 @@ import { JsonRpcProvider, JsonRpcSigner } from "./json-rpc-provider";
 type getUrlFunc = (network: Network, apiKey: string) => string | ConnectionInfo;
 
 // A StaticJsonRpcProvider is useful when you *know* for certain that
-// the backend will never change, as it never calls eth_chainId to
+// the backend will never change, as it never calls xcb_networkId to
 // verify its backend. However, if the backend does change, the effects
 // are undefined and may include:
 // - inconsistent results

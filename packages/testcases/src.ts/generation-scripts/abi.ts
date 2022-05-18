@@ -3,10 +3,10 @@
 //let web3 = new Web3(new Web3.providers.HttpProvider('http://127.0.0.1:8549'));
 
 //import { compile as _compile } from "solc";
-import { solc } from "@ethersproject/cli";
+// import { solc } from "@corepass/corebc-cli";
 
 import { randomHexString, randomNumber } from ".."
-import { BN, keccak256, toChecksumAddress } from "ethereumjs-util";
+import { BN, sha256, toChecksumAddress } from "ethereumjs-util";
 
 function hasPrefix(str: string, prefix: string): boolean {
     return (str.substring(0, prefix.length) === prefix);
@@ -25,7 +25,7 @@ function indent(tabs: number): string {
 }
 
 function getStructName(base: string): string {
-    return "Struct" + keccak256(base).slice(0, 4).toString("hex");
+    return "Struct" + sha256(base).slice(0, 4).toString("hex");
 }
 
 class Code {
@@ -617,12 +617,12 @@ for (let i = 0; i < 100; i++) {
     let solidity = generateSolidity(params);
     console.log(solidity);
     console.log(i);
-    let bytecode = solc.compile(solidity)[0].bytecode;
+    // let bytecode = solc.compile(solidity)[0].bytecode;
     //console.log(params.map(p => p.type).join(", "));
     //console.log(bytecode);
     let testcase = {
         //solidity: solidity,
-        bytecode: bytecode,
+        bytecode: null,
         types: params.map(p => p.type),
         value: params.map(p => p.value),
     };

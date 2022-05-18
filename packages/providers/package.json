@@ -14,23 +14,23 @@
     "net": "./lib/browser-net.js"
   },
   "dependencies": {
-    "@ethersproject/abstract-provider": "^5.5.0",
-    "@ethersproject/abstract-signer": "^5.5.0",
-    "@ethersproject/address": "^5.5.0",
-    "@ethersproject/basex": "^5.5.0",
-    "@ethersproject/bignumber": "^5.5.0",
-    "@ethersproject/bytes": "^5.5.0",
-    "@ethersproject/constants": "^5.5.0",
-    "@ethersproject/hash": "^5.5.0",
-    "@ethersproject/logger": "^5.5.0",
-    "@ethersproject/networks": "^5.5.0",
-    "@ethersproject/properties": "^5.5.0",
-    "@ethersproject/random": "^5.5.0",
-    "@ethersproject/rlp": "^5.5.0",
-    "@ethersproject/sha2": "^5.5.0",
-    "@ethersproject/strings": "^5.5.0",
-    "@ethersproject/transactions": "^5.5.0",
-    "@ethersproject/web": "^5.5.0",
+    "@corepass/corebc-abstract-provider": "^0.1.0",
+    "@corepass/corebc-abstract-signer": "^0.1.0",
+    "@corepass/corebc-address": "^0.1.0",
+    "@corepass/corebc-basex": "^0.1.0",
+    "@corepass/corebc-bignumber": "^0.1.0",
+    "@corepass/corebc-bytes": "^0.1.0",
+    "@corepass/corebc-constants": "^0.1.0",
+    "@corepass/corebc-hash": "^0.1.0",
+    "@corepass/corebc-logger": "^0.1.0",
+    "@corepass/corebc-networks": "^0.1.0",
+    "@corepass/corebc-properties": "^0.1.0",
+    "@corepass/corebc-random": "^0.1.0",
+    "@corepass/corebc-rlp": "^0.1.0",
+    "@corepass/corebc-sha3": "^0.1.0",
+    "@corepass/corebc-strings": "^0.1.0",
+    "@corepass/corebc-transactions": "^0.1.0",
+    "@corepass/corebc-web": "^0.1.0",
     "bech32": "1.1.4",
     "ws": "7.4.6"
   },
@@ -53,7 +53,7 @@
   "license": "MIT",
   "main": "./lib/index.js",
   "module": "./lib.esm/index.js",
-  "name": "@ethersproject/providers",
+  "name": "@corepass/corebc-providers",
   "publishConfig": {
     "access": "public"
   },
@@ -66,7 +66,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "sideEffects": false,
-  "tarballHash": "0x0976aab1e9e29f054b5e55d41359597400775eb87ea407447c62feefb732eaeb",
+  "tarballHash": "0xf5bd769ec828ef42e835db1232797f4c37eb6ac804292bc9de806eb57c50fb3f",
   "types": "./lib/index.d.ts",
-  "version": "5.5.3"
+  "version": "0.1.1"
 }

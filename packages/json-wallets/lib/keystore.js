@@ -57,18 +57,19 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.encrypt = exports.decrypt = exports.decryptSync = exports.KeystoreAccount = void 0;
 var aes_js_1 = __importDefault(require("aes-js"));
 var scrypt_js_1 = __importDefault(require("scrypt-js"));
-var address_1 = require("@ethersproject/address");
-var bytes_1 = require("@ethersproject/bytes");
-var hdnode_1 = require("@ethersproject/hdnode");
-var keccak256_1 = require("@ethersproject/keccak256");
-var pbkdf2_1 = require("@ethersproject/pbkdf2");
-var random_1 = require("@ethersproject/random");
-var properties_1 = require("@ethersproject/properties");
-var transactions_1 = require("@ethersproject/transactions");
+var corebc_address_1 = require("@corepass/corebc-address");
+var corebc_bytes_1 = require("@corepass/corebc-bytes");
+var corebc_hdnode_1 = require("@corepass/corebc-hdnode");
+var corebc_sha3_1 = require("@corepass/corebc-sha3");
+var corebc_pbkdf2_1 = require("@corepass/corebc-pbkdf2");
+var corebc_random_1 = require("@corepass/corebc-random");
+var corebc_properties_1 = require("@corepass/corebc-properties");
+var corebc_address_2 = require("@corepass/corebc-address");
+var corebc_transactions_1 = require("@corepass/corebc-transactions");
 var utils_1 = require("./utils");
-var logger_1 = require("@ethersproject/logger");
+var corebc_logger_1 = require("@corepass/corebc-logger");
 var _version_1 = require("./_version");
-var logger = new logger_1.Logger(_version_1.version);
+var logger = new corebc_logger_1.Logger(_version_1.version);
 // Exported Types
 function hasMnemonic(value) {
     return (value != null && value.mnemonic && value.mnemonic.phrase);
@@ -82,7 +83,7 @@ var KeystoreAccount = /** @class */ (function (_super) {
         return !!(value && value._isKeystoreAccount);
     };
     return KeystoreAccount;
-}(properties_1.Description));
+}(corebc_properties_1.Description));
 exports.KeystoreAccount = KeystoreAccount;
 function _decrypt(data, key, ciphertext) {
     var cipher = (0, utils_1.searchPath)(data, "crypto/cipher");
@@ -90,37 +91,32 @@ function _decrypt(data, key, ciphertext) {
         var iv = (0, utils_1.looseArrayify)((0, utils_1.searchPath)(data, "crypto/cipherparams/iv"));
         var counter = new aes_js_1.default.Counter(iv);
         var aesCtr = new aes_js_1.default.ModeOfOperation.ctr(key, counter);
-        return (0, bytes_1.arrayify)(aesCtr.decrypt(ciphertext));
+        return (0, corebc_bytes_1.arrayify)(aesCtr.decrypt(ciphertext));
     }
     return null;
 }
 function _getAccount(data, key) {
     var ciphertext = (0, utils_1.looseArrayify)((0, utils_1.searchPath)(data, "crypto/ciphertext"));
-    var computedMAC = (0, bytes_1.hexlify)((0, keccak256_1.keccak256)((0, bytes_1.concat)([key.slice(16, 32), ciphertext]))).substring(2);
+    var computedMAC = (0, corebc_bytes_1.hexlify)((0, corebc_sha3_1.sha256)((0, corebc_bytes_1.concat)([key.slice(16, 32), ciphertext]))).substring(2);
     if (computedMAC !== (0, utils_1.searchPath)(data, "crypto/mac").toLowerCase()) {
         throw new Error("invalid password");
     }
     var privateKey = _decrypt(data, key.slice(0, 16), ciphertext);
     if (!privateKey) {
-        logger.throwError("unsupported cipher", logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
+        logger.throwError("unsupported cipher", corebc_logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
             operation: "decrypt"
         });
     }
     var mnemonicKey = key.slice(32, 64);
-    var address = (0, transactions_1.computeAddress)(privateKey);
-    if (data.address) {
-        var check = data.address.toLowerCase();
-        if (check.substring(0, 2) !== "0x") {
-            check = "0x" + check;
-        }
-        if ((0, address_1.getAddress)(check) !== address) {
-            throw new Error("address mismatch");
-        }
+    var address = (0, corebc_address_1.getAddress)(data.address);
+    var prefix = (0, corebc_address_2.extractPrefix)(address);
+    if ((0, corebc_transactions_1.computeAddress)(privateKey, prefix) !== address) {
+        throw new Error("address mismatch");
     }
     var account = {
         _isKeystoreAccount: true,
         address: address,
-        privateKey: (0, bytes_1.hexlify)(privateKey)
+        privateKey: (0, corebc_bytes_1.hexlify)(privateKey)
     };
     // Version 0.1 x-ethers metadata must contain an encrypted mnemonic phrase
     if ((0, utils_1.searchPath)(data, "x-ethers/version") === "0.1") {
@@ -128,12 +124,12 @@ function _getAccount(data, key) {
         var mnemonicIv = (0, utils_1.looseArrayify)((0, utils_1.searchPath)(data, "x-ethers/mnemonicCounter"));
         var mnemonicCounter = new aes_js_1.default.Counter(mnemonicIv);
         var mnemonicAesCtr = new aes_js_1.default.ModeOfOperation.ctr(mnemonicKey, mnemonicCounter);
-        var path = (0, utils_1.searchPath)(data, "x-ethers/path") || hdnode_1.defaultPath;
+        var path = (0, utils_1.searchPath)(data, "x-ethers/path") || corebc_hdnode_1.defaultPath;
         var locale = (0, utils_1.searchPath)(data, "x-ethers/locale") || "en";
-        var entropy = (0, bytes_1.arrayify)(mnemonicAesCtr.decrypt(mnemonicCiphertext));
+        var entropy = (0, corebc_bytes_1.arrayify)(mnemonicAesCtr.decrypt(mnemonicCiphertext));
         try {
-            var mnemonic = (0, hdnode_1.entropyToMnemonic)(entropy, locale);
-            var node = hdnode_1.HDNode.fromMnemonic(mnemonic, null, locale).derivePath(path);
+            var mnemonic = (0, corebc_hdnode_1.entropyToMnemonic)(entropy, locale);
+            var node = corebc_hdnode_1.HDNode.fromMnemonic(mnemonic, null, locale).derivePath(path);
             if (node.privateKey != account.privateKey) {
                 throw new Error("mnemonic mismatch");
             }
@@ -143,7 +139,7 @@ function _getAccount(data, key) {
             // If we don't have the locale wordlist installed to
             // read this mnemonic, just bail and don't set the
             // mnemonic
-            if (error.code !== logger_1.Logger.errors.INVALID_ARGUMENT || error.argument !== "wordlist") {
+            if (error.code !== corebc_logger_1.Logger.errors.INVALID_ARGUMENT || error.argument !== "wordlist") {
                 throw error;
             }
         }
@@ -151,7 +147,7 @@ function _getAccount(data, key) {
     return new KeystoreAccount(account);
 }
 function pbkdf2Sync(passwordBytes, salt, count, dkLen, prfFunc) {
-    return (0, bytes_1.arrayify)((0, pbkdf2_1.pbkdf2)(passwordBytes, salt, count, dkLen, prfFunc));
+    return (0, corebc_bytes_1.arrayify)((0, corebc_pbkdf2_1.pbkdf2)(passwordBytes, salt, count, dkLen, prfFunc));
 }
 function pbkdf2(passwordBytes, salt, count, dkLen, prfFunc) {
     return Promise.resolve(pbkdf2Sync(passwordBytes, salt, count, dkLen, prfFunc));
@@ -230,13 +226,15 @@ exports.decrypt = decrypt;
 function encrypt(account, password, options, progressCallback) {
     try {
         // Check the address matches the private key
-        if ((0, address_1.getAddress)(account.address) !== (0, transactions_1.computeAddress)(account.privateKey)) {
+        var address = (0, corebc_address_1.getAddress)(account.address);
+        var prefix = (0, corebc_address_2.extractPrefix)(address);
+        if ((0, corebc_transactions_1.computeAddress)(account.privateKey, prefix) !== address) {
             throw new Error("address/privateKey mismatch");
         }
         // Check the mnemonic (if any) matches the private key
         if (hasMnemonic(account)) {
             var mnemonic = account.mnemonic;
-            var node = hdnode_1.HDNode.fromMnemonic(mnemonic.phrase, null, mnemonic.locale).derivePath(mnemonic.path || hdnode_1.defaultPath);
+            var node = corebc_hdnode_1.HDNode.fromMnemonic(mnemonic.phrase, null, mnemonic.locale).derivePath(mnemonic.path || corebc_hdnode_1.defaultPath);
             if (node.privateKey != account.privateKey) {
                 throw new Error("mnemonic mismatch");
             }
@@ -253,15 +251,15 @@ function encrypt(account, password, options, progressCallback) {
     if (!options) {
         options = {};
     }
-    var privateKey = (0, bytes_1.arrayify)(account.privateKey);
+    var privateKey = (0, corebc_bytes_1.arrayify)(account.privateKey);
     var passwordBytes = (0, utils_1.getPassword)(password);
     var entropy = null;
     var path = null;
     var locale = null;
     if (hasMnemonic(account)) {
         var srcMnemonic = account.mnemonic;
-        entropy = (0, bytes_1.arrayify)((0, hdnode_1.mnemonicToEntropy)(srcMnemonic.phrase, srcMnemonic.locale || "en"));
-        path = srcMnemonic.path || hdnode_1.defaultPath;
+        entropy = (0, corebc_bytes_1.arrayify)((0, corebc_hdnode_1.mnemonicToEntropy)(srcMnemonic.phrase, srcMnemonic.locale || "en"));
+        path = srcMnemonic.path || corebc_hdnode_1.defaultPath;
         locale = srcMnemonic.locale || "en";
     }
     var client = options.client;
@@ -271,33 +269,33 @@ function encrypt(account, password, options, progressCallback) {
     // Check/generate the salt
     var salt = null;
     if (options.salt) {
-        salt = (0, bytes_1.arrayify)(options.salt);
+        salt = (0, corebc_bytes_1.arrayify)(options.salt);
     }
     else {
-        salt = (0, random_1.randomBytes)(32);
+        salt = (0, corebc_random_1.randomBytes)(32);
         ;
     }
     // Override initialization vector
     var iv = null;
     if (options.iv) {
-        iv = (0, bytes_1.arrayify)(options.iv);
+        iv = (0, corebc_bytes_1.arrayify)(options.iv);
         if (iv.length !== 16) {
             throw new Error("invalid iv");
         }
     }
     else {
-        iv = (0, random_1.randomBytes)(16);
+        iv = (0, corebc_random_1.randomBytes)(16);
     }
     // Override the uuid
     var uuidRandom = null;
     if (options.uuid) {
-        uuidRandom = (0, bytes_1.arrayify)(options.uuid);
+        uuidRandom = (0, corebc_bytes_1.arrayify)(options.uuid);
         if (uuidRandom.length !== 16) {
             throw new Error("invalid uuid");
         }
     }
     else {
-        uuidRandom = (0, random_1.randomBytes)(16);
+        uuidRandom = (0, corebc_random_1.randomBytes)(16);
     }
     // Override the scrypt password-based key derivation function parameters
     var N = (1 << 17), r = 8, p = 1;
@@ -316,7 +314,7 @@ function encrypt(account, password, options, progressCallback) {
     //   - 32 bytes   As normal for the Web3 secret storage (derivedKey, macPrefix)
     //   - 32 bytes   AES key to encrypt mnemonic with (required here to be Ethers Wallet)
     return scrypt_js_1.default.scrypt(passwordBytes, salt, N, r, p, 64, progressCallback).then(function (key) {
-        key = (0, bytes_1.arrayify)(key);
+        key = (0, corebc_bytes_1.arrayify)(key);
         // This will be used to encrypt the wallet (as per Web3 secret storage)
         var derivedKey = key.slice(0, 16);
         var macPrefix = key.slice(16, 32);
@@ -325,9 +323,9 @@ function encrypt(account, password, options, progressCallback) {
         // Encrypt the private key
         var counter = new aes_js_1.default.Counter(iv);
         var aesCtr = new aes_js_1.default.ModeOfOperation.ctr(derivedKey, counter);
-        var ciphertext = (0, bytes_1.arrayify)(aesCtr.encrypt(privateKey));
+        var ciphertext = (0, corebc_bytes_1.arrayify)(aesCtr.encrypt(privateKey));
         // Compute the message authentication code, used to check the password
-        var mac = (0, keccak256_1.keccak256)((0, bytes_1.concat)([macPrefix, ciphertext]));
+        var mac = (0, corebc_sha3_1.sha256)((0, corebc_bytes_1.concat)([macPrefix, ciphertext]));
         // See: https://github.com/ethereum/wiki/wiki/Web3-Secret-Storage-Definition
         var data = {
             address: account.address.substring(2).toLowerCase(),
@@ -336,12 +334,12 @@ function encrypt(account, password, options, progressCallback) {
             Crypto: {
                 cipher: "aes-128-ctr",
                 cipherparams: {
-                    iv: (0, bytes_1.hexlify)(iv).substring(2),
+                    iv: (0, corebc_bytes_1.hexlify)(iv).substring(2),
                 },
-                ciphertext: (0, bytes_1.hexlify)(ciphertext).substring(2),
+                ciphertext: (0, corebc_bytes_1.hexlify)(ciphertext).substring(2),
                 kdf: "scrypt",
                 kdfparams: {
-                    salt: (0, bytes_1.hexlify)(salt).substring(2),
+                    salt: (0, corebc_bytes_1.hexlify)(salt).substring(2),
                     n: N,
                     dklen: 32,
                     p: p,
@@ -352,10 +350,10 @@ function encrypt(account, password, options, progressCallback) {
         };
         // If we have a mnemonic, encrypt it into the JSON wallet
         if (entropy) {
-            var mnemonicIv = (0, random_1.randomBytes)(16);
+            var mnemonicIv = (0, corebc_random_1.randomBytes)(16);
             var mnemonicCounter = new aes_js_1.default.Counter(mnemonicIv);
             var mnemonicAesCtr = new aes_js_1.default.ModeOfOperation.ctr(mnemonicKey, mnemonicCounter);
-            var mnemonicCiphertext = (0, bytes_1.arrayify)(mnemonicAesCtr.encrypt(entropy));
+            var mnemonicCiphertext = (0, corebc_bytes_1.arrayify)(mnemonicAesCtr.encrypt(entropy));
             var now = new Date();
             var timestamp = (now.getUTCFullYear() + "-" +
                 (0, utils_1.zpad)(now.getUTCMonth() + 1, 2) + "-" +
@@ -366,8 +364,8 @@ function encrypt(account, password, options, progressCallback) {
             data["x-ethers"] = {
                 client: client,
                 gethFilename: ("UTC--" + timestamp + "--" + data.address),
-                mnemonicCounter: (0, bytes_1.hexlify)(mnemonicIv).substring(2),
-                mnemonicCiphertext: (0, bytes_1.hexlify)(mnemonicCiphertext).substring(2),
+                mnemonicCounter: (0, corebc_bytes_1.hexlify)(mnemonicIv).substring(2),
+                mnemonicCiphertext: (0, corebc_bytes_1.hexlify)(mnemonicCiphertext).substring(2),
                 path: path,
                 locale: locale,
                 version: "0.1"

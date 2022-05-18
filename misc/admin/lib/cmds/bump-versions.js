@@ -36,7 +36,6 @@ const semver_1 = __importDefault(require("semver"));
 const path_1 = require("../path");
 const local = __importStar(require("../local"));
 const log_1 = require("../log");
-const npm = __importStar(require("../npm"));
 const utils_1 = require("../utils");
 (function () {
     return __awaiter(this, void 0, void 0, function* () {
@@ -53,10 +52,9 @@ const utils_1 = require("../utils");
             // Set the common elements to the package.json
             local.updateJson(packageJsonPath, common, true);
             const pLocal = local.getPackage(dirname);
-            const pNpm = yield npm.getPackage(dirname);
             const tarballHash = local.computeTarballHash(dirname);
-            let version = pNpm.version;
-            if (tarballHash !== pNpm.tarballHash) {
+            let version = pLocal.version;
+            if (tarballHash !== pLocal.tarballHash) {
                 if (semver_1.default.gt(pLocal.version, version)) {
                     // Already have a more recent version locally
                     version = pLocal.version;
@@ -68,8 +66,8 @@ const utils_1 = require("../utils");
                 output.push([
                     "  ",
                     log_1.colorify.blue(pLocal.name),
-                    (0, utils_1.repeat)(" ", 47 - pLocal.name.length - pNpm.version.length),
-                    pNpm.version,
+                    (0, utils_1.repeat)(" ", 47 - pLocal.name.length - pLocal.version.length),
+                    pLocal.version,
                     log_1.colorify.bold(" => "),
                     log_1.colorify.green(version)
                 ].join(""));
@@ -85,7 +83,7 @@ const utils_1 = require("../utils");
         }
         progress(1);
         if (updated) {
-            const filename = (0, path_1.resolve)("packages/ethers/package.json");
+            const filename = (0, path_1.resolve)("packages/corebc/package.json");
             const info = (0, utils_1.loadJson)(filename);
             Object.keys(info.dependencies).forEach((name) => {
                 const version = latestVersions[name];

@@ -1,7 +1,7 @@
 {
   "author": "Richard Moore <me@ricmoo.com>",
   "dependencies": {
-    "@ethersproject/logger": "^5.5.0"
+    "@corepass/corebc-logger": "^0.1.0"
   },
   "description": "Properties utility functions for ethers.",
   "ethereum": "donations.ethers.eth",
@@ -22,7 +22,7 @@
   "license": "MIT",
   "main": "./lib/index.js",
   "module": "./lib.esm/index.js",
-  "name": "@ethersproject/properties",
+  "name": "@corepass/corebc-properties",
   "publishConfig": {
     "access": "public"
   },
@@ -37,7 +37,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "sideEffects": false,
-  "tarballHash": "0x4ff23e9446d99829a59e0ef5ac56b019611b8bfd644cb7ccd2d87671a2821f70",
+  "tarballHash": "0x6274ea351d739f041472fe4a37dadee7ff03a7522ec38cd6a6064cd396419cec",
   "types": "./lib/index.d.ts",
-  "version": "5.5.0"
+  "version": "0.1.1"
 }

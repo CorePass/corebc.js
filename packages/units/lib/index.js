@@ -1,10 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.parseEther = exports.formatEther = exports.parseUnits = exports.formatUnits = exports.commify = void 0;
-var bignumber_1 = require("@ethersproject/bignumber");
-var logger_1 = require("@ethersproject/logger");
+var corebc_bignumber_1 = require("@corepass/corebc-bignumber");
+var corebc_logger_1 = require("@corepass/corebc-logger");
 var _version_1 = require("./_version");
-var logger = new logger_1.Logger(_version_1.version);
+var logger = new corebc_logger_1.Logger(_version_1.version);
 var names = [
     "wei",
     "kwei",
@@ -64,7 +64,7 @@ function formatUnits(value, unitName) {
             unitName = 3 * index;
         }
     }
-    return (0, bignumber_1.formatFixed)(value, (unitName != null) ? unitName : 18);
+    return (0, corebc_bignumber_1.formatFixed)(value, (unitName != null) ? unitName : 18);
 }
 exports.formatUnits = formatUnits;
 function parseUnits(value, unitName) {
@@ -77,7 +77,7 @@ function parseUnits(value, unitName) {
             unitName = 3 * index;
         }
     }
-    return (0, bignumber_1.parseFixed)(value, (unitName != null) ? unitName : 18);
+    return (0, corebc_bignumber_1.parseFixed)(value, (unitName != null) ? unitName : 18);
 }
 exports.parseUnits = parseUnits;
 function formatEther(wei) {

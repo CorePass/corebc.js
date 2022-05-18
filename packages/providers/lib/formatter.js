@@ -1,15 +1,15 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.showThrottleMessage = exports.isCommunityResource = exports.isCommunityResourcable = exports.Formatter = void 0;
-var address_1 = require("@ethersproject/address");
-var bignumber_1 = require("@ethersproject/bignumber");
-var bytes_1 = require("@ethersproject/bytes");
-var constants_1 = require("@ethersproject/constants");
-var properties_1 = require("@ethersproject/properties");
-var transactions_1 = require("@ethersproject/transactions");
-var logger_1 = require("@ethersproject/logger");
+var corebc_address_1 = require("@corepass/corebc-address");
+var corebc_bignumber_1 = require("@corepass/corebc-bignumber");
+var corebc_bytes_1 = require("@corepass/corebc-bytes");
+var corebc_constants_1 = require("@corepass/corebc-constants");
+var corebc_properties_1 = require("@corepass/corebc-properties");
+var corebc_transactions_1 = require("@corepass/corebc-transactions");
+var corebc_logger_1 = require("@corepass/corebc-logger");
 var _version_1 = require("./_version");
-var logger = new logger_1.Logger(_version_1.version);
+var logger = new corebc_logger_1.Logger(_version_1.version);
 var Formatter = /** @class */ (function () {
     function Formatter() {
         var _newTarget = this.constructor;
@@ -30,41 +30,30 @@ var Formatter = /** @class */ (function () {
         var strictData = function (v) { return _this.data(v, true); };
         formats.transaction = {
             hash: hash,
-            type: type,
-            accessList: Formatter.allowNull(this.accessList.bind(this), null),
             blockHash: Formatter.allowNull(hash, null),
             blockNumber: Formatter.allowNull(number, null),
             transactionIndex: Formatter.allowNull(number, null),
             confirmations: Formatter.allowNull(number, null),
             from: address,
-            // either (gasPrice) or (maxPriorityFeePerGas + maxFeePerGas)
+            // either (energyPrice) or (maxPriorityFeePerEnergy + maxFeePerEnergy)
             // must be set
-            gasPrice: Formatter.allowNull(bigNumber),
-            maxPriorityFeePerGas: Formatter.allowNull(bigNumber),
-            maxFeePerGas: Formatter.allowNull(bigNumber),
-            gasLimit: bigNumber,
+            energyPrice: Formatter.allowNull(bigNumber),
+            energyLimit: bigNumber,
             to: Formatter.allowNull(address, null),
             value: bigNumber,
             nonce: number,
             data: data,
-            r: Formatter.allowNull(this.uint256),
-            s: Formatter.allowNull(this.uint256),
-            v: Formatter.allowNull(number),
             creates: Formatter.allowNull(address, null),
             raw: Formatter.allowNull(data),
         };
         formats.transactionRequest = {
             from: Formatter.allowNull(address),
             nonce: Formatter.allowNull(number),
-            gasLimit: Formatter.allowNull(bigNumber),
-            gasPrice: Formatter.allowNull(bigNumber),
-            maxPriorityFeePerGas: Formatter.allowNull(bigNumber),
-            maxFeePerGas: Formatter.allowNull(bigNumber),
+            energyLimit: Formatter.allowNull(bigNumber),
+            energyPrice: Formatter.allowNull(bigNumber),
             to: Formatter.allowNull(address),
             value: Formatter.allowNull(bigNumber),
             data: Formatter.allowNull(strictData),
-            type: Formatter.allowNull(number),
-            accessList: Formatter.allowNull(this.accessList.bind(this), null),
         };
         formats.receiptLog = {
             transactionIndex: number,
@@ -83,15 +72,15 @@ var Formatter = /** @class */ (function () {
             transactionIndex: number,
             // should be allowNull(hash), but broken-EIP-658 support is handled in receipt
             root: Formatter.allowNull(hex),
-            gasUsed: bigNumber,
+            energyUsed: bigNumber,
             logsBloom: Formatter.allowNull(data),
             blockHash: hash,
             transactionHash: hash,
             logs: Formatter.arrayOf(this.receiptLog.bind(this)),
             blockNumber: number,
             confirmations: Formatter.allowNull(number, null),
-            cumulativeGasUsed: bigNumber,
-            effectiveGasPrice: Formatter.allowNull(bigNumber),
+            cumulativeEnergyUsed: bigNumber,
+            effectiveEnergyPrice: Formatter.allowNull(bigNumber),
             status: Formatter.allowNull(number),
             type: type
         };
@@ -102,14 +91,14 @@ var Formatter = /** @class */ (function () {
             timestamp: number,
             nonce: Formatter.allowNull(hex),
             difficulty: this.difficulty.bind(this),
-            gasLimit: bigNumber,
-            gasUsed: bigNumber,
+            energyLimit: bigNumber,
+            energyUsed: bigNumber,
             miner: address,
             extraData: data,
             transactions: Formatter.allowNull(Formatter.arrayOf(hash)),
-            baseFeePerGas: Formatter.allowNull(bigNumber)
+            baseFeePerEnergy: Formatter.allowNull(bigNumber)
         };
-        formats.blockWithTransactions = (0, properties_1.shallowCopy)(formats.block);
+        formats.blockWithTransactions = (0, corebc_properties_1.shallowCopy)(formats.block);
         formats.blockWithTransactions.transactions = Formatter.allowNull(Formatter.arrayOf(this.transactionResponse.bind(this)));
         formats.filter = {
             fromBlock: Formatter.allowNull(blockTag, undefined),
@@ -131,26 +120,23 @@ var Formatter = /** @class */ (function () {
         };
         return formats;
     };
-    Formatter.prototype.accessList = function (accessList) {
-        return (0, transactions_1.accessListify)(accessList || []);
-    };
     // Requires a BigNumberish that is within the IEEE754 safe integer range; returns a number
     // Strict! Used on input.
     Formatter.prototype.number = function (number) {
         if (number === "0x") {
             return 0;
         }
-        return bignumber_1.BigNumber.from(number).toNumber();
+        return corebc_bignumber_1.BigNumber.from(number).toNumber();
     };
     Formatter.prototype.type = function (number) {
         if (number === "0x" || number == null) {
             return 0;
         }
-        return bignumber_1.BigNumber.from(number).toNumber();
+        return corebc_bignumber_1.BigNumber.from(number).toNumber();
     };
     // Strict! Used on input.
     Formatter.prototype.bigNumber = function (value) {
-        return bignumber_1.BigNumber.from(value);
+        return corebc_bignumber_1.BigNumber.from(value);
     };
     // Requires a boolean, "true" or  "false"; returns a boolean
     Formatter.prototype.boolean = function (value) {
@@ -173,7 +159,7 @@ var Formatter = /** @class */ (function () {
             if (!strict && value.substring(0, 2) !== "0x") {
                 value = "0x" + value;
             }
-            if ((0, bytes_1.isHexString)(value)) {
+            if ((0, corebc_bytes_1.isHexString)(value)) {
                 return value.toLowerCase();
             }
         }
@@ -189,17 +175,17 @@ var Formatter = /** @class */ (function () {
     // Requires an address
     // Strict! Used on input.
     Formatter.prototype.address = function (value) {
-        return (0, address_1.getAddress)(value);
+        return (0, corebc_address_1.getAddress)(value);
     };
     Formatter.prototype.callAddress = function (value) {
-        if (!(0, bytes_1.isHexString)(value, 32)) {
+        if (!(0, corebc_bytes_1.isHexString)(value, 32)) {
             return null;
         }
-        var address = (0, address_1.getAddress)((0, bytes_1.hexDataSlice)(value, 12));
-        return (address === constants_1.AddressZero) ? null : address;
+        var address = (0, corebc_address_1.getAddress)((0, corebc_bytes_1.hexDataSlice)(value, 12));
+        return (address === corebc_constants_1.AddressZero) ? null : address;
     };
     Formatter.prototype.contractAddress = function (value) {
-        return (0, address_1.getContractAddress)(value);
+        return (0, corebc_address_1.getContractAddress)(value);
     };
     // Strict! Used on input.
     Formatter.prototype.blockTag = function (blockTag) {
@@ -212,15 +198,15 @@ var Formatter = /** @class */ (function () {
         if (blockTag === "latest" || blockTag === "pending") {
             return blockTag;
         }
-        if (typeof (blockTag) === "number" || (0, bytes_1.isHexString)(blockTag)) {
-            return (0, bytes_1.hexValue)(blockTag);
+        if (typeof (blockTag) === "number" || (0, corebc_bytes_1.isHexString)(blockTag)) {
+            return (0, corebc_bytes_1.hexValue)(blockTag);
         }
         throw new Error("invalid blockTag");
     };
     // Requires a hash, optionally requires 0x prefix; returns prefixed lowercase hash.
     Formatter.prototype.hash = function (value, strict) {
         var result = this.hex(value, strict);
-        if ((0, bytes_1.hexDataLength)(result) !== 32) {
+        if ((0, corebc_bytes_1.hexDataLength)(result) !== 32) {
             return logger.throwArgumentError("invalid hash", "value", value);
         }
         return result;
@@ -230,7 +216,7 @@ var Formatter = /** @class */ (function () {
         if (value == null) {
             return null;
         }
-        var v = bignumber_1.BigNumber.from(value);
+        var v = corebc_bignumber_1.BigNumber.from(value);
         try {
             return v.toNumber();
         }
@@ -238,10 +224,10 @@ var Formatter = /** @class */ (function () {
         return null;
     };
     Formatter.prototype.uint256 = function (value) {
-        if (!(0, bytes_1.isHexString)(value)) {
+        if (!(0, corebc_bytes_1.isHexString)(value)) {
             throw new Error("invalid uint256");
         }
-        return (0, bytes_1.hexZeroPad)(value, 32);
+        return (0, corebc_bytes_1.hexZeroPad)(value, 32);
     };
     Formatter.prototype._block = function (value, format) {
         if (value.author != null && value.miner == null) {
@@ -250,7 +236,7 @@ var Formatter = /** @class */ (function () {
         // The difficulty may need to come from _difficulty in recursed blocks
         var difficulty = (value._difficulty != null) ? value._difficulty : value.difficulty;
         var result = Formatter.check(format, value);
-        result._difficulty = ((difficulty == null) ? null : bignumber_1.BigNumber.from(difficulty));
+        result._difficulty = ((difficulty == null) ? null : corebc_bignumber_1.BigNumber.from(difficulty));
         return result;
     };
     Formatter.prototype.block = function (value) {
@@ -264,13 +250,13 @@ var Formatter = /** @class */ (function () {
         return Formatter.check(this.formats.transactionRequest, value);
     };
     Formatter.prototype.transactionResponse = function (transaction) {
-        // Rename gas to gasLimit
-        if (transaction.gas != null && transaction.gasLimit == null) {
-            transaction.gasLimit = transaction.gas;
+        // Rename energy to energyLimit
+        if (transaction.energy != null && transaction.energyLimit == null) {
+            transaction.energyLimit = transaction.energy;
         }
         // Some clients (TestRPC) do strange things like return 0x0 for the
         // 0 address; correct this to be a real address
-        if (transaction.to && bignumber_1.BigNumber.from(transaction.to).isZero()) {
+        if (transaction.to && corebc_bignumber_1.BigNumber.from((0, corebc_address_1.getAddress)(transaction.to)).isZero()) {
             transaction.to = "0x0000000000000000000000000000000000000000";
         }
         // Rename input to data
@@ -281,37 +267,13 @@ var Formatter = /** @class */ (function () {
         if (transaction.to == null && transaction.creates == null) {
             transaction.creates = this.contractAddress(transaction);
         }
-        if ((transaction.type === 1 || transaction.type === 2) && transaction.accessList == null) {
-            transaction.accessList = [];
-        }
         var result = Formatter.check(this.formats.transaction, transaction);
-        if (transaction.chainId != null) {
-            var chainId = transaction.chainId;
-            if ((0, bytes_1.isHexString)(chainId)) {
-                chainId = bignumber_1.BigNumber.from(chainId).toNumber();
+        if (transaction.networkId != null) {
+            var networkId = transaction.networkId;
+            if ((0, corebc_bytes_1.isHexString)(networkId)) {
+                networkId = corebc_bignumber_1.BigNumber.from(networkId).toNumber();
             }
-            result.chainId = chainId;
-        }
-        else {
-            var chainId = transaction.networkId;
-            // geth-etc returns chainId
-            if (chainId == null && result.v == null) {
-                chainId = transaction.chainId;
-            }
-            if ((0, bytes_1.isHexString)(chainId)) {
-                chainId = bignumber_1.BigNumber.from(chainId).toNumber();
-            }
-            if (typeof (chainId) !== "number" && result.v != null) {
-                chainId = (result.v - 35) / 2;
-                if (chainId < 0) {
-                    chainId = 0;
-                }
-                chainId = parseInt(chainId);
-            }
-            if (typeof (chainId) !== "number") {
-                chainId = 0;
-            }
-            result.chainId = chainId;
+            result.networkId = networkId;
         }
         // 0x0000... should actually be null
         if (result.blockHash && result.blockHash.replace(/0/g, "") === "x") {
@@ -320,7 +282,7 @@ var Formatter = /** @class */ (function () {
         return result;
     };
     Formatter.prototype.transaction = function (value) {
-        return (0, transactions_1.parse)(value);
+        return (0, corebc_transactions_1.parse)(value);
     };
     Formatter.prototype.receiptLog = function (value) {
         return Formatter.check(this.formats.receiptLog, value);
@@ -331,7 +293,7 @@ var Formatter = /** @class */ (function () {
         if (result.root != null) {
             if (result.root.length <= 4) {
                 // Could be 0x00, 0x0, 0x01 or 0x1
-                var value_1 = bignumber_1.BigNumber.from(result.root).toNumber();
+                var value_1 = corebc_bignumber_1.BigNumber.from(result.root).toNumber();
                 if (value_1 === 0 || value_1 === 1) {
                     // Make sure if both are specified, they match
                     if (result.status != null && (result.status !== value_1)) {

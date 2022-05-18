@@ -1,8 +1,8 @@
 "use strict";
-import { arrayify, concat, hexConcat, hexlify } from "@ethersproject/bytes";
-import { BigNumber } from "@ethersproject/bignumber";
-import { defineReadOnly } from "@ethersproject/properties";
-import { Logger } from "@ethersproject/logger";
+import { arrayify, concat, hexConcat, hexlify } from "@corepass/corebc-bytes";
+import { BigNumber } from "@corepass/corebc-bignumber";
+import { defineReadOnly } from "@corepass/corebc-properties";
+import { Logger } from "@corepass/corebc-logger";
 import { version } from "../_version";
 const logger = new Logger(version);
 export function checkResultErrors(result) {

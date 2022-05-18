@@ -52,17 +52,17 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.VoidSigner = exports.Signer = void 0;
-var properties_1 = require("@ethersproject/properties");
-var logger_1 = require("@ethersproject/logger");
+var corebc_properties_1 = require("@corepass/corebc-properties");
+var corebc_logger_1 = require("@corepass/corebc-logger");
 var _version_1 = require("./_version");
-var logger = new logger_1.Logger(_version_1.version);
+var logger = new corebc_logger_1.Logger(_version_1.version);
 var allowedTransactionKeys = [
-    "accessList", "chainId", "customData", "data", "from", "gasLimit", "gasPrice", "maxFeePerGas", "maxPriorityFeePerGas", "nonce", "to", "type", "value"
+    "networkId", "customData", "data", "from", "energyLimit", "energyPrice", "nonce", "to", "value"
 ];
 var forwardErrors = [
-    logger_1.Logger.errors.INSUFFICIENT_FUNDS,
-    logger_1.Logger.errors.NONCE_EXPIRED,
-    logger_1.Logger.errors.REPLACEMENT_UNDERPRICED,
+    corebc_logger_1.Logger.errors.INSUFFICIENT_FUNDS,
+    corebc_logger_1.Logger.errors.NONCE_EXPIRED,
+    corebc_logger_1.Logger.errors.REPLACEMENT_UNDERPRICED,
 ];
 ;
 ;
@@ -72,7 +72,7 @@ var Signer = /** @class */ (function () {
     function Signer() {
         var _newTarget = this.constructor;
         logger.checkAbstract(_newTarget, Signer);
-        (0, properties_1.defineReadOnly)(this, "_isSigner", true);
+        (0, corebc_properties_1.defineReadOnly)(this, "_isSigner", true);
     }
     ///////////////////
     // Sub-classes MAY override these
@@ -100,18 +100,18 @@ var Signer = /** @class */ (function () {
             });
         });
     };
-    // Populates "from" if unspecified, and estimates the gas for the transaction
-    Signer.prototype.estimateGas = function (transaction) {
+    // Populates "from" if unspecified, and estimates the energy for the transaction
+    Signer.prototype.estimateEnergy = function (transaction) {
         return __awaiter(this, void 0, void 0, function () {
             var tx;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        this._checkProvider("estimateGas");
-                        return [4 /*yield*/, (0, properties_1.resolveProperties)(this.checkTransaction(transaction))];
+                        this._checkProvider("estimateEnergy");
+                        return [4 /*yield*/, (0, corebc_properties_1.resolveProperties)(this.checkTransaction(transaction))];
                     case 1:
                         tx = _a.sent();
-                        return [4 /*yield*/, this.provider.estimateGas(tx)];
+                        return [4 /*yield*/, this.provider.estimateEnergy(tx)];
                     case 2: return [2 /*return*/, _a.sent()];
                 }
             });
@@ -125,7 +125,7 @@ var Signer = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         this._checkProvider("call");
-                        return [4 /*yield*/, (0, properties_1.resolveProperties)(this.checkTransaction(transaction))];
+                        return [4 /*yield*/, (0, corebc_properties_1.resolveProperties)(this.checkTransaction(transaction))];
                     case 1:
                         tx = _a.sent();
                         return [4 /*yield*/, this.provider.call(tx, blockTag)];
@@ -154,28 +154,28 @@ var Signer = /** @class */ (function () {
             });
         });
     };
-    Signer.prototype.getChainId = function () {
+    Signer.prototype.getNetworkId = function () {
         return __awaiter(this, void 0, void 0, function () {
             var network;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        this._checkProvider("getChainId");
+                        this._checkProvider("getNetworkId");
                         return [4 /*yield*/, this.provider.getNetwork()];
                     case 1:
                         network = _a.sent();
-                        return [2 /*return*/, network.chainId];
+                        return [2 /*return*/, network.networkId];
                 }
             });
         });
     };
-    Signer.prototype.getGasPrice = function () {
+    Signer.prototype.getEnergyPrice = function () {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        this._checkProvider("getGasPrice");
-                        return [4 /*yield*/, this.provider.getGasPrice()];
+                        this._checkProvider("getEnergyPrice");
+                        return [4 /*yield*/, this.provider.getEnergyPrice()];
                     case 1: return [2 /*return*/, _a.sent()];
                 }
             });
@@ -212,7 +212,7 @@ var Signer = /** @class */ (function () {
     // - returns a COPY (safe to mutate the result)
     // By default called from: (overriding these prevents it)
     //   - call
-    //   - estimateGas
+    //   - estimateEnergy
     //   - populateTransaction (and therefor sendTransaction)
     Signer.prototype.checkTransaction = function (transaction) {
         for (var key in transaction) {
@@ -220,7 +220,7 @@ var Signer = /** @class */ (function () {
                 logger.throwArgumentError("invalid transaction key: " + key, "transaction", transaction);
             }
         }
-        var tx = (0, properties_1.shallowCopy)(transaction);
+        var tx = (0, corebc_properties_1.shallowCopy)(transaction);
         if (tx.from == null) {
             tx.from = this.getAddress();
         }
@@ -242,16 +242,13 @@ var Signer = /** @class */ (function () {
     // this Signer. Should be used by sendTransaction but NOT by signTransaction.
     // By default called from: (overriding these prevents it)
     //   - sendTransaction
-    //
-    // Notes:
-    //  - We allow gasPrice for EIP-1559 as long as it matches maxFeePerGas
     Signer.prototype.populateTransaction = function (transaction) {
         return __awaiter(this, void 0, void 0, function () {
-            var tx, hasEip1559, feeData, gasPrice;
+            var tx;
             var _this = this;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, (0, properties_1.resolveProperties)(this.checkTransaction(transaction))];
+                    case 0: return [4 /*yield*/, (0, corebc_properties_1.resolveProperties)(this.checkTransaction(transaction))];
                     case 1:
                         tx = _a.sent();
                         if (tx.to != null) {
@@ -276,114 +273,39 @@ var Signer = /** @class */ (function () {
                             // Prevent this error from causing an UnhandledPromiseException
                             tx.to.catch(function (error) { });
                         }
-                        hasEip1559 = (tx.maxFeePerGas != null || tx.maxPriorityFeePerGas != null);
-                        if (tx.gasPrice != null && (tx.type === 2 || hasEip1559)) {
-                            logger.throwArgumentError("eip-1559 transaction do not support gasPrice", "transaction", transaction);
-                        }
-                        else if ((tx.type === 0 || tx.type === 1) && hasEip1559) {
-                            logger.throwArgumentError("pre-eip-1559 transaction do not support maxFeePerGas/maxPriorityFeePerGas", "transaction", transaction);
-                        }
-                        if (!((tx.type === 2 || tx.type == null) && (tx.maxFeePerGas != null && tx.maxPriorityFeePerGas != null))) return [3 /*break*/, 2];
-                        // Fully-formed EIP-1559 transaction (skip getFeeData)
-                        tx.type = 2;
-                        return [3 /*break*/, 5];
-                    case 2:
-                        if (!(tx.type === 0 || tx.type === 1)) return [3 /*break*/, 3];
-                        // Explicit Legacy or EIP-2930 transaction
-                        // Populate missing gasPrice
-                        if (tx.gasPrice == null) {
-                            tx.gasPrice = this.getGasPrice();
-                        }
-                        return [3 /*break*/, 5];
-                    case 3: return [4 /*yield*/, this.getFeeData()];
-                    case 4:
-                        feeData = _a.sent();
-                        if (tx.type == null) {
-                            // We need to auto-detect the intended type of this transaction...
-                            if (feeData.maxFeePerGas != null && feeData.maxPriorityFeePerGas != null) {
-                                // The network supports EIP-1559!
-                                // Upgrade transaction from null to eip-1559
-                                tx.type = 2;
-                                if (tx.gasPrice != null) {
-                                    gasPrice = tx.gasPrice;
-                                    delete tx.gasPrice;
-                                    tx.maxFeePerGas = gasPrice;
-                                    tx.maxPriorityFeePerGas = gasPrice;
-                                }
-                                else {
-                                    // Populate missing fee data
-                                    if (tx.maxFeePerGas == null) {
-                                        tx.maxFeePerGas = feeData.maxFeePerGas;
-                                    }
-                                    if (tx.maxPriorityFeePerGas == null) {
-                                        tx.maxPriorityFeePerGas = feeData.maxPriorityFeePerGas;
-                                    }
-                                }
-                            }
-                            else if (feeData.gasPrice != null) {
-                                // Network doesn't support EIP-1559...
-                                // ...but they are trying to use EIP-1559 properties
-                                if (hasEip1559) {
-                                    logger.throwError("network does not support EIP-1559", logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
-                                        operation: "populateTransaction"
-                                    });
-                                }
-                                // Populate missing fee data
-                                if (tx.gasPrice == null) {
-                                    tx.gasPrice = feeData.gasPrice;
-                                }
-                                // Explicitly set untyped transaction to legacy
-                                tx.type = 0;
-                            }
-                            else {
-                                // getFeeData has failed us.
-                                logger.throwError("failed to get consistent fee data", logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
-                                    operation: "signer.getFeeData"
-                                });
-                            }
-                        }
-                        else if (tx.type === 2) {
-                            // Explicitly using EIP-1559
-                            // Populate missing fee data
-                            if (tx.maxFeePerGas == null) {
-                                tx.maxFeePerGas = feeData.maxFeePerGas;
-                            }
-                            if (tx.maxPriorityFeePerGas == null) {
-                                tx.maxPriorityFeePerGas = feeData.maxPriorityFeePerGas;
-                            }
-                        }
-                        _a.label = 5;
-                    case 5:
                         if (tx.nonce == null) {
                             tx.nonce = this.getTransactionCount("pending");
                         }
-                        if (tx.gasLimit == null) {
-                            tx.gasLimit = this.estimateGas(tx).catch(function (error) {
+                        if (tx.energyLimit == null) {
+                            tx.energyLimit = this.estimateEnergy(tx).catch(function (error) {
                                 if (forwardErrors.indexOf(error.code) >= 0) {
                                     throw error;
                                 }
-                                return logger.throwError("cannot estimate gas; transaction may fail or may require manual gas limit", logger_1.Logger.errors.UNPREDICTABLE_GAS_LIMIT, {
+                                return logger.throwError("cannot estimate energy; transaction may fail or may require manual energy limit", corebc_logger_1.Logger.errors.UNPREDICTABLE_GAS_LIMIT, {
                                     error: error,
                                     tx: tx
                                 });
                             });
                         }
-                        if (tx.chainId == null) {
-                            tx.chainId = this.getChainId();
+                        if (tx.energyPrice == null) {
+                            tx.energyPrice = this.getEnergyPrice();
+                        }
+                        if (tx.networkId == null) {
+                            tx.networkId = this.getNetworkId();
                         }
                         else {
-                            tx.chainId = Promise.all([
-                                Promise.resolve(tx.chainId),
-                                this.getChainId()
+                            tx.networkId = Promise.all([
+                                Promise.resolve(tx.networkId),
+                                this.getNetworkId()
                             ]).then(function (results) {
                                 if (results[1] !== 0 && results[0] !== results[1]) {
-                                    logger.throwArgumentError("chainId address mismatch", "transaction", transaction);
+                                    logger.throwArgumentError("networkId address mismatch", "transaction", transaction);
                                 }
                                 return results[0];
                             });
                         }
-                        return [4 /*yield*/, (0, properties_1.resolveProperties)(tx)];
-                    case 6: return [2 /*return*/, _a.sent()];
+                        return [4 /*yield*/, (0, corebc_properties_1.resolveProperties)(tx)];
+                    case 2: return [2 /*return*/, _a.sent()];
                 }
             });
         });
@@ -392,7 +314,7 @@ var Signer = /** @class */ (function () {
     // Sub-classes SHOULD leave these alone
     Signer.prototype._checkProvider = function (operation) {
         if (!this.provider) {
-            logger.throwError("missing provider", logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
+            logger.throwError("missing provider", corebc_logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
                 operation: (operation || "_checkProvider")
             });
         }
@@ -410,8 +332,8 @@ var VoidSigner = /** @class */ (function (_super) {
         var _this = this;
         logger.checkNew(_newTarget, VoidSigner);
         _this = _super.call(this) || this;
-        (0, properties_1.defineReadOnly)(_this, "address", address);
-        (0, properties_1.defineReadOnly)(_this, "provider", provider || null);
+        (0, corebc_properties_1.defineReadOnly)(_this, "address", address);
+        (0, corebc_properties_1.defineReadOnly)(_this, "provider", provider || null);
         return _this;
     }
     VoidSigner.prototype.getAddress = function () {
@@ -419,7 +341,7 @@ var VoidSigner = /** @class */ (function (_super) {
     };
     VoidSigner.prototype._fail = function (message, operation) {
         return Promise.resolve().then(function () {
-            logger.throwError(message, logger_1.Logger.errors.UNSUPPORTED_OPERATION, { operation: operation });
+            logger.throwError(message, corebc_logger_1.Logger.errors.UNSUPPORTED_OPERATION, { operation: operation });
         });
     };
     VoidSigner.prototype.signMessage = function (message) {

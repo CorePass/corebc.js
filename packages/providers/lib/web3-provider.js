@@ -16,10 +16,10 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Web3Provider = void 0;
-var properties_1 = require("@ethersproject/properties");
-var logger_1 = require("@ethersproject/logger");
+var corebc_properties_1 = require("@corepass/corebc-properties");
+var corebc_logger_1 = require("@corepass/corebc-logger");
 var _version_1 = require("./_version");
-var logger = new logger_1.Logger(_version_1.version);
+var logger = new corebc_logger_1.Logger(_version_1.version);
 var json_rpc_provider_1 = require("./json-rpc-provider");
 var _nextId = 1;
 function buildWeb3LegacyFetcher(provider, sendFunc) {
@@ -36,7 +36,7 @@ function buildWeb3LegacyFetcher(provider, sendFunc) {
             _this.emit("debug", {
                 action: "request",
                 fetcher: fetcher,
-                request: (0, properties_1.deepCopy)(request),
+                request: (0, corebc_properties_1.deepCopy)(request),
                 provider: _this
             });
             sendFunc(request, function (error, response) {
@@ -78,7 +78,7 @@ function buildEip1193Fetcher(provider) {
         this.emit("debug", {
             action: "request",
             fetcher: "Eip1193Fetcher",
-            request: (0, properties_1.deepCopy)(request),
+            request: (0, corebc_properties_1.deepCopy)(request),
             provider: this
         });
         return provider.request(request).then(function (response) {
@@ -144,8 +144,8 @@ var Web3Provider = /** @class */ (function (_super) {
             }
         }
         _this = _super.call(this, path, network) || this;
-        (0, properties_1.defineReadOnly)(_this, "jsonRpcFetchFunc", jsonRpcFetchFunc);
-        (0, properties_1.defineReadOnly)(_this, "provider", subprovider);
+        (0, corebc_properties_1.defineReadOnly)(_this, "jsonRpcFetchFunc", jsonRpcFetchFunc);
+        (0, corebc_properties_1.defineReadOnly)(_this, "provider", subprovider);
         return _this;
     }
     Web3Provider.prototype.send = function (method, params) {

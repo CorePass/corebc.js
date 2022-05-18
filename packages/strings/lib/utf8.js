@@ -1,10 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.toUtf8CodePoints = exports.toUtf8String = exports._toUtf8String = exports._toEscapedUtf8String = exports.toUtf8Bytes = exports.Utf8ErrorFuncs = exports.Utf8ErrorReason = exports.UnicodeNormalizationForm = void 0;
-var bytes_1 = require("@ethersproject/bytes");
-var logger_1 = require("@ethersproject/logger");
+var corebc_bytes_1 = require("@corepass/corebc-bytes");
+var corebc_logger_1 = require("@corepass/corebc-logger");
 var _version_1 = require("./_version");
-var logger = new logger_1.Logger(_version_1.version);
+var logger = new corebc_logger_1.Logger(_version_1.version);
 ///////////////////////////////
 var UnicodeNormalizationForm;
 (function (UnicodeNormalizationForm) {
@@ -88,7 +88,7 @@ function getUtf8CodePoints(bytes, onError) {
     if (onError == null) {
         onError = exports.Utf8ErrorFuncs.error;
     }
-    bytes = (0, bytes_1.arrayify)(bytes);
+    bytes = (0, corebc_bytes_1.arrayify)(bytes);
     var result = [];
     var i = 0;
     // Invalid bytes are ignored
@@ -204,7 +204,7 @@ function toUtf8Bytes(str, form) {
             result.push((c & 0x3f) | 0x80);
         }
     }
-    return (0, bytes_1.arrayify)(result);
+    return (0, corebc_bytes_1.arrayify)(result);
 }
 exports.toUtf8Bytes = toUtf8Bytes;
 ;

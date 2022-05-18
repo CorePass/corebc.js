@@ -1,22 +1,18 @@
-import { BigNumber, BigNumberish } from "@ethersproject/bignumber";
-import { BytesLike } from "@ethersproject/bytes";
-import { Network } from "@ethersproject/networks";
-import { Deferrable, Description } from "@ethersproject/properties";
-import { AccessListish, Transaction } from "@ethersproject/transactions";
-import { OnceBlockable } from "@ethersproject/web";
+import { BigNumber, BigNumberish } from "@corepass/corebc-bignumber";
+import { BytesLike } from "@corepass/corebc-bytes";
+import { Network } from "@corepass/corebc-networks";
+import { Deferrable, Description } from "@corepass/corebc-properties";
+import { Transaction } from "@corepass/corebc-transactions";
+import { OnceBlockable } from "@corepass/corebc-web";
 export declare type TransactionRequest = {
     to?: string;
     from?: string;
     nonce?: BigNumberish;
-    gasLimit?: BigNumberish;
-    gasPrice?: BigNumberish;
+    networkId?: number;
+    energyLimit?: BigNumberish;
+    energyPrice?: BigNumberish;
     data?: BytesLike;
     value?: BigNumberish;
-    chainId?: number;
-    type?: number;
-    accessList?: AccessListish;
-    maxPriorityFeePerGas?: BigNumberish;
-    maxFeePerGas?: BigNumberish;
     customData?: Record<string, any>;
 };
 export interface TransactionResponse extends Transaction {
@@ -38,11 +34,11 @@ export interface _Block {
     nonce: string;
     difficulty: number;
     _difficulty: BigNumber;
-    gasLimit: BigNumber;
-    gasUsed: BigNumber;
+    energyLimit: BigNumber;
+    energyUsed: BigNumber;
     miner: string;
     extraData: string;
-    baseFeePerGas?: null | BigNumber;
+    baseFeePerEnergy?: null | BigNumber;
 }
 export interface Block extends _Block {
     transactions: Array<string>;
@@ -67,23 +63,23 @@ export interface TransactionReceipt {
     contractAddress: string;
     transactionIndex: number;
     root?: string;
-    gasUsed: BigNumber;
+    energyUsed: BigNumber;
     logsBloom: string;
     blockHash: string;
     transactionHash: string;
     logs: Array<Log>;
     blockNumber: number;
     confirmations: number;
-    cumulativeGasUsed: BigNumber;
-    effectiveGasPrice: BigNumber;
+    cumulativeEnergyUsed: BigNumber;
+    effectiveEnergyPrice: BigNumber;
     byzantium: boolean;
     type: number;
     status?: number;
 }
 export interface FeeData {
-    maxFeePerGas: null | BigNumber;
-    maxPriorityFeePerGas: null | BigNumber;
-    gasPrice: null | BigNumber;
+    maxFeePerEnergy: null | BigNumber;
+    maxPriorityFeePerEnergy: null | BigNumber;
+    energyPrice: null | BigNumber;
 }
 export interface EventFilter {
     address?: string;
@@ -121,7 +117,7 @@ export declare type Listener = (...args: Array<any>) => void;
 export declare abstract class Provider implements OnceBlockable {
     abstract getNetwork(): Promise<Network>;
     abstract getBlockNumber(): Promise<number>;
-    abstract getGasPrice(): Promise<BigNumber>;
+    abstract getEnergyPrice(): Promise<BigNumber>;
     getFeeData(): Promise<FeeData>;
     abstract getBalance(addressOrName: string | Promise<string>, blockTag?: BlockTag | Promise<BlockTag>): Promise<BigNumber>;
     abstract getTransactionCount(addressOrName: string | Promise<string>, blockTag?: BlockTag | Promise<BlockTag>): Promise<number>;
@@ -129,7 +125,7 @@ export declare abstract class Provider implements OnceBlockable {
     abstract getStorageAt(addressOrName: string | Promise<string>, position: BigNumberish | Promise<BigNumberish>, blockTag?: BlockTag | Promise<BlockTag>): Promise<string>;
     abstract sendTransaction(signedTransaction: string | Promise<string>): Promise<TransactionResponse>;
     abstract call(transaction: Deferrable<TransactionRequest>, blockTag?: BlockTag | Promise<BlockTag>): Promise<string>;
-    abstract estimateGas(transaction: Deferrable<TransactionRequest>): Promise<BigNumber>;
+    abstract estimateEnergy(transaction: Deferrable<TransactionRequest>): Promise<BigNumber>;
     abstract getBlock(blockHashOrBlockTag: BlockTag | string | Promise<BlockTag | string>): Promise<Block>;
     abstract getBlockWithTransactions(blockHashOrBlockTag: BlockTag | string | Promise<BlockTag | string>): Promise<BlockWithTransactions>;
     abstract getTransaction(transactionHash: string): Promise<TransactionResponse>;

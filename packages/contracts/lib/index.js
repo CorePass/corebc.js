@@ -61,24 +61,21 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ContractFactory = exports.Contract = exports.BaseContract = void 0;
-var abi_1 = require("@ethersproject/abi");
-var abstract_provider_1 = require("@ethersproject/abstract-provider");
-var abstract_signer_1 = require("@ethersproject/abstract-signer");
-var address_1 = require("@ethersproject/address");
-var bignumber_1 = require("@ethersproject/bignumber");
-var bytes_1 = require("@ethersproject/bytes");
-var properties_1 = require("@ethersproject/properties");
-var transactions_1 = require("@ethersproject/transactions");
-var logger_1 = require("@ethersproject/logger");
+var corebc_abi_1 = require("@corepass/corebc-abi");
+var corebc_abstract_provider_1 = require("@corepass/corebc-abstract-provider");
+var corebc_abstract_signer_1 = require("@corepass/corebc-abstract-signer");
+var corebc_address_1 = require("@corepass/corebc-address");
+var corebc_bignumber_1 = require("@corepass/corebc-bignumber");
+var corebc_bytes_1 = require("@corepass/corebc-bytes");
+var corebc_properties_1 = require("@corepass/corebc-properties");
+var corebc_logger_1 = require("@corepass/corebc-logger");
 var _version_1 = require("./_version");
-var logger = new logger_1.Logger(_version_1.version);
+var logger = new corebc_logger_1.Logger(_version_1.version);
 ;
 ;
 ///////////////////////////////
 var allowedTransactionKeys = {
-    chainId: true, data: true, from: true, gasLimit: true, gasPrice: true, nonce: true, to: true, value: true,
-    type: true, accessList: true,
-    maxFeePerGas: true, maxPriorityFeePerGas: true,
+    networkId: true, data: true, from: true, energyLimit: true, energyPrice: true, nonce: true, to: true, value: true,
     customData: true
 };
 function resolveName(resolver, nameOrPromise) {
@@ -94,11 +91,11 @@ function resolveName(resolver, nameOrPromise) {
                     }
                     // If it is already an address, just use it (after adding checksum)
                     try {
-                        return [2 /*return*/, (0, address_1.getAddress)(name)];
+                        return [2 /*return*/, (0, corebc_address_1.getAddress)(name)];
                     }
                     catch (error) { }
                     if (!resolver) {
-                        logger.throwError("a provider or signer is needed to resolve ENS names", logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
+                        logger.throwError("a provider or signer is needed to resolve ENS names", corebc_logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
                             operation: "resolveName"
                         });
                     }
@@ -135,7 +132,7 @@ function resolveAddresses(resolver, value, paramType) {
                 case 6:
                     if (!(paramType.baseType === "array")) return [3 /*break*/, 8];
                     if (!Array.isArray(value)) {
-                        return [2 /*return*/, Promise.reject(logger.makeError("invalid value for array", logger_1.Logger.errors.INVALID_ARGUMENT, {
+                        return [2 /*return*/, Promise.reject(logger.makeError("invalid value for array", corebc_logger_1.Logger.errors.INVALID_ARGUMENT, {
                                 argument: "value",
                                 value: value
                             }))];
@@ -156,7 +153,7 @@ function populateTransaction(contract, fragment, args) {
                 case 0:
                     overrides = {};
                     if (args.length === fragment.inputs.length + 1 && typeof (args[args.length - 1]) === "object") {
-                        overrides = (0, properties_1.shallowCopy)(args.pop());
+                        overrides = (0, corebc_properties_1.shallowCopy)(args.pop());
                     }
                     // Make sure the parameter count matches
                     logger.checkArgumentCount(args.length, fragment.inputs.length, "passed to contract");
@@ -165,13 +162,13 @@ function populateTransaction(contract, fragment, args) {
                         if (overrides.from) {
                             // Contracts with a Signer are from the Signer's frame-of-reference;
                             // but we allow overriding "from" if it matches the signer
-                            overrides.from = (0, properties_1.resolveProperties)({
+                            overrides.from = (0, corebc_properties_1.resolveProperties)({
                                 override: resolveName(contract.signer, overrides.from),
                                 signer: contract.signer.getAddress()
                             }).then(function (check) { return __awaiter(_this, void 0, void 0, function () {
                                 return __generator(this, function (_a) {
-                                    if ((0, address_1.getAddress)(check.signer) !== check.override) {
-                                        logger.throwError("Contract with a Signer cannot override from", logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
+                                    if ((0, corebc_address_1.getAddress)(check.signer) !== check.override) {
+                                        logger.throwError("Contract with a Signer cannot override from", corebc_logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
                                             operation: "overrides.from"
                                         });
                                     }
@@ -190,10 +187,10 @@ function populateTransaction(contract, fragment, args) {
                         // unspecified the zero address is used
                         //overrides.from = AddressZero;
                     }
-                    return [4 /*yield*/, (0, properties_1.resolveProperties)({
+                    return [4 /*yield*/, (0, corebc_properties_1.resolveProperties)({
                             args: resolveAddresses(contract.signer || contract.provider, args, fragment.inputs),
                             address: contract.resolvedAddress,
-                            overrides: ((0, properties_1.resolveProperties)(overrides) || {})
+                            overrides: ((0, corebc_properties_1.resolveProperties)(overrides) || {})
                         })];
                 case 1:
                     resolved = _a.sent();
@@ -205,46 +202,34 @@ function populateTransaction(contract, fragment, args) {
                     ro = resolved.overrides;
                     // Populate simple overrides
                     if (ro.nonce != null) {
-                        tx.nonce = bignumber_1.BigNumber.from(ro.nonce).toNumber();
+                        tx.nonce = corebc_bignumber_1.BigNumber.from(ro.nonce).toNumber();
                     }
-                    if (ro.gasLimit != null) {
-                        tx.gasLimit = bignumber_1.BigNumber.from(ro.gasLimit);
+                    if (ro.energyLimit != null) {
+                        tx.energyLimit = corebc_bignumber_1.BigNumber.from(ro.energyLimit);
                     }
-                    if (ro.gasPrice != null) {
-                        tx.gasPrice = bignumber_1.BigNumber.from(ro.gasPrice);
-                    }
-                    if (ro.maxFeePerGas != null) {
-                        tx.maxFeePerGas = bignumber_1.BigNumber.from(ro.maxFeePerGas);
-                    }
-                    if (ro.maxPriorityFeePerGas != null) {
-                        tx.maxPriorityFeePerGas = bignumber_1.BigNumber.from(ro.maxPriorityFeePerGas);
+                    if (ro.energyPrice != null) {
+                        tx.energyPrice = corebc_bignumber_1.BigNumber.from(ro.energyPrice);
                     }
                     if (ro.from != null) {
                         tx.from = ro.from;
                     }
-                    if (ro.type != null) {
-                        tx.type = ro.type;
-                    }
-                    if (ro.accessList != null) {
-                        tx.accessList = (0, transactions_1.accessListify)(ro.accessList);
-                    }
-                    // If there was no "gasLimit" override, but the ABI specifies a default, use it
-                    if (tx.gasLimit == null && fragment.gas != null) {
+                    // If there was no "energyLimit" override, but the ABI specifies a default, use it
+                    if (tx.energyLimit == null && fragment.energy != null) {
                         intrinsic = 21000;
-                        bytes = (0, bytes_1.arrayify)(data);
+                        bytes = (0, corebc_bytes_1.arrayify)(data);
                         for (i = 0; i < bytes.length; i++) {
                             intrinsic += 4;
                             if (bytes[i]) {
                                 intrinsic += 64;
                             }
                         }
-                        tx.gasLimit = bignumber_1.BigNumber.from(fragment.gas).add(intrinsic);
+                        tx.energyLimit = corebc_bignumber_1.BigNumber.from(fragment.energy).add(intrinsic);
                     }
                     // Populate "value" override
                     if (ro.value) {
-                        roValue = bignumber_1.BigNumber.from(ro.value);
+                        roValue = corebc_bignumber_1.BigNumber.from(ro.value);
                         if (!roValue.isZero() && !fragment.payable) {
-                            logger.throwError("non-payable method cannot override value", logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
+                            logger.throwError("non-payable method cannot override value", corebc_logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
                                 operation: "overrides.value",
                                 value: overrides.value
                             });
@@ -252,22 +237,18 @@ function populateTransaction(contract, fragment, args) {
                         tx.value = roValue;
                     }
                     if (ro.customData) {
-                        tx.customData = (0, properties_1.shallowCopy)(ro.customData);
+                        tx.customData = (0, corebc_properties_1.shallowCopy)(ro.customData);
                     }
                     // Remove the overrides
                     delete overrides.nonce;
-                    delete overrides.gasLimit;
-                    delete overrides.gasPrice;
+                    delete overrides.energyLimit;
+                    delete overrides.energyPrice;
                     delete overrides.from;
                     delete overrides.value;
-                    delete overrides.type;
-                    delete overrides.accessList;
-                    delete overrides.maxFeePerGas;
-                    delete overrides.maxPriorityFeePerGas;
                     delete overrides.customData;
                     leftovers = Object.keys(overrides).filter(function (key) { return (overrides[key] != null); });
                     if (leftovers.length) {
-                        logger.throwError("cannot override " + leftovers.map(function (l) { return JSON.stringify(l); }).join(","), logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
+                        logger.throwError("cannot override " + leftovers.map(function (l) { return JSON.stringify(l); }).join(","), corebc_logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
                             operation: "overrides",
                             overrides: leftovers
                         });
@@ -299,14 +280,14 @@ function buildEstimate(contract, fragment) {
                 switch (_a.label) {
                     case 0:
                         if (!signerOrProvider) {
-                            logger.throwError("estimate require a provider or signer", logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
-                                operation: "estimateGas"
+                            logger.throwError("estimate require a provider or signer", corebc_logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
+                                operation: "estimateEnergy"
                             });
                         }
                         return [4 /*yield*/, populateTransaction(contract, fragment, args)];
                     case 1:
                         tx = _a.sent();
-                        return [4 /*yield*/, signerOrProvider.estimateGas(tx)];
+                        return [4 /*yield*/, signerOrProvider.estimateEnergy(tx)];
                     case 2: return [2 /*return*/, _a.sent()];
                 }
             });
@@ -318,7 +299,7 @@ function addContractWait(contract, tx) {
     tx.wait = function (confirmations) {
         return wait(confirmations).then(function (receipt) {
             receipt.events = receipt.logs.map(function (log) {
-                var event = (0, properties_1.deepCopy)(log);
+                var event = (0, corebc_properties_1.deepCopy)(log);
                 var parsed = null;
                 try {
                     parsed = contract.interface.parseLog(log);
@@ -364,7 +345,7 @@ function buildCall(contract, fragment, collapseSimple) {
                     case 0:
                         blockTag = undefined;
                         if (!(args.length === fragment.inputs.length + 1 && typeof (args[args.length - 1]) === "object")) return [3 /*break*/, 3];
-                        overrides = (0, properties_1.shallowCopy)(args.pop());
+                        overrides = (0, corebc_properties_1.shallowCopy)(args.pop());
                         if (!(overrides.blockTag != null)) return [3 /*break*/, 2];
                         return [4 /*yield*/, overrides.blockTag];
                     case 1:
@@ -394,7 +375,7 @@ function buildCall(contract, fragment, collapseSimple) {
                             return [2 /*return*/, value];
                         }
                         catch (error) {
-                            if (error.code === logger_1.Logger.errors.CALL_EXCEPTION) {
+                            if (error.code === corebc_logger_1.Logger.errors.CALL_EXCEPTION) {
                                 error.address = contract.address;
                                 error.args = args;
                                 error.transaction = tx;
@@ -419,7 +400,7 @@ function buildSend(contract, fragment) {
                 switch (_a.label) {
                     case 0:
                         if (!contract.signer) {
-                            logger.throwError("sending a transaction requires a signer", logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
+                            logger.throwError("sending a transaction requires a signer", corebc_logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
                                 operation: "sendTransaction"
                             });
                         }
@@ -461,8 +442,8 @@ function getEventTag(filter) {
 }
 var RunningEvent = /** @class */ (function () {
     function RunningEvent(tag, filter) {
-        (0, properties_1.defineReadOnly)(this, "tag", tag);
-        (0, properties_1.defineReadOnly)(this, "filter", filter);
+        (0, corebc_properties_1.defineReadOnly)(this, "tag", tag);
+        (0, corebc_properties_1.defineReadOnly)(this, "filter", filter);
         this._listeners = [];
     }
     RunningEvent.prototype.addListener = function (listener, once) {
@@ -539,9 +520,9 @@ var FragmentRunningEvent = /** @class */ (function (_super) {
             filter.topics = [topic];
         }
         _this = _super.call(this, getEventTag(filter), filter) || this;
-        (0, properties_1.defineReadOnly)(_this, "address", address);
-        (0, properties_1.defineReadOnly)(_this, "interface", contractInterface);
-        (0, properties_1.defineReadOnly)(_this, "fragment", fragment);
+        (0, corebc_properties_1.defineReadOnly)(_this, "address", address);
+        (0, corebc_properties_1.defineReadOnly)(_this, "interface", contractInterface);
+        (0, corebc_properties_1.defineReadOnly)(_this, "fragment", fragment);
         return _this;
     }
     FragmentRunningEvent.prototype.prepareEvent = function (event) {
@@ -561,7 +542,7 @@ var FragmentRunningEvent = /** @class */ (function (_super) {
         }
     };
     FragmentRunningEvent.prototype.getEmit = function (event) {
-        var errors = (0, abi_1.checkResultErrors)(event.args);
+        var errors = (0, corebc_abi_1.checkResultErrors)(event.args);
         if (errors.length) {
             throw errors[0].error;
         }
@@ -580,8 +561,8 @@ var WildcardRunningEvent = /** @class */ (function (_super) {
     __extends(WildcardRunningEvent, _super);
     function WildcardRunningEvent(address, contractInterface) {
         var _this = _super.call(this, "*", { address: address }) || this;
-        (0, properties_1.defineReadOnly)(_this, "address", address);
-        (0, properties_1.defineReadOnly)(_this, "interface", contractInterface);
+        (0, corebc_properties_1.defineReadOnly)(_this, "address", address);
+        (0, corebc_properties_1.defineReadOnly)(_this, "interface", contractInterface);
         return _this;
     }
     WildcardRunningEvent.prototype.prepareEvent = function (event) {
@@ -609,32 +590,32 @@ var BaseContract = /** @class */ (function () {
         logger.checkNew(_newTarget, Contract);
         // @TODO: Maybe still check the addressOrName looks like a valid address or name?
         //address = getAddress(address);
-        (0, properties_1.defineReadOnly)(this, "interface", (0, properties_1.getStatic)(_newTarget, "getInterface")(contractInterface));
+        (0, corebc_properties_1.defineReadOnly)(this, "interface", (0, corebc_properties_1.getStatic)(_newTarget, "getInterface")(contractInterface));
         if (signerOrProvider == null) {
-            (0, properties_1.defineReadOnly)(this, "provider", null);
-            (0, properties_1.defineReadOnly)(this, "signer", null);
+            (0, corebc_properties_1.defineReadOnly)(this, "provider", null);
+            (0, corebc_properties_1.defineReadOnly)(this, "signer", null);
         }
-        else if (abstract_signer_1.Signer.isSigner(signerOrProvider)) {
-            (0, properties_1.defineReadOnly)(this, "provider", signerOrProvider.provider || null);
-            (0, properties_1.defineReadOnly)(this, "signer", signerOrProvider);
+        else if (corebc_abstract_signer_1.Signer.isSigner(signerOrProvider)) {
+            (0, corebc_properties_1.defineReadOnly)(this, "provider", signerOrProvider.provider || null);
+            (0, corebc_properties_1.defineReadOnly)(this, "signer", signerOrProvider);
         }
-        else if (abstract_provider_1.Provider.isProvider(signerOrProvider)) {
-            (0, properties_1.defineReadOnly)(this, "provider", signerOrProvider);
-            (0, properties_1.defineReadOnly)(this, "signer", null);
+        else if (corebc_abstract_provider_1.Provider.isProvider(signerOrProvider)) {
+            (0, corebc_properties_1.defineReadOnly)(this, "provider", signerOrProvider);
+            (0, corebc_properties_1.defineReadOnly)(this, "signer", null);
         }
         else {
             logger.throwArgumentError("invalid signer or provider", "signerOrProvider", signerOrProvider);
         }
-        (0, properties_1.defineReadOnly)(this, "callStatic", {});
-        (0, properties_1.defineReadOnly)(this, "estimateGas", {});
-        (0, properties_1.defineReadOnly)(this, "functions", {});
-        (0, properties_1.defineReadOnly)(this, "populateTransaction", {});
-        (0, properties_1.defineReadOnly)(this, "filters", {});
+        (0, corebc_properties_1.defineReadOnly)(this, "callStatic", {});
+        (0, corebc_properties_1.defineReadOnly)(this, "estimateEnergy", {});
+        (0, corebc_properties_1.defineReadOnly)(this, "functions", {});
+        (0, corebc_properties_1.defineReadOnly)(this, "populateTransaction", {});
+        (0, corebc_properties_1.defineReadOnly)(this, "filters", {});
         {
             var uniqueFilters_1 = {};
             Object.keys(this.interface.events).forEach(function (eventSignature) {
                 var event = _this.interface.events[eventSignature];
-                (0, properties_1.defineReadOnly)(_this.filters, eventSignature, function () {
+                (0, corebc_properties_1.defineReadOnly)(_this.filters, eventSignature, function () {
                     var args = [];
                     for (var _i = 0; _i < arguments.length; _i++) {
                         args[_i] = arguments[_i];
@@ -652,29 +633,29 @@ var BaseContract = /** @class */ (function () {
             Object.keys(uniqueFilters_1).forEach(function (name) {
                 var filters = uniqueFilters_1[name];
                 if (filters.length === 1) {
-                    (0, properties_1.defineReadOnly)(_this.filters, name, _this.filters[filters[0]]);
+                    (0, corebc_properties_1.defineReadOnly)(_this.filters, name, _this.filters[filters[0]]);
                 }
                 else {
                     logger.warn("Duplicate definition of " + name + " (" + filters.join(", ") + ")");
                 }
             });
         }
-        (0, properties_1.defineReadOnly)(this, "_runningEvents", {});
-        (0, properties_1.defineReadOnly)(this, "_wrappedEmits", {});
+        (0, corebc_properties_1.defineReadOnly)(this, "_runningEvents", {});
+        (0, corebc_properties_1.defineReadOnly)(this, "_wrappedEmits", {});
         if (addressOrName == null) {
             logger.throwArgumentError("invalid contract address or ENS name", "addressOrName", addressOrName);
         }
-        (0, properties_1.defineReadOnly)(this, "address", addressOrName);
+        (0, corebc_properties_1.defineReadOnly)(this, "address", addressOrName);
         if (this.provider) {
-            (0, properties_1.defineReadOnly)(this, "resolvedAddress", resolveName(this.provider, addressOrName));
+            (0, corebc_properties_1.defineReadOnly)(this, "resolvedAddress", resolveName(this.provider, addressOrName));
         }
         else {
             try {
-                (0, properties_1.defineReadOnly)(this, "resolvedAddress", Promise.resolve((0, address_1.getAddress)(addressOrName)));
+                (0, corebc_properties_1.defineReadOnly)(this, "resolvedAddress", Promise.resolve((0, corebc_address_1.getAddress)(addressOrName)));
             }
             catch (error) {
                 // Without a provider, we cannot use ENS names
-                logger.throwError("provider is required to use ENS name as contract address", logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
+                logger.throwError("provider is required to use ENS name as contract address", corebc_logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
                     operation: "new Contract"
                 });
             }
@@ -700,22 +681,22 @@ var BaseContract = /** @class */ (function () {
                 uniqueNames["%" + name_1].push(signature);
             }
             if (_this[signature] == null) {
-                (0, properties_1.defineReadOnly)(_this, signature, buildDefault(_this, fragment, true));
+                (0, corebc_properties_1.defineReadOnly)(_this, signature, buildDefault(_this, fragment, true));
             }
             // We do not collapse simple calls on this bucket, which allows
             // frameworks to safely use this without introspection as well as
             // allows decoding error recovery.
             if (_this.functions[signature] == null) {
-                (0, properties_1.defineReadOnly)(_this.functions, signature, buildDefault(_this, fragment, false));
+                (0, corebc_properties_1.defineReadOnly)(_this.functions, signature, buildDefault(_this, fragment, false));
             }
             if (_this.callStatic[signature] == null) {
-                (0, properties_1.defineReadOnly)(_this.callStatic, signature, buildCall(_this, fragment, true));
+                (0, corebc_properties_1.defineReadOnly)(_this.callStatic, signature, buildCall(_this, fragment, true));
             }
             if (_this.populateTransaction[signature] == null) {
-                (0, properties_1.defineReadOnly)(_this.populateTransaction, signature, buildPopulate(_this, fragment));
+                (0, corebc_properties_1.defineReadOnly)(_this.populateTransaction, signature, buildPopulate(_this, fragment));
             }
-            if (_this.estimateGas[signature] == null) {
-                (0, properties_1.defineReadOnly)(_this.estimateGas, signature, buildEstimate(_this, fragment));
+            if (_this.estimateEnergy[signature] == null) {
+                (0, corebc_properties_1.defineReadOnly)(_this.estimateEnergy, signature, buildEstimate(_this, fragment));
             }
         });
         Object.keys(uniqueNames).forEach(function (name) {
@@ -730,32 +711,32 @@ var BaseContract = /** @class */ (function () {
             // If overwriting a member property that is null, swallow the error
             try {
                 if (_this[name] == null) {
-                    (0, properties_1.defineReadOnly)(_this, name, _this[signature]);
+                    (0, corebc_properties_1.defineReadOnly)(_this, name, _this[signature]);
                 }
             }
             catch (e) { }
             if (_this.functions[name] == null) {
-                (0, properties_1.defineReadOnly)(_this.functions, name, _this.functions[signature]);
+                (0, corebc_properties_1.defineReadOnly)(_this.functions, name, _this.functions[signature]);
             }
             if (_this.callStatic[name] == null) {
-                (0, properties_1.defineReadOnly)(_this.callStatic, name, _this.callStatic[signature]);
+                (0, corebc_properties_1.defineReadOnly)(_this.callStatic, name, _this.callStatic[signature]);
             }
             if (_this.populateTransaction[name] == null) {
-                (0, properties_1.defineReadOnly)(_this.populateTransaction, name, _this.populateTransaction[signature]);
+                (0, corebc_properties_1.defineReadOnly)(_this.populateTransaction, name, _this.populateTransaction[signature]);
             }
-            if (_this.estimateGas[name] == null) {
-                (0, properties_1.defineReadOnly)(_this.estimateGas, name, _this.estimateGas[signature]);
+            if (_this.estimateEnergy[name] == null) {
+                (0, corebc_properties_1.defineReadOnly)(_this.estimateEnergy, name, _this.estimateEnergy[signature]);
             }
         });
     }
     BaseContract.getContractAddress = function (transaction) {
-        return (0, address_1.getContractAddress)(transaction);
+        return (0, corebc_address_1.getContractAddress)(transaction);
     };
     BaseContract.getInterface = function (contractInterface) {
-        if (abi_1.Interface.isInterface(contractInterface)) {
+        if (corebc_abi_1.Interface.isInterface(contractInterface)) {
             return contractInterface;
         }
-        return new abi_1.Interface(contractInterface);
+        return new corebc_abi_1.Interface(contractInterface);
     };
     // @TODO: Allow timeout?
     BaseContract.prototype.deployed = function () {
@@ -776,7 +757,7 @@ var BaseContract = /** @class */ (function () {
                 // Otherwise, poll for our code to be deployed
                 this._deployedPromise = this.provider.getCode(this.address, blockTag).then(function (code) {
                     if (code === "0x") {
-                        logger.throwError("contract not deployed", logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
+                        logger.throwError("contract not deployed", corebc_logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
                             contractAddress: _this.address,
                             operation: "getDeployed"
                         });
@@ -794,14 +775,14 @@ var BaseContract = /** @class */ (function () {
     BaseContract.prototype.fallback = function (overrides) {
         var _this = this;
         if (!this.signer) {
-            logger.throwError("sending a transactions require a signer", logger_1.Logger.errors.UNSUPPORTED_OPERATION, { operation: "sendTransaction(fallback)" });
+            logger.throwError("sending a transactions require a signer", corebc_logger_1.Logger.errors.UNSUPPORTED_OPERATION, { operation: "sendTransaction(fallback)" });
         }
-        var tx = (0, properties_1.shallowCopy)(overrides || {});
+        var tx = (0, corebc_properties_1.shallowCopy)(overrides || {});
         ["from", "to"].forEach(function (key) {
             if (tx[key] == null) {
                 return;
             }
-            logger.throwError("cannot override " + key, logger_1.Logger.errors.UNSUPPORTED_OPERATION, { operation: key });
+            logger.throwError("cannot override " + key, corebc_logger_1.Logger.errors.UNSUPPORTED_OPERATION, { operation: key });
         });
         tx.to = this.resolvedAddress;
         return this.deployed().then(function () {
@@ -811,11 +792,11 @@ var BaseContract = /** @class */ (function () {
     // Reconnect to a different signer or provider
     BaseContract.prototype.connect = function (signerOrProvider) {
         if (typeof (signerOrProvider) === "string") {
-            signerOrProvider = new abstract_signer_1.VoidSigner(signerOrProvider, this.provider);
+            signerOrProvider = new corebc_abstract_signer_1.VoidSigner(signerOrProvider, this.provider);
         }
         var contract = new (this.constructor)(this.address, this.interface, signerOrProvider);
         if (this.deployTransaction) {
-            (0, properties_1.defineReadOnly)(contract, "deployTransaction", this.deployTransaction);
+            (0, corebc_properties_1.defineReadOnly)(contract, "deployTransaction", this.deployTransaction);
         }
         return contract;
     };
@@ -824,7 +805,7 @@ var BaseContract = /** @class */ (function () {
         return new (this.constructor)(addressOrName, this.interface, this.signer || this.provider);
     };
     BaseContract.isIndexed = function (value) {
-        return abi_1.Indexed.isIndexed(value);
+        return corebc_abi_1.Indexed.isIndexed(value);
     };
     BaseContract.prototype._normalizeRunningEvent = function (runningEvent) {
         // Already have an instance of this event running; we can re-use it
@@ -888,7 +869,7 @@ var BaseContract = /** @class */ (function () {
     // from parse errors if they wish
     BaseContract.prototype._wrapEvent = function (runningEvent, log, listener) {
         var _this = this;
-        var event = (0, properties_1.deepCopy)(log);
+        var event = (0, corebc_properties_1.deepCopy)(log);
         event.removeListener = function () {
             if (!listener) {
                 return;
@@ -906,7 +887,7 @@ var BaseContract = /** @class */ (function () {
     BaseContract.prototype._addEventListener = function (runningEvent, listener, once) {
         var _this = this;
         if (!this.provider) {
-            logger.throwError("events require a provider or a signer with a provider", logger_1.Logger.errors.UNSUPPORTED_OPERATION, { operation: "once" });
+            logger.throwError("events require a provider or a signer with a provider", corebc_logger_1.Logger.errors.UNSUPPORTED_OPERATION, { operation: "once" });
         }
         runningEvent.addListener(listener, once);
         // Track this running event and its listeners (may already be there; but no hard in updating)
@@ -944,8 +925,8 @@ var BaseContract = /** @class */ (function () {
     BaseContract.prototype.queryFilter = function (event, fromBlockOrBlockhash, toBlock) {
         var _this = this;
         var runningEvent = this._getRunningEvent(event);
-        var filter = (0, properties_1.shallowCopy)(runningEvent.filter);
-        if (typeof (fromBlockOrBlockhash) === "string" && (0, bytes_1.isHexString)(fromBlockOrBlockhash, 32)) {
+        var filter = (0, corebc_properties_1.shallowCopy)(runningEvent.filter);
+        if (typeof (fromBlockOrBlockhash) === "string" && (0, corebc_bytes_1.isHexString)(fromBlockOrBlockhash, 32)) {
             if (toBlock != null) {
                 logger.throwArgumentError("cannot specify toBlock with blockhash", "toBlock", toBlock);
             }
@@ -1056,8 +1037,8 @@ var ContractFactory = /** @class */ (function () {
         if (typeof (bytecode) === "string") {
             bytecodeHex = bytecode;
         }
-        else if ((0, bytes_1.isBytes)(bytecode)) {
-            bytecodeHex = (0, bytes_1.hexlify)(bytecode);
+        else if ((0, corebc_bytes_1.isBytes)(bytecode)) {
+            bytecodeHex = (0, corebc_bytes_1.hexlify)(bytecode);
         }
         else if (bytecode && typeof (bytecode.object) === "string") {
             // Allow the bytecode object from the Solidity compiler
@@ -1072,16 +1053,16 @@ var ContractFactory = /** @class */ (function () {
             bytecodeHex = "0x" + bytecodeHex;
         }
         // Make sure the final result is valid bytecode
-        if (!(0, bytes_1.isHexString)(bytecodeHex) || (bytecodeHex.length % 2)) {
+        if (!(0, corebc_bytes_1.isHexString)(bytecodeHex) || (bytecodeHex.length % 2)) {
             logger.throwArgumentError("invalid bytecode", "bytecode", bytecode);
         }
         // If we have a signer, make sure it is valid
-        if (signer && !abstract_signer_1.Signer.isSigner(signer)) {
+        if (signer && !corebc_abstract_signer_1.Signer.isSigner(signer)) {
             logger.throwArgumentError("invalid signer", "signer", signer);
         }
-        (0, properties_1.defineReadOnly)(this, "bytecode", bytecodeHex);
-        (0, properties_1.defineReadOnly)(this, "interface", (0, properties_1.getStatic)(_newTarget, "getInterface")(contractInterface));
-        (0, properties_1.defineReadOnly)(this, "signer", signer || null);
+        (0, corebc_properties_1.defineReadOnly)(this, "bytecode", bytecodeHex);
+        (0, corebc_properties_1.defineReadOnly)(this, "interface", (0, corebc_properties_1.getStatic)(_newTarget, "getInterface")(contractInterface));
+        (0, corebc_properties_1.defineReadOnly)(this, "signer", signer || null);
     }
     // @TODO: Future; rename to populateTransaction?
     ContractFactory.prototype.getDeployTransaction = function () {
@@ -1092,7 +1073,7 @@ var ContractFactory = /** @class */ (function () {
         var tx = {};
         // If we have 1 additional argument, we allow transaction overrides
         if (args.length === this.interface.deploy.inputs.length + 1 && typeof (args[args.length - 1]) === "object") {
-            tx = (0, properties_1.shallowCopy)(args.pop());
+            tx = (0, corebc_properties_1.shallowCopy)(args.pop());
             for (var key in tx) {
                 if (!allowedTransactionKeys[key]) {
                     throw new Error("unknown transaction override " + key);
@@ -1104,12 +1085,12 @@ var ContractFactory = /** @class */ (function () {
             if (tx[key] == null) {
                 return;
             }
-            logger.throwError("cannot override " + key, logger_1.Logger.errors.UNSUPPORTED_OPERATION, { operation: key });
+            logger.throwError("cannot override " + key, corebc_logger_1.Logger.errors.UNSUPPORTED_OPERATION, { operation: key });
         });
         if (tx.value) {
-            var value = bignumber_1.BigNumber.from(tx.value);
+            var value = corebc_bignumber_1.BigNumber.from(tx.value);
             if (!value.isZero() && !this.interface.deploy.payable) {
-                logger.throwError("non-payable constructor cannot override value", logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
+                logger.throwError("non-payable constructor cannot override value", corebc_logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
                     operation: "overrides.value",
                     value: tx.value
                 });
@@ -1118,7 +1099,7 @@ var ContractFactory = /** @class */ (function () {
         // Make sure the call matches the constructor signature
         logger.checkArgumentCount(args.length, this.interface.deploy.inputs.length, " in Contract constructor");
         // Set the data to the bytecode + the encoded constructor arguments
-        tx.data = (0, bytes_1.hexlify)((0, bytes_1.concat)([
+        tx.data = (0, corebc_bytes_1.hexlify)((0, corebc_bytes_1.concat)([
             this.bytecode,
             this.interface.encodeDeploy(args)
         ]));
@@ -1149,11 +1130,11 @@ var ContractFactory = /** @class */ (function () {
                         return [4 /*yield*/, this.signer.sendTransaction(unsignedTx)];
                     case 2:
                         tx = _a.sent();
-                        address = (0, properties_1.getStatic)(this.constructor, "getContractAddress")(tx);
-                        contract = (0, properties_1.getStatic)(this.constructor, "getContract")(address, this.interface, this.signer);
+                        address = (0, corebc_properties_1.getStatic)(this.constructor, "getContractAddress")(tx);
+                        contract = (0, corebc_properties_1.getStatic)(this.constructor, "getContract")(address, this.interface, this.signer);
                         // Add the modified wait that wraps events
                         addContractWait(contract, tx);
-                        (0, properties_1.defineReadOnly)(contract, "deployTransaction", tx);
+                        (0, corebc_properties_1.defineReadOnly)(contract, "deployTransaction", tx);
                         return [2 /*return*/, contract];
                 }
             });
@@ -1167,7 +1148,7 @@ var ContractFactory = /** @class */ (function () {
     };
     ContractFactory.fromSolidity = function (compilerOutput, signer) {
         if (compilerOutput == null) {
-            logger.throwError("missing compiler output", logger_1.Logger.errors.MISSING_ARGUMENT, { argument: "compilerOutput" });
+            logger.throwError("missing compiler output", corebc_logger_1.Logger.errors.MISSING_ARGUMENT, { argument: "compilerOutput" });
         }
         if (typeof (compilerOutput) === "string") {
             compilerOutput = JSON.parse(compilerOutput);
@@ -1186,7 +1167,7 @@ var ContractFactory = /** @class */ (function () {
         return Contract.getInterface(contractInterface);
     };
     ContractFactory.getContractAddress = function (tx) {
-        return (0, address_1.getContractAddress)(tx);
+        return (0, corebc_address_1.getContractAddress)(tx);
     };
     ContractFactory.getContract = function (address, contractInterface, signer) {
         return new Contract(address, contractInterface, signer);

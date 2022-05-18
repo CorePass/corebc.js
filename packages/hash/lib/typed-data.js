@@ -37,40 +37,40 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TypedDataEncoder = void 0;
-var address_1 = require("@ethersproject/address");
-var bignumber_1 = require("@ethersproject/bignumber");
-var bytes_1 = require("@ethersproject/bytes");
-var keccak256_1 = require("@ethersproject/keccak256");
-var properties_1 = require("@ethersproject/properties");
-var logger_1 = require("@ethersproject/logger");
+var corebc_address_1 = require("@corepass/corebc-address");
+var corebc_bignumber_1 = require("@corepass/corebc-bignumber");
+var corebc_bytes_1 = require("@corepass/corebc-bytes");
+var corebc_sha3_1 = require("@corepass/corebc-sha3");
+var corebc_properties_1 = require("@corepass/corebc-properties");
+var corebc_logger_1 = require("@corepass/corebc-logger");
 var _version_1 = require("./_version");
-var logger = new logger_1.Logger(_version_1.version);
+var logger = new corebc_logger_1.Logger(_version_1.version);
 var id_1 = require("./id");
 var padding = new Uint8Array(32);
 padding.fill(0);
-var NegativeOne = bignumber_1.BigNumber.from(-1);
-var Zero = bignumber_1.BigNumber.from(0);
-var One = bignumber_1.BigNumber.from(1);
-var MaxUint256 = bignumber_1.BigNumber.from("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+var NegativeOne = corebc_bignumber_1.BigNumber.from(-1);
+var Zero = corebc_bignumber_1.BigNumber.from(0);
+var One = corebc_bignumber_1.BigNumber.from(1);
+var MaxUint256 = corebc_bignumber_1.BigNumber.from("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
 function hexPadRight(value) {
-    var bytes = (0, bytes_1.arrayify)(value);
+    var bytes = (0, corebc_bytes_1.arrayify)(value);
     var padOffset = bytes.length % 32;
     if (padOffset) {
-        return (0, bytes_1.hexConcat)([bytes, padding.slice(padOffset)]);
+        return (0, corebc_bytes_1.hexConcat)([bytes, padding.slice(padOffset)]);
     }
-    return (0, bytes_1.hexlify)(bytes);
+    return (0, corebc_bytes_1.hexlify)(bytes);
 }
-var hexTrue = (0, bytes_1.hexZeroPad)(One.toHexString(), 32);
-var hexFalse = (0, bytes_1.hexZeroPad)(Zero.toHexString(), 32);
+var hexTrue = (0, corebc_bytes_1.hexZeroPad)(One.toHexString(), 32);
+var hexFalse = (0, corebc_bytes_1.hexZeroPad)(Zero.toHexString(), 32);
 var domainFieldTypes = {
     name: "string",
     version: "string",
-    chainId: "uint256",
+    networkId: "uint256",
     verifyingContract: "address",
     salt: "bytes32"
 };
 var domainFieldNames = [
-    "name", "version", "chainId", "verifyingContract", "salt"
+    "name", "version", "networkId", "verifyingContract", "salt"
 ];
 function checkString(key) {
     return function (value) {
@@ -83,27 +83,27 @@ function checkString(key) {
 var domainChecks = {
     name: checkString("name"),
     version: checkString("version"),
-    chainId: function (value) {
+    networkId: function (value) {
         try {
-            return bignumber_1.BigNumber.from(value).toString();
+            return corebc_bignumber_1.BigNumber.from(value).toString();
         }
         catch (error) { }
-        return logger.throwArgumentError("invalid domain value for \"chainId\"", "domain.chainId", value);
+        return logger.throwArgumentError("invalid domain value for \"networkId\"", "domain.networkId", value);
     },
     verifyingContract: function (value) {
         try {
-            return (0, address_1.getAddress)(value).toLowerCase();
+            return (0, corebc_address_1.getAddress)(value).toLowerCase();
         }
         catch (error) { }
         return logger.throwArgumentError("invalid domain value \"verifyingContract\"", "domain.verifyingContract", value);
     },
     salt: function (value) {
         try {
-            var bytes = (0, bytes_1.arrayify)(value);
+            var bytes = (0, corebc_bytes_1.arrayify)(value);
             if (bytes.length !== 32) {
                 throw new Error("bad length");
             }
-            return (0, bytes_1.hexlify)(bytes);
+            return (0, corebc_bytes_1.hexlify)(bytes);
         }
         catch (error) { }
         return logger.throwArgumentError("invalid domain value \"salt\"", "domain.salt", value);
@@ -122,11 +122,11 @@ function getBaseEncoder(type) {
             var boundsUpper_1 = MaxUint256.mask(signed ? (width - 1) : width);
             var boundsLower_1 = signed ? boundsUpper_1.add(One).mul(NegativeOne) : Zero;
             return function (value) {
-                var v = bignumber_1.BigNumber.from(value);
+                var v = corebc_bignumber_1.BigNumber.from(value);
                 if (v.lt(boundsLower_1) || v.gt(boundsUpper_1)) {
                     logger.throwArgumentError("value out-of-bounds for " + type, "value", value);
                 }
-                return (0, bytes_1.hexZeroPad)(v.toTwos(256).toHexString(), 32);
+                return (0, corebc_bytes_1.hexZeroPad)(v.toTwos(256).toHexString(), 32);
             };
         }
     }
@@ -139,7 +139,7 @@ function getBaseEncoder(type) {
                 logger.throwArgumentError("invalid bytes width", "type", type);
             }
             return function (value) {
-                var bytes = (0, bytes_1.arrayify)(value);
+                var bytes = (0, corebc_bytes_1.arrayify)(value);
                 if (bytes.length !== width_1) {
                     logger.throwArgumentError("invalid length for " + type, "value", value);
                 }
@@ -149,13 +149,13 @@ function getBaseEncoder(type) {
     }
     switch (type) {
         case "address": return function (value) {
-            return (0, bytes_1.hexZeroPad)((0, address_1.getAddress)(value), 32);
+            return (0, corebc_bytes_1.hexZeroPad)((0, corebc_address_1.getAddress)(value), 32);
         };
         case "bool": return function (value) {
             return ((!value) ? hexFalse : hexTrue);
         };
         case "bytes": return function (value) {
-            return (0, keccak256_1.keccak256)(value);
+            return (0, corebc_sha3_1.sha256)(value);
         };
         case "string": return function (value) {
             return (0, id_1.id)(value);
@@ -171,9 +171,9 @@ function encodeType(name, fields) {
 }
 var TypedDataEncoder = /** @class */ (function () {
     function TypedDataEncoder(types) {
-        (0, properties_1.defineReadOnly)(this, "types", Object.freeze((0, properties_1.deepCopy)(types)));
-        (0, properties_1.defineReadOnly)(this, "_encoderCache", {});
-        (0, properties_1.defineReadOnly)(this, "_types", {});
+        (0, corebc_properties_1.defineReadOnly)(this, "types", Object.freeze((0, corebc_properties_1.deepCopy)(types)));
+        (0, corebc_properties_1.defineReadOnly)(this, "_encoderCache", {});
+        (0, corebc_properties_1.defineReadOnly)(this, "_types", {});
         // Link struct types to their direct child structs
         var links = {};
         // Link structs to structs which contain them as a child
@@ -222,7 +222,7 @@ var TypedDataEncoder = /** @class */ (function () {
         else if (primaryTypes.length > 1) {
             logger.throwArgumentError("ambiguous primary types or unused types: " + primaryTypes.map(function (t) { return (JSON.stringify(t)); }).join(", "), "types", types);
         }
-        (0, properties_1.defineReadOnly)(this, "primaryType", primaryTypes[0]);
+        (0, corebc_properties_1.defineReadOnly)(this, "primaryType", primaryTypes[0]);
         // Check for circular type references
         function checkCircular(type, found) {
             if (found[type]) {
@@ -278,9 +278,9 @@ var TypedDataEncoder = /** @class */ (function () {
                 }
                 var result = value.map(subEncoder_1);
                 if (_this._types[subtype_1]) {
-                    result = result.map(keccak256_1.keccak256);
+                    result = result.map(corebc_sha3_1.sha256);
                 }
-                return (0, keccak256_1.keccak256)((0, bytes_1.hexConcat)(result));
+                return (0, corebc_sha3_1.sha256)((0, corebc_bytes_1.hexConcat)(result));
             };
         }
         // Struct
@@ -292,12 +292,12 @@ var TypedDataEncoder = /** @class */ (function () {
                     var name = _a.name, type = _a.type;
                     var result = _this.getEncoder(type)(value[name]);
                     if (_this._types[type]) {
-                        return (0, keccak256_1.keccak256)(result);
+                        return (0, corebc_sha3_1.sha256)(result);
                     }
                     return result;
                 });
                 values.unshift(encodedType_1);
-                return (0, bytes_1.hexConcat)(values);
+                return (0, corebc_bytes_1.hexConcat)(values);
             };
         }
         return logger.throwArgumentError("unknown type: " + type, "type", type);
@@ -313,7 +313,7 @@ var TypedDataEncoder = /** @class */ (function () {
         return this.getEncoder(type)(value);
     };
     TypedDataEncoder.prototype.hashStruct = function (name, value) {
-        return (0, keccak256_1.keccak256)(this.encodeData(name, value));
+        return (0, corebc_sha3_1.sha256)(this.encodeData(name, value));
     };
     TypedDataEncoder.prototype.encode = function (value) {
         return this.encodeData(this.primaryType, value);
@@ -378,14 +378,14 @@ var TypedDataEncoder = /** @class */ (function () {
         return TypedDataEncoder.hashStruct("EIP712Domain", { EIP712Domain: domainFields }, domain);
     };
     TypedDataEncoder.encode = function (domain, types, value) {
-        return (0, bytes_1.hexConcat)([
+        return (0, corebc_bytes_1.hexConcat)([
             "0x1901",
             TypedDataEncoder.hashDomain(domain),
             TypedDataEncoder.from(types).hash(value)
         ]);
     };
     TypedDataEncoder.hash = function (domain, types, value) {
-        return (0, keccak256_1.keccak256)(TypedDataEncoder.encode(domain, types, value));
+        return (0, corebc_sha3_1.sha256)(TypedDataEncoder.encode(domain, types, value));
     };
     // Replaces all address types with ENS names with their looked up address
     TypedDataEncoder.resolveNames = function (domain, types, value, resolveName) {
@@ -395,16 +395,16 @@ var TypedDataEncoder = /** @class */ (function () {
                 switch (_e.label) {
                     case 0:
                         // Make a copy to isolate it from the object passed in
-                        domain = (0, properties_1.shallowCopy)(domain);
+                        domain = (0, corebc_properties_1.shallowCopy)(domain);
                         ensCache = {};
                         // Do we need to look up the domain's verifyingContract?
-                        if (domain.verifyingContract && !(0, bytes_1.isHexString)(domain.verifyingContract, 20)) {
+                        if (domain.verifyingContract && !(0, corebc_bytes_1.isHexString)(domain.verifyingContract, 20)) {
                             ensCache[domain.verifyingContract] = "0x";
                         }
                         encoder = TypedDataEncoder.from(types);
                         // Get a list of all the addresses
                         encoder.visit(value, function (type, value) {
-                            if (type === "address" && !(0, bytes_1.isHexString)(value, 20)) {
+                            if (type === "address" && !(0, corebc_bytes_1.isHexString)(value, 20)) {
                                 ensCache[value] = "0x";
                             }
                             return value;
@@ -458,7 +458,7 @@ var TypedDataEncoder = /** @class */ (function () {
             domainTypes.push({ name: name, type: domainFieldTypes[name] });
         });
         var encoder = TypedDataEncoder.from(types);
-        var typesWithDomain = (0, properties_1.shallowCopy)(types);
+        var typesWithDomain = (0, corebc_properties_1.shallowCopy)(types);
         if (typesWithDomain.EIP712Domain) {
             logger.throwArgumentError("types must not contain EIP712Domain type", "types.EIP712Domain", types);
         }
@@ -474,11 +474,11 @@ var TypedDataEncoder = /** @class */ (function () {
             message: encoder.visit(value, function (type, value) {
                 // bytes
                 if (type.match(/^bytes(\d*)/)) {
-                    return (0, bytes_1.hexlify)((0, bytes_1.arrayify)(value));
+                    return (0, corebc_bytes_1.hexlify)((0, corebc_bytes_1.arrayify)(value));
                 }
                 // uint or int
                 if (type.match(/^u?int/)) {
-                    return bignumber_1.BigNumber.from(value).toString();
+                    return corebc_bignumber_1.BigNumber.from(value).toString();
                 }
                 switch (type) {
                     case "address":

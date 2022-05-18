@@ -8,8 +8,8 @@
  */
 import _BN from "bn.js";
 var BN = _BN.BN;
-import { hexlify, isBytes, isHexString } from "@ethersproject/bytes";
-import { Logger } from "@ethersproject/logger";
+import { hexlify, isBytes, isHexString } from "@corepass/corebc-bytes";
+import { Logger } from "@corepass/corebc-logger";
 import { version } from "./_version";
 const logger = new Logger(version);
 const _constructorGuard = {};

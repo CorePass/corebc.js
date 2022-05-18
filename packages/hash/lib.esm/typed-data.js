@@ -7,12 +7,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { getAddress } from "@ethersproject/address";
-import { BigNumber } from "@ethersproject/bignumber";
-import { arrayify, hexConcat, hexlify, hexZeroPad, isHexString } from "@ethersproject/bytes";
-import { keccak256 } from "@ethersproject/keccak256";
-import { deepCopy, defineReadOnly, shallowCopy } from "@ethersproject/properties";
-import { Logger } from "@ethersproject/logger";
+import { getAddress } from "@corepass/corebc-address";
+import { BigNumber } from "@corepass/corebc-bignumber";
+import { arrayify, hexConcat, hexlify, hexZeroPad, isHexString } from "@corepass/corebc-bytes";
+import { sha256 } from "@corepass/corebc-sha3";
+import { deepCopy, defineReadOnly, shallowCopy } from "@corepass/corebc-properties";
+import { Logger } from "@corepass/corebc-logger";
 import { version } from "./_version";
 const logger = new Logger(version);
 import { id } from "./id";
@@ -35,12 +35,12 @@ const hexFalse = hexZeroPad(Zero.toHexString(), 32);
 const domainFieldTypes = {
     name: "string",
     version: "string",
-    chainId: "uint256",
+    networkId: "uint256",
     verifyingContract: "address",
     salt: "bytes32"
 };
 const domainFieldNames = [
-    "name", "version", "chainId", "verifyingContract", "salt"
+    "name", "version", "networkId", "verifyingContract", "salt"
 ];
 function checkString(key) {
     return function (value) {
@@ -53,12 +53,12 @@ function checkString(key) {
 const domainChecks = {
     name: checkString("name"),
     version: checkString("version"),
-    chainId: function (value) {
+    networkId: function (value) {
         try {
             return BigNumber.from(value).toString();
         }
         catch (error) { }
-        return logger.throwArgumentError(`invalid domain value for "chainId"`, "domain.chainId", value);
+        return logger.throwArgumentError(`invalid domain value for "networkId"`, "domain.networkId", value);
     },
     verifyingContract: function (value) {
         try {
@@ -125,7 +125,7 @@ function getBaseEncoder(type) {
             return ((!value) ? hexFalse : hexTrue);
         };
         case "bytes": return function (value) {
-            return keccak256(value);
+            return sha256(value);
         };
         case "string": return function (value) {
             return id(value);
@@ -241,9 +241,9 @@ export class TypedDataEncoder {
                 }
                 let result = value.map(subEncoder);
                 if (this._types[subtype]) {
-                    result = result.map(keccak256);
+                    result = result.map(sha256);
                 }
-                return keccak256(hexConcat(result));
+                return sha256(hexConcat(result));
             };
         }
         // Struct
@@ -254,7 +254,7 @@ export class TypedDataEncoder {
                 const values = fields.map(({ name, type }) => {
                     const result = this.getEncoder(type)(value[name]);
                     if (this._types[type]) {
-                        return keccak256(result);
+                        return sha256(result);
                     }
                     return result;
                 });
@@ -275,7 +275,7 @@ export class TypedDataEncoder {
         return this.getEncoder(type)(value);
     }
     hashStruct(name, value) {
-        return keccak256(this.encodeData(name, value));
+        return sha256(this.encodeData(name, value));
     }
     encode(value) {
         return this.encodeData(this.primaryType, value);
@@ -345,7 +345,7 @@ export class TypedDataEncoder {
         ]);
     }
     static hash(domain, types, value) {
-        return keccak256(TypedDataEncoder.encode(domain, types, value));
+        return sha256(TypedDataEncoder.encode(domain, types, value));
     }
     // Replaces all address types with ENS names with their looked up address
     static resolveNames(domain, types, value, resolveName) {

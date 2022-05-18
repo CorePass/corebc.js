@@ -1,12 +1,12 @@
 "use strict";
 import aes from "aes-js";
-import { getAddress } from "@ethersproject/address";
-import { arrayify } from "@ethersproject/bytes";
-import { keccak256 } from "@ethersproject/keccak256";
-import { pbkdf2 } from "@ethersproject/pbkdf2";
-import { toUtf8Bytes } from "@ethersproject/strings";
-import { Description } from "@ethersproject/properties";
-import { Logger } from "@ethersproject/logger";
+import { getAddress } from "@corepass/corebc-address";
+import { arrayify } from "@corepass/corebc-bytes";
+import { sha256 } from "@corepass/corebc-sha3";
+import { pbkdf2 } from "@corepass/corebc-pbkdf2";
+import { toUtf8Bytes } from "@corepass/corebc-strings";
+import { Description } from "@corepass/corebc-properties";
+import { Logger } from "@corepass/corebc-logger";
 import { version } from "./_version";
 const logger = new Logger(version);
 import { getPassword, looseArrayify, searchPath } from "./utils";
@@ -38,7 +38,7 @@ export function decrypt(json, password) {
         seedHex += String.fromCharCode(seed[i]);
     }
     const seedHexBytes = toUtf8Bytes(seedHex);
-    const privateKey = keccak256(seedHexBytes);
+    const privateKey = sha256(seedHexBytes);
     return new CrowdsaleAccount({
         _isCrowdsaleAccount: true,
         address: ethaddr,

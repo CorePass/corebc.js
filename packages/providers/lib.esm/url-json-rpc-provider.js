@@ -8,13 +8,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { defineReadOnly, getStatic } from "@ethersproject/properties";
-import { Logger } from "@ethersproject/logger";
+import { defineReadOnly, getStatic } from "@corepass/corebc-properties";
+import { Logger } from "@corepass/corebc-logger";
 import { version } from "./_version";
 const logger = new Logger(version);
 import { JsonRpcProvider } from "./json-rpc-provider";
 // A StaticJsonRpcProvider is useful when you *know* for certain that
-// the backend will never change, as it never calls eth_chainId to
+// the backend will never change, as it never calls xcb_networkId to
 // verify its backend. However, if the backend does change, the effects
 // are undefined and may include:
 // - inconsistent results

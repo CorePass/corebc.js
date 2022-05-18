@@ -10,16 +10,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import aes from "aes-js";
 import scrypt from "scrypt-js";
-import { getAddress } from "@ethersproject/address";
-import { arrayify, concat, hexlify } from "@ethersproject/bytes";
-import { defaultPath, entropyToMnemonic, HDNode, mnemonicToEntropy } from "@ethersproject/hdnode";
-import { keccak256 } from "@ethersproject/keccak256";
-import { pbkdf2 as _pbkdf2 } from "@ethersproject/pbkdf2";
-import { randomBytes } from "@ethersproject/random";
-import { Description } from "@ethersproject/properties";
-import { computeAddress } from "@ethersproject/transactions";
+import { getAddress } from "@corepass/corebc-address";
+import { arrayify, concat, hexlify } from "@corepass/corebc-bytes";
+import { defaultPath, entropyToMnemonic, HDNode, mnemonicToEntropy } from "@corepass/corebc-hdnode";
+import { sha256 } from "@corepass/corebc-sha3";
+import { pbkdf2 as _pbkdf2 } from "@corepass/corebc-pbkdf2";
+import { randomBytes } from "@corepass/corebc-random";
+import { Description } from "@corepass/corebc-properties";
+import { extractPrefix } from "@corepass/corebc-address";
+import { computeAddress } from "@corepass/corebc-transactions";
 import { getPassword, looseArrayify, searchPath, uuidV4, zpad } from "./utils";
-import { Logger } from "@ethersproject/logger";
+import { Logger } from "@corepass/corebc-logger";
 import { version } from "./_version";
 const logger = new Logger(version);
 // Exported Types
@@ -43,7 +44,7 @@ function _decrypt(data, key, ciphertext) {
 }
 function _getAccount(data, key) {
     const ciphertext = looseArrayify(searchPath(data, "crypto/ciphertext"));
-    const computedMAC = hexlify(keccak256(concat([key.slice(16, 32), ciphertext]))).substring(2);
+    const computedMAC = hexlify(sha256(concat([key.slice(16, 32), ciphertext]))).substring(2);
     if (computedMAC !== searchPath(data, "crypto/mac").toLowerCase()) {
         throw new Error("invalid password");
     }
@@ -54,15 +55,10 @@ function _getAccount(data, key) {
         });
     }
     const mnemonicKey = key.slice(32, 64);
-    const address = computeAddress(privateKey);
-    if (data.address) {
-        let check = data.address.toLowerCase();
-        if (check.substring(0, 2) !== "0x") {
-            check = "0x" + check;
-        }
-        if (getAddress(check) !== address) {
-            throw new Error("address mismatch");
-        }
+    const address = getAddress(data.address);
+    const prefix = extractPrefix(address);
+    if (computeAddress(privateKey, prefix) !== address) {
+        throw new Error("address mismatch");
     }
     const account = {
         _isKeystoreAccount: true,
@@ -167,7 +163,9 @@ export function decrypt(json, password, progressCallback) {
 export function encrypt(account, password, options, progressCallback) {
     try {
         // Check the address matches the private key
-        if (getAddress(account.address) !== computeAddress(account.privateKey)) {
+        const address = getAddress(account.address);
+        const prefix = extractPrefix(address);
+        if (computeAddress(account.privateKey, prefix) !== address) {
             throw new Error("address/privateKey mismatch");
         }
         // Check the mnemonic (if any) matches the private key
@@ -264,7 +262,7 @@ export function encrypt(account, password, options, progressCallback) {
         const aesCtr = new aes.ModeOfOperation.ctr(derivedKey, counter);
         const ciphertext = arrayify(aesCtr.encrypt(privateKey));
         // Compute the message authentication code, used to check the password
-        const mac = keccak256(concat([macPrefix, ciphertext]));
+        const mac = sha256(concat([macPrefix, ciphertext]));
         // See: https://github.com/ethereum/wiki/wiki/Web3-Secret-Storage-Definition
         const data = {
             address: account.address.substring(2).toLowerCase(),

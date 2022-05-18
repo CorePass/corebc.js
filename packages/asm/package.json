@@ -1,7 +1,7 @@
 {
   "author": "Richard Moore <me@ricmoo.com>",
   "dependencies": {
-    "ethers": "^5.5.0"
+    "@corepass/corebc": "^0.1.0"
   },
   "description": "ASM libraries and tools for the Ethereum EVM.",
   "ethereum": "donations.ethers.eth",
@@ -23,7 +23,7 @@
   "license": "MIT",
   "main": "./lib/index.js",
   "module": "./lib.esm/index.js",
-  "name": "@ethersproject/asm",
+  "name": "@corepass/corebc-asm",
   "publishConfig": {
     "access": "public"
   },
@@ -36,7 +36,7 @@
     "generate": "node ./generate.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "tarballHash": "0x83b38ffcff16cd1e171859581851f4188ed87adc2e102d5517d9177859538a5c",
+  "tarballHash": "0x62586e8b2905dac6e4da80ef9db228cc836841a2b6ece557902cc8081b524b4c",
   "types": "./lib/index.d.ts",
-  "version": "5.5.0"
+  "version": "0.1.1"
 }

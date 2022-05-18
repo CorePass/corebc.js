@@ -12,8 +12,8 @@ function fill(testcase: Partial<TestCase.Eip712>): TestCase.Eip712 {
     if (testcase.domain.version != null) {
         domainType.push({ name: "version", type: "string" });
     }
-    if (testcase.domain.chainId != null) {
-        domainType.push({ name: "chainId", type: "uint256" });
+    if (testcase.domain.networkId != null) {
+        domainType.push({ name: "networkId", type: "uint256" });
     }
     if (testcase.domain.verifyingContract != null) {
         domainType.push({ name: "verifyingContract", type: "address" });
@@ -69,7 +69,7 @@ export class Eip712Test extends AbstractAbiTest<TestCase.Eip712> {
             ].join(".");
         }
         if (this.randomChoice([ false, true])) {
-            domain.chainId = this.randomInteger(0, 1337);
+            domain.networkId = this.randomInteger(0, 1337);
         }
         if (this.randomChoice([ false, true])) {
             domain.verifyingContract = this.randomAddress();
@@ -103,7 +103,7 @@ if (require.main === module) {
         domain: {
             name: 'Ether Mail',
             version: '1',
-            chainId: 1,
+            networkId: 1,
             verifyingContract: '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC'
         },
         primaryType: "Mail",

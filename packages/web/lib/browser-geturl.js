@@ -37,7 +37,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getUrl = void 0;
-var bytes_1 = require("@ethersproject/bytes");
+var corebc_bytes_1 = require("@corepass/corebc-bytes");
 function getUrl(href, options) {
     return __awaiter(this, void 0, void 0, function () {
         var request, response, body, headers;
@@ -81,7 +81,7 @@ function getUrl(href, options) {
                             headers: headers,
                             statusCode: response.status,
                             statusMessage: response.statusText,
-                            body: (0, bytes_1.arrayify)(new Uint8Array(body)),
+                            body: (0, corebc_bytes_1.arrayify)(new Uint8Array(body)),
                         }];
             }
         });

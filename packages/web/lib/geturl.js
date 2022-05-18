@@ -44,11 +44,11 @@ var http_1 = __importDefault(require("http"));
 var https_1 = __importDefault(require("https"));
 var zlib_1 = require("zlib");
 var url_1 = require("url");
-var bytes_1 = require("@ethersproject/bytes");
-var properties_1 = require("@ethersproject/properties");
-var logger_1 = require("@ethersproject/logger");
+var corebc_bytes_1 = require("@corepass/corebc-bytes");
+var corebc_properties_1 = require("@corepass/corebc-properties");
+var corebc_logger_1 = require("@corepass/corebc-logger");
 var _version_1 = require("./_version");
-var logger = new logger_1.Logger(_version_1.version);
+var logger = new corebc_logger_1.Logger(_version_1.version);
 function getResponse(request) {
     return new Promise(function (resolve, reject) {
         request.once("response", function (resp) {
@@ -70,12 +70,12 @@ function getResponse(request) {
                 if (response.body == null) {
                     response.body = new Uint8Array(0);
                 }
-                response.body = (0, bytes_1.concat)([response.body, chunk]);
+                response.body = (0, corebc_bytes_1.concat)([response.body, chunk]);
             });
             resp.on("end", function () {
                 if (response.headers["content-encoding"] === "gzip") {
                     //const size = response.body.length;
-                    response.body = (0, bytes_1.arrayify)((0, zlib_1.gunzipSync)(response.body));
+                    response.body = (0, corebc_bytes_1.arrayify)((0, zlib_1.gunzipSync)(response.body));
                     //console.log("Delta:", response.body.length - size, Buffer.from(response.body).toString());
                 }
                 resolve(response);
@@ -112,7 +112,7 @@ function getUrl(href, options) {
                         port: nonnull(url.port),
                         path: (nonnull(url.pathname) + nonnull(url.search)),
                         method: (options.method || "GET"),
-                        headers: (0, properties_1.shallowCopy)(options.headers || {}),
+                        headers: (0, corebc_properties_1.shallowCopy)(options.headers || {}),
                     };
                     if (options.allowGzip) {
                         request.headers["accept-encoding"] = "gzip";
@@ -127,7 +127,7 @@ function getUrl(href, options) {
                             break;
                         default:
                             /* istanbul ignore next */
-                            logger.throwError("unsupported protocol " + url.protocol, logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
+                            logger.throwError("unsupported protocol " + url.protocol, corebc_logger_1.Logger.errors.UNSUPPORTED_OPERATION, {
                                 protocol: url.protocol,
                                 operation: "request"
                             });

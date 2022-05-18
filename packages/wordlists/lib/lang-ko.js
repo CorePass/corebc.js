@@ -16,7 +16,7 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.langKo = void 0;
-var strings_1 = require("@ethersproject/strings");
+var corebc_strings_1 = require("@corepass/corebc-strings");
 var wordlist_1 = require("./wordlist");
 var data = [
     "OYAa",
@@ -36,7 +36,7 @@ function getHangul(code) {
     else if (code >= 19) {
         code = code + 97 - 19;
     }
-    return (0, strings_1.toUtf8String)([225, (code >> 6) + 132, (code & 0x3f) + 128]);
+    return (0, corebc_strings_1.toUtf8String)([225, (code >> 6) + 132, (code & 0x3f) + 128]);
 }
 var wordlist = null;
 function loadWords(lang) {

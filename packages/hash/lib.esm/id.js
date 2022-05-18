@@ -1,6 +1,6 @@
-import { keccak256 } from "@ethersproject/keccak256";
-import { toUtf8Bytes } from "@ethersproject/strings";
+import { sha256 } from "@corepass/corebc-sha3";
+import { toUtf8Bytes } from "@corepass/corebc-strings";
 export function id(text) {
-    return keccak256(toUtf8Bytes(text));
+    return sha256(toUtf8Bytes(text));
 }
 //# sourceMappingURL=id.js.map

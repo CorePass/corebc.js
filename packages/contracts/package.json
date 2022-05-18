@@ -1,16 +1,16 @@
 {
   "author": "Richard Moore <me@ricmoo.com>",
   "dependencies": {
-    "@ethersproject/abi": "^5.5.0",
-    "@ethersproject/abstract-provider": "^5.5.0",
-    "@ethersproject/abstract-signer": "^5.5.0",
-    "@ethersproject/address": "^5.5.0",
-    "@ethersproject/bignumber": "^5.5.0",
-    "@ethersproject/bytes": "^5.5.0",
-    "@ethersproject/constants": "^5.5.0",
-    "@ethersproject/logger": "^5.5.0",
-    "@ethersproject/properties": "^5.5.0",
-    "@ethersproject/transactions": "^5.5.0"
+    "@corepass/corebc-abi": "^0.1.0",
+    "@corepass/corebc-abstract-provider": "^0.1.0",
+    "@corepass/corebc-abstract-signer": "^0.1.0",
+    "@corepass/corebc-address": "^0.1.0",
+    "@corepass/corebc-bignumber": "^0.1.0",
+    "@corepass/corebc-bytes": "^0.1.0",
+    "@corepass/corebc-constants": "^0.1.0",
+    "@corepass/corebc-logger": "^0.1.0",
+    "@corepass/corebc-properties": "^0.1.0",
+    "@corepass/corebc-transactions": "^0.1.0"
   },
   "description": "Contract abstraction meta-class for ethers.",
   "ethereum": "donations.ethers.eth",
@@ -31,7 +31,7 @@
   "license": "MIT",
   "main": "./lib/index.js",
   "module": "./lib.esm/index.js",
-  "name": "@ethersproject/contracts",
+  "name": "@corepass/corebc-contracts",
   "publishConfig": {
     "access": "public"
   },
@@ -44,7 +44,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "sideEffects": false,
-  "tarballHash": "0x58131be143d730526df6eb67c8dca188c60f214a2466fc6a2986d688558cd121",
+  "tarballHash": "0x7e011e2afeb46e68b2a4a29c93b2b984e9fa9cc640915732e6219b554cc8142c",
   "types": "./lib/index.d.ts",
-  "version": "5.5.0"
+  "version": "0.1.1"
 }

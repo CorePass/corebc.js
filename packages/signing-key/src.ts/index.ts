@@ -1,71 +1,32 @@
 "use strict";
 
-import { EC } from "./elliptic";
+import ed448 from './ed448';
 
-import { arrayify, BytesLike, hexlify, hexZeroPad, Signature, SignatureLike, splitSignature } from "@ethersproject/bytes";
-import { defineReadOnly } from "@ethersproject/properties";
+import { arrayify, BytesLike, hexConcat, hexlify } from "@corepass/corebc-bytes";
+import { defineReadOnly } from "@corepass/corebc-properties";
 
-import { Logger } from "@ethersproject/logger";
+import { Logger } from "@corepass/corebc-logger";
 import { version } from "./_version";
 const logger = new Logger(version);
 
-let _curve: EC = null
-function getCurve() {
-    if (!_curve) {
-        _curve = new EC("secp256k1");
-    }
-    return _curve;
-}
-
 export class SigningKey {
-
-    readonly curve: string;
-
     readonly privateKey: string;
     readonly publicKey: string;
-    readonly compressedPublicKey: string;
-
-    //readonly address: string;
 
     readonly _isSigningKey: boolean;
 
     constructor(privateKey: BytesLike) {
-        defineReadOnly(this, "curve", "secp256k1");
-
         defineReadOnly(this, "privateKey", hexlify(privateKey));
 
-        const keyPair = getCurve().keyFromPrivate(arrayify(this.privateKey));
-
-        defineReadOnly(this, "publicKey", "0x" + keyPair.getPublic(false, "hex"));
-        defineReadOnly(this, "compressedPublicKey", "0x" + keyPair.getPublic(true, "hex"));
+        defineReadOnly(this, "publicKey", computePublicKey(privateKey));
 
         defineReadOnly(this, "_isSigningKey", true);
     }
 
-    _addPoint(other: BytesLike): string {
-        const p0 =  getCurve().keyFromPublic(arrayify(this.publicKey));
-        const p1 =  getCurve().keyFromPublic(arrayify(other));
-        return "0x" + p0.pub.add(p1.pub).encodeCompressed("hex");
-    }
-
-    signDigest(digest: BytesLike): Signature {
-        const keyPair = getCurve().keyFromPrivate(arrayify(this.privateKey));
-        const digestBytes = arrayify(digest);
-        if (digestBytes.length !== 32) {
-            logger.throwArgumentError("bad digest length", "digest", digest);
-        }
-        const signature = keyPair.sign(digestBytes, { canonical: true });
-        return splitSignature({
-            recoveryParam: signature.recoveryParam,
-            r: hexZeroPad("0x" + signature.r.toString(16), 32),
-            s: hexZeroPad("0x" + signature.s.toString(16), 32),
-        })
-    }
-
-    computeSharedSecret(otherKey: BytesLike): string {
-        const keyPair = getCurve().keyFromPrivate(arrayify(this.privateKey));
-        const otherKeyPair = getCurve().keyFromPublic(arrayify(computePublicKey(otherKey)));
-        return hexZeroPad("0x" + keyPair.derive(otherKeyPair.getPublic()).toString(16), 32);
+    signDigest(digest: BytesLike): string {
+        const pub = computePublicKey(this.privateKey);
+        const sig = sign(this.privateKey, digest);
+        return hexConcat([sig, pub]);
     }
 
     static isSigningKey(value: any): value is SigningKey {
@@ -73,31 +34,65 @@ export class SigningKey {
     }
 }
 
-export function recoverPublicKey(digest: BytesLike, signature: SignatureLike): string {
-    const sig = splitSignature(signature);
-    const rs = { r: arrayify(sig.r), s: arrayify(sig.s) };
-    return "0x" + getCurve().recoverPubKey(arrayify(digest), rs, sig.recoveryParam).encode("hex", false);
-}
-
-export function computePublicKey(key: BytesLike, compressed?: boolean): string {
-    const bytes = arrayify(key);
-
-    if (bytes.length === 32) {
-        const signingKey = new SigningKey(bytes);
-        if (compressed) {
-            return "0x" + getCurve().keyFromPrivate(bytes).getPublic(true, "hex");
-        }
-        return signingKey.publicKey;
-
-    } else if (bytes.length === 33) {
-        if (compressed) { return hexlify(bytes); }
-        return "0x" + getCurve().keyFromPublic(bytes).getPublic(false, "hex");
-
-    } else if (bytes.length === 65) {
-        if (!compressed) { return hexlify(bytes); }
-        return "0x" + getCurve().keyFromPublic(bytes).getPublic(true, "hex");
+function sign(key: BytesLike, digest: BytesLike): string {
+    const keyBuffer = Buffer.from(arrayify(key));
+    if (keyBuffer.length !== 57) {
+        logger.throwArgumentError("invalid private key", "key", "[REDACTED]");
     }
 
-    return logger.throwArgumentError("invalid public or private key", "key", "[REDACTED]");
+    const digestBuffer = Buffer.from(arrayify(digest));
+    if (digestBuffer.length !== 32) {
+        logger.throwArgumentError("bad digest length", "digest", digest);
+    }
+
+    if (keyBuffer[56] > 127) {
+        const prefix = keyBuffer.slice(0, 57);
+        prefix[0] &= 0xfc;
+        prefix[55] |= 0x80;
+        prefix[56] = 0;
+        const scalar = prefix.slice(0, 56);
+        const sig = ed448.signWithScalar(digestBuffer, scalar, prefix);
+        return hexlify(sig);
+    }
+
+    const sig = ed448.sign(digestBuffer, keyBuffer);
+    return hexlify(sig);
 }
 
+export function recoverPublicKey(digest: BytesLike, signature: string): string {
+    const digestBuffer = Buffer.from(arrayify(digest));
+    if (digestBuffer.length !== 32) {
+        logger.throwArgumentError("bad digest length", "digest", digest);
+    }
+
+    const sigBuffer = Buffer.from(arrayify(signature));
+    if (sigBuffer.length !== 171) {
+        logger.throwArgumentError("invalid signature", "signature", signature);
+    }
+
+    const sig = sigBuffer.slice(0, 114);
+    const pub = sigBuffer.slice(114);
+    if (ed448.verify(digestBuffer, sig, pub)) {
+        return hexlify(pub);
+    }
+    logger.throwArgumentError("invalid signature", "signature", signature);
+    return "";
+}
+
+export function computePublicKey(key: BytesLike): string {
+    const bytes = Buffer.from(arrayify(key));
+    if (bytes.length !== 57) {
+        logger.throwArgumentError("invalid private key", "key", "[REDACTED]");
+    }
+
+    if (bytes[56] > 127) {
+        const scalar = bytes.slice(0, 56);
+        scalar[0] &= 0xfc;
+        scalar[55] |= 0x80;
+        const pub = ed448.publicKeyFromScalar(scalar);
+        return hexlify(pub);
+    }
+
+    const pub = ed448.publicKeyCreate(bytes);
+    return hexlify(pub);
+}
