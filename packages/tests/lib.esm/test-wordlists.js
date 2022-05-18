@@ -1,6 +1,6 @@
 'use strict';
 import assert from 'assert';
-import { corebc } from "corebc";
+import { corebc } from "@corepass/corebc";
 import { loadTests } from "@corepass/corebc-testcases";
 function checkWordlist(content, wordlist) {
     let words = content.split('\n');

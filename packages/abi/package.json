@@ -6,9 +6,9 @@
     "@corepass/corebc-bytes": "^0.1.0",
     "@corepass/corebc-constants": "^0.1.0",
     "@corepass/corebc-hash": "^0.1.0",
-    "@corepass/corebc-sha3": "^0.1.0",
     "@corepass/corebc-logger": "^0.1.0",
     "@corepass/corebc-properties": "^0.1.0",
+    "@corepass/corebc-sha3": "^0.1.0",
     "@corepass/corebc-strings": "^0.1.0"
   },
   "description": "Utilities and Classes for parsing, formatting and managing Ethereum ABIs.",
@@ -43,7 +43,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "sideEffects": false,
-  "tarballHash": "0x32c0119e32be278064ae36bc915b7c5baf33479b8ad26dad71ee38a6f78b4296",
+  "tarballHash": "0x7759663d05965a6b2360538fcbc95bebb2e2648c431df89a19039f7c98fb5b15",
   "types": "./lib/index.d.ts",
-  "version": "0.1.0"
+  "version": "0.1.1"
 }

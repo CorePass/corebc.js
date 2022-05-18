@@ -3496,7 +3496,7 @@ var bn = createCommonjsModule(function (module) {
 })('object' === 'undefined' || module, commonjsGlobal);
 });
 
-const version = "logger/5.5.0";
+const version = "logger/0.1.1";
 
 "use strict";
 let _permanentCensorErrors = false;
@@ -3813,7 +3813,7 @@ class Logger {
 Logger.errors = ErrorCode;
 Logger.levels = LogLevel;
 
-const version$1 = "bytes/5.5.0";
+const version$1 = "bytes/0.1.1";
 
 "use strict";
 const logger = new Logger(version$1);
@@ -4087,7 +4087,7 @@ function hexZeroPad(value, length) {
     return value;
 }
 
-const version$2 = "bignumber/5.5.0";
+const version$2 = "bignumber/0.1.1";
 
 "use strict";
 var BN = bn.BN;
@@ -4742,7 +4742,7 @@ class FixedNumber {
 const ONE = FixedNumber.from(1);
 const BUMP = FixedNumber.from("0.5");
 
-const version$3 = "properties/5.5.0";
+const version$3 = "properties/0.1.1";
 
 "use strict";
 var __awaiter = (window && window.__awaiter) || function (thisArg, _arguments, P, generator) {
@@ -4868,7 +4868,7 @@ class Description {
     }
 }
 
-const version$4 = "abi/5.5.0";
+const version$4 = "abi/0.1.1";
 
 "use strict";
 const logger$4 = new Logger(version$4);
@@ -6873,7 +6873,7 @@ var SupportedAlgorithm;
 })(SupportedAlgorithm || (SupportedAlgorithm = {}));
 ;
 
-const version$5 = "sha2/5.5.0";
+const version$5 = "sha3/0.1.1";
 
 "use strict";
 const logger$6 = new Logger(version$5);
@@ -6908,7 +6908,7 @@ function computeHmac(algorithm, key, data) {
     return "";
 }
 
-const version$6 = "rlp/5.5.0";
+const version$6 = "rlp/0.1.1";
 
 "use strict";
 const logger$7 = new Logger(version$6);
@@ -7032,7 +7032,7 @@ var index = /*#__PURE__*/Object.freeze({
 	decode: decode
 });
 
-const version$7 = "address/5.5.0";
+const version$7 = "address/0.1.1";
 
 "use strict";
 const logger$8 = new Logger(version$7);
@@ -7547,7 +7547,7 @@ class NumberCoder extends Coder {
     }
 }
 
-const version$8 = "strings/5.5.0";
+const version$8 = "strings/0.1.1";
 
 "use strict";
 const logger$a = new Logger(version$8);
@@ -8168,7 +8168,7 @@ function id(text) {
     return sha256(toUtf8Bytes(text));
 }
 
-const version$9 = "hash/5.5.0";
+const version$9 = "hash/0.1.1";
 
 const logger$c = new Logger(version$9);
 const Zeros = new Uint8Array(32);
@@ -9243,7 +9243,7 @@ class Interface {
 
 "use strict";
 
-const version$a = "abstract-provider/5.5.1";
+const version$a = "abstract-provider/0.1.1";
 
 "use strict";
 var __awaiter$2 = (window && window.__awaiter) || function (thisArg, _arguments, P, generator) {
@@ -9350,7 +9350,7 @@ class Provider {
     }
 }
 
-const version$b = "abstract-signer/5.5.0";
+const version$b = "abstract-signer/0.1.1";
 
 "use strict";
 var __awaiter$3 = (window && window.__awaiter) || function (thisArg, _arguments, P, generator) {
@@ -9574,7 +9574,7 @@ class VoidSigner extends Signer {
     }
 }
 
-const version$c = "contracts/5.5.0";
+const version$c = "contracts/0.1.1";
 
 "use strict";
 var __awaiter$4 = (window && window.__awaiter) || function (thisArg, _arguments, P, generator) {
@@ -29788,7 +29788,7 @@ var ed448Browser = ed448;
 
 "use strict";
 
-const version$d = "signing-key/5.5.0";
+const version$d = "signing-key/0.1.1";
 
 "use strict";
 const logger$i = new Logger(version$d);
@@ -29861,7 +29861,7 @@ function computePublicKey(key) {
     return hexlify(pub);
 }
 
-const version$e = "wordlists/5.5.0";
+const version$e = "wordlists/0.1.1";
 
 "use strict";
 // This gets overridden by rollup
@@ -29949,7 +29949,7 @@ const wordlists = {
 
 "use strict";
 
-const version$f = "hdnode/5.5.0";
+const version$f = "hdnode/0.1.1";
 
 "use strict";
 const logger$k = new Logger(version$f);
@@ -30235,7 +30235,7 @@ function getAccountPath(index) {
     return `m/44'/654'/0'/0'/${index}`;
 }
 
-const version$g = "random/5.5.1";
+const version$g = "random/0.1.1";
 
 "use strict";
 const logger$l = new Logger(version$g);
@@ -31092,7 +31092,7 @@ var aesJs = createCommonjsModule(function (module, exports) {
 })(commonjsGlobal);
 });
 
-const version$h = "json-wallets/5.5.0";
+const version$h = "json-wallets/0.1.1";
 
 "use strict";
 function looseArrayify(hexString) {
@@ -31732,7 +31732,7 @@ var scrypt = createCommonjsModule(function (module, exports) {
 })(commonjsGlobal);
 });
 
-const version$i = "transactions/5.5.0";
+const version$i = "transactions/0.1.1";
 
 "use strict";
 const logger$n = new Logger(version$i);
@@ -32158,7 +32158,7 @@ function decryptJsonWalletSync(json, password) {
     throw new Error("invalid JSON wallet");
 }
 
-const version$j = "wallet/5.5.0";
+const version$j = "wallet/0.1.1";
 
 "use strict";
 var __awaiter$6 = (window && window.__awaiter) || function (thisArg, _arguments, P, generator) {
@@ -32323,7 +32323,7 @@ function verifyTypedData(domain, types, value, signature, prefix) {
     return recoverAddress(TypedDataEncoder.hash(domain, types, value), signature, prefix);
 }
 
-const version$k = "networks/5.5.2";
+const version$k = "networks/0.1.1";
 
 "use strict";
 const logger$q = new Logger(version$k);
@@ -32689,7 +32689,7 @@ var index$2 = /*#__PURE__*/Object.freeze({
 	encode: encode$1
 });
 
-const version$l = "web/5.5.1";
+const version$l = "web/0.1.1";
 
 "use strict";
 var __awaiter$7 = (window && window.__awaiter) || function (thisArg, _arguments, P, generator) {
@@ -33309,7 +33309,7 @@ var bech32 = {
   fromWords: fromWords
 };
 
-const version$m = "providers/5.5.3";
+const version$m = "providers/0.1.1";
 
 "use strict";
 const logger$s = new Logger(version$m);
@@ -37228,7 +37228,7 @@ var index$3 = /*#__PURE__*/Object.freeze({
 	Formatter: Formatter
 });
 
-const version$n = "solidity/5.5.0";
+const version$n = "solidity/0.1.1";
 
 "use strict";
 const regexBytes = new RegExp("^bytes([0-9]+)$");
@@ -37311,7 +37311,7 @@ function sha256$4(types, values) {
     return sha256(pack$1(types, values));
 }
 
-const version$o = "units/5.5.0";
+const version$o = "units/0.1.1";
 
 "use strict";
 const logger$B = new Logger(version$o);
@@ -37491,7 +37491,7 @@ var utils = /*#__PURE__*/Object.freeze({
 	Indexed: Indexed
 });
 
-const version$p = "ethers/5.5.4";
+const version$p = "corebc/0.1.1";
 
 "use strict";
 const logger$C = new Logger(version$p);

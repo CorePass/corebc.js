@@ -1,5 +1,5 @@
 "use strict";
-import { corebc } from "corebc";
+import { corebc } from "@corepass/corebc";
 export function randomBytes(seed, lower, upper) {
     if (!upper) {
         upper = lower;

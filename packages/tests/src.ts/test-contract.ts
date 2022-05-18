@@ -2,7 +2,7 @@
 
 import assert from "assert";
 
-import { corebc } from "corebc";
+import { corebc } from "@corepass/corebc";
 
 import contractData from "./test-contract.json";
 

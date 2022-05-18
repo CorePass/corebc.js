@@ -3500,7 +3500,7 @@
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.version = void 0;
-	exports.version = "logger/5.5.0";
+	exports.version = "logger/0.1.1";
 
 	});
 
@@ -3847,7 +3847,7 @@
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.version = void 0;
-	exports.version = "bytes/5.5.0";
+	exports.version = "bytes/0.1.1";
 
 	});
 
@@ -4152,7 +4152,7 @@
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.version = void 0;
-	exports.version = "bignumber/5.5.0";
+	exports.version = "bignumber/0.1.1";
 
 	});
 
@@ -4880,7 +4880,7 @@
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.version = void 0;
-	exports.version = "properties/5.5.0";
+	exports.version = "properties/0.1.1";
 
 	});
 
@@ -5066,7 +5066,7 @@
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.version = void 0;
-	exports.version = "abi/5.5.0";
+	exports.version = "abi/0.1.1";
 
 	});
 
@@ -7177,7 +7177,7 @@
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.version = void 0;
-	exports.version = "sha2/5.5.0";
+	exports.version = "sha3/0.1.1";
 
 	});
 
@@ -7258,7 +7258,7 @@
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.version = void 0;
-	exports.version = "rlp/5.5.0";
+	exports.version = "rlp/0.1.1";
 
 	});
 
@@ -7397,7 +7397,7 @@
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.version = void 0;
-	exports.version = "address/5.5.0";
+	exports.version = "address/0.1.1";
 
 	});
 
@@ -8220,7 +8220,7 @@
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.version = void 0;
-	exports.version = "strings/5.5.0";
+	exports.version = "strings/0.1.1";
 
 	});
 
@@ -9007,7 +9007,7 @@
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.version = void 0;
-	exports.version = "hash/5.5.0";
+	exports.version = "hash/0.1.1";
 
 	});
 
@@ -10301,7 +10301,7 @@
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.version = void 0;
-	exports.version = "abstract-provider/5.5.1";
+	exports.version = "abstract-provider/0.1.1";
 
 	});
 
@@ -10501,7 +10501,7 @@
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.version = void 0;
-	exports.version = "abstract-signer/5.5.0";
+	exports.version = "abstract-signer/0.1.1";
 
 	});
 
@@ -10878,7 +10878,7 @@
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.version = void 0;
-	exports.version = "contracts/5.5.0";
+	exports.version = "contracts/0.1.1";
 
 	});
 
@@ -30252,7 +30252,7 @@
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.version = void 0;
-	exports.version = "signing-key/5.5.0";
+	exports.version = "signing-key/0.1.1";
 
 	});
 
@@ -30352,7 +30352,7 @@
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.version = void 0;
-	exports.version = "wordlists/5.5.0";
+	exports.version = "wordlists/0.1.1";
 
 	});
 
@@ -30510,7 +30510,7 @@
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.version = void 0;
-	exports.version = "hdnode/5.5.0";
+	exports.version = "hdnode/0.1.1";
 
 	});
 
@@ -30829,7 +30829,7 @@
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.version = void 0;
-	exports.version = "random/5.5.1";
+	exports.version = "random/0.1.1";
 
 	});
 
@@ -31724,7 +31724,7 @@
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.version = void 0;
-	exports.version = "json-wallets/5.5.0";
+	exports.version = "json-wallets/0.1.1";
 
 	});
 
@@ -32439,7 +32439,7 @@
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.version = void 0;
-	exports.version = "transactions/5.5.0";
+	exports.version = "transactions/0.1.1";
 
 	});
 
@@ -33015,7 +33015,7 @@
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.version = void 0;
-	exports.version = "wallet/5.5.0";
+	exports.version = "wallet/0.1.1";
 
 	});
 
@@ -33281,7 +33281,7 @@
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.version = void 0;
-	exports.version = "networks/5.5.2";
+	exports.version = "networks/0.1.1";
 
 	});
 
@@ -33693,7 +33693,7 @@
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.version = void 0;
-	exports.version = "web/5.5.1";
+	exports.version = "web/0.1.1";
 
 	});
 
@@ -34438,7 +34438,7 @@
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.version = void 0;
-	exports.version = "providers/5.5.3";
+	exports.version = "providers/0.1.1";
 
 	});
 
@@ -39517,7 +39517,7 @@
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.version = void 0;
-	exports.version = "solidity/5.5.0";
+	exports.version = "solidity/0.1.1";
 
 	});
 
@@ -39623,7 +39623,7 @@
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.version = void 0;
-	exports.version = "units/5.5.0";
+	exports.version = "units/0.1.1";
 
 	});
 
@@ -39873,7 +39873,7 @@
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.version = void 0;
-	exports.version = "ethers/5.5.4";
+	exports.version = "corebc/0.1.1";
 
 	});
 

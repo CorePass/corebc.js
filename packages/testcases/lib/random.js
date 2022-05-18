@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.randomNumber = exports.randomHexString = exports.randomBytes = void 0;
-var corebc_1 = require("corebc");
+var corebc_1 = require("@corepass/corebc");
 function randomBytes(seed, lower, upper) {
     if (!upper) {
         upper = lower;

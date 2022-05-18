@@ -9,7 +9,7 @@ exports.Opcode = exports.OpcodeMemoryAccess = void 0;
 //   See: https://eips.ethereum.org/EIPS/eip-1014
 // EXTCODEHASH
 //   See: https://eips.ethereum.org/EIPS/eip-1052
-var corebc_1 = require("corebc");
+var corebc_1 = require("@corepass/corebc");
 var OpcodeMemoryAccess;
 (function (OpcodeMemoryAccess) {
     OpcodeMemoryAccess["write"] = "write";

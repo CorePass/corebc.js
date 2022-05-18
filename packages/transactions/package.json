@@ -5,10 +5,10 @@
     "@corepass/corebc-bignumber": "^0.1.0",
     "@corepass/corebc-bytes": "^0.1.0",
     "@corepass/corebc-constants": "^0.1.0",
-    "@corepass/corebc-sha3": "^0.1.0",
     "@corepass/corebc-logger": "^0.1.0",
     "@corepass/corebc-properties": "^0.1.0",
     "@corepass/corebc-rlp": "^0.1.0",
+    "@corepass/corebc-sha3": "^0.1.0",
     "@corepass/corebc-signing-key": "^0.1.0"
   },
   "description": "Utilities for decoding and encoding Ethereum transaction for ethers.",
@@ -43,7 +43,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "sideEffects": false,
-  "tarballHash": "0x2a703ae00409bf0122dd97bf8b4f33f71009dc9df625ff0dd0c391ef25189d65",
+  "tarballHash": "0xf1711f90675dc1bf7932ec0e939f8920b903137c7de8620033865873ebe31515",
   "types": "./lib/index.d.ts",
-  "version": "0.1.0"
+  "version": "0.1.1"
 }

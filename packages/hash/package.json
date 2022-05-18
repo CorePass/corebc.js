@@ -5,9 +5,9 @@
     "@corepass/corebc-address": "^0.1.0",
     "@corepass/corebc-bignumber": "^0.1.0",
     "@corepass/corebc-bytes": "^0.1.0",
-    "@corepass/corebc-sha3": "^0.1.0",
     "@corepass/corebc-logger": "^0.1.0",
     "@corepass/corebc-properties": "^0.1.0",
+    "@corepass/corebc-sha3": "^0.1.0",
     "@corepass/corebc-strings": "^0.1.0"
   },
   "description": "Hash utility functions for Ethereum.",
@@ -42,7 +42,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "sideEffects": false,
-  "tarballHash": "0x7d9a6d1808386f7963885e757b739ee981616a16bc1f479d43278be9611e9cc1",
+  "tarballHash": "0x221184964dab6ca7ad1298c2c4d4f52352216dc637f1b13b2904a7bba0093fc8",
   "types": "./lib/index.d.ts",
-  "version": "0.1.0"
+  "version": "0.1.1"
 }

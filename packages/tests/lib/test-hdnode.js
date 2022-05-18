@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var assert_1 = __importDefault(require("assert"));
-var corebc_1 = require("corebc");
+var corebc_1 = require("@corepass/corebc");
 var corebc_testcases_1 = require("@corepass/corebc-testcases");
 function randomCase(seed, text) {
     return text.split("").map(function (c, index) {

@@ -7,7 +7,7 @@
 //   See: https://eips.ethereum.org/EIPS/eip-1014
 // EXTCODEHASH
 //   See: https://eips.ethereum.org/EIPS/eip-1052
-import { corebc } from "corebc";
+import { corebc } from "@corepass/corebc";
 export var OpcodeMemoryAccess;
 (function (OpcodeMemoryAccess) {
     OpcodeMemoryAccess["write"] = "write";

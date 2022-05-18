@@ -2,7 +2,7 @@
 
 import assert from "assert";
 
-import { corebc } from "corebc";
+import { corebc } from "@corepass/corebc";
 import { loadTests, randomNumber, TestCase } from "@corepass/corebc-testcases";
 
 function randomCase(seed: string, text: string): string {

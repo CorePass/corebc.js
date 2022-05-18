@@ -9,7 +9,7 @@ import { dirname, resolve } from "path";
 import _module from "module";
 import vm from "vm";
 
-import { corebc } from "corebc";
+import { corebc } from "@corepass/corebc";
 
 import { Opcode } from "./opcodes";
 

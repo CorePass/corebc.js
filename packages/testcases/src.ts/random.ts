@@ -1,6 +1,6 @@
 "use strict";
 
-import { corebc } from "corebc";
+import { corebc } from "@corepass/corebc";
 
 export function randomBytes(seed: string, lower: number, upper?: number): Uint8Array {
     if (!upper) { upper = lower; }

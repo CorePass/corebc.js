@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import assert from "assert";
-import { corebc } from "corebc";
+import { corebc } from "@corepass/corebc";
 import { loadTests } from "@corepass/corebc-testcases";
 const bnify = corebc.BigNumber.from;
 function equals(actual, expected) {

@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import assert from "assert";
-import { corebc } from "corebc";
+import { corebc } from "@corepass/corebc";
 import contractData from "./test-contract.json";
 // const provider = new ethers.providers.InfuraProvider("rinkeby", "49a0efa3aaee4fd99797bfa94d8ce2f1");
 const provider = corebc.getDefaultProvider("");

@@ -2,7 +2,7 @@
 
 import assert from "assert";
 
-import { corebc } from "corebc";
+import { corebc } from "@corepass/corebc";
 import { loadTests, TestCase } from "@corepass/corebc-testcases";
 
 import * as utils from "./utils";

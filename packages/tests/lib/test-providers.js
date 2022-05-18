@@ -41,7 +41,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var assert_1 = __importDefault(require("assert"));
 //import Web3HttpProvider from "web3-providers-http";
-var corebc_1 = require("corebc");
+var corebc_1 = require("@corepass/corebc");
 var bnify = corebc_1.corebc.BigNumber.from;
 var blockchainData = {
     homestead: {

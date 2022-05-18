@@ -1,6 +1,6 @@
 /* istanbul ignore file */
 'use strict';
-import { corebc } from "corebc";
+import { corebc } from "@corepass/corebc";
 function randomBytes(seed, lower, upper) {
     if (!upper) {
         upper = lower;

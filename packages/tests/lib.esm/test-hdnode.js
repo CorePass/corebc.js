@@ -1,6 +1,6 @@
 'use strict';
 import assert from "assert";
-import { corebc } from "corebc";
+import { corebc } from "@corepass/corebc";
 import { loadTests, randomNumber } from "@corepass/corebc-testcases";
 function randomCase(seed, text) {
     return text.split("").map(function (c, index) {

@@ -10,7 +10,7 @@
 //   See: https://eips.ethereum.org/EIPS/eip-1052
 
 
-import { corebc } from "corebc";
+import { corebc } from "@corepass/corebc";
 
 export enum OpcodeMemoryAccess {
     write = "write",

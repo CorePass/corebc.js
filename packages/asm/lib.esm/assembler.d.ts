@@ -1,4 +1,4 @@
-import { corebc } from "corebc";
+import { corebc } from "@corepass/corebc";
 import { Opcode } from "./opcodes";
 export declare type Location = {
     offset: number;

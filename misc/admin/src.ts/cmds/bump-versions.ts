@@ -5,7 +5,6 @@ import semver from "semver";
 import { dirnames, getPackageJsonPath, getPackagePath, resolve } from "../path";
 import * as local from "../local";
 import { colorify, getProgressBar } from "../log";
-import * as npm from "../npm";
 import { loadJson, repeat, saveJson } from "../utils";
 
 (async function() {
@@ -29,13 +28,12 @@ import { loadJson, repeat, saveJson } from "../utils";
         local.updateJson(packageJsonPath, common, true);
 
         const pLocal = local.getPackage(dirname);
-        const pNpm = await npm.getPackage(dirname);
 
         const tarballHash = local.computeTarballHash(dirname);
 
-        let version = pNpm.version;
+        let version = pLocal.version;
 
-        if (tarballHash !== pNpm.tarballHash) {
+        if (tarballHash !== pLocal.tarballHash) {
             if (semver.gt(pLocal.version, version)) {
                 // Already have a more recent version locally
                 version = pLocal.version;
@@ -47,8 +45,8 @@ import { loadJson, repeat, saveJson } from "../utils";
             output.push([
                 "  ",
                 colorify.blue(pLocal.name),
-                repeat(" ", 47 - pLocal.name.length - pNpm.version.length),
-                pNpm.version,
+                repeat(" ", 47 - pLocal.name.length - pLocal.version.length),
+                pLocal.version,
                 colorify.bold(" => "),
                 colorify.green(version)
             ].join(""));
@@ -69,7 +67,7 @@ import { loadJson, repeat, saveJson } from "../utils";
     progress(1);
 
     if (updated) {
-        const filename = resolve("packages/ethers/package.json")
+        const filename = resolve("packages/corebc/package.json")
         const info = loadJson(filename);
         Object.keys(info.dependencies).forEach((name) => {
             const version = latestVersions[name];

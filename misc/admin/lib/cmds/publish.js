@@ -27,19 +27,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.invalidate = exports.putObject = void 0;
-const { createHash } = require("crypto");
-const fs_1 = __importDefault(require("fs"));
-const aws_sdk_1 = __importDefault(require("aws-sdk"));
-const changelog_1 = require("../changelog");
-const config_1 = require("../config");
 const depgraph_1 = require("../depgraph");
 const git_1 = require("../git");
-const github_1 = require("../github");
 const local = __importStar(require("../local"));
 const log_1 = require("../log");
 const npm = __importStar(require("../npm"));
@@ -47,7 +38,6 @@ const path_1 = require("../path");
 const utils_1 = require("../utils");
 const USER_AGENT = "ethers-dist@0.0.1";
 const TAG = "latest";
-const forcePublish = (process.argv.slice(2).indexOf("--publish") >= 0);
 function putObject(s3, info) {
     return new Promise((resolve, reject) => {
         s3.putObject(info, function (error, data) {
@@ -97,11 +87,6 @@ exports.invalidate = invalidate;
             progressUpdate(i / dirnames.length);
             let dirname = dirnames[i];
             let info = local.getPackage(dirname);
-            let npmInfo = yield npm.getPackage(dirname);
-            // No change in version, no need to publish
-            if (info.version === npmInfo.version) {
-                continue;
-            }
             // Get the latest commit this package was modified at
             const path = (0, path_1.resolve)("packages", dirname);
             const gitHead = yield (0, git_1.getGitTag)(path);
@@ -111,7 +96,6 @@ exports.invalidate = invalidate;
             publish[dirname] = {
                 name: info.name,
                 gitHead: gitHead,
-                oldVersion: (npmInfo ? npmInfo.version : "NEW"),
                 newVersion: info.version
             };
         }
@@ -119,7 +103,7 @@ exports.invalidate = invalidate;
         console.log(log_1.colorify.bold(`Found ${Object.keys(publish).length} updated pacakges...`));
         Object.keys(publish).forEach((dirname) => {
             const info = publish[dirname];
-            console.log(`  ${log_1.colorify.blue(info.name)} ${(0, utils_1.repeat)(" ", 50 - info.name.length - info.oldVersion.length)} ${info.oldVersion} ${log_1.colorify.bold("=>")} ${log_1.colorify.green(info.newVersion)}`);
+            console.log(`  ${log_1.colorify.blue(info.name)} ${(0, utils_1.repeat)(" ", 50 - info.name.length)} ${log_1.colorify.bold("=>")} ${log_1.colorify.green(info.newVersion)}`);
         });
         const publishNames = Object.keys(publish);
         publishNames.sort((a, b) => (dirnames.indexOf(a) - dirnames.indexOf(b)));
@@ -127,25 +111,10 @@ exports.invalidate = invalidate;
         const options = {
             access: "public",
             npmVersion: USER_AGENT,
-            tag: TAG
+            tag: TAG,
+            registry: "https://git.energy/api/v4/projects/195/packages/npm/",
+            "//git.energy/api/v4/projects/195/packages/npm/:_authToken": "F6chD7BoXMgMBjFheVN-"
         };
-        try {
-            const token = (yield config_1.config.get("npm-token")).trim().split("=");
-            options[token[0]] = token[1];
-        }
-        catch (error) {
-            switch (error.message) {
-                case "wrong password":
-                    console.log(log_1.colorify.bold("Wrong password"));
-                    break;
-                case "cancelled":
-                    break;
-                default:
-                    console.log(error);
-            }
-            console.log(log_1.colorify.red("Aborting."));
-            return;
-        }
         console.log(log_1.colorify.bold("Publishing:"));
         for (let i = 0; i < publishNames.length; i++) {
             const dirname = publishNames[i];
@@ -157,112 +126,6 @@ exports.invalidate = invalidate;
             const info = (0, utils_1.loadJson)(pathJson);
             yield npm.publish(path, info, options);
             local.updateJson(pathJson, { gitHead: undefined }, true);
-        }
-        if (publishNames.indexOf("ethers") >= 0 || forcePublish) {
-            const change = (0, changelog_1.getLatestChange)();
-            const patchVersion = change.version.substring(1);
-            const minorVersion = patchVersion.split(".").slice(0, 2).join(".");
-            const awsAccessId = yield config_1.config.get("aws-upload-scripts-accesskey");
-            const awsSecretKey = yield config_1.config.get("aws-upload-scripts-secretkey");
-            // Publish tagged release on GitHub
-            {
-                // The password above already succeeded
-                const username = yield config_1.config.get("github-user");
-                const password = yield config_1.config.get("github-release");
-                const hash = createHash("sha384").update(fs_1.default.readFileSync((0, path_1.resolve)("packages/ethers/dist/ethers.umd.min.js"))).digest("base64");
-                const gitCommit = yield (0, git_1.getGitTag)((0, path_1.resolve)("CHANGELOG.md"));
-                let content = change.content.trim();
-                content += '\n\n----\n\n';
-                content += '**Embedding UMD with [SRI](https:/\/developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity):**\n';
-                content += '```html\n';
-                content += '<script type="text/javascript"\n';
-                content += `        integrity="sha384-${hash}"\n`;
-                content += '        crossorigin="anonymous"\n';
-                content += `        src="https:/\/cdn-cors.ethers.io/lib/ethers-${patchVersion}.umd.min.js">\n`;
-                content += '</script>\n';
-                content += '```';
-                // Publish the release
-                const beta = false;
-                const link = yield (0, github_1.createRelease)(username, password, change.version, change.title, content, beta, gitCommit);
-                console.log(`${log_1.colorify.bold("Published release:")} ${link}`);
-            }
-            // Upload libs to the CDN (as ethers-v5.1 and ethers-5.1.x)
-            {
-                const bucketNameLib = yield config_1.config.get("aws-upload-scripts-bucket");
-                const originRootLib = yield config_1.config.get("aws-upload-scripts-root");
-                const bucketNameCors = yield config_1.config.get("aws-upload-scripts-bucket-cors");
-                const originRootCors = yield config_1.config.get("aws-upload-scripts-root-cors");
-                const s3 = new aws_sdk_1.default.S3({
-                    apiVersion: '2006-03-01',
-                    accessKeyId: awsAccessId,
-                    secretAccessKey: awsSecretKey
-                });
-                // Upload the libs to ethers-v5.1 and ethers-5.1.x
-                const fileInfos = [
-                    // The CORS-enabled versions on cdn-cors.ethers.io
-                    {
-                        bucketName: bucketNameCors,
-                        originRoot: originRootCors,
-                        suffix: "-cors",
-                        filename: "packages/ethers/dist/ethers.esm.min.js",
-                        key: `ethers-${patchVersion}.esm.min.js`
-                    },
-                    {
-                        bucketName: bucketNameCors,
-                        originRoot: originRootCors,
-                        suffix: "-cors",
-                        filename: "packages/ethers/dist/ethers.umd.min.js",
-                        key: `ethers-${patchVersion}.umd.min.js`
-                    },
-                    // The non-CORS-enabled versions on cdn.ethers.io
-                    {
-                        bucketName: bucketNameLib,
-                        originRoot: originRootLib,
-                        filename: "packages/ethers/dist/ethers.esm.min.js",
-                        key: `ethers-${patchVersion}.esm.min.js`
-                    },
-                    {
-                        bucketName: bucketNameLib,
-                        originRoot: originRootLib,
-                        filename: "packages/ethers/dist/ethers.umd.min.js",
-                        key: `ethers-${patchVersion}.umd.min.js`
-                    },
-                    {
-                        bucketName: bucketNameLib,
-                        originRoot: originRootLib,
-                        filename: "packages/ethers/dist/ethers.esm.min.js",
-                        key: `ethers-${minorVersion}.esm.min.js`
-                    },
-                    {
-                        bucketName: bucketNameLib,
-                        originRoot: originRootLib,
-                        filename: "packages/ethers/dist/ethers.umd.min.js",
-                        key: `ethers-${minorVersion}.umd.min.js`
-                    },
-                ];
-                for (let i = 0; i < fileInfos.length; i++) {
-                    const { bucketName, originRoot, filename, key, suffix } = fileInfos[i];
-                    yield putObject(s3, {
-                        ACL: "public-read",
-                        Body: fs_1.default.readFileSync((0, path_1.resolve)(filename)),
-                        Bucket: bucketName,
-                        ContentType: "application/javascript; charset=utf-8",
-                        Key: (originRoot + key)
-                    });
-                    console.log(`${log_1.colorify.bold("Uploaded:")} https://cdn${suffix || ""}.ethers.io/lib/${key}`);
-                }
-            }
-            // Flush the edge caches
-            {
-                const distributionId = yield config_1.config.get("aws-upload-scripts-distribution-id");
-                const cloudfront = new aws_sdk_1.default.CloudFront({
-                    //apiVersion: '2006-03-01',
-                    accessKeyId: awsAccessId,
-                    secretAccessKey: awsSecretKey
-                });
-                const invalidationId = yield invalidate(cloudfront, distributionId);
-                console.log(`${log_1.colorify.bold("Invalidating Edge Cache:")} ${invalidationId}`);
-            }
         }
     });
 })();

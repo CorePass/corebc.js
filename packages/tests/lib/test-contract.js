@@ -40,7 +40,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var assert_1 = __importDefault(require("assert"));
-var corebc_1 = require("corebc");
+var corebc_1 = require("@corepass/corebc");
 var test_contract_json_1 = __importDefault(require("./test-contract.json"));
 // const provider = new ethers.providers.InfuraProvider("rinkeby", "49a0efa3aaee4fd99797bfa94d8ce2f1");
 var provider = corebc_1.corebc.getDefaultProvider("");
