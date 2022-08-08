@@ -12,6 +12,7 @@ export class AddressCoder extends Coder {
     }
 
     defaultValue(): string {
+        // Need to fix zero address according to the network
         return "0x0000000000000000000000000000000000000000";
     }
 
@@ -25,7 +26,7 @@ export class AddressCoder extends Coder {
     }
 
     decode(reader: Reader): any {
-        return getAddress(hexZeroPad(reader.readValue().toHexString(), 20));
+        return getAddress(hexZeroPad(reader.readValue().toHexString(), 22));
     }
 }
 

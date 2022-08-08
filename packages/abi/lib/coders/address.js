@@ -25,6 +25,7 @@ var AddressCoder = /** @class */ (function (_super) {
         return _super.call(this, "address", "address", localName, false) || this;
     }
     AddressCoder.prototype.defaultValue = function () {
+        // Need to fix zero address according to the network
         return "0x0000000000000000000000000000000000000000";
     };
     AddressCoder.prototype.encode = function (writer, value) {
@@ -37,7 +38,7 @@ var AddressCoder = /** @class */ (function (_super) {
         return writer.writeValue(value);
     };
     AddressCoder.prototype.decode = function (reader) {
-        return (0, corebc_address_1.getAddress)((0, corebc_bytes_1.hexZeroPad)(reader.readValue().toHexString(), 20));
+        return (0, corebc_address_1.getAddress)((0, corebc_bytes_1.hexZeroPad)(reader.readValue().toHexString(), 22));
     };
     return AddressCoder;
 }(abstract_coder_1.Coder));

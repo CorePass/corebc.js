@@ -7,6 +7,7 @@ export class AddressCoder extends Coder {
         super("address", "address", localName, false);
     }
     defaultValue() {
+        // Need to fix zero address according to the network
         return "0x0000000000000000000000000000000000000000";
     }
     encode(writer, value) {
@@ -19,7 +20,7 @@ export class AddressCoder extends Coder {
         return writer.writeValue(value);
     }
     decode(reader) {
-        return getAddress(hexZeroPad(reader.readValue().toHexString(), 20));
+        return getAddress(hexZeroPad(reader.readValue().toHexString(), 22));
     }
 }
 //# sourceMappingURL=address.js.map

@@ -2,9 +2,9 @@
   "author": "Richard Moore <me@ricmoo.com>",
   "browser-old": "./dist/ethers.umd.js",
   "dependencies": {
-    "@corepass/corebc-abi": "0.1.1",
+    "@corepass/corebc-abi": "0.1.2",
     "@corepass/corebc-abstract-provider": "0.1.1",
-    "@corepass/corebc-abstract-signer": "0.1.1",
+    "@corepass/corebc-abstract-signer": "0.1.2",
     "@corepass/corebc-address": "0.1.1",
     "@corepass/corebc-base64": "0.1.1",
     "@corepass/corebc-basex": "0.1.1",
@@ -30,7 +30,7 @@
     "@corepass/corebc-units": "0.1.1",
     "@corepass/corebc-wallet": "0.1.1",
     "@corepass/corebc-web": "0.1.1",
-    "@corepass/corebc-wordlists": "0.1.1"
+    "@corepass/corebc-wordlists": "0.1.2"
   },
   "description": "Umbrella package for most common Ethers libraries.",
   "ethereum": "donations.ethers.eth",
@@ -61,7 +61,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "sideEffects": false,
-  "tarballHash": "0xbad0f0b2f323840634b24333bde83e77686206a87a3d39b41659b300950f8e48",
+  "tarballHash": "0xe0a71d7c487fabc7262ed2517c1b5a02013d685386ae006ad7c0122528be489c",
   "types": "./lib/index.d.ts",
-  "version": "0.1.1"
+  "version": "0.1.2"
 }
