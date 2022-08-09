@@ -65,7 +65,7 @@ var Indexed = /** @class */ (function (_super) {
 }(corebc_properties_1.Description));
 exports.Indexed = Indexed;
 var BuiltinErrors = {
-    "0x08c379a0": { signature: "Error(string)", name: "Error", inputs: ["string"], reason: true },
+    "0x4e401cbe": { signature: "Error(string)", name: "Error", inputs: ["string"], reason: true },
     "0x4e487b71": { signature: "Panic(uint256)", name: "Panic", inputs: ["uint256"] }
 };
 function wrapAccessError(property, error) {

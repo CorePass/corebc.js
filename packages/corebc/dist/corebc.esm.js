@@ -4868,7 +4868,7 @@ class Description {
     }
 }
 
-const version$4 = "abi/0.1.2";
+const version$4 = "abi/0.1.3";
 
 "use strict";
 const logger$4 = new Logger(version$4);
@@ -8668,7 +8668,7 @@ class Indexed extends Description {
     }
 }
 const BuiltinErrors = {
-    "0x08c379a0": { signature: "Error(string)", name: "Error", inputs: ["string"], reason: true },
+    "0x4e401cbe": { signature: "Error(string)", name: "Error", inputs: ["string"], reason: true },
     "0x4e487b71": { signature: "Panic(uint256)", name: "Panic", inputs: ["uint256"] }
 };
 function wrapAccessError(property, error) {
@@ -37493,7 +37493,7 @@ var utils = /*#__PURE__*/Object.freeze({
 	Indexed: Indexed
 });
 
-const version$p = "corebc/0.1.2";
+const version$p = "corebc/0.1.3";
 
 "use strict";
 const logger$C = new Logger(version$p);

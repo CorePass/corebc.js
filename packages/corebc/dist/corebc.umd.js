@@ -5066,7 +5066,7 @@
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.version = void 0;
-	exports.version = "abi/0.1.2";
+	exports.version = "abi/0.1.3";
 
 	});
 
@@ -9682,7 +9682,7 @@
 	}(lib$3.Description));
 	exports.Indexed = Indexed;
 	var BuiltinErrors = {
-	    "0x08c379a0": { signature: "Error(string)", name: "Error", inputs: ["string"], reason: true },
+	    "0x4e401cbe": { signature: "Error(string)", name: "Error", inputs: ["string"], reason: true },
 	    "0x4e487b71": { signature: "Panic(uint256)", name: "Panic", inputs: ["uint256"] }
 	};
 	function wrapAccessError(property, error) {
@@ -39875,7 +39875,7 @@
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.version = void 0;
-	exports.version = "corebc/0.1.2";
+	exports.version = "corebc/0.1.3";
 
 	});
 

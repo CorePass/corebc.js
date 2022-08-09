@@ -52,7 +52,7 @@ export class Indexed extends Description<Indexed> {
 }
 
 const BuiltinErrors: Record<string, { signature: string, inputs: Array<string>, name: string, reason?: boolean }> = {
-    "0x08c379a0": { signature: "Error(string)", name: "Error", inputs: [ "string" ], reason: true },
+    "0x4e401cbe": { signature: "Error(string)", name: "Error", inputs: [ "string" ], reason: true },
     "0x4e487b71": { signature: "Panic(uint256)", name: "Panic", inputs: [ "uint256" ] }
 }
 
