@@ -56,7 +56,18 @@ var IpcProvider = /** @class */ (function (_super) {
             });
             stream.on("end", function () {
                 try {
-                    resolve(JSON.parse(response.toString()).result);
+                    var _res = JSON.parse(response.toString()).result;
+                    var _error_res = JSON.parse(response.toString()).error;
+
+                    if (_res !== undefined)
+                        resolve(_res);
+                    else
+                        if (_error_res !== undefined) {
+                            resolve(JSON.parse(response.toString()).error.data);
+                        }
+                        else
+                            reject('empty response, neither result nor error fields')
+
                     // @TODO: Better pull apart the error
                     stream.destroy();
                 }

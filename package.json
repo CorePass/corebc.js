@@ -1,5 +1,6 @@
 {
   "name": "@corepass/corebc",
+  "version": "0.1.7",
   "common": {
     "ethereum": "donations.ethers.eth",
     "funding": [
