@@ -1,6 +1,6 @@
 {
   "name": "@corepass/corebc",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "common": {
     "ethereum": "donations.ethers.eth",
     "funding": [
@@ -14,7 +14,6 @@
       }
     ]
   },
-  "private": true,
   "repository": {
     "type": "git",
     "url": "git://github.com/ethers-io/ethers.js.git"
