@@ -10,8 +10,9 @@ please [contact me](mailto:github@ricmoo.com).
 
 | Version | Supported                                  | Initial Release   |
 | ------- | ------------------------------------------ | ----------------- |
-| 5.0.x   | :white_check_mark:                         | 2020-06-12        |
-| 4.0.x   | :white_check_mark: (security patches only) | 2018-10-01        |
+| 6.0.x   | :white_check_mark:                         | 2023-02-02        |
+| 5.0.x   | :white_check_mark: (security updates)      | 2020-06-12        |
+| 4.0.x   | :x:                                        | 2018-10-01        |
 | 3.0.x   | :x:                                        | 2018-03-05        |
 | 2.2.x   | :x:                                        | 2018-01-11        |
 | 2.1.x   | :x:                                        | 2017-05-22        |

@@ -1,96 +1,122 @@
 {
-  "name": "@corepass/corebc",
-  "version": "0.1.8",
-  "common": {
-    "ethereum": "donations.ethers.eth",
-    "funding": [
-      {
-        "type": "individual",
-        "url": "https://gitcoin.co/grants/13/ethersjs-complete-simple-and-tiny-2"
-      },
-      {
-        "type": "individual",
-        "url": "https://www.buymeacoffee.com/ricmoo"
-      }
-    ]
-  },
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/ethers-io/ethers.js.git"
-  },
-  "scripts": {
-    "preinstall": "npm run bootstrap-hoist",
-    "postinstall": "node ./misc/admin/lib/cmds/update-depgraph && npm run bootstrap-link",
-    "bootstrap-hoist": "node ./misc/admin/lib/cmds/hoist",
-    "bootstrap-link": "node ./misc/admin/lib/cmds/link",
-    "auto-build": "node ./misc/admin/lib/cmds/set-build-option cjs && npm run build -- -w",
-    "auto-build-esm": "node ./misc/admin/lib/cmds/set-build-option esm && npm run build -- -w",
-    "build": "tsc --build ./tsconfig.project.json",
-    "_build-cjs": "node ./misc/admin/lib/cmds/echo 'Building CommonJS libraries...' && node ./misc/admin/lib/cmds/set-build-option cjs && npm run build",
-    "_build-esm": "node ./misc/admin/lib/cmds/echo 'Building ES modules libraries...' && node ./misc/admin/lib/cmds/set-build-option esm && npm run build",
-    "clean": "node ./misc/admin/lib/cmds/echo 'Cleaning all build files...' && rm -rf packages/*/lib packages/*/lib._esm packages/*/lib.esm packages/*/node_modules packages/*/dist/*.js packages/*/tsconfig.tsbuildinfo node_modules .package_node_modules package-lock.json",
-    "_test-dist": "rollup -c rollup-tests.config.js && node ./misc/admin/lib/cmds/setup-karma-tests",
-    "_test-browser-umd": "karma start --single-run --browsers HeadlessLittleLiar karma-umd.conf.js",
-    "_test-browser-esm": "karma start --single-run --browsers HeadlessLittleLiar karma-esm.conf.js",
-    "test-browser-umd": "npm run _test-dist && npm run _test-browser-umd",
-    "test-browser-esm": "npm run _test-dist && npm run _test-browser-esm",
-    "test-coverage": "nyc --report-dir=output --reporter=lcov --reporter=text mocha --reporter ./packages/tests/reporter-keepalive ./packages/tests/lib/test-*.js | tee output/summary.txt",
-    "test-node": "mocha --no-colors --reporter ./packages/tests/reporter ./packages/tests/lib/test-*.js",
-    "test-react": "npm run _test-dist && pushd misc/ReactNativeTestApp && ./run-tests.sh && popd",
-    "test": "npm run build-all && npm run test-node",
-    "build-docs": "flatworm docs.wrm docs",
-    "serve-docs": "node ./misc/admin/lib/cmds/serve-docs.js",
-    "upload-docs": " node ./misc/admin/lib/cmds/upload-docs.js",
-    "spell-check": "node ./misc/admin/lib/cmds/spell-check.js",
-    "_reset-build": "node ./misc/admin/lib/cmds/set-build-option cjs",
-    "_esm-alias-nodesafe": "node ./misc/admin/lib/cmds/echo 'Aliasing ESM...' && node misc/admin/lib/cmds/esm-alias",
-    "_esm-alias": "node ./misc/admin/lib/cmds/npm-skip-node8.js || npm run _esm-alias-nodesafe",
-    "build-libs": "node ./misc/admin/lib/cmds/update-exports.js && node ./misc/admin/lib/cmds/bundle-testcases && npm run _build-cjs && npm run _build-esm && npm run _reset-build && node packages/asm/generate.js && npm run _esm-alias",
-    "build-dist-shims": "rollup -c rollup-shims.config.js && uglifyjs --compress --mangle --output ./packages/shims/dist/index.min.js -- ./packages/shims/dist/index.js",
-    "build-dist-libs": "rollup -c rollup-dist.config.js && uglifyjs packages/corebc/dist/corebc.umd.js --output packages/corebc/dist/corebc.umd.min.js --source-map 'content=packages/corebc/dist/corebc.umd.js.map' && uglifyjs packages/corebc/dist/corebc.esm.js --output packages/corebc/dist/corebc.esm.min.js --source-map 'content=packages/corebc/dist/corebc.esm.js.map'",
-    "_build-dist-nodesafe": "node ./misc/admin/lib/cmds/echo 'Building dist files...' && npm run build-dist-libs && npm run build-dist-shims",
-    "build-dist": "node ./misc/admin/lib/cmds/npm-skip-node8.js || npm run _build-dist-nodesafe",
-    "build-all": "npm run build-libs && npm run build-dist",
-    "update-versions": "npm run clean && npm install && npm run spell-check && npm run build-all && node ./misc/admin/lib/cmds/bump-versions && npm run build-all && node ./misc/admin/lib/cmds/update-hashes",
-    "publish-all": "node ./misc/admin/lib/cmds/publish",
-    "TODO-sync-github": "node ./admin/cmds/cache-github"
-  },
-  "devDependencies": {
-    "@rollup/plugin-commonjs": "15.1.0",
-    "@rollup/plugin-json": "4.1.0",
-    "@rollup/plugin-node-resolve": "9.0.0",
-    "@rollup/plugin-replace": "2.3.3",
-    "@types/assert": "^1.4.1",
-    "@types/mocha": "^5.2.0",
-    "@types/node": "^12.7.4",
-    "@types/semver": "^7.3.4",
-    "aes-js": "3.0.0",
-    "aws-sdk": "2.1039.0",
-    "diff": "4.0.1",
-    "flatworm": "0.0.2-beta.7",
-    "jison": "0.4.18",
-    "karma": "6.3.2",
-    "karma-chrome-launcher": "3.1.0",
-    "karma-mocha": "2.0.1",
-    "libnpmpublish": "3.0.1",
-    "mocha": "^9.1.3",
-    "nyc": "15.1.0",
-    "rollup": "2.33.2",
-    "rollup-plugin-node-polyfills": "0.2.1",
-    "rollup-plugin-sourcemaps": "0.6.3",
-    "scrypt-js": "3.0.1",
-    "semver": "^5.6.0",
-    "typescript": "4.4.4",
-    "uglify-es": "3.3.9"
+  "author": "core",
+  "browser": {
+    "./lib.esm/crypto/crypto.js": "./lib.esm/crypto/crypto-browser.js",
+    "./lib.esm/providers/provider-ipcsocket.js": "./lib.esm/providers/provider-ipcsocket-browser.js",
+    "./lib.esm/providers/ws.js": "./lib.esm/providers/ws-browser.js",
+    "./lib.esm/utils/base64.js": "./lib.esm/utils/base64-browser.js",
+    "./lib.esm/utils/geturl.js": "./lib.esm/utils/geturl-browser.js",
+    "./lib.esm/crypto/ed448goldilock.js": "./lib.esm/crypto/ed448goldilock-browser.js",
+    "./src.ts/crypto/ed448goldilock.ts": "./src.ts/crypto/ed448goldilock-browser.ts",
+    "./lib.esm/wordlists/wordlists.js": "./lib.esm/wordlists/wordlists-browser.js"
   },
   "dependencies": {
-    "@types/mocha": "^5.2.0",
-    "aes-js": "3.0.0",
+    "@adraffy/ens-normalize": "https://github.com/ricmoo/ens-normalize.js",
+    "@noble/hashes": "1.1.2",
+    "@noble/secp256k1": "1.7.1",
+    "@types/node": "18.15.13",
+    "aes-js": "4.0.0-beta.5",
     "bcrypto": "^5.4.0",
-    "bech32": "1.1.4",
-    "bn.js": "^4.11.9",
-    "scrypt-js": "3.0.1",
-    "tiny-inflate": "1.0.3",
-    "ws": "7.4.6"
-  }
+    "bn.js": "^5.2.1",
+    "buffer": "^6.0.3",
+    "tslib": "2.4.0",
+    "ws": "8.5.0"
+  },
+  "description": "A complete and compact CoreBC library, for dapps, wallets and any other tools.",
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "13.3.0",
+    "@types/bn.js": "^5.1.1",
+    "@types/mocha": "9.1.1",
+    "@types/semver": "7.3.12",
+    "c8": "7.12.0",
+    "mocha": "10.0.0",
+    "rollup": "2.78.1",
+    "semver": "7.3.7",
+    "typescript": "5.0.4",
+    "uglify-js": "3.17.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "exports": {
+    ".": {
+      "import": "./lib.esm/index.js",
+      "default": "./lib.commonjs/index.js"
+    },
+    "./abi": {
+      "import": "./lib.esm/abi/index.js",
+      "default": "./lib.commonjs/abi/index.js"
+    },
+    "./address": {
+      "import": "./lib.esm/address/index.js",
+      "default": "./lib.commonjs/address/index.js"
+    },
+    "./constants": {
+      "import": "./lib.esm/constants/index.js",
+      "default": "./lib.commonjs/constants/index.js"
+    },
+    "./contract": {
+      "import": "./lib.esm/contract/index.js",
+      "default": "./lib.commonjs/contract/index.js"
+    },
+    "./crypto": {
+      "import": "./lib.esm/crypto/index.js",
+      "default": "./lib.commonjs/crypto/index.js"
+    },
+    "./hash": {
+      "import": "./lib.esm/hash/index.js",
+      "default": "./lib.commonjs/hash/index.js"
+    },
+    "./providers": {
+      "import": "./lib.esm/providers/index.js",
+      "default": "./lib.commonjs/providers/index.js"
+    },
+    "./transaction": {
+      "import": "./lib.esm/transaction/index.js",
+      "default": "./lib.commonjs/transaction/index.js"
+    },
+    "./utils": {
+      "import": "./lib.esm/utils/index.js",
+      "default": "./lib.commonjs/utils/index.js"
+    },
+    "./wallet": {
+      "import": "./lib.esm/wallet/index.js",
+      "default": "./lib.commonjs/wallet/index.js"
+    },
+    "./wordlists": {
+      "import": "./lib.esm/wordlists/index.js",
+      "default": "./lib.commonjs/wordlists/index.js"
+    }
+  },
+  "license": "MIT",
+  "main": "./lib.commonjs/index.js",
+  "module": "./lib.esm/index.js",
+  "name": "@corepass/corebc",
+  "publishConfig": {
+    "access": "public",
+    "tag": "latest"
+  },
+  "scripts": {
+    "_build-dist": "rollup -c && uglifyjs ./dist/corebc.js -o ./dist/corebc.min.js && uglifyjs ./dist/corebc.umd.js -o ./dist/corebc.umd.min.js && uglifyjs ./dist/wordlists-extra.js -o ./dist/wordlists-extra.min.js",
+    "_dist-stats": "gzip -k9f -S '.gz' ./dist/corebc.min.js && gzip -k9f -S '.gz' ./dist/corebc.umd.min.js && gzip -k9f -S '.gz' ./dist/wordlists-extra.min.js && du -hs ./dist/*.gz && echo '' && du -hs ./dist/*.js",
+    "auto-build": "npm run build -- -w",
+    "build": "tsc --project tsconfig.esm.json",
+    "build-all": "npm run build && npm run build-commonjs && npm run build-types",
+    "build-clean": "npm run clean && npm run build && node lib.esm/_admin/update-version.js && node lib.esm/_admin/update-changelog.js && npm run build-all && npm run _build-dist && npm run _dist-stats",
+    "build-commonjs": "tsc --project tsconfig.commonjs.json",
+    "build-dist": "npm run build && npm run _build-dist && npm run _dist-stats",
+    "build-types": "tsc --project tsconfig.types.json",
+    "clean": "rm -rf dist lib.esm lib.commonjs types && cp -r misc/basedirs/* .",
+    "stats": "echo 'Dependencies' && npm ls --all --omit=dev",
+    "test": "npm run test-esm",
+    "test-commonjs": "mocha --reporter ./reporter.cjs ./lib.commonjs/_tests/test-*.js",
+    "test-coverage": "c8 -o output -r lcov -r text mocha --no-color --reporter ./reporter.cjs ./lib.esm/_tests/test-*.js | tee output/summary.txt",
+    "test-esm": "mocha --reporter ./reporter.cjs ./lib.esm/_tests/test-*.js",
+    "clean-test": "npm run clean  && npm run build && npm run test",
+    "prepare-publish": "npm run clean-test && npm run clean && npm run build-all && npm run build-types"
+  },
+  "sideEffects": false,
+  "type": "module",
+  "types": "./types/index.d.ts",
+  "version": "0.2.3"
 }
