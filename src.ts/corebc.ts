@@ -74,7 +74,6 @@ export {
 
     IpcSocketProvider, SocketProvider, WebSocketProvider,
 
-    EnsResolver,
     Network,
 
     FeeDataNetworkPlugin, EnergyCostPlugin, NetworkPlugin,
