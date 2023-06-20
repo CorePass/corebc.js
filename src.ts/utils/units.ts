@@ -71,7 +71,7 @@ export function formatUnits(value: BigNumberish, unit?: string | Numeric): strin
 /**
  *  Converts the //decimal string// %%value%% to a BigInt, assuming
  *  %%unit%% decimal places. The %%unit%% may the number of decimal places
- *  or the name of a unit (e.g. ``"gwei"`` for 9 decimal places).
+ *  or the name of a unit.
  */
 export function parseUnits(value: string, unit?: string | Numeric): bigint {
     assertArgument(typeof(value) === "string", "value must be a string", "value", value);

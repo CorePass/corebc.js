@@ -4,6 +4,7 @@
 //
 
 export { version } from "./_version.js";
+export { publicToAddress } from "./transaction/address.js";
 
 export {
     decodeBytes32String, encodeBytes32String,
@@ -18,7 +19,7 @@ export {
 export {
     getAddress,
     getCreateAddress, getCreate2Address,
-    isAddressable, isAddress, resolveAddress
+    isAddressable, isAddress, resolveAddress,networkIdToPrefix
 } from "./address/index.js";
 
 export {
