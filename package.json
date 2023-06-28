@@ -91,7 +91,7 @@
   "license": "MIT",
   "main": "./lib.commonjs/index.js",
   "module": "./lib.esm/index.js",
-  "name": "@corepass/corebc",
+  "name": "m_ccbc",
   "publishConfig": {
     "access": "public",
     "tag": "latest"
@@ -118,5 +118,5 @@
   "sideEffects": false,
   "type": "module",
   "types": "./types/index.d.ts",
-  "version": "0.2.3"
+  "version": "0.2.7"
 }

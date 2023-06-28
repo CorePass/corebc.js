@@ -9,7 +9,7 @@ export declare function formatUnits(value: BigNumberish, unit?: string | Numeric
 /**
  *  Converts the //decimal string// %%value%% to a BigInt, assuming
  *  %%unit%% decimal places. The %%unit%% may the number of decimal places
- *  or the name of a unit (e.g. ``"gwei"`` for 9 decimal places).
+ *  or the name of a unit.
  */
 export declare function parseUnits(value: string, unit?: string | Numeric): bigint;
 /**

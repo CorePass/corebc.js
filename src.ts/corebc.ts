@@ -43,7 +43,7 @@ export {
     pbkdf2,
     scrypt, scryptSync,
     lock,
-    
+    Ed448Goldilock,
     Signature, SigningKey
 } from "./crypto/index.js";
 
