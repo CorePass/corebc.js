@@ -271,11 +271,8 @@ export class HDNodeWallet extends BaseWallet {
         }).derivePath(path);
     }
     static mnemonicToSeed(mnemonic, password) {
-        if (!password) {
-            password = "";
-        }
-        const salt = toUtf8Bytes("mnemonic" + password, "NFKD");
-        return pbkdf2(toUtf8Bytes(mnemonic, "NFKD"), salt, 2048, 64, "sha512");
+        const seed = mnemonicToSeed(mnemonic, password);
+        return seed;
     }
     /**
      *  Creates an HD Node from a mnemonic %%phrase%%.
@@ -291,8 +288,6 @@ export class HDNodeWallet extends BaseWallet {
             wordlist = LangEn.wordlist();
         }
         const mnemonic = Mnemonic.fromPhrase({ phrase, password, wordlist });
-        // const seed=mnemonic.computeSeed()
-        // console.log({seed})
         const _seed = mnemonic.computeSeed();
         return HDNodeWallet.#fromSeed({
             _seed,
@@ -354,5 +349,14 @@ export function getIndexedAccountPath(_index) {
     const index = getNumber(_index, "index");
     assertArgument(index >= 0 && index < HardenedBit, "invalid account index", "index", index);
     return `m/44'/60'/0'/0/${index}`;
+}
+export function mnemonicToSeed(mnemonic, password) {
+    if (!password) {
+        password = "";
+    }
+    const salt = toUtf8Bytes("mnemonic" + password, "NFKD");
+    const seed = pbkdf2(toUtf8Bytes(mnemonic, "NFKD"), salt, 2048, 64, "sha512");
+    console.log({ seed });
+    return seed;
 }
 //# sourceMappingURL=hdwallet.js.map

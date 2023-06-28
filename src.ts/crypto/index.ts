@@ -15,6 +15,7 @@ import { randomBytes } from "./random.js";
 import { scrypt, scryptSync } from "./scrypt.js";
 import { sha256, sha512 } from "./sha3.js";
 import {Ed448Goldilock} from './crypto.js'
+import {keccak256} from './keccak.js'
 
 export {
     computeHmac,
@@ -23,6 +24,7 @@ export {
     sha256, sha512,
     pbkdf2,
     scrypt, scryptSync,
+    keccak256,
     Ed448Goldilock
 };
 

@@ -20,13 +20,20 @@ const wallet = Wallet.fromSeed({
     seed: testSeed,
     provider
 })
+// @ts-ignore
 const mnemonicWallet = Wallet.fromPhrase(
     {
         phrase: testWalletPhrase,
+        password: '111111',
         prefix: networkIdToPrefix(3),
     }
 )
-console.log({ mnemonicWallet })
+// @ts-ignore
+const seedWallet=Wallet.fromSeed({
+    prefix: networkIdToPrefix(3),
+    seed: testSeed,
+})
+
 const signingKey = new SigningKey(tesPrivateKey)
 const baseWallet = new BaseWallet(
     {

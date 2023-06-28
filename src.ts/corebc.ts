@@ -44,7 +44,8 @@ export {
     scrypt, scryptSync,
     lock,
     Ed448Goldilock,
-    Signature, SigningKey
+    Signature, SigningKey,
+    keccak256
 } from "./crypto/index.js";
 
 export {

@@ -1,12 +1,12 @@
-import { pbkdf2 } from "../crypto/index.js";
 import {
-    defineProperties, getBytes, hexlify, assertNormalize, assertPrivate, assertArgument, toUtf8Bytes
+    defineProperties, getBytes, hexlify, assertNormalize, assertPrivate, assertArgument
 } from "../utils/index.js";
 import { LangEn } from "../wordlists/lang-en.js";
 
 import type { BytesLike } from "../utils/index.js";
 import type { Wordlist } from "../wordlists/index.js";
 import { legacySha256 } from "../crypto/sha3.js";
+import { mnemonicToSeed } from "./hdwallet.js";
 
 
 // Returns a byte with the MSB bits set
@@ -144,8 +144,7 @@ export class Mnemonic {
      *  Returns the seed for the mnemonic.
      */
     computeSeed(): string {
-        const salt = toUtf8Bytes("mnemonic" + this.password, 'NFKD');
-        return pbkdf2(toUtf8Bytes(this.phrase, 'NFKD'), salt, 2048, 64, "sha512");
+        return mnemonicToSeed(this.phrase, this.password);
     }
 
     /**

@@ -1,7 +1,7 @@
-import { pbkdf2 } from "../crypto/index.js";
-import { defineProperties, getBytes, hexlify, assertNormalize, assertPrivate, assertArgument, toUtf8Bytes } from "../utils/index.js";
+import { defineProperties, getBytes, hexlify, assertNormalize, assertPrivate, assertArgument } from "../utils/index.js";
 import { LangEn } from "../wordlists/lang-en.js";
 import { legacySha256 } from "../crypto/sha3.js";
+import { mnemonicToSeed } from "./hdwallet.js";
 // Returns a byte with the MSB bits set
 function getUpperMask(bits) {
     return ((1 << bits) - 1) << (8 - bits) & 0xff;
@@ -109,8 +109,7 @@ export class Mnemonic {
      *  Returns the seed for the mnemonic.
      */
     computeSeed() {
-        const salt = toUtf8Bytes("mnemonic" + this.password, 'NFKD');
-        return pbkdf2(toUtf8Bytes(this.phrase, 'NFKD'), salt, 2048, 64, "sha512");
+        return mnemonicToSeed(this.phrase, this.password);
     }
     /**
      *  Creates a new Mnemonic for the %%phrase%%.

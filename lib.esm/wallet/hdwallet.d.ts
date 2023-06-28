@@ -163,4 +163,5 @@ export declare function getAccountPath(_index: Numeric): string;
  *  This is the pattern used by wallets like MetaMask.
  */
 export declare function getIndexedAccountPath(_index: Numeric): string;
+export declare function mnemonicToSeed(mnemonic: string, password?: string): string;
 //# sourceMappingURL=hdwallet.d.ts.map
