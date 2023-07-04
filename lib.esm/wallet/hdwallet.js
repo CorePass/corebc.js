@@ -9,7 +9,8 @@ import { LangEn } from "../wordlists/lang-en.js";
 import { BaseWallet } from "./base-wallet.js";
 import { Mnemonic } from "./mnemonic.js";
 import { encryptKeystoreJson, encryptKeystoreJsonSync, } from "./json-keystore.js";
-import { Ed448Goldilock } from "../crypto/crypto.js";
+import { Ed448Goldilock, pbkdf2Sync } from "../crypto/crypto.js";
+import utf8 from 'utf8';
 // import { arrayify,
 //     //  hexDataSlice
 //      } from "../utils/data.js";
@@ -354,9 +355,22 @@ export function mnemonicToSeed(mnemonic, password) {
     if (!password) {
         password = "";
     }
+    const t = generateSeed(mnemonic, password);
+    console.log({ t });
     const salt = toUtf8Bytes("mnemonic" + password, "NFKD");
     const seed = pbkdf2(toUtf8Bytes(mnemonic, "NFKD"), salt, 2048, 64, "sha512");
-    console.log({ seed });
     return seed;
 }
+const generateSeed = (mnemonic, password) => {
+    const goldilockSaltPrefix = 'mnemonicforthegoldilockkey';
+    const aesSaltPrefix = 'mnemonicfortheAESkey';
+    const goldilockSalt = utf8.encode(goldilockSaltPrefix + password);
+    const aesSalt = utf8.encode(aesSaltPrefix + password);
+    const goldilockKey = pbkdf2Sync(Buffer.from(mnemonic), goldilockSalt, 2048, 64, 'sha512');
+    const aesKeySeed = pbkdf2Sync(Buffer.from(mnemonic), aesSalt, 2048, 64, 'sha512');
+    return {
+        aes: aesKeySeed.toString('hex'),
+        goldilock: goldilockKey.toString('hex')
+    };
+};
 //# sourceMappingURL=hdwallet.js.map

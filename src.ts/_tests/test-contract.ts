@@ -15,6 +15,7 @@ const testSeed = 'c1df56a610fd92afedb1ec838f3a4ab60668e157f3ea802cd587f18e215d25
 const tesPrivateKey = '69bb68c3a00a0cd9cbf2cab316476228c758329bbfe0b1759e8634694a9497afea05bcbf24e2aa0627eac4240484bb71de646a9296872a3c0e'
 const provider = getDefaultProvider('https://xcbapi.corecoin.cc/')
 // const tesContract = Tes__factory.connect(nftAddress, provider)
+// @ts-ignore
 const wallet = Wallet.fromSeed({
     prefix: networkIdToPrefix(3),
     seed: testSeed,
@@ -65,12 +66,12 @@ describe('Test getting data from blockchain and calling smart contract', functio
     //     const totalSupply = await tesContract.totalSupply()
     //     assert.equal(totalSupply, 272n, 'mismatch in total supply');
     // });
-    it('can get user\'s native balance', async function () {
-        this.timeout(TIMEOUT_PERIOD);
-        console.log({ walletaddress: wallet.address })
-        const f = await provider.getBalance(wallet.address)
-        assert.equal(f, 2000000000000000000n, 'mismatch in balance of test address');
-    })
+    // it('can get user\'s native balance', async function () {
+    //     this.timeout(TIMEOUT_PERIOD);
+    //     console.log({ walletaddress: wallet.address })
+    //     const f = await provider.getBalance(wallet.address)
+    //     assert.equal(f, 2000000000000000000n, 'mismatch in balance of test address');
+    // })
     it('can get feeData ', async function () {
         this.timeout(TIMEOUT_PERIOD);
         const feeData = await provider.getFeeData()

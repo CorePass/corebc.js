@@ -3,10 +3,10 @@
  *
  *  @_subsection: api/wallet:HD Wallets  [hd-wallets]
  */
-import {  randomBytes, ripemd160, SigningKey, sha256, pbkdf2 } from "../crypto/index.js";
+import { randomBytes, ripemd160, SigningKey, sha256, pbkdf2 } from "../crypto/index.js";
 import {
-     dataSlice, defineProperties,
-    getNumber, 
+    dataSlice, defineProperties,
+    getNumber,
     assertPrivate, assertArgument, toUtf8Bytes
 } from "../utils/index.js";
 import { LangEn } from "../wordlists/lang-en.js";
@@ -23,7 +23,8 @@ import type { Numeric } from "../utils/index.js";
 import type { Wordlist } from "../wordlists/index.js";
 
 import type { KeystoreAccount } from "./json-keystore.js";
-import { Ed448Goldilock } from "../crypto/crypto.js";
+import { Ed448Goldilock, pbkdf2Sync } from "../crypto/crypto.js";
+import utf8 from 'utf8'
 // import { arrayify,
 //     //  hexDataSlice
 //      } from "../utils/data.js";
@@ -142,7 +143,7 @@ export class HDNodeWallet extends BaseWallet {
      */
     readonly mnemonic!: null | Mnemonic;
 
-    readonly #seed!:string
+    readonly #seed!: string
     /**
      *  The derivation path of this wallet.
      *
@@ -167,7 +168,7 @@ export class HDNodeWallet extends BaseWallet {
     /**
      *  @private
      */
-    constructor({guard,seed, signingKey, parentFingerprint, path, index, depth, mnemonic, provider, prefix}:{guard: any,seed:string, signingKey: SigningKey, parentFingerprint: string, path: null | string, index: number, depth: number, mnemonic: null | Mnemonic, provider: null | Provider, prefix: string}) {
+    constructor({ guard, seed, signingKey, parentFingerprint, path, index, depth, mnemonic, provider, prefix }: { guard: any, seed: string, signingKey: SigningKey, parentFingerprint: string, path: null | string, index: number, depth: number, mnemonic: null | Mnemonic, provider: null | Provider, prefix: string }) {
         super({
             signingKey, prefix, provider
         });
@@ -176,7 +177,7 @@ export class HDNodeWallet extends BaseWallet {
         defineProperties<HDNodeWallet>(this, { publicKey: signingKey.publicKey });
 
         this.prefix = prefix
-        this.#seed =seed
+        this.#seed = seed
         const fingerprint = dataSlice(ripemd160(sha256(this.publicKey)), 0, 4);
         defineProperties<HDNodeWallet>(this, {
             parentFingerprint, fingerprint,
@@ -194,7 +195,7 @@ export class HDNodeWallet extends BaseWallet {
             path: this.path,
             index: this.index,
             depth: this.depth,
-            seed:this.#seed,
+            seed: this.#seed,
             mnemonic: this.mnemonic,
             provider,
             prefix: this.prefix
@@ -251,7 +252,7 @@ export class HDNodeWallet extends BaseWallet {
      *  Return the child for %%index%%.
      */
     deriveChild(_index: number): HDNodeWallet {
-       const newPrivateKey=Ed448Goldilock.HDWalletGenerateKeyFromSeed(this.#seed,Number(_index))
+        const newPrivateKey = Ed448Goldilock.HDWalletGenerateKeyFromSeed(this.#seed, Number(_index))
         const newSigningKey = new SigningKey(newPrivateKey);
 
 
@@ -268,11 +269,11 @@ export class HDNodeWallet extends BaseWallet {
             parentFingerprint: this.fingerprint,
             path,
             index: _index,
-            seed:this.#seed,
+            seed: this.#seed,
             depth: this.depth + 1,
             mnemonic: this.mnemonic,
             provider: this.provider,
-            prefix:this.prefix
+            prefix: this.prefix
         });
 
     }
@@ -284,16 +285,16 @@ export class HDNodeWallet extends BaseWallet {
         return derivePath<HDNodeWallet>(this, path);
     }
 
-    static #fromSeed({_seed, mnemonic, prefix,path}:{_seed: string, mnemonic: null | Mnemonic, prefix: string,path?:string}): HDNodeWallet {
-        const extendetPrivateKey=Ed448Goldilock.HDWalletGenerateKeyFromSeed(_seed,0)
+    static #fromSeed({ _seed, mnemonic, prefix, path }: { _seed: string, mnemonic: null | Mnemonic, prefix: string, path?: string }): HDNodeWallet {
+        const extendetPrivateKey = Ed448Goldilock.HDWalletGenerateKeyFromSeed(_seed, 0)
         const signingKey = new SigningKey(extendetPrivateKey);
         // console.log({ privateKey, thisKey: signingKey.privateKey,len:tmp.privateKey.length })
         return new HDNodeWallet({
-            seed:_seed,
+            seed: _seed,
             guard: _guard,
             signingKey,
             parentFingerprint: "0x00000000",
-            path: path||defaultPath,
+            path: path || defaultPath,
             index: 0,
             depth: 0,
             mnemonic,
@@ -330,7 +331,7 @@ export class HDNodeWallet extends BaseWallet {
         }).derivePath(path);
     }
     static mnemonicToSeed(mnemonic: string, password?: string): string {
-        const seed=mnemonicToSeed(mnemonic, password)
+        const seed = mnemonicToSeed(mnemonic, password)
         return seed
     }
 
@@ -341,8 +342,8 @@ export class HDNodeWallet extends BaseWallet {
         if (!password) { password = ""; }
         if (!path) { path = defaultPath; }
         if (!wordlist) { wordlist = LangEn.wordlist(); }
-        const mnemonic = Mnemonic.fromPhrase({phrase, password, wordlist})
-        const _seed= mnemonic.computeSeed()
+        const mnemonic = Mnemonic.fromPhrase({ phrase, password, wordlist })
+        const _seed = mnemonic.computeSeed()
         return HDNodeWallet.#fromSeed({
             _seed,
             mnemonic,
@@ -353,11 +354,11 @@ export class HDNodeWallet extends BaseWallet {
     /**
      *  Creates an HD Node from a %%seed%%.
      */
-    static fromSeed({seed,prefix,path}:{seed: string, prefix: string,path?:string}): HDNodeWallet {
+    static fromSeed({ seed, prefix, path }: { seed: string, prefix: string, path?: string }): HDNodeWallet {
         return HDNodeWallet.#fromSeed({
             _seed: seed,
             mnemonic: null,
-            path:path||defaultPath,
+            path: path || defaultPath,
             prefix
         });
     }
@@ -412,8 +413,35 @@ export function getIndexedAccountPath(_index: Numeric): string {
 
 export function mnemonicToSeed(mnemonic: string, password?: string): string {
     if (!password) { password = ""; }
-    const salt = toUtf8Bytes("mnemonic" + password, "NFKD");
-    const seed=pbkdf2(toUtf8Bytes(mnemonic, "NFKD"), salt, 2048, 64, "sha512");
-    console.log({seed})
-     return seed
+    const t = generateSeed(mnemonic, password)
+    return t.goldilock
+}
+
+const generateSeed = (mnemonic: string, password?: string) => {
+    const goldilockSaltPrefix = 'mnemonicforthegoldilockkey';
+    const aesSaltPrefix = 'mnemonicfortheAESkey';
+
+    const goldilockSalt = utf8.encode(goldilockSaltPrefix + password);
+    const aesSalt = utf8.encode(aesSaltPrefix + password);
+
+    const goldilockKey = pbkdf2Sync(
+        Buffer.from(mnemonic),
+        goldilockSalt,
+        2048,
+        64,
+        'sha512'
+    );
+
+    const aesKeySeed = pbkdf2Sync(
+        Buffer.from(mnemonic),
+        aesSalt,
+        2048,
+        64,
+        'sha512'
+    );
+
+    return {
+        aes: aesKeySeed.toString('hex'),
+        goldilock: goldilockKey.toString('hex')
+    }
 }
