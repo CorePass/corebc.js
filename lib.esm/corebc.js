@@ -12,5 +12,6 @@ export { getDefaultProvider, Block, FeeData, Log, TransactionReceipt, Transactio
 export { accessListify, computeAddress, recoverAddress, Transaction } from "./transaction/index.js";
 export { decodeBase58, encodeBase58, decodeBase64, encodeBase64, concat, dataLength, dataSlice, getBytes, getBytesCopy, hexlify, isHexString, isBytesLike, stripZerosLeft, zeroPadBytes, zeroPadValue, defineProperties, resolveProperties, assert, assertArgument, assertArgumentCount, assertNormalize, assertPrivate, makeError, isCallException, isError, EventPayload, FetchRequest, FetchResponse, FetchCancelSignal, FixedNumber, getBigInt, getNumber, getUint, toBeArray, toBigInt, toBeHex, toNumber, toQuantity, fromTwos, toTwos, mask, formatXCB, parseXCB, formatUnits, parseUnits, toUtf8Bytes, toUtf8CodePoints, toUtf8String, Utf8ErrorFuncs, decodeRlp, encodeRlp, uuidV4, } from "./utils/index.js";
 export { Mnemonic, BaseWallet, HDNodeWallet, Wallet, defaultPath, getAccountPath, getIndexedAccountPath, isCrowdsaleJson, isKeystoreJson, decryptCrowdsaleJson, decryptKeystoreJsonSync, decryptKeystoreJson, encryptKeystoreJson, encryptKeystoreJsonSync, } from "./wallet/index.js";
+export { BigNumber } from "./bigNumber/bigNumber.js";
 export { Wordlist, LangEn, WordlistOwl, WordlistOwlA, wordlists } from "./wordlists/index.js";
 //# sourceMappingURL=corebc.js.map

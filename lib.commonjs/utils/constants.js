@@ -1,0 +1,21 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.MaxInt256 = exports.MinInt256 = exports.MaxUint256 = exports.OrePerXCB = exports.Two = exports.One = exports.Zero = exports.NegativeOne = void 0;
+const bigNumber_js_1 = require("../bigNumber/bigNumber.js");
+const NegativeOne = ( /*#__PURE__*/bigNumber_js_1.BigNumber.from(-1));
+exports.NegativeOne = NegativeOne;
+const Zero = ( /*#__PURE__*/bigNumber_js_1.BigNumber.from(0));
+exports.Zero = Zero;
+const One = ( /*#__PURE__*/bigNumber_js_1.BigNumber.from(1));
+exports.One = One;
+const Two = ( /*#__PURE__*/bigNumber_js_1.BigNumber.from(2));
+exports.Two = Two;
+const OrePerXCB = ( /*#__PURE__*/bigNumber_js_1.BigNumber.from("1000000000000000000"));
+exports.OrePerXCB = OrePerXCB;
+const MaxUint256 = ( /*#__PURE__*/bigNumber_js_1.BigNumber.from("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"));
+exports.MaxUint256 = MaxUint256;
+const MinInt256 = ( /*#__PURE__*/bigNumber_js_1.BigNumber.from("-0x8000000000000000000000000000000000000000000000000000000000000000"));
+exports.MinInt256 = MinInt256;
+const MaxInt256 = ( /*#__PURE__*/bigNumber_js_1.BigNumber.from("0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"));
+exports.MaxInt256 = MaxInt256;
+//# sourceMappingURL=constants.js.map

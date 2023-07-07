@@ -12,7 +12,6 @@ src.ts/_admin/**
 lib.commonjs/_admin/**
 lib.esm/_admin/**
 types/_admin/**
-reporter.cjs
 package-commonjs.json
 .github/workflows/test-ci.yml
 

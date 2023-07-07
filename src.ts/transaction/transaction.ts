@@ -54,7 +54,7 @@ export interface TransactionLike<A = string> {
     data?: null | string;
 
     /**
-     *  The value (in wei) to send.
+     *  The value (in ore) to send.
      */
     value?: null | BigNumberish;
 

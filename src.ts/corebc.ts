@@ -127,6 +127,9 @@ export {
     encryptKeystoreJson, encryptKeystoreJsonSync,
 } from "./wallet/index.js";
 
+export { BigNumber } from "./bigNumber/bigNumber.js";
+
+
 export {
     Wordlist, LangEn, WordlistOwl, WordlistOwlA, wordlists
 } from "./wordlists/index.js";

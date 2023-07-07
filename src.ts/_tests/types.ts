@@ -148,23 +148,6 @@ export interface TestCaseSolidityHash {
 /////////////////////////////
 // rlp
 
-export interface TestCaseUnit {
-    name: string;
-    wei: string;
-    corebc: string;
-    xcb_format: string;
-
-    kwei?: string;
-    mwei?: string;
-    gwei?: string;
-    szabo?: string;
-    finney?: string;
-    finney_format?: string;
-    szabo_format?: string;
-    gwei_format?: string;
-    mwei_format?: string;
-    kwei_format?: string;
-}
 
 export type NestedHexString = string | Array<string | NestedHexString>;
 

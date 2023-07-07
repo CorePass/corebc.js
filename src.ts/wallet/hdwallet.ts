@@ -3,11 +3,11 @@
  *
  *  @_subsection: api/wallet:HD Wallets  [hd-wallets]
  */
-import { randomBytes, ripemd160, SigningKey, sha256, pbkdf2 } from "../crypto/index.js";
+import { randomBytes, ripemd160, SigningKey, sha256 } from "../crypto/index.js";
 import {
     dataSlice, defineProperties,
     getNumber,
-    assertPrivate, assertArgument, toUtf8Bytes
+    assertPrivate, assertArgument
 } from "../utils/index.js";
 import { LangEn } from "../wordlists/lang-en.js";
 

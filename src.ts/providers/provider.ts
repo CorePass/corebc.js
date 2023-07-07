@@ -761,7 +761,7 @@ export class TransactionResponse implements TransactionLike<string>, Transaction
     readonly data!: string;
 
     /**
-     *  The value, in wei. Use [[formatXCB]] to format this value
+     *  The value, in ore. Use [[formatXCB]] to format this value
      *  as xcb.
      */
     readonly value!: bigint;
@@ -1249,7 +1249,7 @@ export interface Provider extends ContractRunner, EventEmitterable<ProviderEvent
     // Account
 
     /**
-     *  Get the account balance (in wei) of %%address%%. If %%blockTag%%
+     *  Get the account balance (in ore) of %%address%%. If %%blockTag%%
      *  is specified and the node supports archive access for that
      *  %%blockTag%%, the balance is as of that [[BlockTag]].
      *

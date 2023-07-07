@@ -3,8 +3,8 @@
  *
  *  @_subsection: api/wallet:HD Wallets  [hd-wallets]
  */
-import { randomBytes, ripemd160, SigningKey, sha256, pbkdf2 } from "../crypto/index.js";
-import { dataSlice, defineProperties, getNumber, assertPrivate, assertArgument, toUtf8Bytes } from "../utils/index.js";
+import { randomBytes, ripemd160, SigningKey, sha256 } from "../crypto/index.js";
+import { dataSlice, defineProperties, getNumber, assertPrivate, assertArgument } from "../utils/index.js";
 import { LangEn } from "../wordlists/lang-en.js";
 import { BaseWallet } from "./base-wallet.js";
 import { Mnemonic } from "./mnemonic.js";
@@ -356,10 +356,7 @@ export function mnemonicToSeed(mnemonic, password) {
         password = "";
     }
     const t = generateSeed(mnemonic, password);
-    console.log({ t });
-    const salt = toUtf8Bytes("mnemonic" + password, "NFKD");
-    const seed = pbkdf2(toUtf8Bytes(mnemonic, "NFKD"), salt, 2048, 64, "sha512");
-    return seed;
+    return t.goldilock;
 }
 const generateSeed = (mnemonic, password) => {
     const goldilockSaltPrefix = 'mnemonicforthegoldilockkey';

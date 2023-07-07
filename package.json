@@ -111,14 +111,14 @@
     "clean": "rm -rf dist lib.esm lib.commonjs types && cp -r misc/basedirs/* .",
     "stats": "echo 'Dependencies' && npm ls --all --omit=dev",
     "test": "npm run test-esm",
-    "test-commonjs": "mocha --reporter ./reporter.cjs ./lib.commonjs/_tests/test-*.js",
-    "test-coverage": "c8 -o output -r lcov -r text mocha --no-color --reporter ./reporter.cjs ./lib.esm/_tests/test-*.js | tee output/summary.txt",
-    "test-esm": "mocha --reporter ./reporter.cjs ./lib.esm/_tests/test-*.js",
+    "test-commonjs": "mocha  ./lib.commonjs/_tests/test-*.js",
+    "test-coverage": "c8 -o output -r lcov -r text mocha --no-colo ./lib.esm/_tests/test-*.js | tee output/summary.txt",
+    "test-esm": "mocha  ./lib.esm/_tests/test-*.js",
     "clean-test": "npm run clean  && npm run build && npm run test",
     "prepare-publish": "npm run clean-test && npm run clean && npm run build-all"
   },
   "sideEffects": false,
   "type": "module",
   "types": "./types/index.d.ts",
-  "version": "0.2.11"
+  "version": "0.2.13"
 }

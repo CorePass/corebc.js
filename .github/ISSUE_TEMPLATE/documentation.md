@@ -7,7 +7,7 @@ assignees: ''
 
 ---
 
-Please include anything about the [documentation](https://docs.ethers.io) you would like to see improved.
+Please include anything about the [documentation](https://docs.corebc.io) you would like to see improved.
 
 - Missing information or details?
 - Wrong Information?

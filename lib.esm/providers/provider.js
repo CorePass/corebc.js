@@ -576,7 +576,7 @@ export class TransactionResponse {
      */
     data;
     /**
-     *  The value, in wei. Use [[formatXCB]] to format this value
+     *  The value, in ore. Use [[formatXCB]] to format this value
      *  as xcb.
      */
     value;

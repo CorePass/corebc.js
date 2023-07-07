@@ -4,8 +4,6 @@ import {
     Transaction, SigningKey, BaseWallet
 } from "../corebc.js";
 import assert from 'assert'
-// import { nftAddress } from "./__test_contract_data.js";
-// import { Tes__factory } from "../abi-types/factories/Tes__factory.js";
 import { networkIdToPrefix } from "../address/index.js";
 
 const TIMEOUT_PERIOD = 120000;
@@ -13,15 +11,15 @@ const tesSignedTransaction = '0xf8ce800a830f423f0496ce276773ac97d16855a3c8faa453
 const testWalletPhrase = 'better artwork flavor fish solve deer orient spread adapt doll attack hour sort copper super income bacon engine skate ill similar wink crack club'
 const testSeed = 'c1df56a610fd92afedb1ec838f3a4ab60668e157f3ea802cd587f18e215d25106fcdb47a2bdd9d989365371e602edf31896712c4af6dcbb443a1528b723502a0'
 const tesPrivateKey = '69bb68c3a00a0cd9cbf2cab316476228c758329bbfe0b1759e8634694a9497afea05bcbf24e2aa0627eac4240484bb71de646a9296872a3c0e'
+const testAddress='0xab45fc2f96ea4708a9fbaafa39038bde9995c31cf8a3'
+const testPublicKey='0x65e9bdb24e972e64aa323a237f936435115da03cfbe3d3dd1a2d3cd2b6f072c1a770faf96d4075ca6d1776910f38ef48f902c807af2accc700'
 const provider = getDefaultProvider('https://xcbapi.corecoin.cc/')
-// const tesContract = Tes__factory.connect(nftAddress, provider)
-// @ts-ignore
+
 const wallet = Wallet.fromSeed({
     prefix: networkIdToPrefix(3),
     seed: testSeed,
     provider
 })
-// @ts-ignore
 const mnemonicWallet = Wallet.fromPhrase(
     {
         phrase: testWalletPhrase,
@@ -29,7 +27,6 @@ const mnemonicWallet = Wallet.fromPhrase(
         prefix: networkIdToPrefix(3),
     }
 )
-// @ts-ignore
 const seedWallet=Wallet.fromSeed({
     prefix: networkIdToPrefix(3),
     seed: testSeed,
@@ -59,22 +56,20 @@ describe('Test getting data from blockchain and calling smart contract', functio
         assert.equal(tx, tesSignedTransaction, 'sign transaction failed');
     })
 
-    // it('can call contract get', async function () {
-    //     this.timeout(TIMEOUT_PERIOD);
-    //     const balanceOf = await tesContract.balanceOf('ab45fc2f96ea4708a9fbaafa39038bde9995c31cf8a3')
-    //     assert.equal(balanceOf, 0n, 'mismatch test account balance of nft');
-    //     const totalSupply = await tesContract.totalSupply()
-    //     assert.equal(totalSupply, 272n, 'mismatch in total supply');
-    // });
-    // it('can get user\'s native balance', async function () {
-    //     this.timeout(TIMEOUT_PERIOD);
-    //     console.log({ walletaddress: wallet.address })
-    //     const f = await provider.getBalance(wallet.address)
-    //     assert.equal(f, 2000000000000000000n, 'mismatch in balance of test address');
-    // })
     it('can get feeData ', async function () {
         this.timeout(TIMEOUT_PERIOD);
         const feeData = await provider.getFeeData()
         assert.equal(feeData.energyPrice, 1000000000n, 'mismatch in expected energy price');
+    })
+    it('can generate wallet',function(){
+        assert.equal(mnemonicWallet.address.length,46,'mismatch in address length')
+        assert.equal(mnemonicWallet.publicKey,testPublicKey,'mismatch in public key')
+        assert.equal(mnemonicWallet.address,testAddress,'mismatch in seed length')
+        assert.equal(seedWallet.address.length,46,'mismatch in address length for seed wallet')
+        assert.equal(seedWallet.publicKey,testPublicKey,'mismatch in public key for seed wallet')
+        assert.equal(seedWallet.address,testAddress,'mismatch in seed length for seed wallet')
+        assert.equal(wallet.address.length,46,'mismatch in address length for wallet')
+        assert.equal(wallet.publicKey,testPublicKey,'mismatch in public key for wallet')
+        assert.equal(wallet.address,testAddress,'mismatch in seed length for wallet')
     })
 });

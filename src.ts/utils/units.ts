@@ -15,7 +15,7 @@
  *  (integers) and values used for display logic to users (decimals).
  *
  *  The native unit in Core, //Core// is divisible to 18 decimal places,
- *  where each individual unit is called a //wei//.
+ *  where each individual unit is called a //ore//.
  *
  *  @_subsection api/utils:Unit Conversion  [about-units]
  */
