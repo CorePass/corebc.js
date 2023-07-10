@@ -5,14 +5,9 @@
  *  @_section: api/hashing:Hashing Utilities  [about-hashing]
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.verifyTypedData = exports.TypedDataEncoder = exports.solidityPackedSha256 = exports.solidityPacked = exports.verifyMessage = exports.hashMessage = exports.dnsEncode = exports.namehash = exports.isValidName = exports.ensNormalize = exports.id = void 0;
+exports.verifyTypedData = exports.TypedDataEncoder = exports.solidityPackedSha256 = exports.solidityPacked = exports.verifyMessage = exports.hashMessage = exports.id = void 0;
 var id_js_1 = require("./id.js");
 Object.defineProperty(exports, "id", { enumerable: true, get: function () { return id_js_1.id; } });
-var namehash_js_1 = require("./namehash.js");
-Object.defineProperty(exports, "ensNormalize", { enumerable: true, get: function () { return namehash_js_1.ensNormalize; } });
-Object.defineProperty(exports, "isValidName", { enumerable: true, get: function () { return namehash_js_1.isValidName; } });
-Object.defineProperty(exports, "namehash", { enumerable: true, get: function () { return namehash_js_1.namehash; } });
-Object.defineProperty(exports, "dnsEncode", { enumerable: true, get: function () { return namehash_js_1.dnsEncode; } });
 var message_js_1 = require("./message.js");
 Object.defineProperty(exports, "hashMessage", { enumerable: true, get: function () { return message_js_1.hashMessage; } });
 Object.defineProperty(exports, "verifyMessage", { enumerable: true, get: function () { return message_js_1.verifyMessage; } });

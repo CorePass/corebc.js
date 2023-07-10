@@ -102,12 +102,6 @@ export interface TestCaseHash {
     ripemd160: string;
 }
 
-export interface TestCaseNamehash {
-    name: string;
-    ensName: string;
-    error?: string;
-    namehash?: string;
-}
 
 export interface TestCaseTypedDataDomain {
     name?: string;

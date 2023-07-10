@@ -11,7 +11,6 @@
     "./lib.esm/wordlists/wordlists.js": "./lib.esm/wordlists/wordlists-browser.js"
   },
   "dependencies": {
-    "@adraffy/ens-normalize": "https://github.com/ricmoo/ens-normalize.js",
     "@noble/hashes": "1.1.2",
     "@noble/secp256k1": "1.7.1",
     "@types/node": "18.15.13",
@@ -93,7 +92,7 @@
   "license": "MIT",
   "main": "./lib.commonjs/index.js",
   "module": "./lib.esm/index.js",
-  "name": "m_ccbc",
+  "name": "corebcjs",
   "publishConfig": {
     "access": "public",
     "tag": "latest"
