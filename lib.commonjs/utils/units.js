@@ -124,15 +124,16 @@ function parseUnits(value, unit) {
     if (value.includes('e')) {
         value = (0, exports.scientificToDecimal)(value).toString();
     }
-    value = (0, exports.trimDecimals)(value);
     let decimals = 18;
     if (typeof (unit) === "string") {
         const index = names.indexOf(unit);
         (0, errors_js_1.assertArgument)(index >= 0, "invalid unit", "unit", unit);
         decimals = 3 * index;
+        value = (0, exports.trimDecimals)(value, decimals);
     }
     else if (unit != null) {
         decimals = (0, maths_js_1.getNumber)(unit, "unit");
+        value = (0, exports.trimDecimals)(value, decimals);
     }
     return fixednumber_js_1.FixedNumber.fromString(value, { decimals }).value;
 }

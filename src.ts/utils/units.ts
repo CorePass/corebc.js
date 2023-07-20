@@ -121,27 +121,30 @@ export const scientificToDecimal = (num: string | number) => {
 };
 export const trimDecimals = (n: string, decimals = 18) => {
     n += '';
-  
+
     if (n.indexOf('.') === -1) return n;
-  
+
     const arr = n.split('.');
     const fraction = arr[1].substr(0, decimals);
     return arr[0] + '.' + fraction;
-  };
-  
+};
+
 export function parseUnits(value: string, unit?: string | Numeric): bigint {
     assertArgument(typeof (value) === "string", "value must be a string", "value", value);
     if (value.includes('e')) {
         value = scientificToDecimal(value).toString();
     }
-    value=trimDecimals(value);
     let decimals = 18;
     if (typeof (unit) === "string") {
         const index = names.indexOf(unit);
         assertArgument(index >= 0, "invalid unit", "unit", unit);
         decimals = 3 * index;
+        value = trimDecimals(value, decimals);
+
     } else if (unit != null) {
         decimals = getNumber(unit, "unit");
+        value = trimDecimals(value, decimals);
+
     }
 
     return FixedNumber.fromString(value, { decimals }).value;

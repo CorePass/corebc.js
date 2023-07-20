@@ -118,15 +118,16 @@ export function parseUnits(value, unit) {
     if (value.includes('e')) {
         value = scientificToDecimal(value).toString();
     }
-    value = trimDecimals(value);
     let decimals = 18;
     if (typeof (unit) === "string") {
         const index = names.indexOf(unit);
         assertArgument(index >= 0, "invalid unit", "unit", unit);
         decimals = 3 * index;
+        value = trimDecimals(value, decimals);
     }
     else if (unit != null) {
         decimals = getNumber(unit, "unit");
+        value = trimDecimals(value, decimals);
     }
     return FixedNumber.fromString(value, { decimals }).value;
 }
