@@ -11,6 +11,8 @@ export declare function formatUnits(value: BigNumberish, unit?: string | Numeric
  *  %%unit%% decimal places. The %%unit%% may the number of decimal places
  *  or the name of a unit.
  */
+export declare const scientificToDecimal: (num: string | number) => string | number;
+export declare const trimDecimals: (n: string, decimals?: number) => string;
 export declare function parseUnits(value: string, unit?: string | Numeric): bigint;
 /**
  *  Converts %%value%% into a //decimal string// using 18 decimal places.

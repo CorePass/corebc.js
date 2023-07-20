@@ -44,5 +44,5 @@ export function hashMessage(message: Uint8Array | string): string {
  */
 export function verifyMessage(message: Uint8Array | string, sig: SignatureLike, prefix: string): string {
     const digest = hashMessage(message);
-    return recoverAddress(digest, sig,prefix);
+    return recoverAddress(digest,sig,prefix);
 }
