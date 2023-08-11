@@ -29,6 +29,7 @@ const seedWallet = corebc_js_1.Wallet.fromSeed({
     seed: testSeed,
 });
 const signingKey = new corebc_js_1.SigningKey(tesPrivateKey);
+const baseWalletAddress = '0xab03a5fd22b9bee8b8ab877c86e0a2c21765e1d5bfc5';
 const baseWallet = new corebc_js_1.BaseWallet({
     signingKey,
     prefix: (0, index_js_1.networkIdToPrefix)(3),
@@ -47,6 +48,13 @@ describe('Test getting data from blockchain and calling smart contract', functio
         this.timeout(TIMEOUT_PERIOD);
         const tx = await baseWallet.signTransaction(transaction);
         assert_1.default.equal(tx, tesSignedTransaction, 'sign transaction failed');
+    });
+    it('can currectly get signer from signed transaction', async function () {
+        this.timeout(TIMEOUT_PERIOD);
+        const message = 'my message';
+        const signedMessage = await baseWallet.signMessage(message);
+        const address = (0, corebc_js_1.verifyMessage)(message, signedMessage, (0, index_js_1.networkIdToPrefix)(3));
+        assert_1.default.equal(address, baseWalletAddress, 'get address from signed message failed');
     });
     it('can get feeData ', async function () {
         this.timeout(TIMEOUT_PERIOD);

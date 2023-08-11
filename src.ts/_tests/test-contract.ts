@@ -1,7 +1,7 @@
 import {
     getDefaultProvider,
     Wallet,
-    Transaction, SigningKey, BaseWallet
+    Transaction, SigningKey, BaseWallet, verifyMessage
 } from "../corebc.js";
 import assert from 'assert'
 import { networkIdToPrefix } from "../address/index.js";
@@ -33,6 +33,7 @@ const seedWallet=Wallet.fromSeed({
 })
 
 const signingKey = new SigningKey(tesPrivateKey)
+const baseWalletAddress='0xab03a5fd22b9bee8b8ab877c86e0a2c21765e1d5bfc5'
 const baseWallet = new BaseWallet(
     {
         signingKey,
@@ -51,11 +52,16 @@ const transaction = Transaction.from({
 describe('Test getting data from blockchain and calling smart contract', function () {
     it('can currectly sign a transaction', async function () {
         this.timeout(TIMEOUT_PERIOD);
-
         const tx = await baseWallet.signTransaction(transaction)
         assert.equal(tx, tesSignedTransaction, 'sign transaction failed');
     })
-
+    it('can currectly get signer from signed transaction', async function () {
+        this.timeout(TIMEOUT_PERIOD);
+        const message='my message'
+        const signedMessage=await baseWallet.signMessage(message)
+        const address = verifyMessage(message,signedMessage,networkIdToPrefix(3))
+        assert.equal(address, baseWalletAddress, 'get address from signed message failed');
+    })
     it('can get feeData ', async function () {
         this.timeout(TIMEOUT_PERIOD);
         const feeData = await provider.getFeeData()
