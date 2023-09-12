@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MaxInt256 = exports.MinInt256 = exports.MaxUint256 = exports.OrePerXCB = exports.N = void 0;
+exports.Two = exports.One = exports.Zero = exports.NegativeOne = exports.MaxInt256 = exports.MinInt256 = exports.MaxUint256 = exports.OrePerXCB = exports.N = void 0;
 /**
  *  A constant for the order N for the secp256k1 curve.
  *
@@ -31,4 +31,8 @@ exports.MinInt256 = BigInt("0x80000000000000000000000000000000000000000000000000
  *  (**i.e.** ``0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffn``)
  */
 exports.MaxInt256 = BigInt("0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+exports.NegativeOne = ( /*#__PURE__*/BigInt(-1));
+exports.Zero = ( /*#__PURE__*/BigInt(0));
+exports.One = ( /*#__PURE__*/BigInt(1));
+exports.Two = ( /*#__PURE__*/BigInt(2));
 //# sourceMappingURL=numbers.js.map

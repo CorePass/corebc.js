@@ -28,4 +28,8 @@ export const MinInt256 = BigInt("0x800000000000000000000000000000000000000000000
  *  (**i.e.** ``0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffn``)
  */
 export const MaxInt256 = BigInt("0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+export const NegativeOne = ( /*#__PURE__*/BigInt(-1));
+export const Zero = ( /*#__PURE__*/BigInt(0));
+export const One = ( /*#__PURE__*/BigInt(1));
+export const Two = ( /*#__PURE__*/BigInt(2));
 //# sourceMappingURL=numbers.js.map

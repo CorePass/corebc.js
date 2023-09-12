@@ -28,4 +28,8 @@ export declare const MinInt256: bigint;
  *  (**i.e.** ``0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffn``)
  */
 export declare const MaxInt256: bigint;
+export declare const NegativeOne: bigint;
+export declare const Zero: bigint;
+export declare const One: bigint;
+export declare const Two: bigint;
 //# sourceMappingURL=numbers.d.ts.map

@@ -7,8 +7,8 @@ import { arrayify, stripZeros } from "../utils/data.js";
 import { Logger } from "../logger/logger.js";
 import * as RLP from "../crypto/rlp.js";
 import { BigNumber } from "../bigNumber/bigNumber.js";
-import { Zero } from "../utils/constants.js";
 import { networkIdToPrefix } from "../address/index.js";
+import { Zero } from "../constants/numbers.js";
 const logger = new Logger('transaction/0.0.1');
 const BN_0 = BigInt(0);
 function handleAddress(value) {
@@ -19,6 +19,7 @@ function handleAddress(value) {
 }
 function parse(data) {
     const handleNumber = (value) => {
+        // @ts-ignore
         if (value === "0x") {
             return Zero;
         }

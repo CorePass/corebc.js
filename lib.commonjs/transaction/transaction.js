@@ -33,8 +33,8 @@ const data_js_1 = require("../utils/data.js");
 const logger_js_1 = require("../logger/logger.js");
 const RLP = __importStar(require("../crypto/rlp.js"));
 const bigNumber_js_1 = require("../bigNumber/bigNumber.js");
-const constants_js_1 = require("../utils/constants.js");
 const index_js_4 = require("../address/index.js");
+const numbers_js_1 = require("../constants/numbers.js");
 const logger = new logger_js_1.Logger('transaction/0.0.1');
 const BN_0 = BigInt(0);
 function handleAddress(value) {
@@ -45,8 +45,9 @@ function handleAddress(value) {
 }
 function parse(data) {
     const handleNumber = (value) => {
+        // @ts-ignore
         if (value === "0x") {
-            return constants_js_1.Zero;
+            return numbers_js_1.Zero;
         }
         return bigNumber_js_1.BigNumber.from(value);
     };

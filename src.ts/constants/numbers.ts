@@ -33,3 +33,8 @@ export const MinInt256: bigint = BigInt("0x8000000000000000000000000000000000000
  *  (**i.e.** ``0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffn``)
  */
 export const MaxInt256: bigint = BigInt("0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+
+export const NegativeOne: bigint = (/*#__PURE__*/BigInt(-1));
+export const Zero: bigint = (/*#__PURE__*/BigInt(0));
+export const One: bigint = (/*#__PURE__*/BigInt(1));
+export const Two: bigint = (/*#__PURE__*/BigInt(2));
