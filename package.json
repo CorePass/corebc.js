@@ -92,7 +92,7 @@
   "license": "MIT",
   "main": "./lib.commonjs/index.js",
   "module": "./lib.esm/index.js",
-  "name": "m_ccbc",
+  "name": "corebc",
   "publishConfig": {
     "access": "public",
     "tag": "latest"
