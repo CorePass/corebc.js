@@ -18,7 +18,7 @@ A complete, compact, and simple library for CoreBC, written in [TypeScript](http
 
 ### NodeJS
 
-```
+```bash
 npm i corebc
 ```
 
@@ -26,7 +26,7 @@ npm i corebc
 
 The bundled library is available in the `./dist/` folder in this repo.
 
-```
+```html
 <script type="module">
     import { corebc } from "./dist/corebc.min.js";
 </script>
