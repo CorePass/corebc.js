@@ -43,7 +43,7 @@ export class BrowserProvider extends JsonRpcApiPollingProvider {
     getRpcError(payload, error) {
         error = JSON.parse(JSON.stringify(error));
         // EIP-1193 gives us some machine-readable error codes, so rewrite
-        // them into 
+        // them into
         switch (error.error.code || -1) {
             case 4001:
                 error.error.message = `corebc-user-denied: ${error.error.message}`;
@@ -71,7 +71,7 @@ export class BrowserProvider extends JsonRpcApiPollingProvider {
         }
         if (!(await this.hasSigner(address))) {
             try {
-                //const resp = 
+                //const resp =
                 await this.#request("xcb_requestAccounts", []);
                 //console.log("RESP", resp);
             }

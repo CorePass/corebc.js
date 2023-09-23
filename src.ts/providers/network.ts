@@ -28,9 +28,6 @@ export type Networkish = Network | number | bigint | string | {
     ensNetwork?: number
 };
 
-
-
-
 /* * * *
 // Networks which operation against an L2 can use this plugin to
 // specify how to access L1, for the purpose of resolving ENS,
@@ -39,14 +36,10 @@ export class LayerOneConnectionPlugin extends NetworkPlugin {
     readonly provider!: Provider;
 */
 
-
 // Networks or clients with a higher need for security (such as clients
 // that may automatically make CCIP requests without user interaction)
 // can use this plugin to anonymize requests or intercept CCIP requests
 // to notify and/or receive authorization from the user
-/* * * *
-
-*/
 
 const Networks: Map<string | bigint, () => Network> = new Map();
 

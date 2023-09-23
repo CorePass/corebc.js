@@ -90,28 +90,23 @@ export abstract class AbstractSigner<P extends null | Provider = null | Provider
             pop.networkId = network.networkId;
         }
 
-     
             // We need to get fee data to determine things
             const feeData = await provider.getFeeData();
+            // We need to auto-detect the intended type of this transaction...
 
-                // We need to auto-detect the intended type of this transaction...
-
-             if (feeData.energyPrice != null) {
-                    // Network doesn't support EIP-1559...
-
-                    // Populate missing fee data
-                    if (pop.energyPrice == null) {
-                        pop.energyPrice = feeData.energyPrice;
-                    }
-
-
-               } else {
-                    // getFeeData has failed us.
-                    assert(false, "failed to get consistent fee data", "UNSUPPORTED_OPERATION", {
-                        operation: "signer.getFeeData" });
+            if (feeData.energyPrice != null) {
+                // Network doesn't support EIP-1559...
+                // Populate missing fee data
+                if (pop.energyPrice == null) {
+                    pop.energyPrice = feeData.energyPrice;
                 }
 
-            
+
+            } else {
+                // getFeeData has failed us.
+                assert(false, "failed to get consistent fee data", "UNSUPPORTED_OPERATION", {
+                operation: "signer.getFeeData" })
+            }
 
 //@TOOD: Don't await all over the place; save them up for
 // the end for better batching
@@ -174,4 +169,3 @@ export class VoidSigner extends AbstractSigner {
         this.#throwUnsupported("typed-data", "signTypedData");
     }
 }
-

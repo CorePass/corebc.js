@@ -583,14 +583,14 @@ export class TransactionReceipt implements TransactionReceiptParams, Iterable<Lo
     toJSON(): any {
         const {
             to, from, contractAddress, hash, index, blockHash, blockNumber, logsBloom,
-            logs, //byzantium, 
+            logs, //byzantium,
             status, root
         } = this;
 
         return {
             _type: "TransactionReceipt",
             blockHash, blockNumber,
-            //byzantium, 
+            //byzantium,
             contractAddress,
             cumulativeEnergyUsed: toJson(this.cumulativeEnergyUsed),
             from,

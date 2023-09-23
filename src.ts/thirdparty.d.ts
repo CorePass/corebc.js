@@ -1,5 +1,3 @@
-
-
 declare module "ws" {
     export class WebSocket {
         constructor(...args: Array<any>);

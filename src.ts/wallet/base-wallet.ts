@@ -46,7 +46,6 @@ export class BaseWallet extends AbstractSigner {
         assertArgument(signingKey && typeof(signingKey.sign) === "function", "invalid signingKey key", "signingKey", "[ REDACTED ]");
 
         this.#signingKey = signingKey;
-        
         const address = computeAddress(this.#signingKey,prefix);
         defineProperties<BaseWallet>(this, { address });
     }

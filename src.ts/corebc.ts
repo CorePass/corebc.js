@@ -1,8 +1,3 @@
-
-
-/////////////////////////////
-//
-
 export { version } from "./_version.js";
 export { publicToAddress } from "./transaction/address.js";
 

@@ -31,7 +31,7 @@ const logger=new Logger('signing-key/0.0.1')
  */
 export class SigningKey {
     #privateKey: string;
-    
+
     /**
      *  Creates a new **SigningKey** for %%privateKey%%.
      */
@@ -76,7 +76,7 @@ export class SigningKey {
         if (digestBuffer.length !== 32) {
             logger.throwArgumentError("bad digest length", "digest", digest);
         }
-    
+
         if (keyBuffer[56] > 127) {
             const prefix = keyBuffer.slice(0, 57);
             prefix[0] &= 0xfc;
@@ -151,7 +151,7 @@ export class SigningKey {
         if (bytes.length !== 57) {
             logger.throwArgumentError("invalid private key", "key", "[REDACTED]");
         }
-    
+
         if (bytes[56] > 127) {
             const scalar = bytes.slice(0, 56);
             scalar[0] &= 0xfc;
@@ -159,7 +159,7 @@ export class SigningKey {
             const pub = ed448.publicKeyFromScalar(scalar);
             return hexlify(pub);
         }
-    
+
         const pub = ed448.publicKeyCreate(bytes);
         return hexlify(pub);
     }
@@ -209,8 +209,8 @@ export class SigningKey {
      *  addresses from parent public keys and chain codes.
      */
     static addPoints(p0: BytesLike, p1: BytesLike, compressed?: boolean): string {
-        const pub0 = secp256k1.Point.fromHex(SigningKey.computePublicKey(p0).substring(2));
-        const pub1 = secp256k1.Point.fromHex(SigningKey.computePublicKey(p1).substring(2));
+        const pub0 = secp256k1.ProjectivePoint.fromHex(SigningKey.computePublicKey(p0).substring(2));
+        const pub1 = secp256k1.ProjectivePoint.fromHex(SigningKey.computePublicKey(p1).substring(2));
         return "0x" + pub0.add(pub1).toHex(!!compressed)
     }
 }

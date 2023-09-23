@@ -7,7 +7,7 @@ import SHA3_512 from 'bcrypto/lib/sha3-512.js';
 
 export class Ed448Goldilock {
     static _channel = ed448
-    
+
     static generatePrivateKey (){
       var privateKey = ed448.privateKeyGenerate();
       privateKey[56] &= 0x7f;
@@ -28,7 +28,7 @@ export class Ed448Goldilock {
         }
 
     }
-  
+
     static  signWithPrivateKey( privateKey : string, msg: string) :string {
       var msgToSign = Buffer.from(msg, 'hex');
       var secret = Buffer.from(privateKey, 'hex');
@@ -46,13 +46,13 @@ export class Ed448Goldilock {
             return Buffer.from(signedMessage).toString('hex');
         }
     }
-  
+
     static  signWithPrivateKeyNConcatPubkey(privateKey: string, msg: string) : string{
       var signedMessage = Ed448Goldilock.signWithPrivateKey(privateKey, msg);
       var publicKey = Ed448Goldilock.getPublicKeyFromPrivateKey(privateKey);
       return signedMessage + publicKey;
     }
-  
+
     static verifySignature(msgHash: string, signedMsg: string,  pubKey: string) : boolean {
       return this._channel.verify(msgHash, signedMsg, pubKey)
     }
@@ -126,6 +126,6 @@ export class Ed448Goldilock {
 	    var k5 = Ed448Goldilock.childPrivateToPrivate (k4, index);
 	    return k5.substr(114, 228);
     }
-    
+
   }
 

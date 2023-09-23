@@ -358,7 +358,7 @@ const _abi = [
         type: "function",
     },
 ];
-class Tes__factory {
+export class Tes__factory {
     static abi = _abi;
     static createInterface() {
         return new Interface(_abi);
@@ -367,5 +367,4 @@ class Tes__factory {
         return new Contract(address, _abi, runner);
     }
 }
-export { Tes__factory };
 //# sourceMappingURL=Tes__factory.js.map

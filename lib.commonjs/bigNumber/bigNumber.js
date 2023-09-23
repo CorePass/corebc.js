@@ -1,9 +1,7 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports._base16To36 = exports._base36To16 = exports.BigNumber = exports.isBigNumberish = void 0;
+const tslib_1 = require("tslib");
 /**
  *  BigNumber
  *
@@ -11,7 +9,7 @@ exports._base16To36 = exports._base36To16 = exports.BigNumber = exports.isBigNum
  *  because it is used by elliptic, so it is required regardless.
  *
  */
-const bn_js_1 = __importDefault(require("bn.js"));
+const bn_js_1 = tslib_1.__importDefault(require("bn.js"));
 const index_js_1 = require("../index.js");
 const logger_js_1 = require("../logger/logger.js");
 const data_js_1 = require("../utils/data.js");

@@ -16,9 +16,6 @@ export class LayerOneConnectionPlugin extends NetworkPlugin {
 // that may automatically make CCIP requests without user interaction)
 // can use this plugin to anonymize requests or intercept CCIP requests
 // to notify and/or receive authorization from the user
-/* * * *
-
-*/
 const Networks = new Map();
 export class Network {
     #name;

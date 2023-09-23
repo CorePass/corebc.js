@@ -4,8 +4,6 @@
  *  @_section: api/providers:Providers  [about-providers]
  */
 
-
-
 export {
     AbstractProvider, UnmanagedSubscriber
 } from "./abstract-provider.js";
@@ -114,4 +112,3 @@ export type {
 } from "./provider-websocket.js";
 
 export type { Signer } from "./signer.js";
-

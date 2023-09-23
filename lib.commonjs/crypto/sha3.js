@@ -40,7 +40,7 @@ var SupportedAlgorithm;
 (function (SupportedAlgorithm) {
     SupportedAlgorithm["sha256"] = "sha256";
     SupportedAlgorithm["sha512"] = "sha512";
-})(SupportedAlgorithm = exports.SupportedAlgorithm || (exports.SupportedAlgorithm = {}));
+})(SupportedAlgorithm || (exports.SupportedAlgorithm = SupportedAlgorithm = {}));
 ;
 function ripemd160(data) {
     let createdHash = "0x" + (0, crypto_js_1.createHash)("ripemd160").update(buffer_1.Buffer.from((0, data_js_1.arrayify)(data))).digest("hex");

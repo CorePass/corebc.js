@@ -748,7 +748,6 @@ getSelector(fragment: ErrorFragment | FunctionFragment): string {
     
             const descend = function (inputs: Array<ParamType>, values: ReadonlyArray<any>) {
                 if (inputs.length !== values.length) { throw new Error("length mismatch"); }
-                
             };
     
             const result: Array<any> = [ ];

@@ -1,15 +1,13 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Ed448Goldilock = void 0;
+const tslib_1 = require("tslib");
 // @ts-ignore
-const ed448_js_1 = __importDefault(require("bcrypto/lib/ed448.js"));
+const ed448_js_1 = tslib_1.__importDefault(require("bcrypto/lib/ed448.js"));
 // @ts-ignore
-const pbkdf2_js_1 = __importDefault(require("bcrypto/lib/pbkdf2.js"));
+const pbkdf2_js_1 = tslib_1.__importDefault(require("bcrypto/lib/pbkdf2.js"));
 // @ts-ignore
-const sha3_512_js_1 = __importDefault(require("bcrypto/lib/sha3-512.js"));
+const sha3_512_js_1 = tslib_1.__importDefault(require("bcrypto/lib/sha3-512.js"));
 class Ed448Goldilock {
     static _channel = ed448_js_1.default;
     static generatePrivateKey() {

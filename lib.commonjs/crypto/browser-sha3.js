@@ -1,13 +1,11 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.computeHmac = exports.sha512 = exports.sha256 = exports.ripemd160 = void 0;
+const tslib_1 = require("tslib");
 // @ts-ignore
-const ripemd160_browser_1 = __importDefault(require("bcrypto/lib/ripemd160-browser"));
+const ripemd160_browser_1 = tslib_1.__importDefault(require("bcrypto/lib/ripemd160-browser"));
 // @ts-ignore
-const sha3_browser_js_1 = __importDefault(require("bcrypto/lib/sha3-browser.js"));
+const sha3_browser_js_1 = tslib_1.__importDefault(require("bcrypto/lib/sha3-browser.js"));
 const logger_js_1 = require("../logger/logger.js");
 const data_js_1 = require("../utils/data.js");
 const sha3_js_1 = require("./sha3.js");

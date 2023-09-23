@@ -3,7 +3,6 @@ import { assert, assertArgument } from "../utils/index.js";
 
 import { Addressable, AddressLike, getAddress } from "./index.js";
 
-
 /**
  *  Returns true if %%value%% is an object which implements the
  *  [[Addressable]] interface.

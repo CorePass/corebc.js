@@ -4,7 +4,7 @@ import ed448 from './browser-ed448.js';
 import pbkdf2 from './pbkdf2-browser.js';
 // @ts-ignore
 import SHA3_512 from 'bcrypto/lib/sha3-512.js';
-class Ed448Goldilock {
+export class Ed448Goldilock {
     static _channel = ed448;
     static generatePrivateKey() {
         var privateKey = ed448.privateKeyGenerate();
@@ -120,5 +120,4 @@ class Ed448Goldilock {
         return k5.substr(114, 228);
     }
 }
-export { Ed448Goldilock };
 //# sourceMappingURL=ed448goldilock-browser.js.map

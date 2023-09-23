@@ -32,7 +32,7 @@ export class ContractFactory<A extends Array<any> = Array<any>, I = BaseContract
         // Dereference Solidity bytecode objects and allow a missing `0x`-prefix
         if (bytecode instanceof Uint8Array) {
             bytecode = hexlify(getBytes(bytecode));
-        } 
+        }
         else if (typeof(bytecode) === "string") {
             bytecode = bytecode;
         } else if (isBytes(bytecode)) {
@@ -45,8 +45,6 @@ export class ContractFactory<A extends Array<any> = Array<any>, I = BaseContract
             // Crash in the next verification step
             bytecode = "!";
         }
-
-      
 
         defineProperties<ContractFactory>(this, {
             // @ts-ignore

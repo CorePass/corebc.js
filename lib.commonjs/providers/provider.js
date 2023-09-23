@@ -437,12 +437,12 @@ class TransactionReceipt {
     }
     get logs() { return this.#logs; }
     toJSON() {
-        const { to, from, contractAddress, hash, index, blockHash, blockNumber, logsBloom, logs, //byzantium, 
+        const { to, from, contractAddress, hash, index, blockHash, blockNumber, logsBloom, logs, //byzantium,
         status, root } = this;
         return {
             _type: "TransactionReceipt",
             blockHash, blockNumber,
-            //byzantium, 
+            //byzantium,
             contractAddress,
             cumulativeEnergyUsed: toJson(this.cumulativeEnergyUsed),
             from,

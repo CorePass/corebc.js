@@ -1,4 +1,5 @@
 "use strict";
+var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.FixedNumber = void 0;
 /**
@@ -231,7 +232,7 @@ class FixedNumber {
                 }
         */
         val = checkValue(val, this.#format, safeOp);
-        return new FixedNumber(_guard, val, this.#format);
+        return new _a(_guard, val, this.#format);
     }
     #add(o, safeOp) {
         this.#checkFormat(o);
@@ -418,7 +419,7 @@ class FixedNumber {
         const tens = getTens(delta);
         value = (value / tens) * tens;
         checkValue(value, this.#format, "round");
-        return new FixedNumber(_guard, value, this.#format);
+        return new _a(_guard, value, this.#format);
     }
     /**
      *  Returns true if %%this%% is equal to ``0``.
@@ -447,7 +448,7 @@ class FixedNumber {
      *  This will throw if the value cannot fit into %%format%%.
      */
     toFormat(format) {
-        return FixedNumber.fromString(this.toString(), format);
+        return _a.fromString(this.toString(), format);
     }
     /**
      *  Creates a new [[FixedNumber]] for %%value%% divided by
@@ -475,7 +476,7 @@ class FixedNumber {
             value *= getTens(-delta);
         }
         checkValue(value, format, "fromValue");
-        return new FixedNumber(_guard, value, format);
+        return new _a(_guard, value, format);
     }
     /**
      *  Creates a new [[FixedNumber]] for %%value%% with %%format%%.
@@ -500,7 +501,7 @@ class FixedNumber {
         decimal = decimal.substring(0, format.decimals);
         const value = BigInt(match[1] + whole + decimal);
         checkValue(value, format, "fromString");
-        return new FixedNumber(_guard, value, format);
+        return new _a(_guard, value, format);
     }
     /**
      *  Creates a new [[FixedNumber]] with the big-endian representation
@@ -516,10 +517,11 @@ class FixedNumber {
             value = (0, maths_js_1.fromTwos)(value, format.width);
         }
         checkValue(value, format, "fromBytes");
-        return new FixedNumber(_guard, value, format);
+        return new _a(_guard, value, format);
     }
 }
 exports.FixedNumber = FixedNumber;
+_a = FixedNumber;
 //const f1 = FixedNumber.fromString("12.56", "fixed16x2");
 //const f2 = FixedNumber.fromString("0.3", "fixed16x2");
 //console.log(f1.divSignal(f2));

@@ -3,6 +3,7 @@
  *
  *  @_subsection api/abi/abi-coder:Fragments  [about-fragments]
  */
+var _a;
 import { defineProperties, getBigInt, getNumber, assert, assertPrivate, assertArgument } from "../utils/index.js";
 import { id } from "../hash/index.js";
 ;
@@ -45,10 +46,10 @@ class TokenString {
         this.#offset = 0;
         this.#tokens = tokens.slice();
     }
-    clone() { return new TokenString(this.#tokens); }
+    clone() { return new _a(this.#tokens); }
     reset() { this.#offset = 0; }
     #subTokenString(from = 0, to = 0) {
-        return new TokenString(this.#tokens.slice(from, to).map((t) => {
+        return new _a(this.#tokens.slice(from, to).map((t) => {
             return Object.freeze(Object.assign({}, t, {
                 match: (t.match - from),
                 linkBack: (t.linkBack - from),
@@ -131,6 +132,7 @@ class TokenString {
         return `<TokenString ${tokens.join(" ")}>`;
     }
 }
+_a = TokenString;
 function lex(text) {
     const tokens = [];
     const throwError = (message) => {

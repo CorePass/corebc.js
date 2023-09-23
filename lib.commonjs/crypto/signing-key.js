@@ -4,32 +4,10 @@
  *
  *  @_subsection: api/crypto:Signing  [about-signing]
  */
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SigningKey = void 0;
-const secp256k1 = __importStar(require("@noble/secp256k1"));
+const tslib_1 = require("tslib");
+const secp256k1 = tslib_1.__importStar(require("@noble/secp256k1"));
 const index_js_1 = require("../utils/index.js");
 const data_js_1 = require("../utils/data.js");
 const logger_js_1 = require("../logger/logger.js");
@@ -208,8 +186,8 @@ class SigningKey {
      *  addresses from parent public keys and chain codes.
      */
     static addPoints(p0, p1, compressed) {
-        const pub0 = secp256k1.Point.fromHex(SigningKey.computePublicKey(p0).substring(2));
-        const pub1 = secp256k1.Point.fromHex(SigningKey.computePublicKey(p1).substring(2));
+        const pub0 = secp256k1.ProjectivePoint.fromHex(SigningKey.computePublicKey(p0).substring(2));
+        const pub1 = secp256k1.ProjectivePoint.fromHex(SigningKey.computePublicKey(p1).substring(2));
         return "0x" + pub0.add(pub1).toHex(!!compressed);
     }
 }

@@ -1,16 +1,14 @@
 "use strict";
 /* Browser Crypto Shims */
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.randomBytes = exports.pbkdf2Sync = exports.createHmac = exports.createHash = exports.Ed448Goldilock = exports.ed448 = void 0;
+const tslib_1 = require("tslib");
 const hmac_1 = require("@noble/hashes/hmac");
 const pbkdf2_1 = require("@noble/hashes/pbkdf2");
 const sha256_1 = require("@noble/hashes/sha256");
 const sha512_1 = require("@noble/hashes/sha512");
 const sha3_1 = require("@noble/hashes/sha3");
-const browser_ed448_js_1 = __importDefault(require("./browser-ed448.js"));
+const browser_ed448_js_1 = tslib_1.__importDefault(require("./browser-ed448.js"));
 exports.ed448 = browser_ed448_js_1.default;
 const index_js_1 = require("../utils/index.js");
 var ed448goldilock_browser_js_1 = require("./ed448goldilock-browser.js");

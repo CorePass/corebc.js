@@ -116,7 +116,7 @@ export var ErrorCode;
 })(ErrorCode || (ErrorCode = {}));
 ;
 const HEX = "0123456789abcdef";
-class Logger {
+export class Logger {
     version = '0.0.1';
     static errors = ErrorCode;
     static levels = LogLevel;
@@ -313,5 +313,4 @@ class Logger {
         return new Logger(version);
     }
 }
-export { Logger };
 //# sourceMappingURL=logger.js.map

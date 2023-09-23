@@ -436,8 +436,6 @@ export class Interface {
      *  If the %%key%% and %%values%% do not refine to a single function in
      *  the ABI, this will throw.
      */
-
-    
     getFunction(key: string, values?: Array<any | Typed>): null | FunctionFragment {
         return this.#getFunction(key, values || null, true);
     }
@@ -860,7 +858,6 @@ export class Interface {
 
         const descend = function (inputs: Array<ParamType>, values: ReadonlyArray<any>) {
             if (inputs.length !== values.length) { throw new Error("length mismatch"); }
-            
         };
 
         const result: Array<any> = [ ];

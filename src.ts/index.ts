@@ -5,9 +5,9 @@
  *  @_section: api:Application Programming Interface  [about-api]
  *  @_navTitle: API
  */
- import {Buffer} from 'buffer'
- export {Buffer}
- 
+import {Buffer} from 'buffer'
+export {Buffer}
+
 import * as corebc from "./corebc.js";
 
 export { corebc };

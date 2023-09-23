@@ -1,5 +1,3 @@
-/////////////////////////////
-//
 export { version } from "./_version.js";
 export { publicToAddress } from "./transaction/address.js";
 export { decodeBytes32String, encodeBytes32String, AbiCoder, ConstructorFragment, ErrorFragment, EventFragment, Fragment, FallbackFragment, FunctionFragment, NamedFragment, ParamType, StructFragment, checkResultErrors, ErrorDescription, Indexed, Interface, LogDescription, Result, TransactionDescription, Typed, } from "./abi/index.js";

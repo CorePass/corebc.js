@@ -1,9 +1,7 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.mnemonicToSeed = exports.getIndexedAccountPath = exports.getAccountPath = exports.HDNodeWallet = exports.defaultPath = void 0;
+const tslib_1 = require("tslib");
 /**
  *  Explain HD Wallets..
  *
@@ -16,7 +14,7 @@ const base_wallet_js_1 = require("./base-wallet.js");
 const mnemonic_js_1 = require("./mnemonic.js");
 const json_keystore_js_1 = require("./json-keystore.js");
 const crypto_js_1 = require("../crypto/crypto.js");
-const utf8_1 = __importDefault(require("utf8"));
+const utf8_1 = tslib_1.__importDefault(require("utf8"));
 // import { arrayify,
 //     //  hexDataSlice
 //      } from "../utils/data.js";

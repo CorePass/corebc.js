@@ -49,43 +49,42 @@ let locked256 = false, locked512 = false;
     if(typeof createdHash!=='string'){
         createdHash=hexlify(createdHash)
         return createdHash
-    }  
+    }
     return v
  }
- 
+
  export function sha256(data: BytesLike): string {
     let createdHash=createHash("sha3-256").update(Buffer.from(arrayify(data))).digest("hex")
     const v= "0x" + createdHash
     if(typeof createdHash!=='string'){
         createdHash=hexlify(createdHash)
         return createdHash
-    }  
+    }
     return v
  }
- 
- export function legacySha256(data: BytesLike): string {
-        const _data = getBytes(data, "data");
-        const hexlified=hexlify(createHash("sha256").update(_data).digest());
-        return hexlified
- }
- 
- export function computeHmac(algorithm: SupportedAlgorithm, key: BytesLike, data: BytesLike): string {
-     const d = Buffer.from(arrayify(data));
-     const k = Buffer.from(arrayify(key));
-     if (algorithm === SupportedAlgorithm.sha256) {
-         return "0x" + createHmac("sha3-256", k).update(d).digest("hex");
-     } else if (algorithm === SupportedAlgorithm.sha512) {
-         return "0x" + createHmac("sha3-512", k).update(d).digest("hex");
-     }
- 
-     logger.throwError("unsupported algorithm - " + algorithm, Logger.errors.UNSUPPORTED_OPERATION, {
-         operation: "computeHmac",
-         algorithm: algorithm
-     });
-     return "";
- }
- 
- 
+
+export function legacySha256(data: BytesLike): string {
+    const _data = getBytes(data, "data");
+    const hexlified=hexlify(createHash("sha256").update(_data).digest());
+    return hexlified
+}
+
+export function computeHmac(algorithm: SupportedAlgorithm, key: BytesLike, data: BytesLike): string {
+    const d = Buffer.from(arrayify(data));
+    const k = Buffer.from(arrayify(key));
+    if (algorithm === SupportedAlgorithm.sha256) {
+        return "0x" + createHmac("sha3-256", k).update(d).digest("hex");
+    } else if (algorithm === SupportedAlgorithm.sha512) {
+        return "0x" + createHmac("sha3-512", k).update(d).digest("hex");
+    }
+
+    logger.throwError("unsupported algorithm - " + algorithm, Logger.errors.UNSUPPORTED_OPERATION, {
+        operation: "computeHmac",
+        algorithm: algorithm
+    });
+    return ""
+}
+
 sha256._ = _sha256;
 sha256.lock = function(): void { locked256 = true; }
 sha256.register = function(func: (data: Uint8Array) => BytesLike): void {
@@ -112,13 +111,13 @@ Object.freeze(sha256);
  *    //_result:
  */
 
- export function sha512(data: BytesLike): string {
+export function sha512(data: BytesLike): string {
     let createdHash=createHash("sha3-512").update(Buffer.from(arrayify(data))).digest("hex")
     const v= "0x" + createdHash
     if(typeof createdHash!=='string'){
         createdHash=hexlify(createdHash)
         return createdHash
-    }  
+    }
     return v
 }
 sha512._ = _sha512;

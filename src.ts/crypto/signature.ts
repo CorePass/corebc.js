@@ -27,7 +27,7 @@ const _guard = { };
  *
  *  @_docloc: api/crypto:Signing
  */
-export type SignatureLike =  string 
+export type SignatureLike =  string
 
 
 /**
@@ -250,4 +250,3 @@ export class Signature {
      *  If %%sig%% is a string, it is parsed.
      */
 }
-
