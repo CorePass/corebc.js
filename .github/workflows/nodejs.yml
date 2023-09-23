@@ -9,13 +9,12 @@ jobs:
 
   test-node:
 
-#    runs-on: ubuntu-latest
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
       matrix:
-        node-version: [ 8.x, 10.x, 12.x, 13.x ]
+        node-version: [ 22, 23, 24 ]
 
     steps:
       - name: Use Node.js ${{ matrix.node-version }}
@@ -26,11 +25,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-#      - name: Install node-hid requirements
-#        run: sudo apt-get install libusb-1.0-0 libusb-1.0-0-dev libudev-dev
-
-      - name: Install dependencies (and link per package)
-        run: npm ci
+      - name: Install dependencies
+        run: npm install
 
       - name: Build CommonJS and ESM (from TypeScript)
         run: npm run build-all
@@ -41,8 +37,7 @@ jobs:
 
   test-browser:
 
-#    runs-on: ubuntu-latest
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
@@ -52,16 +47,13 @@ jobs:
     steps:
       - uses: actions/setup-node@v1
         with:
-          node-version: 12.x
+          node-version: 24
 
       - name: Checkout repository
         uses: actions/checkout@v2
 
-#      - name: Install node-hid requirements
-#        run: sudo apt-get install libusb-1.0-0 libusb-1.0-0-dev libudev-dev
-
-      - name: Install dependencies (and link per package)
-        run: npm ci
+      - name: Install dependencies
+        run: npm install
 
       - name: Build CommonJS and ESM (from TypeScript)
         run: npm run build-all
@@ -71,25 +63,24 @@ jobs:
 
   test-react-native:
 
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
 
-    # Temporary for testing CI
     continue-on-error: true
 
     strategy:
       fail-fast: false
 
     steps:
-      - name: Use Node.js 12.x
+      - name: Use Node.js 24
         uses: actions/setup-node@v1
         with:
-          node-version: 12.x
+          node-version: 24
 
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Install dependencies (and link per package)
-        run: npm ci
+      - name: Install dependencies
+        run: npm install
 
       - name: Build CommonJS and ESM (from TypeScript)
         run: npm run build-all
@@ -102,24 +93,20 @@ jobs:
 
     name: Coverage
 
-#    runs-on: ubuntu-latest
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
 
     continue-on-error: true
 
     steps:
       - uses: actions/setup-node@v1
         with:
-          node-version: 12.x
+          node-version: 24
 
       - name: Checkout repository
         uses: actions/checkout@v2
 
-#      - name: Install node-hid requirements
-#        run: sudo apt-get install libusb-1.0-0 libusb-1.0-0-dev libudev-dev
-
-      - name: Install dependencies (and link per package)
-        run: npm ci
+      - name: Install dependencies
+        run: npm install
 
       - name: Build CommonJS and ESM (from TypeScript)
         run: npm run build-all

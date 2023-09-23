@@ -1,5 +1,8 @@
 {
-  "author": "core",
+  "name": "corebc",
+  "version": "0.3.0",
+  "author": "CorePass",
+  "description": "A complete and compact CoreBC library, for Dapps, wallets and any other tools.",
   "browser": {
     "./lib.esm/crypto/crypto.js": "./lib.esm/crypto/crypto-browser.js",
     "./lib.esm/providers/provider-ipcsocket.js": "./lib.esm/providers/provider-ipcsocket-browser.js",
@@ -22,7 +25,6 @@
     "utf8": "^3.0.0",
     "ws": "8.5.0"
   },
-  "description": "A complete and compact CoreBC library, for dapps, wallets and any other tools.",
   "devDependencies": {
     "@rollup/plugin-node-resolve": "13.3.0",
     "@types/bn.js": "^5.1.1",
@@ -89,10 +91,9 @@
       "default": "./lib.commonjs/wordlists/index.js"
     }
   },
-  "license": "MIT",
+  "license": "CORE",
   "main": "./lib.commonjs/index.js",
   "module": "./lib.esm/index.js",
-  "name": "corebc",
   "publishConfig": {
     "access": "public",
     "tag": "latest"
@@ -118,6 +119,5 @@
   },
   "sideEffects": false,
   "type": "module",
-  "types": "./types/index.d.ts",
-  "version": "0.2.21"
+  "types": "./types/index.d.ts"
 }

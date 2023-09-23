@@ -1,1 +1,8 @@
 blank_issues_enabled: false
+contact_links:
+  - name: Readme
+    url: https://github.com/CorePass/corebc.js#readme
+    about: Read more about CoreBC
+  - name: CorePass
+    url: https://corepass.net
+    about: CorePass know-how
