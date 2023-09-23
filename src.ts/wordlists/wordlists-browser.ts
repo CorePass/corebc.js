@@ -1,4 +1,3 @@
-
 import { LangEn } from "./lang-en.js";
 
 import type { Wordlist } from "./wordlist.js";

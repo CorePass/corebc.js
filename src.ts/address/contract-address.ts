@@ -1,8 +1,8 @@
 import {
-    concat,
-    //  dataSlice,
-      getBigInt,
-    //    encodeRlp
+  concat,
+  //  dataSlice,
+  getBigInt,
+  //    encodeRlp
 } from "../utils/index.js";
 
 import { getAddress } from "./index.js";
@@ -13,8 +13,7 @@ import { hexDataLength, hexDataSlice } from "../utils/data.js";
 import { Logger } from "../logger/logger.js";
 import { removeHexPrefix } from "../transaction/address.js";
 import { calculateCheckSum } from "./index.js";
-const logger=new Logger('contract-address/0.0.1')
-
+const logger = new Logger("contract-address/0.0.1");
 
 /**
  *  Returns the address that would result from a ``CREATE`` for %%tx%%.
@@ -34,20 +33,23 @@ const logger=new Logger('contract-address/0.0.1')
  *    getCreateAddress({ from, nonce });
  *    //_result:
  */
-export function getCreateAddress(tx: { from: string, nonce: BigNumberish }): string {
-    const from = getAddress(tx.from);
-    const nonce = getBigInt(tx.nonce, "tx.nonce");
+export function getCreateAddress(tx: {
+  from: string;
+  nonce: BigNumberish;
+}): string {
+  const from = getAddress(tx.from);
+  const nonce = getBigInt(tx.nonce, "tx.nonce");
 
-    let nonceHex = nonce.toString(16);
-    if (nonceHex === "0") {
-        nonceHex = "0x";
-    } else if (nonceHex.length % 2) {
-        nonceHex = "0x0" + nonceHex;
-    } else {
-        nonceHex = "0x" + nonceHex;
-    }
+  let nonceHex = nonce.toString(16);
+  if (nonceHex === "0") {
+    nonceHex = "0x";
+  } else if (nonceHex.length % 2) {
+    nonceHex = "0x0" + nonceHex;
+  } else {
+    nonceHex = "0x" + nonceHex;
+  }
 
-    return getAddress(from);
+  return getAddress(from);
 }
 
 /**
@@ -66,17 +68,28 @@ export function getCreateAddress(tx: { from: string, nonce: BigNumberish }): str
  *    getCreate2Address(from, salt, initCodeHash)
  *    //_result:
  */
- export function getCreate2Address(from: string, salt: BytesLike, initCodeHash: BytesLike): string {
-    if (hexDataLength(salt) !== 32) {
-        logger.throwArgumentError("salt must be 32 bytes", "salt", salt);
-    }
-    if (hexDataLength(initCodeHash) !== 32) {
-        logger.throwArgumentError("initCodeHash must be 32 bytes", "initCodeHash", initCodeHash);
-    }
+export function getCreate2Address(
+  from: string,
+  salt: BytesLike,
+  initCodeHash: BytesLike,
+): string {
+  if (hexDataLength(salt) !== 32) {
+    logger.throwArgumentError("salt must be 32 bytes", "salt", salt);
+  }
+  if (hexDataLength(initCodeHash) !== 32) {
+    logger.throwArgumentError(
+      "initCodeHash must be 32 bytes",
+      "initCodeHash",
+      initCodeHash,
+    );
+  }
 
-    const val = hexDataSlice(sha256(concat([ "0xff", getAddress(from), salt, initCodeHash ])), 12);
-    console.log({'contract-address/74=>should be string':val})
-    const prefix = from.substring(2, 4)
-    const checksum = calculateCheckSum(val, prefix)
-    return "0x" + prefix + checksum + removeHexPrefix(val);
+  const val = hexDataSlice(
+    sha256(concat(["0xff", getAddress(from), salt, initCodeHash])),
+    12,
+  );
+  console.log({ "contract-address/74=>should be string": val });
+  const prefix = from.substring(2, 4);
+  const checksum = calculateCheckSum(val, prefix);
+  return "0x" + prefix + checksum + removeHexPrefix(val);
 }

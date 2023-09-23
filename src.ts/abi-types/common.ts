@@ -22,9 +22,11 @@ export interface TypedDeferredTopicFilter<_TCEvent extends TypedContractEvent>
 export interface TypedContractEvent<
   InputTuple extends Array<any> = any,
   OutputTuple extends Array<any> = any,
-  OutputObject = any
+  OutputObject = any,
 > {
-  (...args: Partial<InputTuple>): TypedDeferredTopicFilter<
+  (
+    ...args: Partial<InputTuple>
+  ): TypedDeferredTopicFilter<
     TypedContractEvent<InputTuple, OutputTuple, OutputObject>
   >;
   name: string;
@@ -60,7 +62,7 @@ export type TypedListener<TCEvent extends TypedContractEvent> = (
   ...listenerArg: [
     ...__TypechainAOutputTuple<TCEvent>,
     TypedEventLog<TCEvent>,
-    ...undefined[]
+    ...undefined[],
   ]
 ) => void;
 
@@ -101,7 +103,7 @@ export type PostfixOverrides<A extends Array<any>, S extends StateMutability> =
   | [...A, Overrides<S>];
 export type ContractMethodArgs<
   A extends Array<any>,
-  S extends StateMutability
+  S extends StateMutability,
 > = PostfixOverrides<{ [I in keyof A]-?: A[I] | Typed }, S>;
 
 export type DefaultReturnType<R> = R extends Array<any> ? R[0] : R;
@@ -110,9 +112,11 @@ export type DefaultReturnType<R> = R extends Array<any> ? R[0] : R;
 export interface TypedContractMethod<
   A extends Array<any> = Array<any>,
   R = any,
-  S extends StateMutability = "payable"
+  S extends StateMutability = "payable",
 > {
-  (...args: ContractMethodArgs<A, S>): S extends "view"
+  (
+    ...args: ContractMethodArgs<A, S>
+  ): S extends "view"
     ? Promise<DefaultReturnType<R>>
     : Promise<ContractTransactionResponse>;
 

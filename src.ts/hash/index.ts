@@ -4,11 +4,9 @@
  *  @_section: api/hashing:Hashing Utilities  [about-hashing]
  */
 
-export { id } from "./id.js"
+export { id } from "./id.js";
 export { hashMessage, verifyMessage } from "./message.js";
-export {
-    solidityPacked, solidityPackedSha256
-} from "./solidity.js";
+export { solidityPacked, solidityPackedSha256 } from "./solidity.js";
 export { TypedDataEncoder, verifyTypedData } from "./typed-data.js";
 
 export type { TypedDataDomain, TypedDataField } from "./typed-data.js";

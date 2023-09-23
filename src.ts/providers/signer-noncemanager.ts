@@ -4,76 +4,82 @@ import { AbstractSigner } from "./abstract-signer.js";
 import type { TypedDataDomain, TypedDataField } from "../hash/index.js";
 
 import type {
-    BlockTag, Provider, TransactionRequest, TransactionResponse
+  BlockTag,
+  Provider,
+  TransactionRequest,
+  TransactionResponse,
 } from "./provider.js";
 import type { Signer } from "./signer.js";
 
-
 export class NonceManager extends AbstractSigner {
-    signer!: Signer;
+  signer!: Signer;
 
-    #noncePromise: null | Promise<number>;
-    #delta: number;
+  #noncePromise: null | Promise<number>;
+  #delta: number;
 
-    constructor(signer: Signer) {
-        super(signer.provider);
-        defineProperties<NonceManager>(this, { signer });
+  constructor(signer: Signer) {
+    super(signer.provider);
+    defineProperties<NonceManager>(this, { signer });
 
-        this.#noncePromise = null;
-        this.#delta = 0;
+    this.#noncePromise = null;
+    this.#delta = 0;
+  }
+
+  async getAddress(): Promise<string> {
+    return this.signer.getAddress();
+  }
+
+  connect(provider: null | Provider): NonceManager {
+    return new NonceManager(this.signer.connect(provider));
+  }
+
+  async getNonce(blockTag?: BlockTag): Promise<number> {
+    if (blockTag === "pending") {
+      if (this.#noncePromise == null) {
+        this.#noncePromise = super.getNonce("pending");
+      }
+
+      const delta = this.#delta;
+      return (await this.#noncePromise) + delta;
     }
 
-    async getAddress(): Promise<string> {
-        return this.signer.getAddress();
-    }
+    return super.getNonce(blockTag);
+  }
 
-    connect(provider: null | Provider): NonceManager {
-        return new NonceManager(this.signer.connect(provider));
-    }
+  increment(): void {
+    this.#delta++;
+  }
 
-    async getNonce(blockTag?: BlockTag): Promise<number> {
-        if (blockTag === "pending") {
-            if (this.#noncePromise == null) {
-                this.#noncePromise = super.getNonce("pending");
-            }
+  reset(): void {
+    this.#delta = 0;
+    this.#noncePromise = null;
+  }
 
-            const delta = this.#delta;
-            return (await this.#noncePromise) + delta;
-        }
+  async sendTransaction(tx: TransactionRequest): Promise<TransactionResponse> {
+    const noncePromise = this.getNonce("pending");
+    this.increment();
 
-        return super.getNonce(blockTag);
-    }
+    tx = await this.signer.populateTransaction(tx);
+    tx.nonce = await noncePromise;
 
-    increment(): void {
-        this.#delta++;
-    }
+    // @TODO: Maybe handle interesting/recoverable errors?
+    // Like don't increment if the tx was certainly not sent
+    return await this.signer.sendTransaction(tx);
+  }
 
-    reset(): void {
-        this.#delta = 0;
-        this.#noncePromise = null;
-    }
+  signTransaction(tx: TransactionRequest): Promise<string> {
+    return this.signer.signTransaction(tx);
+  }
 
-    async sendTransaction(tx: TransactionRequest): Promise<TransactionResponse> {
-        const noncePromise = this.getNonce("pending");
-        this.increment();
+  signMessage(message: string | Uint8Array): Promise<string> {
+    return this.signer.signMessage(message);
+  }
 
-        tx = await this.signer.populateTransaction(tx);
-        tx.nonce = await noncePromise;
-
-        // @TODO: Maybe handle interesting/recoverable errors?
-        // Like don't increment if the tx was certainly not sent
-        return await this.signer.sendTransaction(tx);
-    }
-
-    signTransaction(tx: TransactionRequest): Promise<string> {
-        return this.signer.signTransaction(tx);
-    }
-
-    signMessage(message: string | Uint8Array): Promise<string> {
-        return this.signer.signMessage(message);
-    }
-
-    signTypedData(domain: TypedDataDomain, types: Record<string, Array<TypedDataField>>, value: Record<string, any>): Promise<string> {
-        return this.signer.signTypedData(domain, types, value);
-    }
+  signTypedData(
+    domain: TypedDataDomain,
+    types: Record<string, Array<TypedDataField>>,
+    value: Record<string, any>,
+  ): Promise<string> {
+    return this.signer.signTypedData(domain, types, value);
+  }
 }

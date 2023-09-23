@@ -24,10 +24,10 @@ null;
  *  the [balance](Provider-getBalance).
  */
 export interface Addressable {
-    /**
-     *  Get the object address.
-     */
-    getAddress(): Promise<string>;
+  /**
+   *  Get the object address.
+   */
+  getAddress(): Promise<string>;
 }
 
 /**
@@ -39,91 +39,104 @@ export type AddressLike = string | Promise<string> | Addressable;
  *  An interface for any object which can resolve an ENS name.
  */
 export interface NameResolver {
-    /**
-     *  Resolve to the address for the ENS %%name%%.
-     *
-     *  Resolves to ``null`` if the name is unconfigued. Use
-     *  [[resolveAddress]] (passing this object as %%resolver%%) to
-     *  throw for names that are unconfigured.
-     */
+  /**
+   *  Resolve to the address for the ENS %%name%%.
+   *
+   *  Resolves to ``null`` if the name is unconfigued. Use
+   *  [[resolveAddress]] (passing this object as %%resolver%%) to
+   *  throw for names that are unconfigured.
+   */
 }
-
-
 
 import { BigNumber, BigNumberish } from "../bigNumber/bigNumber.js";
 import { encode } from "../crypto/rlp.js";
 import { sha256 } from "../crypto/sha3.js";
 import { Logger } from "../logger/logger.js";
-import { arrayify, getBytes, hexDataSlice, hexlify, stripZeros } from "../utils/data.js";
-const logger = new Logger('address/0.0.1');
-
+import {
+  arrayify,
+  getBytes,
+  hexDataSlice,
+  hexlify,
+  stripZeros,
+} from "../utils/data.js";
+const logger = new Logger("address/0.0.1");
 
 const precompiledAddresses = [
-    "0000000000000000000000000000000000000000000000000000000000000000",
-    "0000000000000000000000000000000000000000000000000000000000000001",
-    "0000000000000000000000000000000000000000000000000000000000000002",
-    "0000000000000000000000000000000000000000000000000000000000000003",
-    "0000000000000000000000000000000000000000000000000000000000000004",
-    "0000000000000000000000000000000000000000000000000000000000000005",
-    "0000000000000000000000000000000000000000000000000000000000000006",
-    "0000000000000000000000000000000000000000000000000000000000000007",
-    "0000000000000000000000000000000000000000000000000000000000000008",
-    "0000000000000000000000000000000000000000000000000000000000000009",
-]
+  "0000000000000000000000000000000000000000000000000000000000000000",
+  "0000000000000000000000000000000000000000000000000000000000000001",
+  "0000000000000000000000000000000000000000000000000000000000000002",
+  "0000000000000000000000000000000000000000000000000000000000000003",
+  "0000000000000000000000000000000000000000000000000000000000000004",
+  "0000000000000000000000000000000000000000000000000000000000000005",
+  "0000000000000000000000000000000000000000000000000000000000000006",
+  "0000000000000000000000000000000000000000000000000000000000000007",
+  "0000000000000000000000000000000000000000000000000000000000000008",
+  "0000000000000000000000000000000000000000000000000000000000000009",
+];
 
 function removeHexPrefix(val: string): string {
-    return val.substring(0, 2) === "0x" ? val.substring(2) : val;
+  return val.substring(0, 2) === "0x" ? val.substring(2) : val;
 }
 
-
-
- function calculateCheckSum(_address:string, _prefix:string):string {
-    const address=getBytes("0x"+_address.replace("0x",""))
-    const prefix=getBytes("0x"+_prefix.replace("0x",""));
-    const tmpConcated = new Uint8Array([...address, ...prefix]);
-    const hexedConcat = (hexlify(tmpConcated)).replace('0x','') + "00";
-    const mods = Array.from(hexedConcat.toUpperCase(), (c) => {
-      const charCode = c.charCodeAt(0);
-      return (charCode > 64 && charCode < 91) ? (charCode - 55).toString() : (charCode - 48).toString();
-    }).join('');
-    const bigVal = BigInt(mods);
-    const val97 = BigInt(97);
-    const val98 = BigInt(98);
-    const remainder = bigVal % val97;
-    const checkSum = val98 - remainder;
-    const result = checkSum > 9 ? checkSum.toString() : "0" + checkSum.toString();
-    return result;
-  }
+function calculateCheckSum(_address: string, _prefix: string): string {
+  const address = getBytes("0x" + _address.replace("0x", ""));
+  const prefix = getBytes("0x" + _prefix.replace("0x", ""));
+  const tmpConcated = new Uint8Array([...address, ...prefix]);
+  const hexedConcat = hexlify(tmpConcated).replace("0x", "") + "00";
+  const mods = Array.from(hexedConcat.toUpperCase(), (c) => {
+    const charCode = c.charCodeAt(0);
+    return charCode > 64 && charCode < 91
+      ? (charCode - 55).toString()
+      : (charCode - 48).toString();
+  }).join("");
+  const bigVal = BigInt(mods);
+  const val97 = BigInt(97);
+  const val98 = BigInt(98);
+  const remainder = bigVal % val97;
+  const checkSum = val98 - remainder;
+  const result = checkSum > 9 ? checkSum.toString() : "0" + checkSum.toString();
+  return result;
+}
 
 // See: https://en.wikipedia.org/wiki/International_Bank_Account_Number
 
 // Create lookup table
-const ibanLookup: { [character: string]: string } = { };
-for (let i = 0; i < 10; i++) { ibanLookup[String(i)] = String(i); }
-for (let i = 0; i < 26; i++) { ibanLookup[String.fromCharCode(65 + i)] = String(10 + i); }
+const ibanLookup: { [character: string]: string } = {};
+for (let i = 0; i < 10; i++) {
+  ibanLookup[String(i)] = String(i);
+}
+for (let i = 0; i < 26; i++) {
+  ibanLookup[String.fromCharCode(65 + i)] = String(10 + i);
+}
 
 // How many decimal digits can we process? (for 64-bit float, this is 15)
 // i.e. Math.floor(Math.log10(Number.MAX_SAFE_INTEGER));
 const safeDigits = 15;
 
 function ibanChecksum(address: string): string {
-    address = address.toUpperCase();
-    address = address.substring(4) + address.substring(0, 2) + "00";
+  address = address.toUpperCase();
+  address = address.substring(4) + address.substring(0, 2) + "00";
 
-    let expanded = address.split("").map((c) => { return ibanLookup[c]; }).join("");
+  let expanded = address
+    .split("")
+    .map((c) => {
+      return ibanLookup[c];
+    })
+    .join("");
 
-    // Javascript can handle integers safely up to 15 (decimal) digits
-    while (expanded.length >= safeDigits){
-        let block = expanded.substring(0, safeDigits);
-        expanded = parseInt(block, 10) % 97 + expanded.substring(block.length);
-    }
+  // Javascript can handle integers safely up to 15 (decimal) digits
+  while (expanded.length >= safeDigits) {
+    let block = expanded.substring(0, safeDigits);
+    expanded = (parseInt(block, 10) % 97) + expanded.substring(block.length);
+  }
 
-    let checksum = String(98 - (parseInt(expanded, 10) % 97));
-    while (checksum.length < 2) { checksum = "0" + checksum; }
+  let checksum = String(98 - (parseInt(expanded, 10) % 97));
+  while (checksum.length < 2) {
+    checksum = "0" + checksum;
+  }
 
-    return checksum;
-};
-
+  return checksum;
+}
 
 /**
  *  Returns a normalized and checksumed address for %%address%%.
@@ -160,26 +173,26 @@ function ibanChecksum(address: string): string {
  *    getAddress("0x8Ba1f109551bD432803012645Ac136ddd64DBA72")
  *    //_error:
  */
-  function getAddress(address: string): string {
-    if (typeof(address) !== "string") {
-        logger.throwArgumentError("invalid address", "address", address);
-    }
-    
-    if (!address.match(/^(0x)?[0-9a-fA-F]{44}$/)) {
-        logger.throwArgumentError("invalid address", "address", address);
-    }
-    const raw = removeHexPrefix(address);
-    if (precompiledAddresses.includes(raw)) {
-        return "0x" + raw
-    }
+function getAddress(address: string): string {
+  if (typeof address !== "string") {
+    logger.throwArgumentError("invalid address", "address", address);
+  }
 
-    const prefix = raw.substring(0,2)
-    const val = raw.substring(4)
-    const checksum = calculateCheckSum(val, prefix);
-    if (checksum !== raw.substring(2, 4)) {
-        logger.throwArgumentError("bad address checksum", "address", address);
-    }
-    return "0x" + prefix + checksum + val;
+  if (!address.match(/^(0x)?[0-9a-fA-F]{44}$/)) {
+    logger.throwArgumentError("invalid address", "address", address);
+  }
+  const raw = removeHexPrefix(address);
+  if (precompiledAddresses.includes(raw)) {
+    return "0x" + raw;
+  }
+
+  const prefix = raw.substring(0, 2);
+  const val = raw.substring(4);
+  const checksum = calculateCheckSum(val, prefix);
+  if (checksum !== raw.substring(2, 4)) {
+    logger.throwArgumentError("bad address checksum", "address", address);
+  }
+  return "0x" + prefix + checksum + val;
 }
 /**
  *  The [ICAP Address format](link-icap) format is an early checksum
@@ -199,47 +212,60 @@ function ibanChecksum(address: string): string {
  *    getIcapAddress("XE65GB6LDNXYOFTX0NSV3FUWKOWIXAMJK37");
  *    //_error:
  */
- function getIcapAddress(address: string): string {
-    //let base36 = _base16To36(getAddress(address).substring(2)).toUpperCase();
-    let base36 = BigInt(getAddress(address)).toString(36).toUpperCase();
-    while (base36.length < 30) { base36 = "0" + base36; }
-    return "XE" + ibanChecksum("XE00" + base36) + base36;
+function getIcapAddress(address: string): string {
+  //let base36 = _base16To36(getAddress(address).substring(2)).toUpperCase();
+  let base36 = BigInt(getAddress(address)).toString(36).toUpperCase();
+  while (base36.length < 30) {
+    base36 = "0" + base36;
+  }
+  return "XE" + ibanChecksum("XE00" + base36) + base36;
 }
 
- function networkIdToPrefix(networkId: number): string {
-    if (networkId == 1) {
-        return "cb";
-    } else if (networkId == 3 || networkId == 4) {
-        return "ab";
-    } else if (networkId > 10 || networkId == 0) {
-        return "ce";
-    } else {
-        logger.throwArgumentError("bad networkId", "networkId", networkId);
-        return "";
-    }
+function networkIdToPrefix(networkId: number): string {
+  if (networkId == 1) {
+    return "cb";
+  } else if (networkId == 3 || networkId == 4) {
+    return "ab";
+  } else if (networkId > 10 || networkId == 0) {
+    return "ce";
+  } else {
+    logger.throwArgumentError("bad networkId", "networkId", networkId);
+    return "";
+  }
 }
 
+function getContractAddress(transaction: {
+  from: string;
+  nonce: BigNumberish;
+}) {
+  let from: any = null;
+  try {
+    from = getAddress(transaction.from);
+  } catch (error) {
+    logger.throwArgumentError(
+      "missing from address",
+      "transaction",
+      transaction,
+    );
+  }
 
- function getContractAddress(transaction: { from: string, nonce: BigNumberish }) {
-    let from: any = null;
-    try {
-        from = getAddress(transaction.from);
-    } catch (error) {
-        logger.throwArgumentError("missing from address", "transaction", transaction);
-    }
-
-    const nonce = stripZeros(arrayify(BigNumber.from(transaction.nonce).toHexString()));
-    const val = hexDataSlice(sha256(encode([ from, nonce ])), 12);
-    const prefix = from.substring(2, 4)
-    const checksum = calculateCheckSum(val, prefix)
-    return "0x" + prefix + checksum + removeHexPrefix(val);
+  const nonce = stripZeros(
+    arrayify(BigNumber.from(transaction.nonce).toHexString()),
+  );
+  const val = hexDataSlice(sha256(encode([from, nonce])), 12);
+  const prefix = from.substring(2, 4);
+  const checksum = calculateCheckSum(val, prefix);
+  return "0x" + prefix + checksum + removeHexPrefix(val);
 }
 
-
-
-export { getAddress, getIcapAddress,calculateCheckSum,networkIdToPrefix ,getContractAddress}
+export {
+  getAddress,
+  getIcapAddress,
+  calculateCheckSum,
+  networkIdToPrefix,
+  getContractAddress,
+};
 
 export { getCreateAddress, getCreate2Address } from "./contract-address.js";
-
 
 export { isAddressable, isAddress, resolveAddress } from "./checks.js";

@@ -12,7 +12,9 @@
  *  @_subsection: api/providers/thirdparty:Ankr  [providers-ankr]
  */
 import {
-    defineProperties, FetchRequest, assertArgument
+  defineProperties,
+  FetchRequest,
+  assertArgument,
 } from "../utils/index.js";
 
 import { AbstractProvider } from "./abstract-provider.js";
@@ -24,24 +26,23 @@ import type { CommunityResourcable } from "./community.js";
 import type { Networkish } from "./network.js";
 import type { JsonRpcError, JsonRpcPayload } from "./provider-jsonrpc.js";
 
-
-const defaultApiKey = "9f7d929b018cdffb338517efa06f58359e86ff1ffd350bc889738523659e7972";
+const defaultApiKey =
+  "9f7d929b018cdffb338517efa06f58359e86ff1ffd350bc889738523659e7972";
 
 function getHost(name: string): string {
-    switch (name) {
-        case "mainnet":
-            return "rpc.ankr.com/eth";
-        case "goerli":
-            return "rpc.ankr.com/xcb_goerli";
-        case "matic":
-            return "rpc.ankr.com/polygon";
-        case "arbitrum":
-            return "rpc.ankr.com/arbitrum";
-    }
+  switch (name) {
+    case "mainnet":
+      return "rpc.ankr.com/eth";
+    case "goerli":
+      return "rpc.ankr.com/xcb_goerli";
+    case "matic":
+      return "rpc.ankr.com/polygon";
+    case "arbitrum":
+      return "rpc.ankr.com/arbitrum";
+  }
 
-    assertArgument(false, "unsupported network", "network", name);
+  assertArgument(false, "unsupported network", "network", name);
 }
-
 
 /**
  *  The **AnkrProvider** connects to the [[link-ankr]]
@@ -52,71 +53,85 @@ function getHost(name: string): string {
  *  gain access to an increased rate-limit, it is highly
  *  recommended to [sign up here](link-ankr-signup).
  */
-export class AnkrProvider extends JsonRpcProvider implements CommunityResourcable {
+export class AnkrProvider
+  extends JsonRpcProvider
+  implements CommunityResourcable
+{
+  /**
+   *  The API key for the Ankr connection.
+   */
+  readonly apiKey!: string;
 
-    /**
-     *  The API key for the Ankr connection.
-     */
-    readonly apiKey!: string;
-
-    /**
-     *  Create a new **AnkrProvider**.
-     *
-     *  By default connecting to ``mainnet`` with a highly throttled
-     *  API key.
-     */
-    constructor(_network?: Networkish, apiKey?: null | string) {
-        if (_network == null) { _network = "mainnet"; }
-        const network = Network.from(_network);
-        if (apiKey == null) { apiKey = defaultApiKey; }
-
-        // Ankr does not support filterId, so we force polling
-        const options = { polling: true, staticNetwork: network };
-
-        const request = AnkrProvider.getRequest(network, apiKey);
-        super(request, network, options);
-
-        defineProperties<AnkrProvider>(this, { apiKey });
+  /**
+   *  Create a new **AnkrProvider**.
+   *
+   *  By default connecting to ``mainnet`` with a highly throttled
+   *  API key.
+   */
+  constructor(_network?: Networkish, apiKey?: null | string) {
+    if (_network == null) {
+      _network = "mainnet";
+    }
+    const network = Network.from(_network);
+    if (apiKey == null) {
+      apiKey = defaultApiKey;
     }
 
-    _getProvider(networkId: number): AbstractProvider {
-        try {
-            return new AnkrProvider(networkId, this.apiKey);
-        } catch (error) { }
-        return super._getProvider(networkId);
+    // Ankr does not support filterId, so we force polling
+    const options = { polling: true, staticNetwork: network };
+
+    const request = AnkrProvider.getRequest(network, apiKey);
+    super(request, network, options);
+
+    defineProperties<AnkrProvider>(this, { apiKey });
+  }
+
+  _getProvider(networkId: number): AbstractProvider {
+    try {
+      return new AnkrProvider(networkId, this.apiKey);
+    } catch (error) {}
+    return super._getProvider(networkId);
+  }
+
+  /**
+   *  Returns a prepared request for connecting to %%network%% with
+   *  %%apiKey%%.
+   */
+  static getRequest(network: Network, apiKey?: null | string): FetchRequest {
+    if (apiKey == null) {
+      apiKey = defaultApiKey;
     }
 
-    /**
-     *  Returns a prepared request for connecting to %%network%% with
-     *  %%apiKey%%.
-     */
-    static getRequest(network: Network, apiKey?: null | string): FetchRequest {
-        if (apiKey == null) { apiKey = defaultApiKey; }
+    const request = new FetchRequest(
+      `https:/\/${getHost(network.name)}/${apiKey}`,
+    );
+    request.allowGzip = true;
 
-        const request = new FetchRequest(`https:/\/${ getHost(network.name) }/${ apiKey }`);
-        request.allowGzip = true;
-
-        if (apiKey === defaultApiKey) {
-            request.retryFunc = async (request, response, attempt) => {
-                showThrottleMessage("AnkrProvider");
-                return true;
-            };
-        }
-
-        return request;
+    if (apiKey === defaultApiKey) {
+      request.retryFunc = async (request, response, attempt) => {
+        showThrottleMessage("AnkrProvider");
+        return true;
+      };
     }
 
-    getRpcError(payload: JsonRpcPayload, error: JsonRpcError): Error {
-        if (payload.method === "xcb_sendRawTransaction") {
-            if (error && error.error && error.error.message === "INTERNAL_ERROR: could not replace existing tx") {
-                error.error.message = "replacement transaction underpriced";
-            }
-        }
+    return request;
+  }
 
-        return super.getRpcError(payload, error);
+  getRpcError(payload: JsonRpcPayload, error: JsonRpcError): Error {
+    if (payload.method === "xcb_sendRawTransaction") {
+      if (
+        error &&
+        error.error &&
+        error.error.message === "INTERNAL_ERROR: could not replace existing tx"
+      ) {
+        error.error.message = "replacement transaction underpriced";
+      }
     }
 
-    isCommunityResource(): boolean {
-        return (this.apiKey === defaultApiKey);
-    }
+    return super.getRpcError(payload, error);
+  }
+
+  isCommunityResource(): boolean {
+    return this.apiKey === defaultApiKey;
+  }
 }

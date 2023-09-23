@@ -11,9 +11,9 @@ import { toUtf8Bytes } from "../utils/index.js";
  *    id("hello world")
  *    //_result:
  */
-export function id(value: string,useKeccak?:boolean): string {
-    if(useKeccak){
-        return keccak256(toUtf8Bytes(value));
-    }
-    return sha256(toUtf8Bytes(value));
+export function id(value: string, useKeccak?: boolean): string {
+  if (useKeccak) {
+    return keccak256(toUtf8Bytes(value));
+  }
+  return sha256(toUtf8Bytes(value));
 }

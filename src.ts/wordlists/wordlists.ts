@@ -1,4 +1,3 @@
-
 import { LangCz } from "./lang-cz.js";
 import { LangEn } from "./lang-en.js";
 import { LangEs } from "./lang-es.js";
