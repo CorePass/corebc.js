@@ -6,7 +6,6 @@ A complete, compact, and simple library for CoreBC, written in [TypeScript](http
 
 - Keep your private keys in your client
 - Import and export **JSON wallets** (Gocore, XCB HODLER, CorePass)
-- Import and export BIP 39 **mnemonic phrases** (12-word backup phrases) and **HD Wallets** (in languages including English, Czech, French, Italian, Japanese, Korean, Simplified Chinese, Spanish, and Traditional Chinese)
 - Use meta-classes to generate JavaScript objects from any contract ABI, including **ABIv2** and **Human-Readable ABI**
 - **Tree-shaking** focused; include only what you need during bundling
 - **Complete** functionality to fulfill all your CoreBC needs
