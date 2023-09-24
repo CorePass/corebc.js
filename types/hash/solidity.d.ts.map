@@ -1,0 +1,1 @@
+{"version":3,"file":"solidity.d.ts","sourceRoot":"","sources":["../../src.ts/hash/solidity.ts"],"names":[],"mappings":"AA8GA;;;;;;;;GAQG;AACH,wBAAgB,cAAc,CAC5B,KAAK,EAAE,aAAa,CAAC,MAAM,CAAC,EAC5B,MAAM,EAAE,aAAa,CAAC,GAAG,CAAC,GACzB,MAAM,CAaR;AAED;;;;;;;;GAQG;AACH,wBAAgB,oBAAoB,CAClC,KAAK,EAAE,aAAa,CAAC,MAAM,CAAC,EAC5B,MAAM,EAAE,aAAa,CAAC,GAAG,CAAC,GACzB,MAAM,CAER"}
