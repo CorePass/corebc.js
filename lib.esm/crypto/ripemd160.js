@@ -27,7 +27,9 @@ export function ripemd160(_data) {
     return hexlify(__ripemd160(data));
 }
 ripemd160._ = _ripemd160;
-ripemd160.lock = function () { locked = true; };
+ripemd160.lock = function () {
+    locked = true;
+};
 ripemd160.register = function (func) {
     if (locked) {
         throw new TypeError("ripemd160 is locked");

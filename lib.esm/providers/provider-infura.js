@@ -16,7 +16,7 @@
  *
  *  @_subsection: api/providers/thirdparty:INFURA  [providers-infura]
  */
-import { defineProperties, FetchRequest, assert, assertArgument } from "../utils/index.js";
+import { defineProperties, FetchRequest, assert, assertArgument, } from "../utils/index.js";
 import { showThrottleMessage } from "./community.js";
 import { Network } from "./network.js";
 import { JsonRpcProvider } from "./provider-jsonrpc.js";
@@ -77,11 +77,11 @@ export class InfuraWebSocketProvider extends WebSocketProvider {
         super(url, network);
         defineProperties(this, {
             projectId: provider.projectId,
-            projectSecret: provider.projectSecret
+            projectSecret: provider.projectSecret,
         });
     }
     isCommunityResource() {
-        return (this.projectId === defaultProjectId);
+        return this.projectId === defaultProjectId;
     }
 }
 /**
@@ -131,7 +131,7 @@ export class InfuraProvider extends JsonRpcProvider {
         return super._getProvider(networkId);
     }
     isCommunityResource() {
-        return (this.projectId === defaultProjectId);
+        return this.projectId === defaultProjectId;
     }
     /**
      *  Creates a new **InfuraWebSocketProvider**.

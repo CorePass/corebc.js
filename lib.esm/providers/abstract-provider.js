@@ -12,41 +12,45 @@
 //   of Signer/ENS name to address so we can sync respond to listenerCount.
 import { resolveAddress } from "../address/index.js";
 import { Transaction } from "../transaction/index.js";
-import { concat, dataLength, dataSlice, hexlify, isHexString, getBigInt, getBytes, getNumber, isCallException, makeError, assert, assertArgument, FetchRequest, toBeArray, toQuantity, defineProperties, EventPayload, resolveProperties, toUtf8String } from "../utils/index.js";
-import { formatBlock, formatLog, formatTransactionReceipt, formatTransactionResponse } from "./format.js";
+import { concat, dataLength, dataSlice, hexlify, isHexString, getBigInt, getBytes, getNumber, isCallException, makeError, assert, assertArgument, FetchRequest, toBeArray, toQuantity, defineProperties, EventPayload, resolveProperties, toUtf8String, } from "../utils/index.js";
+import { formatBlock, formatLog, formatTransactionReceipt, formatTransactionResponse, } from "./format.js";
 import { Network } from "./network.js";
-import { copyRequest, Block, FeeData, Log, TransactionReceipt, TransactionResponse } from "./provider.js";
-import { PollingBlockSubscriber, PollingEventSubscriber, PollingOrphanSubscriber, PollingTransactionSubscriber } from "./subscriber-polling.js";
+import { copyRequest, Block, FeeData, Log, TransactionReceipt, TransactionResponse, } from "./provider.js";
+import { PollingBlockSubscriber, PollingEventSubscriber, PollingOrphanSubscriber, PollingTransactionSubscriber, } from "./subscriber-polling.js";
 const MAX_CCIP_REDIRECTS = 10;
 function isPromise(value) {
-    return (value && typeof (value.then) === "function");
+    return value && typeof value.then === "function";
 }
 function getTag(prefix, value) {
-    return prefix + ":" + JSON.stringify(value, (k, v) => {
-        if (v == null) {
-            return "null";
-        }
-        if (typeof (v) === "bigint") {
-            return `bigint:${v.toString()}`;
-        }
-        if (typeof (v) === "string") {
-            return v.toLowerCase();
-        }
-        // Sort object keys
-        if (typeof (v) === "object" && !Array.isArray(v)) {
-            const keys = Object.keys(v);
-            keys.sort();
-            return keys.reduce((accum, key) => {
-                accum[key] = v[key];
-                return accum;
-            }, {});
-        }
-        return v;
-    });
+    return (prefix +
+        ":" +
+        JSON.stringify(value, (k, v) => {
+            if (v == null) {
+                return "null";
+            }
+            if (typeof v === "bigint") {
+                return `bigint:${v.toString()}`;
+            }
+            if (typeof v === "string") {
+                return v.toLowerCase();
+            }
+            // Sort object keys
+            if (typeof v === "object" && !Array.isArray(v)) {
+                const keys = Object.keys(v);
+                keys.sort();
+                return keys.reduce((accum, key) => {
+                    accum[key] = v[key];
+                    return accum;
+                }, {});
+            }
+            return v;
+        }));
 }
 export class UnmanagedSubscriber {
     name;
-    constructor(name) { defineProperties(this, { name }); }
+    constructor(name) {
+        defineProperties(this, { name });
+    }
     start() { }
     stop() { }
     pause(dropWhilePaused) { }
@@ -56,7 +60,7 @@ function copy(value) {
     return JSON.parse(JSON.stringify(value));
 }
 function concisify(items) {
-    items = Array.from((new Set(items)).values());
+    items = Array.from(new Set(items).values());
     items.sort();
     return items;
 }
@@ -68,7 +72,7 @@ async function getSubscription(_event, provider) {
     if (Array.isArray(_event)) {
         _event = { topics: _event };
     }
-    if (typeof (_event) === "string") {
+    if (typeof _event === "string") {
         switch (_event) {
             case "block":
             case "pending":
@@ -86,12 +90,16 @@ async function getSubscription(_event, provider) {
     if (_event.orphan) {
         const event = _event;
         // @TODO: Should lowercase and whatnot things here instead of copy...
-        return { type: "orphan", tag: getTag("orphan", event), filter: copy(event) };
+        return {
+            type: "orphan",
+            tag: getTag("orphan", event),
+            filter: copy(event),
+        };
     }
-    if ((_event.address || _event.topics)) {
+    if (_event.address || _event.topics) {
         const event = _event;
         const filter = {
-            topics: ((event.topics || []).map((t) => {
+            topics: (event.topics || []).map((t) => {
                 if (t == null) {
                     return null;
                 }
@@ -99,7 +107,7 @@ async function getSubscription(_event, provider) {
                     return concisify(t.map((t) => t.toLowerCase()));
                 }
                 return t.toLowerCase();
-            }))
+            }),
         };
         if (event.address) {
             const addresses = [];
@@ -129,7 +137,9 @@ async function getSubscription(_event, provider) {
     }
     assertArgument(false, "unknown ProviderEvent", "event", _event);
 }
-function getTime() { return (new Date()).getTime(); }
+function getTime() {
+    return new Date().getTime();
+}
 export class AbstractProvider {
     #subs;
     #plugins;
@@ -154,7 +164,9 @@ export class AbstractProvider {
             const network = Network.from(_network);
             this.#anyNetwork = false;
             this.#networkPromise = Promise.resolve(network);
-            setTimeout(() => { this.emit("network", network, null); }, 0);
+            setTimeout(() => {
+                this.emit("network", network, null);
+            }, 0);
         }
         else {
             this.#anyNetwork = false;
@@ -169,7 +181,9 @@ export class AbstractProvider {
         this.#timers = new Map();
         this.#disableCcipRead = false;
     }
-    get provider() { return this; }
+    get provider() {
+        return this;
+    }
     get plugins() {
         return Array.from(this.#plugins.values());
     }
@@ -181,10 +195,14 @@ export class AbstractProvider {
         return this;
     }
     getPlugin(name) {
-        return (this.#plugins.get(name)) || null;
+        return this.#plugins.get(name) || null;
     }
-    get disableCcipRead() { return this.#disableCcipRead; }
-    set disableCcipRead(value) { this.#disableCcipRead = !!value; }
+    get disableCcipRead() {
+        return this.#disableCcipRead;
+    }
+    set disableCcipRead(value) {
+        this.#disableCcipRead = !!value;
+    }
     // Shares multiple identical requests made during the same 250ms
     async #perform(req) {
         // Create a tag
@@ -222,29 +240,49 @@ export class AbstractProvider {
             if (url.indexOf("{data}") === -1) {
                 request.body = { data, sender };
             }
-            this.emit("debug", { action: "sendCcipReadFetchRequest", request, index: i, urls });
+            this.emit("debug", {
+                action: "sendCcipReadFetchRequest",
+                request,
+                index: i,
+                urls,
+            });
             let errorMessage = "unknown error";
             const resp = await request.send();
             try {
                 const result = resp.bodyJson;
                 if (result.data) {
-                    this.emit("debug", { action: "receiveCcipReadFetchResult", request, result });
+                    this.emit("debug", {
+                        action: "receiveCcipReadFetchResult",
+                        request,
+                        result,
+                    });
                     return result.data;
                 }
                 if (result.message) {
                     errorMessage = result.message;
                 }
-                this.emit("debug", { action: "receiveCcipReadFetchError", request, result });
+                this.emit("debug", {
+                    action: "receiveCcipReadFetchError",
+                    request,
+                    result,
+                });
             }
             catch (error) { }
             // 4xx indicates the result is not present; stop
-            assert(resp.statusCode < 400 || resp.statusCode >= 500, `response not found during CCIP fetch: ${errorMessage}`, "OFFCHAIN_FAULT", { reason: "404_MISSING_RESOURCE", transaction: tx, info: { url, errorMessage } });
+            assert(resp.statusCode < 400 || resp.statusCode >= 500, `response not found during CCIP fetch: ${errorMessage}`, "OFFCHAIN_FAULT", {
+                reason: "404_MISSING_RESOURCE",
+                transaction: tx,
+                info: { url, errorMessage },
+            });
             // 5xx indicates server issue; try the next url
             errorMessages.push(errorMessage);
         }
-        assert(false, `error encountered during CCIP fetch: ${errorMessages.map((m) => JSON.stringify(m)).join(", ")}`, "OFFCHAIN_FAULT", {
+        assert(false, `error encountered during CCIP fetch: ${errorMessages
+            .map((m) => JSON.stringify(m))
+            .join(", ")}`, "OFFCHAIN_FAULT", {
             reason: "500_SERVER_ERROR",
-            transaction: tx, info: { urls, errorMessages }
+            transaction: tx,
+            info: { urls, errorMessages },
         });
     }
     _wrapBlock(value, network) {
@@ -261,7 +299,7 @@ export class AbstractProvider {
     }
     _detectNetwork() {
         assert(false, "sub-classes must implement this", "UNSUPPORTED_OPERATION", {
-            operation: "_detectNetwork"
+            operation: "_detectNetwork",
         });
     }
     // Sub-classes should override this and handle PerformActionRequest requests, calling
@@ -269,7 +307,7 @@ export class AbstractProvider {
     async _perform(req) {
         assert(false, `unsupported method: ${req.method}`, "UNSUPPORTED_OPERATION", {
             operation: req.method,
-            info: req
+            info: req,
         });
     }
     // State
@@ -302,10 +340,10 @@ export class AbstractProvider {
             }
             return toQuantity(blockTag);
         }
-        if (typeof (blockTag) === "bigint") {
+        if (typeof blockTag === "bigint") {
             blockTag = getNumber(blockTag, "blockTag");
         }
-        if (typeof (blockTag) === "number") {
+        if (typeof blockTag === "number") {
             if (blockTag >= 0) {
                 return toQuantity(blockTag);
             }
@@ -327,11 +365,12 @@ export class AbstractProvider {
             }
             return t.toLowerCase();
         });
-        const blockHash = ("blockHash" in filter) ? filter.blockHash : undefined;
+        const blockHash = "blockHash" in filter ? filter.blockHash : undefined;
         const resolve = (_address, fromBlock, toBlock) => {
             let address = undefined;
             switch (_address.length) {
-                case 0: break;
+                case 0:
+                    break;
                 case 1:
                     address = _address[0];
                     break;
@@ -382,9 +421,9 @@ export class AbstractProvider {
         if ("toBlock" in filter) {
             toBlock = this._getBlockTag(filter.toBlock);
         }
-        if (address.filter((a) => (typeof (a) !== "string")).length ||
-            (fromBlock != null && typeof (fromBlock) !== "string") ||
-            (toBlock != null && typeof (toBlock) !== "string")) {
+        if (address.filter((a) => typeof a !== "string").length ||
+            (fromBlock != null && typeof fromBlock !== "string") ||
+            (toBlock != null && typeof toBlock !== "string")) {
             return Promise.all([Promise.all(address), fromBlock, toBlock]).then((result) => {
                 return resolve(result[0], result[1], result[2]);
             });
@@ -400,7 +439,9 @@ export class AbstractProvider {
             }
             const addr = resolveAddress(request[key]);
             if (isPromise(addr)) {
-                promises.push((async function () { request[key] = await addr; })());
+                promises.push((async function () {
+                    request[key] = await addr;
+                })());
             }
             else {
                 request[key] = addr;
@@ -409,7 +450,9 @@ export class AbstractProvider {
         if (request.blockTag != null) {
             const blockTag = this._getBlockTag(request.blockTag);
             if (isPromise(blockTag)) {
-                promises.push((async function () { request.blockTag = await blockTag; })());
+                promises.push((async function () {
+                    request.blockTag = await blockTag;
+                })());
             }
             else {
                 request.blockTag = blockTag;
@@ -443,7 +486,7 @@ export class AbstractProvider {
         const networkPromise = this.#networkPromise;
         const [expected, actual] = await Promise.all([
             networkPromise,
-            this._detectNetwork() // The actual connected network
+            this._detectNetwork(), // The actual connected network
         ]);
         if (expected.networkId !== actual.networkId) {
             if (this.#anyNetwork) {
@@ -457,7 +500,7 @@ export class AbstractProvider {
             else {
                 // Otherwise, we do not allow changes to the underlying network
                 assert(false, `network changed: ${expected.networkId} => ${actual.networkId} `, "NETWORK_ERROR", {
-                    event: "changed"
+                    event: "changed",
                 });
             }
         }
@@ -466,28 +509,28 @@ export class AbstractProvider {
     async getEnergyPrice() {
         const { energyPrice } = await resolveProperties({
             block: this.getBlock("latest"),
-            energyPrice: ((async () => {
+            energyPrice: (async () => {
                 try {
                     const energyPrice = await this.#perform({ method: "getEnergyPrice" });
                     return getBigInt(energyPrice, "%response");
                 }
                 catch (error) { }
                 return null;
-            })())
+            })(),
         });
         return new FeeData(energyPrice);
     }
     async getFeeData() {
         const { energyPrice } = await resolveProperties({
             block: this.getBlock("latest"),
-            energyPrice: ((async () => {
+            energyPrice: (async () => {
                 try {
                     const energyPrice = await this.#perform({ method: "getEnergyPrice" });
                     return getBigInt(energyPrice, "%response");
                 }
                 catch (error) { }
                 return null;
-            })())
+            })(),
         });
         return new FeeData(energyPrice);
     }
@@ -497,13 +540,14 @@ export class AbstractProvider {
             tx = await tx;
         }
         return getBigInt(await this.#perform({
-            method: "estimateEnergy", transaction: tx
+            method: "estimateEnergy",
+            transaction: tx,
         }), "%response");
     }
     async #call(tx, blockTag, attempt) {
         assert(attempt < MAX_CCIP_REDIRECTS, "CCIP read exceeded maximum redirections", "OFFCHAIN_FAULT", {
             reason: "TOO_MANY_REDIRECTS",
-            transaction: Object.assign({}, tx, { blockTag, enableCcipRead: true })
+            transaction: Object.assign({}, tx, { blockTag, enableCcipRead: true }),
         });
         // This came in as a PerformActionTransaction, so to/from are safe; we can cast
         const transaction = copyRequest(tx);
@@ -512,7 +556,13 @@ export class AbstractProvider {
         }
         catch (error) {
             // CCIP Read OffchainLookup
-            if (!this.disableCcipRead && isCallException(error) && error.data && attempt >= 0 && blockTag === "latest" && transaction.to != null && dataSlice(error.data, 0, 4) === "0x556f1830") {
+            if (!this.disableCcipRead &&
+                isCallException(error) &&
+                error.data &&
+                attempt >= 0 &&
+                blockTag === "latest" &&
+                transaction.to != null &&
+                dataSlice(error.data, 0, 4) === "0x556f1830") {
                 const data = error.data;
                 const txSender = await resolveAddress(transaction.to);
                 // Parse the CCIP Read Arguments
@@ -522,7 +572,9 @@ export class AbstractProvider {
                 }
                 catch (error) {
                     assert(false, error.message, "OFFCHAIN_FAULT", {
-                        reason: "BAD_DATA", transaction, info: { data }
+                        reason: "BAD_DATA",
+                        transaction,
+                        info: { data },
                     });
                 }
                 // Check the sender of the OffchainLookup matches the transaction
@@ -535,25 +587,38 @@ export class AbstractProvider {
                     revert: {
                         signature: "OffchainLookup(address,string[],bytes,bytes4,bytes)",
                         name: "OffchainLookup",
-                        args: ccipArgs.errorArgs
-                    }
+                        args: ccipArgs.errorArgs,
+                    },
                 });
                 const ccipResult = await this.ccipReadFetch(transaction, ccipArgs.calldata, ccipArgs.urls);
                 assert(ccipResult != null, "CCIP Read failed to fetch data", "OFFCHAIN_FAULT", {
-                    reason: "FETCH_FAILED", transaction, info: { data: error.data, errorArgs: ccipArgs.errorArgs }
+                    reason: "FETCH_FAILED",
+                    transaction,
+                    info: { data: error.data, errorArgs: ccipArgs.errorArgs },
                 });
                 const tx = {
                     to: txSender,
-                    data: concat([ccipArgs.selector, encodeBytes([ccipResult, ccipArgs.extraData])])
+                    data: concat([
+                        ccipArgs.selector,
+                        encodeBytes([ccipResult, ccipArgs.extraData]),
+                    ]),
                 };
                 this.emit("debug", { action: "sendCcipReadCall", transaction: tx });
                 try {
                     const result = await this.#call(tx, blockTag, attempt + 1);
-                    this.emit("debug", { action: "receiveCcipReadCallResult", transaction: Object.assign({}, tx), result });
+                    this.emit("debug", {
+                        action: "receiveCcipReadCallResult",
+                        transaction: Object.assign({}, tx),
+                        result,
+                    });
                     return result;
                 }
                 catch (error) {
-                    this.emit("debug", { action: "receiveCcipReadCallError", transaction: Object.assign({}, tx), error });
+                    this.emit("debug", {
+                        action: "receiveCcipReadCallError",
+                        transaction: Object.assign({}, tx),
+                        error,
+                    });
                     throw error;
                 }
             }
@@ -563,14 +628,14 @@ export class AbstractProvider {
     async #checkNetwork(promise) {
         const { value } = await resolveProperties({
             network: this.getNetwork(),
-            value: promise
+            value: promise,
         });
         return value;
     }
     async call(_tx) {
         const { tx, blockTag } = await resolveProperties({
             tx: this._getTransactionRequest(_tx),
-            blockTag: this._getBlockTag(_tx.blockTag)
+            blockTag: this._getBlockTag(_tx.blockTag),
         });
         return await this.#checkNetwork(this.#call(tx, blockTag, _tx.enableCcipRead ? 0 : -1));
     }
@@ -578,7 +643,7 @@ export class AbstractProvider {
     async #getAccountValue(request, _address, _blockTag) {
         let address = this._getAddress(_address);
         let blockTag = this._getBlockTag(_blockTag);
-        if (typeof (address) !== "string" || typeof (blockTag) !== "string") {
+        if (typeof address !== "string" || typeof blockTag !== "string") {
             [address, blockTag] = await Promise.all([address, blockTag]);
         }
         return await this.#checkNetwork(this.#perform(Object.assign(request, { address, blockTag })));
@@ -602,9 +667,9 @@ export class AbstractProvider {
             blockNumber: this.getBlockNumber(),
             hash: this._perform({
                 method: "broadcastTransaction",
-                signedTransaction: signedTx
+                signedTransaction: signedTx,
             }),
-            network: this.getNetwork()
+            network: this.getNetwork(),
         });
         const tx = Transaction.from(signedTx);
         if (tx.hash !== hash) {
@@ -616,22 +681,26 @@ export class AbstractProvider {
         // @TODO: Add CustomBlockPlugin check
         if (isHexString(block, 32)) {
             return await this.#perform({
-                method: "getBlock", blockHash: block, includeTransactions
+                method: "getBlock",
+                blockHash: block,
+                includeTransactions,
             });
         }
         let blockTag = this._getBlockTag(block);
-        if (typeof (blockTag) !== "string") {
+        if (typeof blockTag !== "string") {
             blockTag = await blockTag;
         }
         return await this.#perform({
-            method: "getBlock", blockTag, includeTransactions
+            method: "getBlock",
+            blockTag,
+            includeTransactions,
         });
     }
     // Queries
     async getBlock(block, prefetchTxs) {
         const { network, params } = await resolveProperties({
             network: this.getNetwork(),
-            params: this.#getBlock(block, !!prefetchTxs)
+            params: this.#getBlock(block, !!prefetchTxs),
         });
         if (params == null) {
             return null;
@@ -641,7 +710,7 @@ export class AbstractProvider {
     async getTransaction(hash) {
         const { network, params } = await resolveProperties({
             network: this.getNetwork(),
-            params: this.#perform({ method: "getTransaction", hash })
+            params: this.#perform({ method: "getTransaction", hash }),
         });
         if (params == null) {
             return null;
@@ -651,7 +720,7 @@ export class AbstractProvider {
     async getTransactionReceipt(hash) {
         const { network, params } = await resolveProperties({
             network: this.getNetwork(),
-            params: this.#perform({ method: "getTransactionReceipt", hash })
+            params: this.#perform({ method: "getTransactionReceipt", hash }),
         });
         if (params == null) {
             return null;
@@ -670,7 +739,7 @@ export class AbstractProvider {
     async getTransactionResult(hash) {
         const { result } = await resolveProperties({
             network: this.getNetwork(),
-            result: this.#perform({ method: "getTransactionResult", hash })
+            result: this.#perform({ method: "getTransactionResult", hash }),
         });
         if (result == null) {
             return null;
@@ -685,24 +754,24 @@ export class AbstractProvider {
         }
         const { network, params } = await resolveProperties({
             network: this.getNetwork(),
-            params: this.#perform({ method: "getLogs", filter })
+            params: this.#perform({ method: "getLogs", filter }),
         });
         return params.map((p) => this._wrapLog(p, network));
     }
     // ENS
     _getProvider(networkId) {
         assert(false, "provider cannot connect to target network", "UNSUPPORTED_OPERATION", {
-            operation: "_getProvider()"
+            operation: "_getProvider()",
         });
     }
     async waitForTransaction(hash, _confirms, timeout) {
-        const confirms = (_confirms != null) ? _confirms : 1;
+        const confirms = _confirms != null ? _confirms : 1;
         if (confirms === 0) {
             return this.getTransactionReceipt(hash);
         }
         return new Promise(async (resolve, reject) => {
             let timer = null;
-            const listener = (async (blockNumber) => {
+            const listener = async (blockNumber) => {
                 try {
                     const receipt = await this.getTransactionReceipt(hash);
                     if (receipt != null) {
@@ -721,7 +790,7 @@ export class AbstractProvider {
                     console.log("EEE", error);
                 }
                 this.once("block", listener);
-            });
+            };
             if (timeout != null) {
                 timer = setTimeout(() => {
                     if (timer == null) {
@@ -737,7 +806,7 @@ export class AbstractProvider {
     }
     async waitForBlock(blockTag) {
         assert(false, "not implemented yet", "NOT_IMPLEMENTED", {
-            operation: "waitForBlock"
+            operation: "waitForBlock",
         });
     }
     _clearTimeout(timerId) {
@@ -813,7 +882,10 @@ export class AbstractProvider {
         let sub = await getSubscription(event, this);
         // This is a log that is removing an existing log; we actually want
         // to emit an orphan event for the removed log
-        if (sub.type === "event" && emitArgs && emitArgs.length > 0 && emitArgs[0].removed === true) {
+        if (sub.type === "event" &&
+            emitArgs &&
+            emitArgs.length > 0 &&
+            emitArgs[0].removed === true) {
             sub = await getSubscription({ orphan: "drop-log", log: emitArgs[0] }, this);
         }
         return this.#subs.get(sub.tag) || null;
@@ -827,7 +899,14 @@ export class AbstractProvider {
             const subscriber = this._getSubscriber(subscription);
             const addressableMap = new WeakMap();
             const nameMap = new Map();
-            sub = { subscriber, tag, addressableMap, nameMap, started: false, listeners: [] };
+            sub = {
+                subscriber,
+                tag,
+                addressableMap,
+                nameMap,
+                started: false,
+                listeners: [],
+            };
             this.#subs.set(tag, sub);
         }
         return sub;
@@ -863,10 +942,9 @@ export class AbstractProvider {
         if (!sub || sub.listeners.length === 0) {
             return false;
         }
-        ;
         const count = sub.listeners.length;
         sub.listeners = sub.listeners.filter(({ listener, once }) => {
-            const payload = new EventPayload(this, (once ? null : listener), event);
+            const payload = new EventPayload(this, once ? null : listener, event);
             try {
                 listener.call(this, ...args, payload);
             }
@@ -879,7 +957,7 @@ export class AbstractProvider {
             }
             this.#subs.delete(sub.tag);
         }
-        return (count > 0);
+        return count > 0;
     }
     async listenerCount(event) {
         if (event) {
@@ -915,7 +993,9 @@ export class AbstractProvider {
             return this;
         }
         if (listener) {
-            const index = sub.listeners.map(({ listener }) => listener).indexOf(listener);
+            const index = sub.listeners
+                .map(({ listener }) => listener)
+                .indexOf(listener);
             if (index >= 0) {
                 sub.listeners.splice(index, 1);
             }
@@ -964,7 +1044,9 @@ export class AbstractProvider {
             this._clearTimeout(timerId);
         }
     }
-    get paused() { return (this.#pausedState != null); }
+    get paused() {
+        return this.#pausedState != null;
+    }
     set paused(pause) {
         if (!!pause === this.paused) {
             return;
@@ -983,7 +1065,7 @@ export class AbstractProvider {
                 return;
             }
             assert(false, "cannot change pause type; resume first", "UNSUPPORTED_OPERATION", {
-                operation: "pause"
+                operation: "pause",
             });
         }
         this._forEachSubscriber((s) => s.pause(dropWhilePaused));
@@ -1048,7 +1130,7 @@ function numPad(value) {
     return padded;
 }
 function bytesPad(value) {
-    if ((value.length % 32) === 0) {
+    if (value.length % 32 === 0) {
         return value;
     }
     const result = new Uint8Array(Math.ceil(value.length / 32) * 32);
@@ -1079,14 +1161,19 @@ function encodeBytes(datas) {
 const zeros = "0x0000000000000000000000000000000000000000000000000000000000000000";
 function parseOffchainLookup(data) {
     const result = {
-        sender: "", urls: [], calldata: "", selector: "", extraData: "", errorArgs: []
+        sender: "",
+        urls: [],
+        calldata: "",
+        selector: "",
+        extraData: "",
+        errorArgs: [],
     };
     assert(dataLength(data) >= 5 * 32, "insufficient OffchainLookup data", "OFFCHAIN_FAULT", {
-        reason: "insufficient OffchainLookup data"
+        reason: "insufficient OffchainLookup data",
     });
     const sender = dataSlice(data, 0, 32);
     assert(dataSlice(sender, 0, 12) === dataSlice(zeros, 0, 12), "corrupt OffchainLookup sender", "OFFCHAIN_FAULT", {
-        reason: "corrupt OffchainLookup sender"
+        reason: "corrupt OffchainLookup sender",
     });
     result.sender = dataSlice(sender, 12);
     // Read the URLs from the response
@@ -1106,7 +1193,7 @@ function parseOffchainLookup(data) {
     }
     catch (error) {
         assert(false, "corrupt OffchainLookup urls", "OFFCHAIN_FAULT", {
-            reason: "corrupt OffchainLookup urls"
+            reason: "corrupt OffchainLookup urls",
         });
     }
     // Get the CCIP calldata to forward
@@ -1119,12 +1206,12 @@ function parseOffchainLookup(data) {
     }
     catch (error) {
         assert(false, "corrupt OffchainLookup calldata", "OFFCHAIN_FAULT", {
-            reason: "corrupt OffchainLookup calldata"
+            reason: "corrupt OffchainLookup calldata",
         });
     }
     // Get the callbackSelector (bytes4)
     assert(dataSlice(data, 100, 128) === dataSlice(zeros, 0, 28), "corrupt OffchainLookup callbaackSelector", "OFFCHAIN_FAULT", {
-        reason: "corrupt OffchainLookup callbaackSelector"
+        reason: "corrupt OffchainLookup callbaackSelector",
     });
     result.selector = dataSlice(data, 96, 100);
     // Get the extra data to send back to the contract as context
@@ -1137,10 +1224,12 @@ function parseOffchainLookup(data) {
     }
     catch (error) {
         assert(false, "corrupt OffchainLookup extraData", "OFFCHAIN_FAULT", {
-            reason: "corrupt OffchainLookup extraData"
+            reason: "corrupt OffchainLookup extraData",
         });
     }
-    result.errorArgs = "sender,urls,calldata,selector,extraData".split(/,/).map((k) => result[k]);
+    result.errorArgs = "sender,urls,calldata,selector,extraData"
+        .split(/,/)
+        .map((k) => result[k]);
     return result;
 }
 //# sourceMappingURL=abstract-provider.js.map

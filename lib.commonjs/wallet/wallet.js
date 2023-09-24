@@ -10,7 +10,11 @@ const json_keystore_js_1 = require("./json-keystore.js");
 const mnemonic_js_1 = require("./mnemonic.js");
 const address_js_1 = require("../transaction/address.js");
 function stall(duration) {
-    return new Promise((resolve) => { setTimeout(() => { resolve(); }, duration); });
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            resolve();
+        }, duration);
+    });
 }
 /**
  *  A **Wallet** manages a single private key which is used to sign
@@ -27,18 +31,22 @@ class Wallet extends base_wallet_js_1.BaseWallet {
      *  Create a new wallet for the %%privateKey%% or %%signingKey%%, optionally connected
      *  to %%provider%%.
      */
-    constructor({ key, prefix, provider }) {
-        if (typeof (key) === "string" && !key.startsWith("0x")) {
+    constructor({ key, prefix, provider, }) {
+        if (typeof key === "string" && !key.startsWith("0x")) {
             key = "0x" + key;
         }
-        let signingKey = (typeof (key) === "string") ? new index_js_1.SigningKey(key) : key;
+        let signingKey = typeof key === "string" ? new index_js_1.SigningKey(key) : key;
         super({
-            signingKey, prefix, provider
+            signingKey,
+            prefix,
+            provider,
         });
     }
     connect(provider) {
         return new Wallet({
-            key: this.signingKey, prefix: this.prefix, provider
+            key: this.signingKey,
+            prefix: this.prefix,
+            provider,
         });
     }
     /**
@@ -70,16 +78,20 @@ class Wallet extends base_wallet_js_1.BaseWallet {
         (0, index_js_2.assertArgument)(account, "invalid JSON wallet", "json", "[ REDACTED ]");
         const address = account.address;
         const prefix = (0, address_js_1.extractPrefix)(address);
-        if ("mnemonic" in account && account.mnemonic && account.mnemonic.locale === "en") {
+        if ("mnemonic" in account &&
+            account.mnemonic &&
+            account.mnemonic.locale === "en") {
             const mnemonic = mnemonic_js_1.Mnemonic.fromEntropy(account.mnemonic.entropy);
             const wallet = hdwallet_js_1.HDNodeWallet.fromMnemonic(mnemonic, prefix, account.mnemonic.path);
-            if (wallet.address === account.address && wallet.privateKey === account.privateKey) {
+            if (wallet.address === account.address &&
+                wallet.privateKey === account.privateKey) {
                 return wallet;
             }
             console.log("WARNING: JSON mismatch address/privateKey != mnemonic; fallback onto private key");
         }
         const wallet = new Wallet({
-            key: account.privateKey, prefix
+            key: account.privateKey,
+            prefix,
         });
         (0, index_js_2.assertArgument)(wallet.address === account.address, "address/privateKey mismatch", "json", "[ REDACTED ]");
         return wallet;
@@ -145,22 +157,22 @@ class Wallet extends base_wallet_js_1.BaseWallet {
     /**
      *  Creates a [[HDNodeWallet]] for %%phrase%%.
      */
-    static fromPhrase({ phrase, prefix, provider, password }) {
+    static fromPhrase({ phrase, prefix, provider, password, }) {
         const wallet = hdwallet_js_1.HDNodeWallet.fromPhrase({
             phrase,
             prefix,
-            password
+            password,
         });
         if (provider) {
             return wallet.connect(provider);
         }
         return wallet;
     }
-    static fromSeed({ seed, prefix, provider, path }) {
+    static fromSeed({ seed, prefix, provider, path, }) {
         const wallet = hdwallet_js_1.HDNodeWallet.fromSeed({
             seed,
             prefix,
-            path: path || hdwallet_js_1.defaultPath
+            path: path || hdwallet_js_1.defaultPath,
         });
         if (provider) {
             return wallet.connect(provider);

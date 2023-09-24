@@ -1,10 +1,10 @@
-import { defineProperties, getBytes, hexlify, assertNormalize, assertPrivate, assertArgument } from "../utils/index.js";
+import { defineProperties, getBytes, hexlify, assertNormalize, assertPrivate, assertArgument, } from "../utils/index.js";
 import { LangEn } from "../wordlists/lang-en.js";
 import { legacySha256 } from "../crypto/sha3.js";
 import { mnemonicToSeed } from "./hdwallet.js";
 // Returns a byte with the MSB bits set
 function getUpperMask(bits) {
-    return ((1 << bits) - 1) << (8 - bits) & 0xff;
+    return (((1 << bits) - 1) << (8 - bits)) & 0xff;
 }
 // Returns a byte with the LSB bits set
 function getLowerMask(bits) {
@@ -16,20 +16,20 @@ function mnemonicToEntropy(mnemonic, wordlist) {
         wordlist = LangEn.wordlist();
     }
     const words = wordlist.split(mnemonic);
-    assertArgument((words.length % 3) === 0 && words.length >= 12 && words.length <= 24, "invalid mnemonic length", "mnemonic", "[ REDACTED ]");
-    const entropy = new Uint8Array(Math.ceil(11 * words.length / 8));
+    assertArgument(words.length % 3 === 0 && words.length >= 12 && words.length <= 24, "invalid mnemonic length", "mnemonic", "[ REDACTED ]");
+    const entropy = new Uint8Array(Math.ceil((11 * words.length) / 8));
     let offset = 0;
     for (let i = 0; i < words.length; i++) {
         let index = wordlist.getWordIndex(words[i].normalize("NFKD"));
         assertArgument(index >= 0, `invalid mnemonic word at index ${i}`, "mnemonic", "[ REDACTED ]");
         for (let bit = 0; bit < 11; bit++) {
             if (index & (1 << (10 - bit))) {
-                entropy[offset >> 3] |= (1 << (7 - (offset % 8)));
+                entropy[offset >> 3] |= 1 << (7 - (offset % 8));
             }
             offset++;
         }
     }
-    const entropyBits = 32 * words.length / 3;
+    const entropyBits = (32 * words.length) / 3;
     const checksumBits = words.length / 3;
     const checksumMask = getUpperMask(checksumBits);
     const checksum = getBytes(legacySha256(entropy.slice(0, entropyBits / 8)))[0] & checksumMask;
@@ -37,7 +37,7 @@ function mnemonicToEntropy(mnemonic, wordlist) {
     return hexlify(entropy.slice(0, entropyBits / 8));
 }
 function entropyToMnemonic(entropy, wordlist) {
-    assertArgument((entropy.length % 4) === 0 && entropy.length >= 16 && entropy.length <= 32, "invalid entropy size", "entropy", "[ REDACTED ]");
+    assertArgument(entropy.length % 4 === 0 && entropy.length >= 16 && entropy.length <= 32, "invalid entropy size", "entropy", "[ REDACTED ]");
     if (wordlist == null) {
         wordlist = LangEn.wordlist();
     }
@@ -61,10 +61,11 @@ function entropyToMnemonic(entropy, wordlist) {
     }
     // Compute the checksum bits
     const checksumBits = entropy.length / 4;
-    const checksum = parseInt(legacySha256(entropy).substring(2, 4), 16) & getUpperMask(checksumBits);
+    const checksum = parseInt(legacySha256(entropy).substring(2, 4), 16) &
+        getUpperMask(checksumBits);
     // Shift the checksum into the word indices
     indices[indices.length - 1] <<= checksumBits;
-    indices[indices.length - 1] |= (checksum >> (8 - checksumBits));
+    indices[indices.length - 1] |= checksum >> (8 - checksumBits);
     return wordlist.join(indices.map((index) => wordlist.getWord(index)));
 }
 const _guard = {};
@@ -117,7 +118,7 @@ export class Mnemonic {
      *  The default %%password%% is the empty string and the default
      *  wordlist is the [English wordlists](LangEn).
      */
-    static fromPhrase({ phrase, password, wordlist }) {
+    static fromPhrase({ phrase, password, wordlist, }) {
         // Normalize the case and space; throws if invalid
         const entropy = mnemonicToEntropy(phrase, wordlist);
         phrase = entropyToMnemonic(getBytes(entropy), wordlist);

@@ -15,7 +15,7 @@ import { getAddress } from "./index.js";
  *    //_result:
  */
 export function isAddressable(value) {
-    return (value && typeof (value.getAddress) === "function");
+    return value && typeof value.getAddress === "function";
 }
 /**
  *  Returns true if %%value%% is a valid address.
@@ -52,8 +52,9 @@ export function isAddress(value) {
 }
 async function checkAddress(target, promise) {
     const result = await promise;
-    if (result == null || result === "0x0000000000000000000000000000000000000000") {
-        assert(typeof (target) !== "string", "unconfigured name", "UNCONFIGURED_NAME", { value: target });
+    if (result == null ||
+        result === "0x0000000000000000000000000000000000000000") {
+        assert(typeof target !== "string", "unconfigured name", "UNCONFIGURED_NAME", { value: target });
         assertArgument(false, "invalid AddressLike value; did not resolve to a value address", "target", target);
     }
     return getAddress(result);
@@ -93,7 +94,7 @@ async function checkAddress(target, promise) {
  *    //_error:
  */
 export function resolveAddress(target) {
-    if (typeof (target) === "string") {
+    if (typeof target === "string") {
         return getAddress(target);
         // assert(resolver != null, "ENS resolution requires a provider",
         //     "UNSUPPORTED_OPERATION", { operation: "resolveName" });
@@ -102,7 +103,7 @@ export function resolveAddress(target) {
     else if (isAddressable(target)) {
         return checkAddress(target, target.getAddress());
     }
-    else if (target && typeof (target.then) === "function") {
+    else if (target && typeof target.then === "function") {
         return checkAddress(target, target);
     }
     assertArgument(false, "unsupported addressable value", "target", target);

@@ -3,7 +3,5 @@
  *
  *  @_section: api/providers/formatting:Formatting  [provider-formatting]
  */
-;
-;
 export {};
 //# sourceMappingURL=formatting.js.map

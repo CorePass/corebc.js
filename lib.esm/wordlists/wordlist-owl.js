@@ -29,7 +29,9 @@ export class WordlistOwl extends Wordlist {
         this.#checksum = checksum;
         this.#words = null;
     }
-    get _data() { return this.#data; }
+    get _data() {
+        return this.#data;
+    }
     _decodeWords() {
         return decodeOwl(this.#data);
     }

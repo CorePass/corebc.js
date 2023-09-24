@@ -38,7 +38,7 @@ export declare class Mnemonic {
      *  The default %%password%% is the empty string and the default
      *  wordlist is the [English wordlists](LangEn).
      */
-    static fromPhrase({ phrase, password, wordlist }: {
+    static fromPhrase({ phrase, password, wordlist, }: {
         phrase: string;
         password?: null | string;
         wordlist?: null | Wordlist;

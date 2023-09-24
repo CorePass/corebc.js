@@ -1,6 +1,6 @@
 import { getAddress } from "../address/index.js";
 import { recoverAddress } from "../transaction/index.js";
-import { concat, defineProperties, getBigInt, getBytes, hexlify, isHexString, mask, toBeHex, toQuantity, toTwos, zeroPadValue, assertArgument } from "../utils/index.js";
+import { concat, defineProperties, getBigInt, getBytes, hexlify, isHexString, mask, toBeHex, toQuantity, toTwos, zeroPadValue, assertArgument, } from "../utils/index.js";
 import { id } from "./id.js";
 import { sha256 } from "../crypto/index.js";
 const padding = new Uint8Array(32);
@@ -9,8 +9,6 @@ const BN__1 = BigInt(-1);
 const BN_0 = BigInt(0);
 const BN_1 = BigInt(1);
 const BN_MAX_UINT256 = BigInt("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
-;
-;
 function hexPadRight(value) {
     const bytes = getBytes(value);
     const padOffset = bytes.length % 32;
@@ -26,14 +24,18 @@ const domainFieldTypes = {
     version: "string",
     networkId: "uint256",
     verifyingContract: "address",
-    salt: "bytes32"
+    salt: "bytes32",
 };
 const domainFieldNames = [
-    "name", "version", "networkId", "verifyingContract", "salt"
+    "name",
+    "version",
+    "networkId",
+    "verifyingContract",
+    "salt",
 ];
 function checkString(key) {
     return function (value) {
-        assertArgument(typeof (value) === "string", `invalid domain value for ${JSON.stringify(key)}`, `domain.${key}`, value);
+        assertArgument(typeof value === "string", `invalid domain value for ${JSON.stringify(key)}`, `domain.${key}`, value);
         return value;
     };
 }
@@ -59,18 +61,21 @@ const domainChecks = {
         const bytes = getBytes(value, "domain.salt");
         assertArgument(bytes.length === 32, `invalid domain value "salt"`, "domain.salt", value);
         return hexlify(bytes);
-    }
+    },
 };
 function getBaseEncoder(type) {
     // intXX and uintXX
     {
         const match = type.match(/^(u?)int(\d*)$/);
         if (match) {
-            const signed = (match[1] === "");
+            const signed = match[1] === "";
             const width = parseInt(match[2] || "256");
-            assertArgument(width % 8 === 0 && width !== 0 && width <= 256 && (match[2] == null || match[2] === String(width)), "invalid numeric width", "type", type);
-            const boundsUpper = mask(BN_MAX_UINT256, signed ? (width - 1) : width);
-            const boundsLower = signed ? ((boundsUpper + BN_1) * BN__1) : BN_0;
+            assertArgument(width % 8 === 0 &&
+                width !== 0 &&
+                width <= 256 &&
+                (match[2] == null || match[2] === String(width)), "invalid numeric width", "type", type);
+            const boundsUpper = mask(BN_MAX_UINT256, signed ? width - 1 : width);
+            const boundsLower = signed ? (boundsUpper + BN_1) * BN__1 : BN_0;
             return function (_value) {
                 const value = getBigInt(_value, "value");
                 assertArgument(value >= boundsLower && value <= boundsUpper, `value out-of-bounds for ${type}`, "value", value);
@@ -92,23 +97,29 @@ function getBaseEncoder(type) {
         }
     }
     switch (type) {
-        case "address": return function (value) {
-            return zeroPadValue(getAddress(value), 32);
-        };
-        case "bool": return function (value) {
-            return ((!value) ? hexFalse : hexTrue);
-        };
-        case "bytes": return function (value) {
-            return sha256(value);
-        };
-        case "string": return function (value) {
-            return id(value);
-        };
+        case "address":
+            return function (value) {
+                return zeroPadValue(getAddress(value), 32);
+            };
+        case "bool":
+            return function (value) {
+                return !value ? hexFalse : hexTrue;
+            };
+        case "bytes":
+            return function (value) {
+                return sha256(value);
+            };
+        case "string":
+            return function (value) {
+                return id(value);
+            };
     }
     return null;
 }
 function encodeType(name, fields) {
-    return `${name}(${fields.map(({ name, type }) => (type + " " + name)).join(",")})`;
+    return `${name}(${fields
+        .map(({ name, type }) => type + " " + name)
+        .join(",")})`;
 }
 export class TypedDataEncoder {
     primaryType;
@@ -140,7 +151,7 @@ export class TypedDataEncoder {
                 assertArgument(!uniqueNames.has(field.name), `duplicate variable name ${JSON.stringify(field.name)} in ${JSON.stringify(name)}`, "types", types);
                 uniqueNames.add(field.name);
                 // Get the base type (drop any array specifiers)
-                const baseType = (field.type.match(/^([^\x5b]*)(\x5b|$)/))[1] || null;
+                const baseType = field.type.match(/^([^\x5b]*)(\x5b|$)/)[1] || null;
                 assertArgument(baseType !== name, `circular type reference to ${JSON.stringify(baseType)}`, "types", types);
                 // Is this a base encoding type?
                 const encoder = getBaseEncoder(baseType);
@@ -154,9 +165,11 @@ export class TypedDataEncoder {
             }
         }
         // Deduce the primary type
-        const primaryTypes = Array.from(parents.keys()).filter((n) => (parents.get(n).length === 0));
+        const primaryTypes = Array.from(parents.keys()).filter((n) => parents.get(n).length === 0);
         assertArgument(primaryTypes.length !== 0, "missing primary type", "types", types);
-        assertArgument(primaryTypes.length === 1, `ambiguous primary types or unused types: ${primaryTypes.map((t) => (JSON.stringify(t))).join(", ")}`, "types", types);
+        assertArgument(primaryTypes.length === 1, `ambiguous primary types or unused types: ${primaryTypes
+            .map((t) => JSON.stringify(t))
+            .join(", ")}`, "types", types);
         defineProperties(this, { primaryType: primaryTypes[0] });
         // Check for circular type references
         function checkCircular(type, found) {
@@ -180,7 +193,8 @@ export class TypedDataEncoder {
         for (const [name, set] of subtypes) {
             const st = Array.from(set);
             st.sort();
-            this.#fullTypes.set(name, encodeType(name, types[name]) + st.map((t) => encodeType(t, types[t])).join(""));
+            this.#fullTypes.set(name, encodeType(name, types[name]) +
+                st.map((t) => encodeType(t, types[t])).join(""));
         }
     }
     getEncoder(type) {
@@ -295,7 +309,7 @@ export class TypedDataEncoder {
             domainFields.push({ name, type });
         }
         domainFields.sort((a, b) => {
-            return domainFieldNames.indexOf(a.name) - domainFieldNames.indexOf(b.name);
+            return (domainFieldNames.indexOf(a.name) - domainFieldNames.indexOf(b.name));
         });
         return TypedDataEncoder.hashStruct("EIP712Domain", { EIP712Domain: domainFields }, domain);
     }
@@ -303,7 +317,7 @@ export class TypedDataEncoder {
         return concat([
             "0x1901",
             TypedDataEncoder.hashDomain(domain),
-            TypedDataEncoder.from(types).hash(value)
+            TypedDataEncoder.from(types).hash(value),
         ]);
     }
     static hash(domain, types, value) {
@@ -322,7 +336,8 @@ export class TypedDataEncoder {
         // Look up all ENS names
         const ensCache = {};
         // Do we need to look up the domain's verifyingContract?
-        if (domain.verifyingContract && !isHexString(domain.verifyingContract, 20)) {
+        if (domain.verifyingContract &&
+            !isHexString(domain.verifyingContract, 20)) {
             ensCache[domain.verifyingContract] = "0x";
         }
         // We are going to use the encoder to visit all the base values
@@ -390,11 +405,11 @@ export class TypedDataEncoder {
                     case "bool":
                         return !!value;
                     case "string":
-                        assertArgument(typeof (value) === "string", "invalid string", "value", value);
+                        assertArgument(typeof value === "string", "invalid string", "value", value);
                         return value;
                 }
                 assertArgument(false, "unsupported type", "type", type);
-            })
+            }),
         };
     }
 }

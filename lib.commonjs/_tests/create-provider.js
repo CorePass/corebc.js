@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.connect = exports.checkProvider = exports.getProvider = exports.getProviderNetworks = exports.providerNames = exports.setupProviders = void 0;
 const index_js_1 = require("../index.js");
-;
 const ethNetworks = ["default", "mainnet", "goerli"];
 //const maticNetworks = [ "matic", "maticmum" ];
 const ProviderCreators = [
@@ -11,42 +10,46 @@ const ProviderCreators = [
         networks: ethNetworks,
         create: function (network) {
             return new index_js_1.AlchemyProvider(network, "YrPw6SWb20vJDRFkhWq8aKnTQ8JRNRHM");
-        }
+        },
     },
     {
         name: "InfuraProvider",
         networks: ethNetworks,
         create: function (network) {
             return new index_js_1.InfuraProvider(network, "49a0efa3aaee4fd99797bfa94d8ce2f1");
-        }
+        },
     },
     {
         name: "InfuraWebsocketProvider",
         networks: ethNetworks,
         create: function (network) {
             return index_js_1.InfuraProvider.getWebSocketProvider(network, "49a0efa3aaee4fd99797bfa94d8ce2f1");
-        }
+        },
     },
     {
         name: "PocketProvider",
         networks: ethNetworks,
         create: function (network) {
             return new index_js_1.PocketProvider(network);
-        }
+        },
     },
     {
         name: "QuickNodeProvider",
         networks: ethNetworks,
         create: function (network) {
             return new index_js_1.QuickNodeProvider(network);
-        }
+        },
     },
     {
         name: "FallbackProvider",
         networks: ethNetworks,
         create: function (network) {
             const providers = [];
-            for (const providerName of ["AlchemyProvider", "AnkrProvider", "InfuraProvider"]) {
+            for (const providerName of [
+                "AlchemyProvider",
+                "AnkrProvider",
+                "InfuraProvider",
+            ]) {
                 const provider = getProvider(providerName, network);
                 if (provider) {
                     providers.push(provider);
@@ -56,7 +59,7 @@ const ProviderCreators = [
                 throw new Error("UNSUPPORTED NETWORK");
             }
             return new index_js_1.FallbackProvider(providers);
-        }
+        },
     },
 ];
 let setup = false;
@@ -70,9 +73,9 @@ function setupProviders() {
     setup = true;
 }
 exports.setupProviders = setupProviders;
-exports.providerNames = Object.freeze(ProviderCreators.map((c) => (c.name)));
+exports.providerNames = Object.freeze(ProviderCreators.map((c) => c.name));
 function getCreator(provider) {
-    const creators = ProviderCreators.filter((c) => (c.name === provider));
+    const creators = ProviderCreators.filter((c) => c.name === provider);
     if (creators.length === 1) {
         return creators[0];
     }
@@ -95,7 +98,9 @@ function getProvider(provider, network) {
         if (creator) {
             const provider = creator.create(network);
             if (provider) {
-                cleanup.push(() => { provider.destroy(); });
+                cleanup.push(() => {
+                    provider.destroy();
+                });
             }
             return provider;
         }
@@ -110,7 +115,7 @@ function getProvider(provider, network) {
 exports.getProvider = getProvider;
 function checkProvider(provider, network) {
     const creator = getCreator(provider);
-    return (creator != null);
+    return creator != null;
 }
 exports.checkProvider = checkProvider;
 function connect(network) {

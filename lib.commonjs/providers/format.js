@@ -9,28 +9,28 @@ const index_js_2 = require("../transaction/index.js");
 const index_js_3 = require("../utils/index.js");
 const BN_0 = BigInt(0);
 function allowNull(format, nullValue) {
-    return (function (value) {
+    return function (value) {
         if (value == null) {
             return nullValue;
         }
         return format(value);
-    });
+    };
 }
 exports.allowNull = allowNull;
 function arrayOf(format) {
-    return ((array) => {
+    return (array) => {
         if (!Array.isArray(array)) {
             throw new Error("not an array");
         }
         return array.map((i) => format(i));
-    });
+    };
 }
 exports.arrayOf = arrayOf;
 // Requires an object which matches a fleet of other formatters
 // Any FormatFunc may return `undefined` to have the value omitted
 // from the result object. Calls preserve `this`.
 function object(format, altNames) {
-    return ((value) => {
+    return (value) => {
         const result = {};
         for (const key in format) {
             let srcKey = key;
@@ -49,12 +49,12 @@ function object(format, altNames) {
                 }
             }
             catch (error) {
-                const message = (error instanceof Error) ? error.message : "not-an-error";
+                const message = error instanceof Error ? error.message : "not-an-error";
                 (0, index_js_3.assert)(false, `invalid value for value.${key} (${message})`, "BAD_DATA", { value });
             }
         }
         return result;
-    });
+    };
 }
 exports.object = object;
 function formatBoolean(value) {
@@ -97,7 +97,7 @@ const _formatLog = object({
     transactionHash: formatHash,
     transactionIndex: index_js_3.getNumber,
 }, {
-    index: ["logIndex"]
+    index: ["logIndex"],
 });
 function formatLog(value) {
     return _formatLog(value);
@@ -114,12 +114,12 @@ const _formatBlock = object({
     energyUsed: index_js_3.getBigInt,
     miner: allowNull(index_js_1.getAddress),
     extraData: formatData,
-    baseFeePerEnergy: allowNull(index_js_3.getBigInt)
+    baseFeePerEnergy: allowNull(index_js_3.getBigInt),
 });
 function formatBlock(value) {
     const result = _formatBlock(value);
     result.transactions = value.transactions.map((tx) => {
-        if (typeof (tx) === "string") {
+        if (typeof tx === "string") {
             return tx;
         }
         return formatTransactionResponse(tx);
@@ -137,7 +137,7 @@ const _formatReceiptLog = object({
     index: index_js_3.getNumber,
     blockHash: formatHash,
 }, {
-    index: ["logIndex"]
+    index: ["logIndex"],
 });
 function formatReceiptLog(value) {
     return _formatReceiptLog(value);
@@ -160,7 +160,7 @@ const _formatTransactionReceipt = object({
     cumulativeEnergyUsed: index_js_3.getBigInt,
     effectiveEnergyPrice: allowNull(index_js_3.getBigInt),
     status: allowNull(index_js_3.getNumber),
-    type: allowNull(index_js_3.getNumber, 0)
+    type: allowNull(index_js_3.getNumber, 0),
 }, {
     effectiveEnergyPrice: ["energyPrice"],
     hash: ["transactionHash"],
@@ -197,10 +197,10 @@ function formatTransactionResponse(value) {
         nonce: index_js_3.getNumber,
         data: formatData,
         creates: allowNull(index_js_1.getAddress, null),
-        networkId: allowNull(index_js_3.getBigInt, null)
+        networkId: allowNull(index_js_3.getBigInt, null),
     }, {
         data: ["input"],
-        energyLimit: ["energy"]
+        energyLimit: ["energy"],
     })(value);
     // If to and creates are empty, populate the creates from the value
     if (result.to == null && result.creates == null) {
@@ -222,38 +222,38 @@ function formatTransactionResponse(value) {
     }
     // @TODO: check networkId
     /*
-    if (value.networkId != null) {
-        let networkId = value.networkId;
-
-        if (isHexString(networkId)) {
-            networkId = BigNumber.from(networkId).toNumber();
-        }
-
-        result.networkId = networkId;
-
-    } else {
-        let networkId = value.networkId;
-
-        // geth-etc returns networkId
-        if (networkId == null && result.v == null) {
-            networkId = value.networkId;
-        }
-
-        if (isHexString(networkId)) {
-            networkId = BigNumber.from(networkId).toNumber();
-        }
-
-        if (typeof(networkId) !== "number" && result.v != null) {
-            networkId = (result.v - 35) / 2;
-            if (networkId < 0) { networkId = 0; }
-            networkId = parseInt(networkId);
-        }
-
-        if (typeof(networkId) !== "number") { networkId = 0; }
-
-        result.networkId = networkId;
-    }
-    */
+      if (value.networkId != null) {
+          let networkId = value.networkId;
+  
+          if (isHexString(networkId)) {
+              networkId = BigNumber.from(networkId).toNumber();
+          }
+  
+          result.networkId = networkId;
+  
+      } else {
+          let networkId = value.networkId;
+  
+          // geth-etc returns networkId
+          if (networkId == null && result.v == null) {
+              networkId = value.networkId;
+          }
+  
+          if (isHexString(networkId)) {
+              networkId = BigNumber.from(networkId).toNumber();
+          }
+  
+          if (typeof(networkId) !== "number" && result.v != null) {
+              networkId = (result.v - 35) / 2;
+              if (networkId < 0) { networkId = 0; }
+              networkId = parseInt(networkId);
+          }
+  
+          if (typeof(networkId) !== "number") { networkId = 0; }
+  
+          result.networkId = networkId;
+      }
+      */
     // 0x0000... should actually be null
     if (result.blockHash && (0, index_js_3.getBigInt)(result.blockHash) === BN_0) {
         result.blockHash = null;

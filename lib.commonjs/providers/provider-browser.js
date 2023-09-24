@@ -3,7 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.BrowserProvider = void 0;
 const index_js_1 = require("../utils/index.js");
 const provider_jsonrpc_js_1 = require("./provider-jsonrpc.js");
-;
 class BrowserProvider extends provider_jsonrpc_js_1.JsonRpcApiPollingProvider {
     #request;
     constructor(core, network) {
@@ -37,10 +36,12 @@ class BrowserProvider extends provider_jsonrpc_js_1.JsonRpcApiPollingProvider {
             return [{ id: payload.id, result }];
         }
         catch (e) {
-            return [{
+            return [
+                {
                     id: payload.id,
-                    error: { code: e.code, data: e.data, message: e.message }
-                }];
+                    error: { code: e.code, data: e.data, message: e.message },
+                },
+            ];
         }
     }
     getRpcError(payload, error) {
@@ -62,11 +63,11 @@ class BrowserProvider extends provider_jsonrpc_js_1.JsonRpcApiPollingProvider {
             address = 0;
         }
         const accounts = await this.send("xcb_accounts", []);
-        if (typeof (address) === "number") {
-            return (accounts.length > address);
+        if (typeof address === "number") {
+            return accounts.length > address;
         }
         address = address.toLowerCase();
-        return accounts.filter((a) => (a.toLowerCase() === address)).length !== 0;
+        return (accounts.filter((a) => a.toLowerCase() === address).length !== 0);
     }
     async getSigner(address) {
         if (address == null) {

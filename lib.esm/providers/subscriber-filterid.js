@@ -49,7 +49,8 @@ export class FilterIdSubscriber {
                 filterId = await this.#filterIdPromise;
             }
             catch (error) {
-                if (!isError(error, "UNSUPPORTED_OPERATION") || error.operation !== "xcb_newFilter") {
+                if (!isError(error, "UNSUPPORTED_OPERATION") ||
+                    error.operation !== "xcb_newFilter") {
                     throw error;
                 }
             }
@@ -70,7 +71,9 @@ export class FilterIdSubscriber {
             if (this.#hault) {
                 return;
             }
-            const result = await this.#provider.send("xcb_getFilterChanges", [filterId]);
+            const result = await this.#provider.send("xcb_getFilterChanges", [
+                filterId,
+            ]);
             await this._emitResults(this.#provider, result);
         }
         catch (error) {
@@ -109,7 +112,9 @@ export class FilterIdSubscriber {
         }
         this.#provider.off("block", this.#poller);
     }
-    resume() { this.start(); }
+    resume() {
+        this.start();
+    }
 }
 /**
  *  A **FilterIdSubscriber** for receiving contract events.

@@ -14,15 +14,15 @@ async function getUrl(req, signal) {
     const protocol = req.url.split(":")[0].toLowerCase();
     (0, errors_js_1.assert)(protocol === "http" || protocol === "https", `unsupported protocol ${protocol}`, "UNSUPPORTED_OPERATION", {
         info: { protocol },
-        operation: "request"
+        operation: "request",
     });
     (0, errors_js_1.assert)(protocol === "https" || !req.credentials || req.allowInsecureAuthentication, "insecure authorized connections unsupported", "UNSUPPORTED_OPERATION", {
-        operation: "request"
+        operation: "request",
     });
     const method = req.method;
     const headers = Object.assign({}, req.headers);
     const options = { method, headers };
-    const request = ((protocol === "http") ? http_1.default : https_1.default).request(req.url, options);
+    const request = (protocol === "http" ? http_1.default : https_1.default).request(req.url, options);
     request.setTimeout(req.timeout);
     const body = req.body;
     if (body) {
@@ -76,7 +76,9 @@ async function getUrl(req, signal) {
                 reject(error);
             });
         });
-        request.on("error", (error) => { reject(error); });
+        request.on("error", (error) => {
+            reject(error);
+        });
     });
 }
 exports.getUrl = getUrl;

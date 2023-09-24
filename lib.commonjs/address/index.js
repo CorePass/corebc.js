@@ -21,7 +21,7 @@ const rlp_js_1 = require("../crypto/rlp.js");
 const sha3_js_1 = require("../crypto/sha3.js");
 const logger_js_1 = require("../logger/logger.js");
 const data_js_1 = require("../utils/data.js");
-const logger = new logger_js_1.Logger('address/0.0.1');
+const logger = new logger_js_1.Logger("address/0.0.1");
 const precompiledAddresses = [
     "0000000000000000000000000000000000000000000000000000000000000000",
     "0000000000000000000000000000000000000000000000000000000000000001",
@@ -41,11 +41,13 @@ function calculateCheckSum(_address, _prefix) {
     const address = (0, data_js_1.getBytes)("0x" + _address.replace("0x", ""));
     const prefix = (0, data_js_1.getBytes)("0x" + _prefix.replace("0x", ""));
     const tmpConcated = new Uint8Array([...address, ...prefix]);
-    const hexedConcat = ((0, data_js_1.hexlify)(tmpConcated)).replace('0x', '') + "00";
+    const hexedConcat = (0, data_js_1.hexlify)(tmpConcated).replace("0x", "") + "00";
     const mods = Array.from(hexedConcat.toUpperCase(), (c) => {
         const charCode = c.charCodeAt(0);
-        return (charCode > 64 && charCode < 91) ? (charCode - 55).toString() : (charCode - 48).toString();
-    }).join('');
+        return charCode > 64 && charCode < 91
+            ? (charCode - 55).toString()
+            : (charCode - 48).toString();
+    }).join("");
     const bigVal = BigInt(mods);
     const val97 = BigInt(97);
     const val98 = BigInt(98);
@@ -70,11 +72,16 @@ const safeDigits = 15;
 function ibanChecksum(address) {
     address = address.toUpperCase();
     address = address.substring(4) + address.substring(0, 2) + "00";
-    let expanded = address.split("").map((c) => { return ibanLookup[c]; }).join("");
+    let expanded = address
+        .split("")
+        .map((c) => {
+        return ibanLookup[c];
+    })
+        .join("");
     // Javascript can handle integers safely up to 15 (decimal) digits
     while (expanded.length >= safeDigits) {
         let block = expanded.substring(0, safeDigits);
-        expanded = parseInt(block, 10) % 97 + expanded.substring(block.length);
+        expanded = (parseInt(block, 10) % 97) + expanded.substring(block.length);
     }
     let checksum = String(98 - (parseInt(expanded, 10) % 97));
     while (checksum.length < 2) {
@@ -82,7 +89,6 @@ function ibanChecksum(address) {
     }
     return checksum;
 }
-;
 /**
  *  Returns a normalized and checksumed address for %%address%%.
  *  This accepts non-checksum addresses, checksum addresses and
@@ -119,7 +125,7 @@ function ibanChecksum(address) {
  *    //_error:
  */
 function getAddress(address) {
-    if (typeof (address) !== "string") {
+    if (typeof address !== "string") {
         logger.throwArgumentError("invalid address", "address", address);
     }
     if (!address.match(/^(0x)?[0-9a-fA-F]{44}$/)) {

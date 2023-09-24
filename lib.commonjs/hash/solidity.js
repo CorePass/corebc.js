@@ -19,7 +19,7 @@ function _pack(type, value, isArray) {
         case "bytes":
             return (0, index_js_3.getBytes)(value);
         case "bool":
-            value = (!!value ? "0x01" : "0x00");
+            value = !!value ? "0x01" : "0x00";
             if (isArray) {
                 return (0, index_js_3.getBytes)((0, index_js_3.zeroPadValue)(value, 32));
             }
@@ -27,9 +27,12 @@ function _pack(type, value, isArray) {
     }
     let match = type.match(regexNumber);
     if (match) {
-        let signed = (match[1] === "int");
+        let signed = match[1] === "int";
         let size = parseInt(match[2] || "256");
-        (0, index_js_3.assertArgument)((!match[2] || match[2] === String(size)) && (size % 8 === 0) && size !== 0 && size <= 256, "invalid number type", "type", type);
+        (0, index_js_3.assertArgument)((!match[2] || match[2] === String(size)) &&
+            size % 8 === 0 &&
+            size !== 0 &&
+            size <= 256, "invalid number type", "type", type);
         if (isArray) {
             size = 256;
         }

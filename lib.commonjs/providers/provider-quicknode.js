@@ -79,7 +79,7 @@ class QuickNodeProvider extends provider_jsonrpc_js_1.JsonRpcProvider {
         return super._getProvider(networkId);
     }
     isCommunityResource() {
-        return (this.token === defaultToken);
+        return this.token === defaultToken;
     }
     /**
      *  Returns a new request prepared for %%network%% and the

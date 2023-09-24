@@ -10,7 +10,7 @@ function stringify(value) {
         return "null";
     }
     if (Array.isArray(value)) {
-        return "[ " + (value.map(stringify)).join(", ") + " ]";
+        return "[ " + value.map(stringify).join(", ") + " ]";
     }
     if (value instanceof Uint8Array) {
         const HEX = "0123456789abcdef";
@@ -21,23 +21,25 @@ function stringify(value) {
         }
         return result;
     }
-    if (typeof (value) === "object" && typeof (value.toJSON) === "function") {
+    if (typeof value === "object" && typeof value.toJSON === "function") {
         return stringify(value.toJSON());
     }
-    switch (typeof (value)) {
+    switch (typeof value) {
         case "boolean":
         case "symbol":
             return value.toString();
         case "bigint":
             return BigInt(value).toString();
         case "number":
-            return (value).toString();
+            return value.toString();
         case "string":
             return JSON.stringify(value);
         case "object": {
             const keys = Object.keys(value);
             keys.sort();
-            return "{ " + keys.map((k) => `${stringify(k)}: ${stringify(value[k])}`).join(", ") + " }";
+            return ("{ " +
+                keys.map((k) => `${stringify(k)}: ${stringify(value[k])}`).join(", ") +
+                " }");
         }
     }
     return `[ COULD NOT SERIALIZE ]`;
@@ -62,7 +64,7 @@ function stringify(value) {
  *    }
  */
 export function isError(error, code) {
-    return (error && error.code === code);
+    return error && error.code === code;
 }
 /**
  *  Returns true if %%error%% is a [[CallExceptionError].
@@ -88,7 +90,7 @@ export function makeError(message, code, info) {
                 throw new Error(`value will overwrite populated values: ${stringify(info)}`);
             }
             for (const key in info) {
-                const value = (info[key]);
+                const value = info[key];
                 //                try {
                 details.push(key + "=" + stringify(value));
                 //                } catch (error: any) {
@@ -151,11 +153,11 @@ export function assertArgumentCount(count, expectedCount, message) {
     }
     assert(count >= expectedCount, "missing arguemnt" + message, "MISSING_ARGUMENT", {
         count: count,
-        expectedCount: expectedCount
+        expectedCount: expectedCount,
     });
     assert(count <= expectedCount, "too many arguemnts" + message, "UNEXPECTED_ARGUMENT", {
         count: count,
-        expectedCount: expectedCount
+        expectedCount: expectedCount,
     });
 }
 const _normalizeForms = ["NFD", "NFC", "NFKD", "NFKC"].reduce((accum, form) => {
@@ -165,7 +167,6 @@ const _normalizeForms = ["NFD", "NFC", "NFKD", "NFKC"].reduce((accum, form) => {
         if ("test".normalize(form) !== "test") {
             throw new Error("bad");
         }
-        ;
         /* c8 ignore stop */
         if (form === "NFD") {
             const check = String.fromCharCode(0xe9).normalize("NFD");
@@ -186,7 +187,8 @@ const _normalizeForms = ["NFD", "NFC", "NFKD", "NFKC"].reduce((accum, form) => {
  */
 export function assertNormalize(form) {
     assert(_normalizeForms.indexOf(form) >= 0, "platform missing String.prototype.normalize", "UNSUPPORTED_OPERATION", {
-        operation: "String.prototype.normalize", info: { form }
+        operation: "String.prototype.normalize",
+        info: { form },
     });
 }
 /**
@@ -206,7 +208,7 @@ export function assertPrivate(givenGuard, guard, className) {
             operation += " " + className;
         }
         assert(false, `private constructor; use ${method}from* methods`, "UNSUPPORTED_OPERATION", {
-            operation
+            operation,
         });
     }
 }

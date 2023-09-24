@@ -20,7 +20,9 @@ class LangFr extends wordlist_owla_js_1.WordlistOwlA {
      *
      *  @_ignore:
      */
-    constructor() { super("fr", words, accents, checksum); }
+    constructor() {
+        super("fr", words, accents, checksum);
+    }
     /**
      *  Returns a singleton instance of a ``LangFr``, creating it
      *  if this is the first time being called.

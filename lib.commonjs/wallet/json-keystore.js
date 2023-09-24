@@ -25,7 +25,7 @@ const defaultPath = "m/44'/60'/0'/0/0";
 function isKeystoreJson(json) {
     try {
         const data = JSON.parse(json);
-        const version = ((data.version != null) ? parseInt(data.version) : 0);
+        const version = data.version != null ? parseInt(data.version) : 0;
         if (version === 3) {
             return true;
         }
@@ -42,7 +42,7 @@ function decrypt(data, key, ciphertext) {
         return (0, index_js_3.hexlify)(aesCtr.decrypt(ciphertext));
     }
     (0, index_js_3.assert)(false, "unsupported cipher", "UNSUPPORTED_OPERATION", {
-        operation: "decrypt"
+        operation: "decrypt",
     });
 }
 function getAccount(data, _key) {
@@ -72,16 +72,16 @@ function getAccount(data, _key) {
         const mnemonicIv = (0, utils_js_1.spelunk)(data, "x-corebc.mnemonicCounter:data!");
         const mnemonicAesCtr = new aes_js_1.CTR(mnemonicKey, mnemonicIv);
         account.mnemonic = {
-            path: ((0, utils_js_1.spelunk)(data, "x-corebc.path:string") || defaultPath),
-            locale: ((0, utils_js_1.spelunk)(data, "x-corebc.locale:string") || "en"),
-            entropy: (0, index_js_3.hexlify)((0, index_js_3.getBytes)(mnemonicAesCtr.decrypt(mnemonicCiphertext)))
+            path: (0, utils_js_1.spelunk)(data, "x-corebc.path:string") || defaultPath,
+            locale: (0, utils_js_1.spelunk)(data, "x-corebc.locale:string") || "en",
+            entropy: (0, index_js_3.hexlify)((0, index_js_3.getBytes)(mnemonicAesCtr.decrypt(mnemonicCiphertext))),
         };
     }
     return account;
 }
 function getDecryptKdfParams(data) {
     const kdf = (0, utils_js_1.spelunk)(data, "crypto.kdf:string");
-    if (kdf && typeof (kdf) === "string") {
+    if (kdf && typeof kdf === "string") {
         if (kdf.toLowerCase() === "scrypt") {
             const salt = (0, utils_js_1.spelunk)(data, "crypto.kdfparams.salt:data!");
             const N = (0, utils_js_1.spelunk)(data, "crypto.kdfparams.n:int!");
@@ -128,14 +128,20 @@ function decryptKeystoreJsonSync(json, _password) {
         const key = (0, index_js_2.pbkdf2)(password, salt, count, dkLen, algorithm);
         return getAccount(data, key);
     }
-    (0, index_js_3.assert)(params.name === "scrypt", "cannot be reached", "UNKNOWN_ERROR", { params });
+    (0, index_js_3.assert)(params.name === "scrypt", "cannot be reached", "UNKNOWN_ERROR", {
+        params,
+    });
     const { salt, N, r, p, dkLen } = params;
     const key = (0, index_js_2.scryptSync)(password, salt, N, r, p, dkLen);
     return getAccount(data, key);
 }
 exports.decryptKeystoreJsonSync = decryptKeystoreJsonSync;
 function stall(duration) {
-    return new Promise((resolve) => { setTimeout(() => { resolve(); }, duration); });
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            resolve();
+        }, duration);
+    });
 }
 /**
  *  Resolves to the decrypted JSON Keystore Wallet %%json%% using the
@@ -165,7 +171,9 @@ async function decryptKeystoreJson(json, _password, progress) {
         }
         return getAccount(data, key);
     }
-    (0, index_js_3.assert)(params.name === "scrypt", "cannot be reached", "UNKNOWN_ERROR", { params });
+    (0, index_js_3.assert)(params.name === "scrypt", "cannot be reached", "UNKNOWN_ERROR", {
+        params,
+    });
     const { salt, N, r, p, dkLen } = params;
     const key = await (0, index_js_2.scrypt)(password, salt, N, r, p, dkLen, progress);
     return getAccount(data, key);
@@ -173,9 +181,11 @@ async function decryptKeystoreJson(json, _password, progress) {
 exports.decryptKeystoreJson = decryptKeystoreJson;
 function getEncryptKdfParams(options) {
     // Check/generate the salt
-    const salt = (options.salt != null) ? (0, index_js_3.getBytes)(options.salt, "options.salt") : (0, index_js_2.randomBytes)(32);
+    const salt = options.salt != null
+        ? (0, index_js_3.getBytes)(options.salt, "options.salt")
+        : (0, index_js_2.randomBytes)(32);
     // Override the scrypt password-based key derivation function parameters
-    let N = (1 << 17), r = 8, p = 1;
+    let N = 1 << 17, r = 8, p = 1;
     if (options.scrypt) {
         if (options.scrypt.N) {
             N = options.scrypt.N;
@@ -187,18 +197,23 @@ function getEncryptKdfParams(options) {
             p = options.scrypt.p;
         }
     }
-    (0, index_js_3.assertArgument)(typeof (N) === "number" && N > 0 && Number.isSafeInteger(N) && (BigInt(N) & BigInt(N - 1)) === BigInt(0), "invalid scrypt N parameter", "options.N", N);
-    (0, index_js_3.assertArgument)(typeof (r) === "number" && r > 0 && Number.isSafeInteger(r), "invalid scrypt r parameter", "options.r", r);
-    (0, index_js_3.assertArgument)(typeof (p) === "number" && p > 0 && Number.isSafeInteger(p), "invalid scrypt p parameter", "options.p", p);
+    (0, index_js_3.assertArgument)(typeof N === "number" &&
+        N > 0 &&
+        Number.isSafeInteger(N) &&
+        (BigInt(N) & BigInt(N - 1)) === BigInt(0), "invalid scrypt N parameter", "options.N", N);
+    (0, index_js_3.assertArgument)(typeof r === "number" && r > 0 && Number.isSafeInteger(r), "invalid scrypt r parameter", "options.r", r);
+    (0, index_js_3.assertArgument)(typeof p === "number" && p > 0 && Number.isSafeInteger(p), "invalid scrypt p parameter", "options.p", p);
     return { name: "scrypt", dkLen: 32, salt, N, r, p };
 }
 function _encryptKeystore(key, kdf, account, options) {
     const privateKey = (0, index_js_3.getBytes)(account.privateKey, "privateKey");
     // Override initialization vector
-    const iv = (options.iv != null) ? (0, index_js_3.getBytes)(options.iv, "options.iv") : (0, index_js_2.randomBytes)(16);
+    const iv = options.iv != null ? (0, index_js_3.getBytes)(options.iv, "options.iv") : (0, index_js_2.randomBytes)(16);
     (0, index_js_3.assertArgument)(iv.length === 16, "invalid options.iv length", "options.iv", options.iv);
     // Override the uuid
-    const uuidRandom = (options.uuid != null) ? (0, index_js_3.getBytes)(options.uuid, "options.uuid") : (0, index_js_2.randomBytes)(16);
+    const uuidRandom = options.uuid != null
+        ? (0, index_js_3.getBytes)(options.uuid, "options.uuid")
+        : (0, index_js_2.randomBytes)(16);
     (0, index_js_3.assertArgument)(uuidRandom.length === 16, "invalid options.uuid length", "options.uuid", options.iv);
     // This will be used to encrypt the wallet (as per Web3 secret storage)
     // - 32 bytes   As normal for the Web3 secret storage (derivedKey, macPrefix)
@@ -226,14 +241,14 @@ function _encryptKeystore(key, kdf, account, options) {
                 n: kdf.N,
                 dklen: 32,
                 p: kdf.p,
-                r: kdf.r
+                r: kdf.r,
             },
-            mac: mac.substring(2)
-        }
+            mac: mac.substring(2),
+        },
     };
     // If we have a mnemonic, encrypt it into the JSON wallet
     if (account.mnemonic) {
-        const client = (options.client != null) ? options.client : `corebc/${_version_js_1.version}`;
+        const client = options.client != null ? options.client : `corebc/${_version_js_1.version}`;
         const path = account.mnemonic.path || defaultPath;
         const locale = account.mnemonic.locale || "en";
         const mnemonicKey = key.slice(32, 64);
@@ -242,18 +257,27 @@ function _encryptKeystore(key, kdf, account, options) {
         const mnemonicAesCtr = new aes_js_1.CTR(mnemonicKey, mnemonicIv);
         const mnemonicCiphertext = (0, index_js_3.getBytes)(mnemonicAesCtr.encrypt(entropy));
         const now = new Date();
-        const timestamp = (now.getUTCFullYear() + "-" +
-            (0, utils_js_1.zpad)(now.getUTCMonth() + 1, 2) + "-" +
-            (0, utils_js_1.zpad)(now.getUTCDate(), 2) + "T" +
-            (0, utils_js_1.zpad)(now.getUTCHours(), 2) + "-" +
-            (0, utils_js_1.zpad)(now.getUTCMinutes(), 2) + "-" +
-            (0, utils_js_1.zpad)(now.getUTCSeconds(), 2) + ".0Z");
-        const gethFilename = ("UTC--" + timestamp + "--" + data.address);
+        const timestamp = now.getUTCFullYear() +
+            "-" +
+            (0, utils_js_1.zpad)(now.getUTCMonth() + 1, 2) +
+            "-" +
+            (0, utils_js_1.zpad)(now.getUTCDate(), 2) +
+            "T" +
+            (0, utils_js_1.zpad)(now.getUTCHours(), 2) +
+            "-" +
+            (0, utils_js_1.zpad)(now.getUTCMinutes(), 2) +
+            "-" +
+            (0, utils_js_1.zpad)(now.getUTCSeconds(), 2) +
+            ".0Z";
+        const gethFilename = "UTC--" + timestamp + "--" + data.address;
         data["x-corebc"] = {
-            client, gethFilename, path, locale,
+            client,
+            gethFilename,
+            path,
+            locale,
             mnemonicCounter: (0, index_js_3.hexlify)(mnemonicIv).substring(2),
             mnemonicCiphertext: (0, index_js_3.hexlify)(mnemonicCiphertext).substring(2),
-            version: "0.1"
+            version: "0.1",
         };
     }
     return JSON.stringify(data);

@@ -4,9 +4,9 @@ import { Logger } from "../logger/logger.js";
  *
  *  @_subsection api/utils:Properties  [about-properties]
  */
-const logger = new Logger('utils/properties/0.0.1');
+const logger = new Logger("utils/properties/0.0.1");
 function checkType(value, type, name) {
-    const types = type.split("|").map(t => t.trim());
+    const types = type.split("|").map((t) => t.trim());
     for (let i = 0; i < types.length; i++) {
         switch (type) {
             case "any":
@@ -15,7 +15,7 @@ function checkType(value, type, name) {
             case "boolean":
             case "number":
             case "string":
-                if (typeof (value) === type) {
+                if (typeof value === type) {
                     return;
                 }
         }
@@ -46,15 +46,19 @@ export async function resolveProperties(value) {
 export function defineProperties(target, values, types) {
     for (let key in values) {
         let value = values[key];
-        const type = (types ? types[key] : null);
+        const type = types ? types[key] : null;
         if (type) {
             checkType(value, type, key);
         }
-        Object.defineProperty(target, key, { enumerable: true, value, writable: false });
+        Object.defineProperty(target, key, {
+            enumerable: true,
+            value,
+            writable: false,
+        });
     }
 }
 export function checkProperties(object, properties) {
-    if (!object || typeof (object) !== "object") {
+    if (!object || typeof object !== "object") {
         logger.throwArgumentError("invalid object", "object", object);
     }
     Object.keys(object).forEach((key) => {

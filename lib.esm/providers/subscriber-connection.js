@@ -22,7 +22,7 @@ export class BlockConnectionSubscriber {
         this.#running = true;
         this.#filterId = this.#provider._subscribe(["newHeads"], (result) => {
             const blockNumber = getNumber(result.number);
-            const initial = (this.#blockNumber === -2) ? blockNumber : (this.#blockNumber + 1);
+            const initial = this.#blockNumber === -2 ? blockNumber : this.#blockNumber + 1;
             for (let b = initial; b <= blockNumber; b++) {
                 this.#provider.emit("block", b);
             }

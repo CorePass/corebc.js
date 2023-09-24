@@ -35,7 +35,7 @@ const names = [
     "mcore",
     ///micore, 10^15 ore or 1 mcore
     "micore",
-    "core"
+    "core",
 ];
 /**
  *  Converts %%value%% into a //decimal string//, assuming %%unit%% decimal
@@ -45,7 +45,7 @@ const names = [
  */
 export function formatUnits(value, unit) {
     let decimals = 18;
-    if (typeof (unit) === "string") {
+    if (typeof unit === "string") {
         const index = names.indexOf(unit);
         assertArgument(index >= 0, "invalid unit", "unit", unit);
         decimals = 3 * index;
@@ -69,23 +69,27 @@ export const scientificToDecimal = (num) => {
     //if the number is in scientific notation remove it
     // @ts-ignore
     if (/\d+\.?\d*e[\+\-]*\d+/i.test(num)) {
-        var zero = '0', 
+        var zero = "0", 
         // @ts-ignore
-        parts = String(num).toLowerCase().split('e'), //split into coeff and exponent
+        parts = String(num).toLowerCase().split("e"), //split into coeff and exponent
         e = parts.pop(), //store the exponential part
         // @ts-ignore
         l = Math.abs(e), //get the number of zeros
         // @ts-ignore
-        sign = e / l, coeff_array = parts[0].split('.');
+        sign = e / l, coeff_array = parts[0].split(".");
         if (sign === -1) {
             l = l - coeff_array[0].length;
             if (l < 0) {
                 // @ts-ignore
-                num = coeff_array[0].slice(0, l) + '.' + coeff_array[0].slice(l) + (coeff_array.length === 2 ? coeff_array[1] : '');
+                num =
+                    coeff_array[0].slice(0, l) +
+                        "." +
+                        coeff_array[0].slice(l) +
+                        (coeff_array.length === 2 ? coeff_array[1] : "");
             }
             else {
                 // @ts-ignore
-                num = zero + '.' + new Array(l + 1).join(zero) + coeff_array.join('');
+                num = zero + "." + new Array(l + 1).join(zero) + coeff_array.join("");
             }
         }
         else {
@@ -94,32 +98,32 @@ export const scientificToDecimal = (num) => {
                 l = l - dec.length;
             if (l < 0) {
                 // @ts-ignore
-                num = coeff_array[0] + dec.slice(0, l) + '.' + dec.slice(l);
+                num = coeff_array[0] + dec.slice(0, l) + "." + dec.slice(l);
             }
             else {
                 // @ts-ignore
-                num = coeff_array.join('') + new Array(l + 1).join(zero);
+                num = coeff_array.join("") + new Array(l + 1).join(zero);
             }
         }
     }
     // @ts-ignore
-    return nsign < 0 ? '-' + num : num;
+    return nsign < 0 ? "-" + num : num;
 };
 export const trimDecimals = (n, decimals = 18) => {
-    n += '';
-    if (n.indexOf('.') === -1)
+    n += "";
+    if (n.indexOf(".") === -1)
         return n;
-    const arr = n.split('.');
+    const arr = n.split(".");
     const fraction = arr[1].substr(0, decimals);
-    return arr[0] + '.' + fraction;
+    return arr[0] + "." + fraction;
 };
 export function parseUnits(value, unit) {
-    assertArgument(typeof (value) === "string", "value must be a string", "value", value);
-    if (value.includes('e')) {
+    assertArgument(typeof value === "string", "value must be a string", "value", value);
+    if (value.includes("e")) {
         value = scientificToDecimal(value).toString();
     }
     let decimals = 18;
-    if (typeof (unit) === "string") {
+    if (typeof unit === "string") {
         const index = names.indexOf(unit);
         assertArgument(index >= 0, "invalid unit", "unit", unit);
         decimals = 3 * index;

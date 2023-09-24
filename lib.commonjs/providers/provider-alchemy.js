@@ -71,7 +71,7 @@ class AlchemyProvider extends provider_jsonrpc_js_1.JsonRpcProvider {
         if (req.method === "getTransactionResult") {
             const { trace, tx } = await (0, index_js_1.resolveProperties)({
                 trace: this.send("trace_transaction", [req.hash]),
-                tx: this.getTransaction(req.hash)
+                tx: this.getTransaction(req.hash),
             });
             if (trace == null || tx == null) {
                 return null;
@@ -80,7 +80,7 @@ class AlchemyProvider extends provider_jsonrpc_js_1.JsonRpcProvider {
             let error = false;
             try {
                 data = trace[0].result.output;
-                error = (trace[0].error === "Reverted");
+                error = trace[0].error === "Reverted";
             }
             catch (error) { }
             if (data) {
@@ -90,16 +90,18 @@ class AlchemyProvider extends provider_jsonrpc_js_1.JsonRpcProvider {
                     reason: null,
                     transaction: tx,
                     invocation: null,
-                    revert: null // @TODO
+                    revert: null, // @TODO
                 });
                 return data;
             }
-            (0, index_js_1.assert)(false, "could not parse trace result", "BAD_DATA", { value: trace });
+            (0, index_js_1.assert)(false, "could not parse trace result", "BAD_DATA", {
+                value: trace,
+            });
         }
         return await super._perform(req);
     }
     isCommunityResource() {
-        return (this.apiKey === defaultApiKey);
+        return this.apiKey === defaultApiKey;
     }
     static getRequest(network, apiKey) {
         if (apiKey == null) {

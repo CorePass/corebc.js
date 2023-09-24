@@ -16,7 +16,9 @@ export class LangCz extends WordlistOwl {
      *
      *  @_ignore:
      */
-    constructor() { super("cz", words, checksum); }
+    constructor() {
+        super("cz", words, checksum);
+    }
     /**
      *  Returns a singleton instance of a ``LangCz``, creating it
      *  if this is the first time being called.

@@ -19,7 +19,9 @@ class LangIt extends wordlist_owl_js_1.WordlistOwl {
      *
      *  @_ignore:
      */
-    constructor() { super("it", words, checksum); }
+    constructor() {
+        super("it", words, checksum);
+    }
     /**
      *  Returns a singleton instance of a ``LangIt``, creating it
      *  if this is the first time being called.

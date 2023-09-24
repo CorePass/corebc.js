@@ -24,7 +24,11 @@ class LogDescription {
     constructor(fragment, topic, args) {
         const name = fragment.name, signature = fragment.format();
         (0, index_js_2.defineProperties)(this, {
-            fragment, name, signature, topic, args
+            fragment,
+            name,
+            signature,
+            topic,
+            args,
         });
     }
 }
@@ -39,7 +43,12 @@ class TransactionDescription {
     constructor(fragment, selector, args, value) {
         const name = fragment.name, signature = fragment.format();
         (0, index_js_2.defineProperties)(this, {
-            fragment, name, args, signature, selector, value
+            fragment,
+            name,
+            args,
+            signature,
+            selector,
+            value,
         });
     }
 }
@@ -53,7 +62,11 @@ class ErrorDescription {
     constructor(fragment, selector, args) {
         const name = fragment.name, signature = fragment.format();
         (0, index_js_2.defineProperties)(this, {
-            fragment, name, args, signature, selector
+            fragment,
+            name,
+            args,
+            signature,
+            selector,
         });
     }
 }
@@ -89,7 +102,7 @@ const BuiltinErrors = {
         inputs: ["string"],
         reason: (message) => {
             return `reverted with reason string ${JSON.stringify(message)}`;
-        }
+        },
     },
     "0x4e487b71": {
         signature: "Panic(uint256)",
@@ -101,8 +114,8 @@ const BuiltinErrors = {
                 reason = PanicReasons[code.toString()];
             }
             return `reverted with panic code 0x${code.toString(16)} (${reason})`;
-        }
-    }
+        },
+    },
 };
 /**
  *  An Interface abstracts many of the low-level details for
@@ -141,7 +154,7 @@ class Interface {
      */
     constructor(fragments) {
         let abi = [];
-        if (typeof (fragments) === "string") {
+        if (typeof fragments === "string") {
             abi = JSON.parse(fragments);
         }
         else {
@@ -161,7 +174,7 @@ class Interface {
             }
         }
         (0, index_js_2.defineProperties)(this, {
-            fragments: Object.freeze(frags)
+            fragments: Object.freeze(frags),
         });
         let fallback = null;
         let receive = false;
@@ -176,14 +189,17 @@ class Interface {
                         return;
                     }
                     //checkNames(fragment, "input", fragment.inputs);
-                    (0, index_js_2.defineProperties)(this, { deploy: fragment });
+                    (0, index_js_2.defineProperties)(this, {
+                        deploy: fragment,
+                    });
                     return;
                 case "fallback":
                     if (fragment.inputs.length === 0) {
                         receive = true;
                     }
                     else {
-                        (0, index_js_2.assertArgument)(!fallback || fragment.payable !== fallback.payable, "conflicting fallback fragments", `fragments[${index}]`, fragment);
+                        (0, index_js_2.assertArgument)(!fallback ||
+                            fragment.payable !== fallback.payable, "conflicting fallback fragments", `fragments[${index}]`, fragment);
                         fallback = fragment;
                         receive = fallback.payable;
                     }
@@ -213,7 +229,7 @@ class Interface {
         // If we do not have a constructor add a default
         if (!this.deploy) {
             (0, index_js_2.defineProperties)(this, {
-                deploy: fragments_js_1.ConstructorFragment.from("constructor()")
+                deploy: fragments_js_1.ConstructorFragment.from("constructor()"),
             });
         }
         (0, index_js_2.defineProperties)(this, { fallback, receive });
@@ -224,7 +240,7 @@ class Interface {
      *  removes parameter names and unneceesary spaces.
      */
     format(minimal) {
-        const format = (minimal ? "minimal" : "full");
+        const format = minimal ? "minimal" : "full";
         const abi = this.fragments.map((f) => f.format(format));
         return abi;
     }
@@ -265,7 +281,7 @@ class Interface {
                 }
             }
             if (values) {
-                const lastValue = (values.length > 0) ? values[values.length - 1] : null;
+                const lastValue = values.length > 0 ? values[values.length - 1] : null;
                 let valueLength = values.length;
                 let allowOptions = true;
                 if (typed_js_1.Typed.isTyped(lastValue) && lastValue.type === "overrides") {
@@ -276,7 +292,8 @@ class Interface {
                 // may contain an overrides, so the match may have n or n - 1 parameters
                 for (let i = matching.length - 1; i >= 0; i--) {
                     const inputs = matching[i].inputs.length;
-                    if (inputs !== valueLength && (!allowOptions || inputs !== valueLength - 1)) {
+                    if (inputs !== valueLength &&
+                        (!allowOptions || inputs !== valueLength - 1)) {
                         matching.splice(i, 1);
                     }
                 }
@@ -306,9 +323,13 @@ class Interface {
             }
             // We found a single matching signature with an overrides, but the
             // last value is something that cannot possibly be an options
-            if (matching.length === 1 && values && values.length !== matching[0].inputs.length) {
+            if (matching.length === 1 &&
+                values &&
+                values.length !== matching[0].inputs.length) {
                 const lastArg = values[values.length - 1];
-                if (lastArg == null || Array.isArray(lastArg) || typeof (lastArg) !== "object") {
+                if (lastArg == null ||
+                    Array.isArray(lastArg) ||
+                    typeof lastArg !== "object") {
                     matching.splice(0, 1);
                 }
             }
@@ -316,7 +337,9 @@ class Interface {
                 return null;
             }
             if (matching.length > 1 && forceUnique) {
-                const matchStr = matching.map((m) => JSON.stringify(m.format())).join(", ");
+                const matchStr = matching
+                    .map((m) => JSON.stringify(m.format()))
+                    .join(", ");
                 (0, index_js_2.assertArgument)(false, `ambiguous function description (i.e. matches ${matchStr})`, "key", key);
             }
             return matching[0];
@@ -368,7 +391,7 @@ class Interface {
         names.sort((a, b) => a.localeCompare(b));
         for (let i = 0; i < names.length; i++) {
             const name = names[i];
-            callback((this.#functions.get(name)), i);
+            callback(this.#functions.get(name), i);
         }
     }
     // Find an event definition by any means necessary (unless it is ambiguous)
@@ -418,7 +441,9 @@ class Interface {
                 return null;
             }
             if (matching.length > 1 && forceUnique) {
-                const matchStr = matching.map((m) => JSON.stringify(m.format())).join(", ");
+                const matchStr = matching
+                    .map((m) => JSON.stringify(m.format()))
+                    .join(", ");
                 (0, index_js_2.assertArgument)(false, `ambiguous event description (i.e. matches ${matchStr})`, "key", key);
             }
             return matching[0];
@@ -470,7 +495,7 @@ class Interface {
         names.sort((a, b) => a.localeCompare(b));
         for (let i = 0; i < names.length; i++) {
             const name = names[i];
-            callback((this.#events.get(name)), i);
+            callback(this.#events.get(name), i);
         }
     }
     /**
@@ -514,7 +539,9 @@ class Interface {
                 return null;
             }
             else if (matching.length > 1) {
-                const matchStr = matching.map((m) => JSON.stringify(m.format())).join(", ");
+                const matchStr = matching
+                    .map((m) => JSON.stringify(m.format()))
+                    .join(", ");
                 (0, index_js_2.assertArgument)(false, `ambiguous error description (i.e. ${matchStr})`, "name", key);
             }
             return matching[0];
@@ -541,37 +568,37 @@ class Interface {
         names.sort((a, b) => a.localeCompare(b));
         for (let i = 0; i < names.length; i++) {
             const name = names[i];
-            callback((this.#errors.get(name)), i);
+            callback(this.#errors.get(name), i);
         }
     }
     // Get the 4-byte selector used by Solidity to identify a function
     /*
-getSelector(fragment: ErrorFragment | FunctionFragment): string {
-    if (typeof(fragment) === "string") {
-        const matches: Array<Fragment> = [ ];
-
-        try { matches.push(this.getFunction(fragment)); } catch (error) { }
-        try { matches.push(this.getError(<string>fragment)); } catch (_) { }
-
-        if (matches.length === 0) {
-            logger.throwArgumentError("unknown fragment", "key", fragment);
-        } else if (matches.length > 1) {
-            logger.throwArgumentError("ambiguous fragment matches function and error", "key", fragment);
-        }
-
-        fragment = matches[0];
-    }
-
-    return dataSlice(id(fragment.format()), 0, 4);
-}
-    */
+      getSelector(fragment: ErrorFragment | FunctionFragment): string {
+          if (typeof(fragment) === "string") {
+              const matches: Array<Fragment> = [ ];
+  
+              try { matches.push(this.getFunction(fragment)); } catch (error) { }
+              try { matches.push(this.getError(<string>fragment)); } catch (_) { }
+  
+              if (matches.length === 0) {
+                  logger.throwArgumentError("unknown fragment", "key", fragment);
+              } else if (matches.length > 1) {
+                  logger.throwArgumentError("ambiguous fragment matches function and error", "key", fragment);
+              }
+  
+              fragment = matches[0];
+          }
+  
+          return dataSlice(id(fragment.format()), 0, 4);
+      }
+          */
     // Get the 32-byte topic hash used by Solidity to identify an event
     /*
-    getEventTopic(fragment: EventFragment): string {
-        //if (typeof(fragment) === "string") { fragment = this.getEvent(eventFragment); }
-        return id(fragment.format());
-    }
-    */
+      getEventTopic(fragment: EventFragment): string {
+          //if (typeof(fragment) === "string") { fragment = this.getEvent(eventFragment); }
+          return id(fragment.format());
+      }
+      */
     _decodeParams(params, data) {
         return this.#abiCoder.decode(params, data);
     }
@@ -595,7 +622,7 @@ getSelector(fragment: ErrorFragment | FunctionFragment): string {
      *  corresponding error.
      */
     decodeErrorResult(fragment, data) {
-        if (typeof (fragment) === "string") {
+        if (typeof fragment === "string") {
             const f = this.getError(fragment);
             (0, index_js_2.assertArgument)(f, "unknown error", "fragment", fragment);
             fragment = f;
@@ -612,14 +639,14 @@ getSelector(fragment: ErrorFragment | FunctionFragment): string {
      *  a result from a Contract.
      */
     encodeErrorResult(fragment, values) {
-        if (typeof (fragment) === "string") {
+        if (typeof fragment === "string") {
             const f = this.getError(fragment);
             (0, index_js_2.assertArgument)(f, "unknown error", "fragment", fragment);
             fragment = f;
         }
         return (0, index_js_2.concat)([
             fragment.selector,
-            this._encodeParams(fragment.inputs, values || [])
+            this._encodeParams(fragment.inputs, values || []),
         ]);
     }
     /**
@@ -631,7 +658,7 @@ getSelector(fragment: ErrorFragment | FunctionFragment): string {
      *  instead, which will automatically detect the fragment.
      */
     decodeFunctionData(fragment, data) {
-        if (typeof (fragment) === "string") {
+        if (typeof fragment === "string") {
             const f = this.getFunction(fragment);
             (0, index_js_2.assertArgument)(f, "unknown function", "fragment", fragment);
             fragment = f;
@@ -645,14 +672,14 @@ getSelector(fragment: ErrorFragment | FunctionFragment): string {
      *  the %%values%%.
      */
     encodeFunctionData(fragment, values) {
-        if (typeof (fragment) === "string") {
+        if (typeof fragment === "string") {
             const f = this.getFunction(fragment);
             (0, index_js_2.assertArgument)(f, "unknown function", "fragment", fragment);
             fragment = f;
         }
         return (0, index_js_2.concat)([
             fragment.selector,
-            this._encodeParams(fragment.inputs, values || [])
+            this._encodeParams(fragment.inputs, values || []),
         ]);
     }
     /**
@@ -665,14 +692,14 @@ getSelector(fragment: ErrorFragment | FunctionFragment): string {
      *  corresponding error.
      */
     decodeFunctionResult(fragment, data) {
-        if (typeof (fragment) === "string") {
+        if (typeof fragment === "string") {
             const f = this.getFunction(fragment);
             (0, index_js_2.assertArgument)(f, "unknown function", "fragment", fragment);
             fragment = f;
         }
         let message = "invalid length for result data";
         const bytes = (0, index_js_2.getBytesCopy)(data);
-        if ((bytes.length % 32) === 0) {
+        if (bytes.length % 32 === 0) {
             try {
                 return this.#abiCoder.decode(fragment.outputs, bytes);
             }
@@ -683,7 +710,7 @@ getSelector(fragment: ErrorFragment | FunctionFragment): string {
         // Call returned data with no error, but the data is junk
         (0, index_js_2.assert)(false, message, "BAD_DATA", {
             value: (0, index_js_2.hexlify)(bytes),
-            info: { method: fragment.name, signature: fragment.format() }
+            info: { method: fragment.name, signature: fragment.format() },
         });
     }
     makeError(_data, tx) {
@@ -698,7 +725,9 @@ getSelector(fragment: ErrorFragment | FunctionFragment): string {
                 try {
                     const args = this.#abiCoder.decode(ef.inputs, data.slice(4));
                     error.revert = {
-                        name: ef.name, signature: ef.format(), args
+                        name: ef.name,
+                        signature: ef.format(),
+                        args,
                     };
                     error.reason = error.revert.signature;
                     error.message = `execution reverted: ${error.reason}`;
@@ -714,7 +743,7 @@ getSelector(fragment: ErrorFragment | FunctionFragment): string {
             error.invocation = {
                 method: parsed.name,
                 signature: parsed.signature,
-                args: parsed.args
+                args: parsed.args,
             };
         }
         return error;
@@ -728,7 +757,7 @@ getSelector(fragment: ErrorFragment | FunctionFragment): string {
      *  a result from a Contract.
      */
     encodeFunctionResult(fragment, values) {
-        if (typeof (fragment) === "string") {
+        if (typeof fragment === "string") {
             const f = this.getFunction(fragment);
             (0, index_js_2.assertArgument)(f, "unknown function", "fragment", fragment);
             fragment = f;
@@ -736,37 +765,37 @@ getSelector(fragment: ErrorFragment | FunctionFragment): string {
         return (0, index_js_2.hexlify)(this.#abiCoder.encode(fragment.outputs, values || []));
     }
     /*
-        spelunk(inputs: Array<ParamType>, values: ReadonlyArray<any>, processfunc: (type: string, value: any) => Promise<any>): Promise<Array<any>> {
-            const promises: Array<Promise<>> = [ ];
-            const process = function(type: ParamType, value: any): any {
-                if (type.baseType === "array") {
-                    return descend(type.child
-                }
-                if (type. === "address") {
-                }
-            };
-    
-            const descend = function (inputs: Array<ParamType>, values: ReadonlyArray<any>) {
-                if (inputs.length !== values.length) { throw new Error("length mismatch"); }
-            };
-    
-            const result: Array<any> = [ ];
-            values.forEach((value, index) => {
-                if (value == null) {
-                    topics.push(null);
-                } else if (param.baseType === "array" || param.baseType === "tuple") {
-                    logger.throwArgumentError("filtering with tuples or arrays not supported", ("contract." + param.name), value);
-                } else if (Array.isArray(value)) {
-                    topics.push(value.map((value) => encodeTopic(param, value)));
-                } else {
-                    topics.push(encodeTopic(param, value));
-                }
-            });
-        }
-    */
+      spelunk(inputs: Array<ParamType>, values: ReadonlyArray<any>, processfunc: (type: string, value: any) => Promise<any>): Promise<Array<any>> {
+          const promises: Array<Promise<>> = [ ];
+          const process = function(type: ParamType, value: any): any {
+              if (type.baseType === "array") {
+                  return descend(type.child
+              }
+              if (type. === "address") {
+              }
+          };
+  
+          const descend = function (inputs: Array<ParamType>, values: ReadonlyArray<any>) {
+              if (inputs.length !== values.length) { throw new Error("length mismatch"); }
+          };
+  
+          const result: Array<any> = [ ];
+          values.forEach((value, index) => {
+              if (value == null) {
+                  topics.push(null);
+              } else if (param.baseType === "array" || param.baseType === "tuple") {
+                  logger.throwArgumentError("filtering with tuples or arrays not supported", ("contract." + param.name), value);
+              } else if (Array.isArray(value)) {
+                  topics.push(value.map((value) => encodeTopic(param, value)));
+              } else {
+                  topics.push(encodeTopic(param, value));
+              }
+          });
+      }
+  */
     // Create the filter for the event with search criteria (e.g. for xcb_filterLog)
     encodeFilterTopics(fragment, values) {
-        if (typeof (fragment) === "string") {
+        if (typeof fragment === "string") {
             const f = this.getEvent(fragment);
             (0, index_js_2.assertArgument)(f, "unknown event", "eventFragment", fragment);
             fragment = f;
@@ -784,8 +813,8 @@ getSelector(fragment: ErrorFragment | FunctionFragment): string {
             else if (param.type === "bytes") {
                 return (0, index_js_3.sha256)((0, index_js_2.hexlify)(value));
             }
-            if (param.type === "bool" && typeof (value) === "boolean") {
-                value = (value ? "0x01" : "0x00");
+            if (param.type === "bool" && typeof value === "boolean") {
+                value = value ? "0x01" : "0x00";
             }
             if (param.type.match(/^u?int/)) {
                 value = (0, index_js_2.toBeHex)(value);
@@ -800,14 +829,14 @@ getSelector(fragment: ErrorFragment | FunctionFragment): string {
         values.forEach((value, index) => {
             const param = fragment.inputs[index];
             if (!param.indexed) {
-                (0, index_js_2.assertArgument)(value == null, "cannot filter non-indexed parameters; must be null", ("contract." + param.name), value);
+                (0, index_js_2.assertArgument)(value == null, "cannot filter non-indexed parameters; must be null", "contract." + param.name, value);
                 return;
             }
             if (value == null) {
                 topics.push(null);
             }
             else if (param.baseType === "array" || param.baseType === "tuple") {
-                (0, index_js_2.assertArgument)(false, "filtering with tuples or arrays not supported", ("contract." + param.name), value);
+                (0, index_js_2.assertArgument)(false, "filtering with tuples or arrays not supported", "contract." + param.name, value);
             }
             else if (Array.isArray(value)) {
                 topics.push(value.map((value) => encodeTopic(param, value)));
@@ -823,7 +852,7 @@ getSelector(fragment: ErrorFragment | FunctionFragment): string {
         return topics;
     }
     encodeEventLog(fragment, values) {
-        if (typeof (fragment) === "string") {
+        if (typeof fragment === "string") {
             const f = this.getEvent(fragment);
             (0, index_js_2.assertArgument)(f, "unknown event", "eventFragment", fragment);
             fragment = f;
@@ -859,12 +888,12 @@ getSelector(fragment: ErrorFragment | FunctionFragment): string {
         });
         return {
             data: this.#abiCoder.encode(dataTypes, dataValues),
-            topics: topics
+            topics: topics,
         };
     }
     // Decode a filter for the event and the search criteria
     decodeEventLog(fragment, data, topics) {
-        if (typeof (fragment) === "string") {
+        if (typeof fragment === "string") {
             const f = this.getEvent(fragment);
             (0, index_js_2.assertArgument)(f, "unknown event", "eventFragment", fragment);
             fragment = f;
@@ -879,7 +908,10 @@ getSelector(fragment: ErrorFragment | FunctionFragment): string {
         const dynamic = [];
         fragment.inputs.forEach((param, index) => {
             if (param.indexed) {
-                if (param.type === "string" || param.type === "bytes" || param.baseType === "tuple" || param.baseType === "array") {
+                if (param.type === "string" ||
+                    param.type === "bytes" ||
+                    param.baseType === "tuple" ||
+                    param.baseType === "array") {
                     indexed.push(fragments_js_1.ParamType.from({ type: "bytes32", name: param.name }));
                     dynamic.push(true);
                 }
@@ -893,7 +925,7 @@ getSelector(fragment: ErrorFragment | FunctionFragment): string {
                 dynamic.push(false);
             }
         });
-        const resultIndexed = (topics != null) ? this.#abiCoder.decode(indexed, (0, index_js_2.concat)(topics)) : null;
+        const resultIndexed = topics != null ? this.#abiCoder.decode(indexed, (0, index_js_2.concat)(topics)) : null;
         const resultNonIndexed = this.#abiCoder.decode(nonIndexed, data, true);
         //const result: (Array<any> & { [ key: string ]: any }) = [ ];
         const values = [];
@@ -938,7 +970,7 @@ getSelector(fragment: ErrorFragment | FunctionFragment): string {
      */
     parseTransaction(tx) {
         const data = (0, index_js_2.getBytes)(tx.data, "tx.data");
-        const value = (0, index_js_2.getBigInt)((tx.value != null) ? tx.value : 0, "tx.value");
+        const value = (0, index_js_2.getBigInt)(tx.value != null ? tx.value : 0, "tx.value");
         const fragment = this.getFunction((0, index_js_2.hexlify)(data.slice(0, 4)));
         if (!fragment) {
             return null;
@@ -992,11 +1024,11 @@ getSelector(fragment: ErrorFragment | FunctionFragment): string {
             return value;
         }
         // JSON
-        if (typeof (value) === "string") {
+        if (typeof value === "string") {
             return new Interface(JSON.parse(value));
         }
         // Maybe an interface from an older version, or from a symlinked copy
-        if (typeof (value.format) === "function") {
+        if (typeof value.format === "function") {
             return new Interface(value.format("json"));
         }
         // Array of fragments

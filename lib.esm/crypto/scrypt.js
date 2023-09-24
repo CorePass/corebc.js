@@ -1,4 +1,4 @@
-import { scrypt as _nobleSync, scryptAsync as _nobleAsync } from "@noble/hashes/scrypt";
+import { scrypt as _nobleSync, scryptAsync as _nobleAsync, } from "@noble/hashes/scrypt";
 import { getBytes, hexlify as H } from "../utils/index.js";
 let lockedSync = false, lockedAsync = false;
 const _scryptAsync = async function (passwd, salt, N, r, p, dkLen, onProgress) {
@@ -52,7 +52,9 @@ export async function scrypt(_passwd, _salt, N, r, p, dkLen, progress) {
     return H(await __scryptAsync(passwd, salt, N, r, p, dkLen, progress));
 }
 scrypt._ = _scryptAsync;
-scrypt.lock = function () { lockedAsync = true; };
+scrypt.lock = function () {
+    lockedAsync = true;
+};
 scrypt.register = function (func) {
     if (lockedAsync) {
         throw new Error("scrypt is locked");
@@ -88,7 +90,9 @@ export function scryptSync(_passwd, _salt, N, r, p, dkLen) {
     return H(__scryptSync(passwd, salt, N, r, p, dkLen));
 }
 scryptSync._ = _scryptSync;
-scryptSync.lock = function () { lockedSync = true; };
+scryptSync.lock = function () {
+    lockedSync = true;
+};
 scryptSync.register = function (func) {
     if (lockedSync) {
         throw new Error("scryptSync is locked");

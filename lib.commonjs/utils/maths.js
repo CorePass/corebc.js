@@ -22,13 +22,15 @@ const maxValue = 0x1fffffffffffff;
 function fromTwos(_value, _width) {
     const value = getUint(_value, "value");
     const width = BigInt(getNumber(_width, "width"));
-    (0, errors_js_1.assert)((value >> width) === BN_0, "overflow", "NUMERIC_FAULT", {
-        operation: "fromTwos", fault: "overflow", value: _value
+    (0, errors_js_1.assert)(value >> width === BN_0, "overflow", "NUMERIC_FAULT", {
+        operation: "fromTwos",
+        fault: "overflow",
+        value: _value,
     });
     // Top bit set; treat as a negative value
     if (value >> (width - BN_1)) {
         const mask = (BN_1 << width) - BN_1;
-        return -(((~value) & mask) + BN_1);
+        return -((~value & mask) + BN_1);
     }
     return value;
 }
@@ -42,18 +44,22 @@ exports.fromTwos = fromTwos;
 function toTwos(_value, _width) {
     let value = getBigInt(_value, "value");
     const width = BigInt(getNumber(_width, "width"));
-    const limit = (BN_1 << (width - BN_1));
+    const limit = BN_1 << (width - BN_1);
     if (value < BN_0) {
         value = -value;
         (0, errors_js_1.assert)(value <= limit, "too low", "NUMERIC_FAULT", {
-            operation: "toTwos", fault: "overflow", value: _value
+            operation: "toTwos",
+            fault: "overflow",
+            value: _value,
         });
         const mask = (BN_1 << width) - BN_1;
-        return ((~value) & mask) + BN_1;
+        return (~value & mask) + BN_1;
     }
     else {
         (0, errors_js_1.assert)(value < limit, "too high", "NUMERIC_FAULT", {
-            operation: "toTwos", fault: "overflow", value: _value
+            operation: "toTwos",
+            fault: "overflow",
+            value: _value,
         });
     }
     return value;
@@ -73,8 +79,9 @@ exports.mask = mask;
  *  a BigInt, then an ArgumentError will be thrown for %%name%%.
  */
 function getBigInt(value, name) {
-    switch (typeof (value)) {
-        case "bigint": return value;
+    switch (typeof value) {
+        case "bigint":
+            return value;
         case "number":
             (0, errors_js_1.assertArgument)(Number.isInteger(value), "underflow", name || "value", value);
             (0, errors_js_1.assertArgument)(value >= -maxValue && value <= maxValue, "overflow", name || "value", value);
@@ -99,7 +106,9 @@ exports.getBigInt = getBigInt;
 function getUint(value, name) {
     const result = getBigInt(value, name);
     (0, errors_js_1.assert)(result >= BN_0, "unsigned value cannot be negative", "NUMERIC_FAULT", {
-        fault: "overflow", operation: "getUint", value
+        fault: "overflow",
+        operation: "getUint",
+        value,
     });
     return result;
 }
@@ -126,7 +135,7 @@ exports.toBigInt = toBigInt;
  *  a //number//, then an ArgumentError will be thrown for %%name%%.
  */
 function getNumber(value, name) {
-    switch (typeof (value)) {
+    switch (typeof value) {
         case "bigint":
             (0, errors_js_1.assertArgument)(value >= -maxValue && value <= maxValue, "overflow", name || "value", value);
             return Number(value);
@@ -174,10 +183,10 @@ function toBeHex(_value, _width) {
         (0, errors_js_1.assert)(width * 2 >= result.length, `value exceeds width (${width} bits)`, "NUMERIC_FAULT", {
             operation: "toBeHex",
             fault: "overflow",
-            value: _value
+            value: _value,
         });
         // Pad the value to the required width
-        while (result.length < (width * 2)) {
+        while (result.length < width * 2) {
             result = "0" + result;
         }
     }

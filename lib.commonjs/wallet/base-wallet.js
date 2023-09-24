@@ -32,10 +32,10 @@ class BaseWallet extends index_js_3.AbstractSigner {
      *  If %%provider%% is not specified, only offline methods can
      *  be used.
      */
-    constructor({ signingKey, prefix, provider }) {
+    constructor({ signingKey, prefix, provider, }) {
         super(provider);
         this.prefix = prefix;
-        (0, index_js_5.assertArgument)(signingKey && typeof (signingKey.sign) === "function", "invalid signingKey key", "signingKey", "[ REDACTED ]");
+        (0, index_js_5.assertArgument)(signingKey && typeof signingKey.sign === "function", "invalid signingKey key", "signingKey", "[ REDACTED ]");
         this.#signingKey = signingKey;
         const address = (0, index_js_4.computeAddress)(this.#signingKey, prefix);
         (0, index_js_5.defineProperties)(this, { address });
@@ -45,15 +45,23 @@ class BaseWallet extends index_js_3.AbstractSigner {
     /**
      *  The [[SigningKey]] used for signing payloads.
      */
-    get signingKey() { return this.#signingKey; }
+    get signingKey() {
+        return this.#signingKey;
+    }
     /**
      *  The private key for this wallet.
      */
-    get privateKey() { return this.signingKey.privateKey; }
-    async getAddress() { return this.address; }
+    get privateKey() {
+        return this.signingKey.privateKey;
+    }
+    async getAddress() {
+        return this.address;
+    }
     connect(provider) {
         return new BaseWallet({
-            signingKey: this.#signingKey, prefix: this.prefix, provider
+            signingKey: this.#signingKey,
+            prefix: this.prefix,
+            provider,
         });
     }
     async signTransaction(tx) {
@@ -69,7 +77,7 @@ class BaseWallet extends index_js_3.AbstractSigner {
             tx.from = from;
         }
         if (tx.from != null) {
-            (0, index_js_5.assertArgument)((0, index_js_1.getAddress)((tx.from)) === this.address, "transaction from address mismatch", "tx.from", tx.from);
+            (0, index_js_5.assertArgument)((0, index_js_1.getAddress)(tx.from) === this.address, "transaction from address mismatch", "tx.from", tx.from);
             delete tx.from;
         }
         // Build the transaction
@@ -98,11 +106,11 @@ class BaseWallet extends index_js_3.AbstractSigner {
             //        need a provider
             (0, index_js_5.assert)(this.provider != null, "cannot resolve ENS names without a provider", "UNSUPPORTED_OPERATION", {
                 operation: "resolveName",
-                info: { name }
+                info: { name },
             });
             const address = (0, index_js_1.getAddress)(name);
             (0, index_js_5.assert)(address != null, "unconfigured ENS name", "UNCONFIGURED_NAME", {
-                value: name
+                value: name,
             });
             return address;
         });

@@ -14,11 +14,13 @@ class WebSocketProvider extends provider_socket_js_1.SocketProvider {
     }
     constructor(url, network) {
         super(network);
-        if (typeof (url) === "string") {
-            this.#connect = () => { return new ws_js_1.WebSocket(url); };
+        if (typeof url === "string") {
+            this.#connect = () => {
+                return new ws_js_1.WebSocket(url);
+            };
             this.#websocket = this.#connect();
         }
-        else if (typeof (url) === "function") {
+        else if (typeof url === "function") {
             this.#connect = url;
             this.#websocket = url();
         }
@@ -40,20 +42,20 @@ class WebSocketProvider extends provider_socket_js_1.SocketProvider {
             this._processMessage(message.data);
         };
         /*
-                this.websocket.onclose = (event) => {
-                    // @TODO: What event.code should we reconnect on?
-                    const reconnect = false;
-                    if (reconnect) {
-                        this.pause(true);
-                        if (this.#connect) {
-                            this.#websocket = this.#connect();
-                            this.#websocket.onopen = ...
-                            // @TODO: this requires the super class to rebroadcast; move it there
-                        }
-                        this._reconnect();
+            this.websocket.onclose = (event) => {
+                // @TODO: What event.code should we reconnect on?
+                const reconnect = false;
+                if (reconnect) {
+                    this.pause(true);
+                    if (this.#connect) {
+                        this.#websocket = this.#connect();
+                        this.#websocket.onopen = ...
+                        // @TODO: this requires the super class to rebroadcast; move it there
                     }
-                };
-        */
+                    this._reconnect();
+                }
+            };
+    */
     }
     async _write(message) {
         this.websocket.send(message);

@@ -27,7 +27,7 @@ export declare class BaseWallet extends AbstractSigner {
      *  If %%provider%% is not specified, only offline methods can
      *  be used.
      */
-    constructor({ signingKey, prefix, provider }: {
+    constructor({ signingKey, prefix, provider, }: {
         signingKey: SigningKey;
         prefix: string;
         provider?: null | Provider;

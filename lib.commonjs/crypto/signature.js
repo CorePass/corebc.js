@@ -27,7 +27,9 @@ class Signature {
      *  This represents the ``x`` coordinate of a "reference" or
      *  challenge point, from which the ``y`` can be computed.
      */
-    get r() { return this.#r; }
+    get r() {
+        return this.#r;
+    }
     set r(value) {
         (0, index_js_1.assertArgument)((0, index_js_1.dataLength)(value) === 32, "invalid r", "value", value);
         this.#r = (0, index_js_1.hexlify)(value);
@@ -35,7 +37,9 @@ class Signature {
     /**
      *  The ``s`` value for a signature.
      */
-    get s() { return this.#s; }
+    get s() {
+        return this.#s;
+    }
     set s(_value) {
         (0, index_js_1.assertArgument)((0, index_js_1.dataLength)(_value) === 32, "invalid s", "value", _value);
         const value = (0, index_js_1.hexlify)(_value);
@@ -52,7 +56,9 @@ class Signature {
      *  It is normalized to the values ``27`` or ``28`` for legacy
      *  purposes.
      */
-    get v() { return this.#v; }
+    get v() {
+        return this.#v;
+    }
     set v(value) {
         const v = (0, index_js_1.getNumber)(value, "value");
         (0, index_js_1.assertArgument)(v === 27 || v === 28, "invalid v", "v", value);
@@ -62,7 +68,9 @@ class Signature {
      *  The EIP-155 ``v`` for legacy transactions. For non-legacy
      *  transactions, this value is ``null``.
      */
-    get networkV() { return this.#networkV; }
+    get networkV() {
+        return this.#networkV;
+    }
     /**
      *  The chain ID for EIP-155 legacy transactions. For non-legacy
      *  transactions, this value is ``null``.
@@ -80,7 +88,7 @@ class Signature {
      *  See ``v`` for more details on how this value is used.
      */
     get yParity() {
-        return (this.v === 27) ? 0 : 1;
+        return this.v === 27 ? 0 : 1;
     }
     /**
      *  The [[link-eip-2098]] compact representation of the ``yParity``
@@ -104,7 +112,7 @@ class Signature {
      *  The serialized representation.
      */
     get serialized() {
-        return (0, index_js_1.concat)([this.r, this.s, (this.yParity ? "0x1c" : "0x1b")]);
+        return (0, index_js_1.concat)([this.r, this.s, this.yParity ? "0x1c" : "0x1b"]);
     }
     /**
      *  @private
@@ -116,7 +124,7 @@ class Signature {
         this.#v = v;
         this.#networkV = null;
     }
-    [Symbol.for('nodejs.util.inspect.custom')]() {
+    [Symbol.for("nodejs.util.inspect.custom")]() {
         return `Signature { r: "${this.r}", s: "${this.s}", yParity: ${this.yParity}, networkV: ${this.networkV} }`;
     }
     /**
@@ -136,8 +144,10 @@ class Signature {
         const networkV = this.networkV;
         return {
             _type: "signature",
-            networkV: ((networkV != null) ? networkV.toString() : null),
-            r: this.r, s: this.s, v: this.v,
+            networkV: networkV != null ? networkV.toString() : null,
+            r: this.r,
+            s: this.s,
+            v: this.v,
         };
     }
     /**
@@ -153,7 +163,7 @@ class Signature {
     static getnetworkId(v) {
         const bv = (0, index_js_1.getBigInt)(v, "v");
         // The v is not an EIP-155 v, so it is the unspecified chain ID
-        if ((bv == BN_27) || (bv == BN_28)) {
+        if (bv == BN_27 || bv == BN_28) {
             return BN_0;
         }
         // Bad value for an EIP-155 v
@@ -175,7 +185,7 @@ class Signature {
      *
      */
     static getnetworkIdV(networkId, v) {
-        return ((0, index_js_1.getBigInt)(networkId) * BN_2) + BigInt(35 + v - 27);
+        return (0, index_js_1.getBigInt)(networkId) * BN_2 + BigInt(35 + v - 27);
     }
     /**
      *  Compute the normalized legacy transaction ``v`` from a ``yParirty``,
@@ -208,7 +218,7 @@ class Signature {
         }
         (0, index_js_1.assertArgument)(bv >= BN_35, "invalid v", "v", v);
         // Otherwise, EIP-155 v means odd is 27 and even is 28
-        return (bv & BN_1) ? 27 : 28;
+        return bv & BN_1 ? 27 : 28;
     }
 }
 exports.Signature = Signature;

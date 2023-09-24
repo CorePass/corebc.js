@@ -10,15 +10,15 @@ export async function getUrl(req, signal) {
     const protocol = req.url.split(":")[0].toLowerCase();
     assert(protocol === "http" || protocol === "https", `unsupported protocol ${protocol}`, "UNSUPPORTED_OPERATION", {
         info: { protocol },
-        operation: "request"
+        operation: "request",
     });
     assert(protocol === "https" || !req.credentials || req.allowInsecureAuthentication, "insecure authorized connections unsupported", "UNSUPPORTED_OPERATION", {
-        operation: "request"
+        operation: "request",
     });
     const method = req.method;
     const headers = Object.assign({}, req.headers);
     const options = { method, headers };
-    const request = ((protocol === "http") ? http : https).request(req.url, options);
+    const request = (protocol === "http" ? http : https).request(req.url, options);
     request.setTimeout(req.timeout);
     const body = req.body;
     if (body) {
@@ -72,7 +72,9 @@ export async function getUrl(req, signal) {
                 reject(error);
             });
         });
-        request.on("error", (error) => { reject(error); });
+        request.on("error", (error) => {
+            reject(error);
+        });
     });
 }
 //# sourceMappingURL=geturl.js.map

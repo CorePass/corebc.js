@@ -2,7 +2,9 @@ import { defineProperties } from "../utils/index.js";
 export const PluginIdFallbackProvider = "org.corebc.plugins.provider.QualifiedPlugin";
 export class CheckQualifiedPlugin {
     constructor() {
-        defineProperties(this, { name: PluginIdFallbackProvider });
+        defineProperties(this, {
+            name: PluginIdFallbackProvider,
+        });
     }
     connect(provider) {
         return this;
@@ -15,7 +17,8 @@ export class CheckQualifiedPlugin {
 }
 export class PossiblyPrunedTransactionPlugin extends CheckQualifiedPlugin {
     isQualified(action, result) {
-        if (action.method === "getTransaction" || action.method === "getTransactionReceipt") {
+        if (action.method === "getTransaction" ||
+            action.method === "getTransactionReceipt") {
             if (result == null) {
                 return false;
             }

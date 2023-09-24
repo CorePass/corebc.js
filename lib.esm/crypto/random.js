@@ -23,7 +23,9 @@ export function randomBytes(length) {
     return __randomBytes(length);
 }
 randomBytes._ = _randomBytes;
-randomBytes.lock = function () { locked = true; };
+randomBytes.lock = function () {
+    locked = true;
+};
 randomBytes.register = function (func) {
     if (locked) {
         throw new Error("randomBytes is locked");

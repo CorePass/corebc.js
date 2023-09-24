@@ -35,7 +35,7 @@ declare global {
 export async function getUrl(
   req: FetchRequest,
   _signal?: FetchCancelSignal,
-): Promise<GetUrlResponse> {
+): Promise<GetUrlResponse | undefined> {
   const protocol = req.url.split(":")[0].toLowerCase();
 
   assert(
@@ -91,5 +91,6 @@ export async function getUrl(
     };
   } catch (error: any) {
     console.log({ error });
+    return undefined;
   }
 }

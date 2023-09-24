@@ -56,7 +56,9 @@ async function scrypt(_passwd, _salt, N, r, p, dkLen, progress) {
 }
 exports.scrypt = scrypt;
 scrypt._ = _scryptAsync;
-scrypt.lock = function () { lockedAsync = true; };
+scrypt.lock = function () {
+    lockedAsync = true;
+};
 scrypt.register = function (func) {
     if (lockedAsync) {
         throw new Error("scrypt is locked");
@@ -93,7 +95,9 @@ function scryptSync(_passwd, _salt, N, r, p, dkLen) {
 }
 exports.scryptSync = scryptSync;
 scryptSync._ = _scryptSync;
-scryptSync.lock = function () { lockedSync = true; };
+scryptSync.lock = function () {
+    lockedSync = true;
+};
 scryptSync.register = function (func) {
     if (lockedSync) {
         throw new Error("scryptSync is locked");

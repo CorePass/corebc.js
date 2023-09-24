@@ -19,7 +19,6 @@ import { Logger } from "../logger/logger.js";
 import * as RLP from "../crypto/rlp.js";
 import { BigNumber } from "../bigNumber/bigNumber.js";
 import { networkIdToPrefix } from "../address/index.js";
-import { Zero } from "../constants/numbers.js";
 
 const logger = new Logger("transaction/0.0.1");
 
@@ -87,7 +86,7 @@ function parse(data: BytesLike): TransactionLike {
   const handleNumber = (value: string): BigNumber => {
     // @ts-ignore
     if (value === "0x") {
-      return Zero;
+      return BigNumber.from(0);
     }
     return BigNumber.from(value);
   };

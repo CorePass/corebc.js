@@ -36,7 +36,9 @@ export function computeHmac(algorithm, _key, _data) {
     return hexlify(__computeHmac(algorithm, key, data));
 }
 computeHmac._ = _computeHmac;
-computeHmac.lock = function () { locked = true; };
+computeHmac.lock = function () {
+    locked = true;
+};
 computeHmac.register = function (func) {
     if (locked) {
         throw new Error("computeHmac is locked");

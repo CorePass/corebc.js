@@ -19,9 +19,11 @@ class TupleCoder extends abstract_coder_js_1.Coder {
             }
             types.push(coder.type);
         });
-        const type = ("tuple(" + types.join(",") + ")");
+        const type = "tuple(" + types.join(",") + ")";
         super("tuple", type, localName, dynamic);
-        (0, properties_js_1.defineProperties)(this, { coders: Object.freeze(coders.slice()) });
+        (0, properties_js_1.defineProperties)(this, {
+            coders: Object.freeze(coders.slice()),
+        });
     }
     defaultValue() {
         const values = [];

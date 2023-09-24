@@ -11,7 +11,7 @@
  *
  *  @_subsection: api/providers/thirdparty:Ankr  [providers-ankr]
  */
-import { defineProperties, FetchRequest, assertArgument } from "../utils/index.js";
+import { defineProperties, FetchRequest, assertArgument, } from "../utils/index.js";
 import { showThrottleMessage } from "./community.js";
 import { Network } from "./network.js";
 import { JsonRpcProvider } from "./provider-jsonrpc.js";
@@ -90,14 +90,16 @@ export class AnkrProvider extends JsonRpcProvider {
     }
     getRpcError(payload, error) {
         if (payload.method === "xcb_sendRawTransaction") {
-            if (error && error.error && error.error.message === "INTERNAL_ERROR: could not replace existing tx") {
+            if (error &&
+                error.error &&
+                error.error.message === "INTERNAL_ERROR: could not replace existing tx") {
                 error.error.message = "replacement transaction underpriced";
             }
         }
         return super.getRpcError(payload, error);
     }
     isCommunityResource() {
-        return (this.apiKey === defaultApiKey);
+        return this.apiKey === defaultApiKey;
     }
 }
 //# sourceMappingURL=provider-ankr.js.map

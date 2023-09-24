@@ -19,7 +19,7 @@ export declare class Wallet extends BaseWallet {
      *  Create a new wallet for the %%privateKey%% or %%signingKey%%, optionally connected
      *  to %%provider%%.
      */
-    constructor({ key, prefix, provider }: {
+    constructor({ key, prefix, provider, }: {
         key: string | SigningKey;
         prefix: string;
         provider?: null | Provider;
@@ -70,13 +70,13 @@ export declare class Wallet extends BaseWallet {
     /**
      *  Creates a [[HDNodeWallet]] for %%phrase%%.
      */
-    static fromPhrase({ phrase, prefix, provider, password }: {
+    static fromPhrase({ phrase, prefix, provider, password, }: {
         phrase: string;
         prefix: string;
         provider?: Provider;
         password?: string;
     }): HDNodeWallet;
-    static fromSeed({ seed, prefix, provider, path }: {
+    static fromSeed({ seed, prefix, provider, path, }: {
         seed: string;
         prefix: string;
         path?: string;

@@ -16,9 +16,11 @@ export class TupleCoder extends Coder {
             }
             types.push(coder.type);
         });
-        const type = ("tuple(" + types.join(",") + ")");
+        const type = "tuple(" + types.join(",") + ")";
         super("tuple", type, localName, dynamic);
-        defineProperties(this, { coders: Object.freeze(coders.slice()) });
+        defineProperties(this, {
+            coders: Object.freeze(coders.slice()),
+        });
     }
     defaultValue() {
         const values = [];

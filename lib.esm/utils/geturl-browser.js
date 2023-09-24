@@ -5,22 +5,24 @@ export async function getUrl(req, _signal) {
     const protocol = req.url.split(":")[0].toLowerCase();
     assert(protocol === "http" || protocol === "https", `unsupported protocol ${protocol}`, "UNSUPPORTED_OPERATION", {
         info: { protocol },
-        operation: "request"
+        operation: "request",
     });
     assert(protocol === "https" || !req.credentials || req.allowInsecureAuthentication, "insecure authorized connections unsupported", "UNSUPPORTED_OPERATION", {
-        operation: "request"
+        operation: "request",
     });
     let signal = undefined;
     if (_signal) {
         const controller = new AbortController();
         signal = controller.signal;
-        _signal.addListener(() => { controller.abort(); });
+        _signal.addListener(() => {
+            controller.abort();
+        });
     }
     const init = {
         method: req.method,
         headers: new Headers(Array.from(req)),
         body: req.body || undefined,
-        signal
+        signal,
     };
     try {
         const resp = await fetch(req.url, init);
@@ -29,15 +31,17 @@ export async function getUrl(req, _signal) {
             headers[key.toLowerCase()] = value;
         });
         const respBody = await resp.arrayBuffer();
-        const body = (respBody == null) ? null : new Uint8Array(respBody);
+        const body = respBody == null ? null : new Uint8Array(respBody);
         return {
             statusCode: resp.status,
             statusMessage: resp.statusText,
-            headers, body
+            headers,
+            body,
         };
     }
     catch (error) {
         console.log({ error });
+        return undefined;
     }
 }
 //# sourceMappingURL=geturl-browser.js.map

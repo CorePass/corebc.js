@@ -24,15 +24,16 @@ exports.MaxUint256 = BigInt("0xfffffffffffffffffffffffffffffffffffffffffffffffff
  *
  *  (**i.e.** ``-8000000000000000000000000000000000000000000000000000000000000000n``)
  */
-exports.MinInt256 = BigInt("0x8000000000000000000000000000000000000000000000000000000000000000") * BigInt(-1);
+exports.MinInt256 = BigInt("0x8000000000000000000000000000000000000000000000000000000000000000") *
+    BigInt(-1);
 /**
  *  A constant for the maximum value for an ``int256``.
  *
  *  (**i.e.** ``0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffn``)
  */
 exports.MaxInt256 = BigInt("0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
-exports.NegativeOne = ( /*#__PURE__*/BigInt(-1));
-exports.Zero = ( /*#__PURE__*/BigInt(0));
-exports.One = ( /*#__PURE__*/BigInt(1));
-exports.Two = ( /*#__PURE__*/BigInt(2));
+exports.NegativeOne = BigInt(-1);
+exports.Zero = BigInt(0);
+exports.One = BigInt(1);
+exports.Two = BigInt(2);
 //# sourceMappingURL=numbers.js.map

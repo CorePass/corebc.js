@@ -2,7 +2,7 @@
 import { hexlify, isBytesLike } from "../index.js";
 import { Logger } from "../logger/logger.js";
 import { arrayify } from "../utils/data.js";
-const logger = new Logger('rlp/0.0.1');
+const logger = new Logger("rlp/0.0.1");
 function arrayifyInteger(value) {
     const result = [];
     while (value) {
@@ -15,7 +15,7 @@ function arrayifyInteger(value) {
 function unarrayifyInteger(data, offset, length) {
     let result = 0;
     for (let i = 0; i < length; i++) {
-        result = (result * 256) + data[offset + i];
+        result = result * 256 + data[offset + i];
     }
     return result;
 }
@@ -61,7 +61,7 @@ function _decodeChildren(data, offset, childOffset, length) {
             logger.throwError("child data too short", Logger.errors.BUFFER_OVERRUN, {});
         }
     }
-    return { consumed: (1 + length), result: result };
+    return { consumed: 1 + length, result: result };
 }
 // returns { consumed: number, result: Object }
 function _decode(data, offset) {
@@ -97,7 +97,7 @@ function _decode(data, offset) {
             logger.throwError("data array too short", Logger.errors.BUFFER_OVERRUN, {});
         }
         const result = hexlify(data.slice(offset + 1 + lengthLength, offset + 1 + lengthLength + length));
-        return { consumed: (1 + lengthLength + length), result: result };
+        return { consumed: 1 + lengthLength + length, result: result };
     }
     else if (data[offset] >= 0x80) {
         const length = data[offset] - 0x80;
@@ -105,7 +105,7 @@ function _decode(data, offset) {
             logger.throwError("data too short", Logger.errors.BUFFER_OVERRUN, {});
         }
         const result = hexlify(data.slice(offset + 1, offset + 1 + length));
-        return { consumed: (1 + length), result: result };
+        return { consumed: 1 + length, result: result };
     }
     return { consumed: 1, result: hexlify(data[offset]) };
 }

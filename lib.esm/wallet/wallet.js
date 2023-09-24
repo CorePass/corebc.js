@@ -3,11 +3,15 @@ import { assertArgument } from "../utils/index.js";
 import { BaseWallet } from "./base-wallet.js";
 import { defaultPath, HDNodeWallet } from "./hdwallet.js";
 import { decryptCrowdsaleJson, isCrowdsaleJson } from "./json-crowdsale.js";
-import { decryptKeystoreJson, decryptKeystoreJsonSync, encryptKeystoreJson, encryptKeystoreJsonSync, isKeystoreJson } from "./json-keystore.js";
+import { decryptKeystoreJson, decryptKeystoreJsonSync, encryptKeystoreJson, encryptKeystoreJsonSync, isKeystoreJson, } from "./json-keystore.js";
 import { Mnemonic } from "./mnemonic.js";
 import { extractPrefix } from "../transaction/address.js";
 function stall(duration) {
-    return new Promise((resolve) => { setTimeout(() => { resolve(); }, duration); });
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            resolve();
+        }, duration);
+    });
 }
 /**
  *  A **Wallet** manages a single private key which is used to sign
@@ -24,18 +28,22 @@ export class Wallet extends BaseWallet {
      *  Create a new wallet for the %%privateKey%% or %%signingKey%%, optionally connected
      *  to %%provider%%.
      */
-    constructor({ key, prefix, provider }) {
-        if (typeof (key) === "string" && !key.startsWith("0x")) {
+    constructor({ key, prefix, provider, }) {
+        if (typeof key === "string" && !key.startsWith("0x")) {
             key = "0x" + key;
         }
-        let signingKey = (typeof (key) === "string") ? new SigningKey(key) : key;
+        let signingKey = typeof key === "string" ? new SigningKey(key) : key;
         super({
-            signingKey, prefix, provider
+            signingKey,
+            prefix,
+            provider,
         });
     }
     connect(provider) {
         return new Wallet({
-            key: this.signingKey, prefix: this.prefix, provider
+            key: this.signingKey,
+            prefix: this.prefix,
+            provider,
         });
     }
     /**
@@ -67,16 +75,20 @@ export class Wallet extends BaseWallet {
         assertArgument(account, "invalid JSON wallet", "json", "[ REDACTED ]");
         const address = account.address;
         const prefix = extractPrefix(address);
-        if ("mnemonic" in account && account.mnemonic && account.mnemonic.locale === "en") {
+        if ("mnemonic" in account &&
+            account.mnemonic &&
+            account.mnemonic.locale === "en") {
             const mnemonic = Mnemonic.fromEntropy(account.mnemonic.entropy);
             const wallet = HDNodeWallet.fromMnemonic(mnemonic, prefix, account.mnemonic.path);
-            if (wallet.address === account.address && wallet.privateKey === account.privateKey) {
+            if (wallet.address === account.address &&
+                wallet.privateKey === account.privateKey) {
                 return wallet;
             }
             console.log("WARNING: JSON mismatch address/privateKey != mnemonic; fallback onto private key");
         }
         const wallet = new Wallet({
-            key: account.privateKey, prefix
+            key: account.privateKey,
+            prefix,
         });
         assertArgument(wallet.address === account.address, "address/privateKey mismatch", "json", "[ REDACTED ]");
         return wallet;
@@ -142,22 +154,22 @@ export class Wallet extends BaseWallet {
     /**
      *  Creates a [[HDNodeWallet]] for %%phrase%%.
      */
-    static fromPhrase({ phrase, prefix, provider, password }) {
+    static fromPhrase({ phrase, prefix, provider, password, }) {
         const wallet = HDNodeWallet.fromPhrase({
             phrase,
             prefix,
-            password
+            password,
         });
         if (provider) {
             return wallet.connect(provider);
         }
         return wallet;
     }
-    static fromSeed({ seed, prefix, provider, path }) {
+    static fromSeed({ seed, prefix, provider, path, }) {
         const wallet = HDNodeWallet.fromSeed({
             seed,
             prefix,
-            path: path || defaultPath
+            path: path || defaultPath,
         });
         if (provider) {
             return wallet.connect(provider);

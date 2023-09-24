@@ -17,7 +17,7 @@ const SLOT_INTERVAL = 250;
 // The global FetchGetUrlFunc implementation.
 let getUrlFunc = geturl_js_1.getUrl;
 const reData = new RegExp("^data:([^;:]*)?(;base64)?,(.*)$", "i");
-const reIpfs = new RegExp("^ipfs:/\/(ipfs/)?(.*)$", "i");
+const reIpfs = new RegExp("^ipfs://(ipfs/)?(.*)$", "i");
 // If locked, new Gateways cannot be added
 let locked = false;
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URLs
@@ -28,8 +28,8 @@ async function dataGatewayFunc(url, signal) {
             throw new Error("invalid data");
         }
         return new FetchResponse(200, "OK", {
-            "content-type": (match[1] || "text/plain"),
-        }, (match[2] ? (0, base64_js_1.decodeBase64)(match[3]) : unpercent(match[3])));
+            "content-type": match[1] || "text/plain",
+        }, match[2] ? (0, base64_js_1.decodeBase64)(match[3]) : unpercent(match[3]));
     }
     catch (error) {
         return new FetchResponse(599, "BAD REQUEST (invalid data: URI)", {}, null, new FetchRequest(url));
@@ -55,8 +55,8 @@ function getIpfsGatewayFunc(baseUrl) {
     return gatewayIpfs;
 }
 const Gateways = {
-    "data": dataGatewayFunc,
-    "ipfs": getIpfsGatewayFunc("https:/\/gateway.ipfs.io/ipfs/")
+    data: dataGatewayFunc,
+    ipfs: getIpfsGatewayFunc("https://gateway.ipfs.io/ipfs/"),
 };
 const fetchSignals = new WeakMap();
 /**
@@ -74,18 +74,22 @@ class FetchCancelSignal {
             }
             this.#cancelled = true;
             for (const listener of this.#listeners) {
-                setTimeout(() => { listener(); }, 0);
+                setTimeout(() => {
+                    listener();
+                }, 0);
             }
             this.#listeners = [];
         });
     }
     addListener(listener) {
         (0, errors_js_1.assert)(!this.#cancelled, "singal already cancelled", "UNSUPPORTED_OPERATION", {
-            operation: "fetchCancelSignal.addCancelListener"
+            operation: "fetchCancelSignal.addCancelListener",
         });
         this.#listeners.push(listener);
     }
-    get cancelled() { return this.#cancelled; }
+    get cancelled() {
+        return this.#cancelled;
+    }
     checkSignal() {
         (0, errors_js_1.assert)(!this.cancelled, "cancelled", "CANCELLED", {});
     }
@@ -132,7 +136,9 @@ class FetchRequest {
     /**
      *  The fetch URI to requrest.
      */
-    get url() { return this.#url; }
+    get url() {
+        return this.#url;
+    }
     set url(url) {
         this.#url = String(url);
     }
@@ -166,7 +172,7 @@ class FetchRequest {
             this.#body = undefined;
             this.#bodyType = undefined;
         }
-        else if (typeof (body) === "string") {
+        else if (typeof body === "string") {
             this.#body = (0, utf8_js_1.toUtf8Bytes)(body);
             this.#bodyType = "text/plain";
         }
@@ -174,7 +180,7 @@ class FetchRequest {
             this.#body = body;
             this.#bodyType = "application/octet-stream";
         }
-        else if (typeof (body) === "object") {
+        else if (typeof body === "object") {
             this.#body = (0, utf8_js_1.toUtf8Bytes)(JSON.stringify(body));
             this.#bodyType = "application/json";
         }
@@ -186,7 +192,7 @@ class FetchRequest {
      *  Returns true if the request has a body.
      */
     hasBody() {
-        return (this.#body != null);
+        return this.#body != null;
     }
     /**
      *  The HTTP method to use when requesting the URI. If no method
@@ -222,7 +228,6 @@ class FetchRequest {
         if (this.#creds) {
             headers["authorization"] = `Basic ${(0, base64_js_1.encodeBase64)((0, utf8_js_1.toUtf8Bytes)(this.#creds))}`;
         }
-        ;
         if (this.allowGzip) {
             headers["accept-encoding"] = "gzip";
         }
@@ -262,11 +267,12 @@ class FetchRequest {
                 if (index < keys.length) {
                     const key = keys[index++];
                     return {
-                        value: [key, headers[key]], done: false
+                        value: [key, headers[key]],
+                        done: false,
                     };
                 }
                 return { value: undefined, done: true };
-            }
+            },
         };
     }
     /**
@@ -308,7 +314,9 @@ class FetchRequest {
      *  The timeout (in milliseconds) to wait for a complere response.
      *  //(default: 5 minutes)//
      */
-    get timeout() { return this.#timeout; }
+    get timeout() {
+        return this.#timeout;
+    }
     set timeout(timeout) {
         (0, errors_js_1.assertArgument)(timeout >= 0, "timeout must be non-zero", "timeout", timeout);
         this.#timeout = timeout;
@@ -366,7 +374,7 @@ class FetchRequest {
         this.#timeout = 300000;
         this.#throttle = {
             slotInterval: SLOT_INTERVAL,
-            maxAttempts: MAX_ATTEMPTS
+            maxAttempts: MAX_ATTEMPTS,
         };
     }
     toString() {
@@ -389,7 +397,9 @@ class FetchRequest {
             return _response.makeServerError("exceeded maximum retry limit");
         }
         (0, errors_js_1.assert)(getTime() <= expires, "timeout", "TIMEOUT", {
-            operation: "request.send", reason: "timeout", request: _request
+            operation: "request.send",
+            reason: "timeout",
+            request: _request,
         });
         if (delay > 0) {
             await wait(delay);
@@ -408,8 +418,10 @@ class FetchRequest {
                     }
                     catch (error) {
                         // Something went wrong during processing; throw a 5xx server error
-                        if (error.throttle == null || typeof (error.stall) !== "number") {
-                            response.makeServerError("error in post-processing function", error).assertOk();
+                        if (error.throttle == null || typeof error.stall !== "number") {
+                            response
+                                .makeServerError("error in post-processing function", error)
+                                .assertOk();
                         }
                         // Ignore throttling
                     }
@@ -428,7 +440,9 @@ class FetchRequest {
             // Redirect
             try {
                 const location = response.headers.location || "";
-                return req.redirect(location).#send(attempt + 1, expires, 0, _request, response);
+                return req
+                    .redirect(location)
+                    .#send(attempt + 1, expires, 0, _request, response);
             }
             catch (error) { }
             // Things won't get any better on another attempt; abort
@@ -436,13 +450,18 @@ class FetchRequest {
         }
         else if (response.statusCode === 429) {
             // Throttle
-            if (this.retryFunc == null || (await this.retryFunc(req, response, attempt))) {
+            if (this.retryFunc == null ||
+                (await this.retryFunc(req, response, attempt))) {
                 const retryAfter = response.headers["retry-after"];
-                let delay = this.#throttle.slotInterval * Math.trunc(Math.random() * Math.pow(2, attempt));
-                if (typeof (retryAfter) === "string" && retryAfter.match(/^[1-9][0-9]*$/)) {
+                let delay = this.#throttle.slotInterval *
+                    Math.trunc(Math.random() * Math.pow(2, attempt));
+                if (typeof retryAfter === "string" &&
+                    retryAfter.match(/^[1-9][0-9]*$/)) {
                     delay = parseInt(retryAfter);
                 }
-                return req.clone().#send(attempt + 1, expires, delay, _request, response);
+                return req
+                    .clone()
+                    .#send(attempt + 1, expires, delay, _request, response);
             }
         }
         if (this.processFunc) {
@@ -452,16 +471,20 @@ class FetchRequest {
             }
             catch (error) {
                 // Something went wrong during processing; throw a 5xx server error
-                if (error.throttle == null || typeof (error.stall) !== "number") {
-                    response.makeServerError("error in post-processing function", error).assertOk();
+                if (error.throttle == null || typeof error.stall !== "number") {
+                    response
+                        .makeServerError("error in post-processing function", error)
+                        .assertOk();
                 }
                 // Throttle
-                let delay = this.#throttle.slotInterval * Math.trunc(Math.random() * Math.pow(2, attempt));
-                ;
+                let delay = this.#throttle.slotInterval *
+                    Math.trunc(Math.random() * Math.pow(2, attempt));
                 if (error.stall >= 0) {
                     delay = error.stall;
                 }
-                return req.clone().#send(attempt + 1, expires, delay, _request, response);
+                return req
+                    .clone()
+                    .#send(attempt + 1, expires, delay, _request, response);
             }
         }
         return response;
@@ -498,8 +521,10 @@ class FetchRequest {
         // - non-GET requests
         // - downgrading the security (e.g. https => http)
         // - to non-HTTP (or non-HTTPS) protocols [this could be relaxed?]
-        (0, errors_js_1.assert)(this.method === "GET" && (current !== "https" || target !== "http") && location.match(/^https?:/), `unsupported redirect`, "UNSUPPORTED_OPERATION", {
-            operation: `redirect(${this.method} ${JSON.stringify(this.url)} => ${JSON.stringify(location)})`
+        (0, errors_js_1.assert)(this.method === "GET" &&
+            (current !== "https" || target !== "http") &&
+            location.match(/^https?:/), `unsupported redirect`, "UNSUPPORTED_OPERATION", {
+            operation: `redirect(${this.method} ${JSON.stringify(this.url)} => ${JSON.stringify(location)})`,
         });
         // Create a copy of this request, with a new URL
         const req = new FetchRequest(location);
@@ -614,7 +639,6 @@ class FetchRequest {
     }
 }
 exports.FetchRequest = FetchRequest;
-;
 /**
  *  The response for a FetchREquest.
  */
@@ -631,20 +655,26 @@ class FetchResponse {
     /**
      *  The response status code.
      */
-    get statusCode() { return this.#statusCode; }
+    get statusCode() {
+        return this.#statusCode;
+    }
     /**
      *  The response status message.
      */
-    get statusMessage() { return this.#statusMessage; }
+    get statusMessage() {
+        return this.#statusMessage;
+    }
     /**
      *  The response headers. All keys are lower-case.
      */
-    get headers() { return Object.assign({}, this.#headers); }
+    get headers() {
+        return Object.assign({}, this.#headers);
+    }
     /**
      *  The response body, or ``null`` if there was no body.
      */
     get body() {
-        return (this.#body == null) ? null : new Uint8Array(this.#body);
+        return this.#body == null ? null : new Uint8Array(this.#body);
     }
     /**
      *  The response body as a UTF-8 encoded string, or the empty
@@ -654,11 +684,12 @@ class FetchResponse {
      */
     get bodyText() {
         try {
-            return (this.#body == null) ? "" : (0, utf8_js_1.toUtf8String)(this.#body);
+            return this.#body == null ? "" : (0, utf8_js_1.toUtf8String)(this.#body);
         }
         catch (error) {
             (0, errors_js_1.assert)(false, "response body is not valid UTF-8 data", "UNSUPPORTED_OPERATION", {
-                operation: "bodyText", info: { response: this }
+                operation: "bodyText",
+                info: { response: this },
             });
         }
     }
@@ -674,7 +705,8 @@ class FetchResponse {
         }
         catch (error) {
             (0, errors_js_1.assert)(false, "response body is not valid JSON", "UNSUPPORTED_OPERATION", {
-                operation: "bodyJson", info: { response: this }
+                operation: "bodyJson",
+                info: { response: this },
             });
         }
     }
@@ -687,11 +719,12 @@ class FetchResponse {
                 if (index < keys.length) {
                     const key = keys[index++];
                     return {
-                        value: [key, headers[key]], done: false
+                        value: [key, headers[key]],
+                        done: false,
                     };
                 }
                 return { value: undefined, done: true };
-            }
+            },
         };
     }
     constructor(statusCode, statusMessage, headers, body, request) {
@@ -701,8 +734,8 @@ class FetchResponse {
             accum[k.toLowerCase()] = String(headers[k]);
             return accum;
         }, {});
-        this.#body = ((body == null) ? null : new Uint8Array(body));
-        this.#request = (request || null);
+        this.#body = body == null ? null : new Uint8Array(body);
+        this.#request = request || null;
         this.#error = { message: "" };
     }
     /**
@@ -749,17 +782,21 @@ class FetchResponse {
      *  Returns true of the response has a body.
      */
     hasBody() {
-        return (this.#body != null);
+        return this.#body != null;
     }
     /**
      *  The request made for this response.
      */
-    get request() { return this.#request; }
+    get request() {
+        return this.#request;
+    }
     /**
      *  Returns true if this response was a success statusCode.
      */
     ok() {
-        return (this.#error.message === "" && this.statusCode >= 200 && this.statusCode < 300);
+        return (this.#error.message === "" &&
+            this.statusCode >= 200 &&
+            this.statusCode < 300);
     }
     /**
      *  Throws a ``SERVER_ERROR`` if this response is not ok.
@@ -773,12 +810,16 @@ class FetchResponse {
             message = `server response ${this.statusCode} ${this.statusMessage}`;
         }
         (0, errors_js_1.assert)(false, message, "SERVER_ERROR", {
-            request: (this.request || "unknown request"), response: this, error
+            request: this.request || "unknown request",
+            response: this,
+            error,
         });
     }
 }
 exports.FetchResponse = FetchResponse;
-function getTime() { return (new Date()).getTime(); }
+function getTime() {
+    return new Date().getTime();
+}
 function unpercent(value) {
     return (0, utf8_js_1.toUtf8Bytes)(value.replace(/%([0-9a-f][0-9a-f])/gi, (all, code) => {
         return String.fromCharCode(parseInt(code, 16));

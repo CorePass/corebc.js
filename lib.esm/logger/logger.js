@@ -1,7 +1,14 @@
 "use strict";
 let _permanentCensorErrors = false;
 let _censorErrors = false;
-const LogLevels = { debug: 1, "default": 2, info: 2, warning: 3, error: 4, off: 5 };
+const LogLevels = {
+    debug: 1,
+    default: 2,
+    info: 2,
+    warning: 3,
+    error: 4,
+    off: 5,
+};
 let _logLevel = LogLevels["default"];
 let _globalLogger = null;
 function _checkNormalize() {
@@ -13,7 +20,6 @@ function _checkNormalize() {
                 if ("test".normalize(form) !== "test") {
                     throw new Error("bad normalize");
                 }
-                ;
             }
             catch (error) {
                 missing.push(form);
@@ -22,7 +28,8 @@ function _checkNormalize() {
         if (missing.length) {
             throw new Error("missing " + missing.join(", "));
         }
-        if (String.fromCharCode(0xe9).normalize("NFD") !== String.fromCharCode(0x65, 0x0301)) {
+        if (String.fromCharCode(0xe9).normalize("NFD") !==
+            String.fromCharCode(0x65, 0x0301)) {
             throw new Error("broken implementation");
         }
     }
@@ -114,17 +121,16 @@ export var ErrorCode;
     //   - receipt: the receipt of the replacement
     ErrorCode["TRANSACTION_REPLACED"] = "TRANSACTION_REPLACED";
 })(ErrorCode || (ErrorCode = {}));
-;
 const HEX = "0123456789abcdef";
 export class Logger {
-    version = '0.0.1';
+    version = "0.0.1";
     static errors = ErrorCode;
     static levels = LogLevel;
     constructor(version) {
         Object.defineProperty(this, "version", {
             enumerable: true,
             value: version,
-            writable: false
+            writable: false,
         });
     }
     _log(logLevel, args) {
@@ -198,7 +204,7 @@ export class Logger {
     throwArgumentError(message, name, value) {
         return this.throwError(message, Logger.errors.INVALID_ARGUMENT, {
             argument: name,
-            value: value
+            value: value,
         });
     }
     assert(condition, message, code, params) {
@@ -219,12 +225,13 @@ export class Logger {
         }
         if (_normalizeError) {
             this.throwError("platform missing String.prototype.normalize", Logger.errors.UNSUPPORTED_OPERATION, {
-                operation: "String.prototype.normalize", form: _normalizeError
+                operation: "String.prototype.normalize",
+                form: _normalizeError,
             });
         }
     }
     checkSafeUint53(value, message) {
-        if (typeof (value) !== "number") {
+        if (typeof value !== "number") {
             return;
         }
         if (message == null) {
@@ -234,14 +241,14 @@ export class Logger {
             this.throwError(message, Logger.errors.NUMERIC_FAULT, {
                 operation: "checkSafeInteger",
                 fault: "out-of-safe-range",
-                value: value
+                value: value,
             });
         }
         if (value % 1) {
             this.throwError(message, Logger.errors.NUMERIC_FAULT, {
                 operation: "checkSafeInteger",
                 fault: "non-integer",
-                value: value
+                value: value,
             });
         }
     }
@@ -255,39 +262,45 @@ export class Logger {
         if (count < expectedCount) {
             this.throwError("missing argument" + message, Logger.errors.MISSING_ARGUMENT, {
                 count: count,
-                expectedCount: expectedCount
+                expectedCount: expectedCount,
             });
         }
         if (count > expectedCount) {
             this.throwError("too many arguments" + message, Logger.errors.UNEXPECTED_ARGUMENT, {
                 count: count,
-                expectedCount: expectedCount
+                expectedCount: expectedCount,
             });
         }
     }
     checkNew(target, kind) {
         if (target === Object || target == null) {
-            this.throwError("missing new", Logger.errors.MISSING_NEW, { name: kind.name });
+            this.throwError("missing new", Logger.errors.MISSING_NEW, {
+                name: kind.name,
+            });
         }
     }
     checkAbstract(target, kind) {
         if (target === kind) {
-            this.throwError("cannot instantiate abstract class " + JSON.stringify(kind.name) + " directly; use a sub-class", Logger.errors.UNSUPPORTED_OPERATION, { name: target.name, operation: "new" });
+            this.throwError("cannot instantiate abstract class " +
+                JSON.stringify(kind.name) +
+                " directly; use a sub-class", Logger.errors.UNSUPPORTED_OPERATION, { name: target.name, operation: "new" });
         }
         else if (target === Object || target == null) {
-            this.throwError("missing new", Logger.errors.MISSING_NEW, { name: kind.name });
+            this.throwError("missing new", Logger.errors.MISSING_NEW, {
+                name: kind.name,
+            });
         }
     }
     static globalLogger() {
         if (!_globalLogger) {
-            _globalLogger = new Logger('logger/0.0.1');
+            _globalLogger = new Logger("logger/0.0.1");
         }
         return _globalLogger;
     }
     static setCensorship(censorship, permanent) {
         if (!censorship && permanent) {
             this.globalLogger().throwError("cannot permanently disable censorship", Logger.errors.UNSUPPORTED_OPERATION, {
-                operation: "setCensorship"
+                operation: "setCensorship",
             });
         }
         if (_permanentCensorErrors) {
@@ -295,7 +308,7 @@ export class Logger {
                 return;
             }
             this.globalLogger().throwError("error censorship permanent", Logger.errors.UNSUPPORTED_OPERATION, {
-                operation: "setCensorship"
+                operation: "setCensorship",
             });
         }
         _censorErrors = !!censorship;

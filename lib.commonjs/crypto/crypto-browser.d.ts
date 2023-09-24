@@ -1,6 +1,6 @@
-import ed448 from './browser-ed448.js';
+import ed448 from "./browser-ed448.js";
 export { ed448 };
-export { Ed448Goldilock } from './ed448goldilock-browser.js';
+export { Ed448Goldilock } from "./ed448goldilock-browser.js";
 declare global {
     interface Window {
     }

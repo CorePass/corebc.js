@@ -62,7 +62,7 @@ function getBuiltinCallException(action, tx, data, abiCoder) {
                 revert = {
                     signature: "Error(string)",
                     name: "Error",
-                    args: [reason]
+                    args: [reason],
                 };
                 message += `: ${JSON.stringify(reason)}`;
             }
@@ -77,7 +77,7 @@ function getBuiltinCallException(action, tx, data, abiCoder) {
                 revert = {
                     signature: "Panic(uint256)",
                     name: "Panic",
-                    args: [code]
+                    args: [code],
                 };
                 reason = `Panic due to ${PanicReasons.get(code) || "UNKNOWN"}(${code})`;
                 message += `: ${reason}`;
@@ -91,19 +91,24 @@ function getBuiltinCallException(action, tx, data, abiCoder) {
         }
     }
     const transaction = {
-        to: (tx.to ? getAddress(tx.to) : null),
-        data: (tx.data || "0x")
+        to: tx.to ? getAddress(tx.to) : null,
+        data: tx.data || "0x",
     };
     if (tx.from) {
         transaction.from = getAddress(tx.from);
     }
     return makeError(message, "CALL_EXCEPTION", {
-        action, data, reason, transaction, invocation, revert
+        action,
+        data,
+        reason,
+        transaction,
+        invocation,
+        revert,
     });
 }
 /**
-  * About AbiCoder
-  */
+ * About AbiCoder
+ */
 export class AbiCoder {
     #getCoder(param) {
         if (param.isArray()) {
@@ -128,8 +133,8 @@ export class AbiCoder {
         let match = param.type.match(paramTypeNumber);
         if (match) {
             let size = parseInt(match[2] || "256");
-            assertArgument(size !== 0 && size <= 256 && (size % 8) === 0, "invalid " + match[1] + " bit length", "param", param);
-            return new NumberCoder(size / 8, (match[1] === "int"), param.name);
+            assertArgument(size !== 0 && size <= 256 && size % 8 === 0, "invalid " + match[1] + " bit length", "param", param);
+            return new NumberCoder(size / 8, match[1] === "int", param.name);
         }
         // bytes[0-9]+
         match = param.type.match(paramTypeBytes);
@@ -159,7 +164,7 @@ export class AbiCoder {
     encode(types, values) {
         assertArgumentCount(values.length, types.length, "types/values length mismatch");
         const coders = types.map((type) => this.#getCoder(ParamType.from(type)));
-        const coder = (new TupleCoder(coders, "_"));
+        const coder = new TupleCoder(coders, "_");
         const writer = new Writer();
         coder.encode(writer, values);
         return writer.data;

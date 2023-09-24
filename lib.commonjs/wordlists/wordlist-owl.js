@@ -32,7 +32,9 @@ class WordlistOwl extends wordlist_js_1.Wordlist {
         this.#checksum = checksum;
         this.#words = null;
     }
-    get _data() { return this.#data; }
+    get _data() {
+        return this.#data;
+    }
     _decodeWords() {
         return (0, decode_owl_js_1.decodeOwl)(this.#data);
     }

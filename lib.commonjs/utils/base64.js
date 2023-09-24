@@ -30,7 +30,6 @@ function decodeBase64(value) {
     return (0, data_js_1.getBytesCopy)(Buffer.from(value, "base64"));
 }
 exports.decodeBase64 = decodeBase64;
-;
 /**
  *  Encodes %%data%% as a base-64 encoded string.
  *

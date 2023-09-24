@@ -20,7 +20,9 @@ class LangEs extends wordlist_owla_js_1.WordlistOwlA {
      *
      *  @_ignore:
      */
-    constructor() { super("es", words, accents, checksum); }
+    constructor() {
+        super("es", words, accents, checksum);
+    }
     /**
      *  Returns a singleton instance of a ``LangEs``, creating it
      *  if this is the first time being called.

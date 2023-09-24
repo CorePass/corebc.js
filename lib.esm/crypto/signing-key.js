@@ -4,12 +4,12 @@
  *  @_subsection: api/crypto:Signing  [about-signing]
  */
 import * as secp256k1 from "@noble/secp256k1";
-import { dataLength, getBytes, getBytesCopy, hexlify, assertArgument } from "../utils/index.js";
+import { dataLength, getBytes, getBytesCopy, hexlify, assertArgument, } from "../utils/index.js";
 import { arrayify, hexConcat } from "../utils/data.js";
 import { Logger } from "../logger/logger.js";
 import { ed448 } from "./crypto.js";
-import { Buffer } from 'buffer';
-const logger = new Logger('signing-key/0.0.1');
+import { Buffer } from "buffer";
+const logger = new Logger("signing-key/0.0.1");
 //const N = BigInt("0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141");
 // Make noble-secp256k1 sync
 /**
@@ -22,20 +22,24 @@ export class SigningKey {
      *  Creates a new **SigningKey** for %%privateKey%%.
      */
     constructor(privateKey) {
-        assertArgument(dataLength('0x' + privateKey) === 57, "invalid private key", "privateKey", "[REDACTED]");
-        this.#privateKey = hexlify('0x' + privateKey);
+        assertArgument(dataLength("0x" + privateKey) === 57, "invalid private key", "privateKey", "[REDACTED]");
+        this.#privateKey = hexlify("0x" + privateKey);
     }
     /**
      *  The private key.
      */
-    get privateKey() { return this.#privateKey; }
+    get privateKey() {
+        return this.#privateKey;
+    }
     /**
      *  The uncompressed public key.
      *
      * This will always begin with the prefix ``0x04`` and be 132
      * characters long (the ``0x`` prefix and 130 hexadecimal nibbles).
      */
-    get publicKey() { return SigningKey.computePublicKey(this.#privateKey); }
+    get publicKey() {
+        return SigningKey.computePublicKey(this.#privateKey);
+    }
     /**
      *  The compressed public key.
      *
@@ -43,7 +47,9 @@ export class SigningKey {
      *  and be 68 characters long (the ``0x`` prefix and 33 hexadecimal
      *  nibbles)
      */
-    get compressedPublicKey() { return SigningKey.computePublicKey(this.#privateKey, true); }
+    get compressedPublicKey() {
+        return SigningKey.computePublicKey(this.#privateKey, true);
+    }
     /**
      *  Return the signature of the signed %%digest%%.
      */

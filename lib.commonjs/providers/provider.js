@@ -43,7 +43,6 @@ class FeeData {
     }
 }
 exports.FeeData = FeeData;
-;
 function copyRequest(req) {
     const result = {};
     // These could be addresses, ENS names or Addressables
@@ -161,7 +160,7 @@ class Block {
      */
     constructor(block, provider) {
         this.#transactions = block.transactions.map((tx) => {
-            if (typeof (tx) !== "string") {
+            if (typeof tx !== "string") {
                 return new TransactionResponse(tx, provider);
             }
             return tx;
@@ -178,7 +177,7 @@ class Block {
             energyUsed: block.energyUsed,
             miner: block.miner,
             extraData: block.extraData,
-            baseFeePerEnergy: getValue(block.baseFeePerEnergy)
+            baseFeePerEnergy: getValue(block.baseFeePerEnergy),
         });
     }
     /**
@@ -186,7 +185,7 @@ class Block {
      */
     get transactions() {
         return this.#transactions.map((tx) => {
-            if (typeof (tx) === "string") {
+            if (typeof tx === "string") {
                 return tx;
             }
             return tx.hash;
@@ -204,8 +203,8 @@ class Block {
             return [];
         }
         // Make sure we prefetched the transactions
-        (0, index_js_1.assert)(typeof (txs[0]) === "object", "transactions were not prefetched with block request", "UNSUPPORTED_OPERATION", {
-            operation: "transactionResponses()"
+        (0, index_js_1.assert)(typeof txs[0] === "object", "transactions were not prefetched with block request", "UNSUPPORTED_OPERATION", {
+            operation: "transactionResponses()",
         });
         return txs;
     }
@@ -213,7 +212,7 @@ class Block {
      *  Returns a JSON-friendly value.
      */
     toJSON() {
-        const { baseFeePerEnergy, difficulty, extraData, energyLimit, energyUsed, hash, miner, nonce, number, parentHash, timestamp, transactions } = this;
+        const { baseFeePerEnergy, difficulty, extraData, energyLimit, energyUsed, hash, miner, nonce, number, parentHash, timestamp, transactions, } = this;
         return {
             _type: "Block",
             baseFeePerEnergy: toJson(baseFeePerEnergy),
@@ -221,7 +220,12 @@ class Block {
             extraData,
             energyLimit: toJson(energyLimit),
             energyUsed: toJson(energyUsed),
-            hash, miner, nonce, number, parentHash, timestamp,
+            hash,
+            miner,
+            nonce,
+            number,
+            parentHash,
+            timestamp,
             transactions,
         };
     }
@@ -232,17 +236,20 @@ class Block {
             next: () => {
                 if (index < this.length) {
                     return {
-                        value: txs[index++], done: false
+                        value: txs[index++],
+                        done: false,
                     };
                 }
                 return { value: undefined, done: true };
-            }
+            },
         };
     }
     /**
      *  The number of transactions in this block.
      */
-    get length() { return this.#transactions.length; }
+    get length() {
+        return this.#transactions.length;
+    }
     /**
      *  The [[link-js-date]] this block was included at.
      */
@@ -258,13 +265,13 @@ class Block {
     async getTransaction(indexOrHash) {
         // Find the internal value by its index or hash
         let tx = undefined;
-        if (typeof (indexOrHash) === "number") {
+        if (typeof indexOrHash === "number") {
             tx = this.#transactions[indexOrHash];
         }
         else {
             const hash = indexOrHash.toLowerCase();
             for (const v of this.#transactions) {
-                if (typeof (v) === "string") {
+                if (typeof v === "string") {
                     if (v !== hash) {
                         continue;
                     }
@@ -283,8 +290,8 @@ class Block {
         if (tx == null) {
             throw new Error("no such tx");
         }
-        if (typeof (tx) === "string") {
-            return (await this.provider.getTransaction(tx));
+        if (typeof tx === "string") {
+            return await this.provider.getTransaction(tx);
         }
         else {
             return tx;
@@ -292,7 +299,7 @@ class Block {
     }
     getPrefetchedTransaction(indexOrHash) {
         const txs = this.prefetchedTransactions;
-        if (typeof (indexOrHash) === "number") {
+        if (typeof indexOrHash === "number") {
             return txs[indexOrHash];
         }
         indexOrHash = indexOrHash.toLowerCase();
@@ -309,7 +316,9 @@ class Block {
      *  If true, the block has been typed-gaurded that all mined
      *  properties are non-null.
      */
-    isMined() { return !!this.hash; }
+    isMined() {
+        return !!this.hash;
+    }
     /**
      *
      */
@@ -353,11 +362,18 @@ class Log {
         });
     }
     toJSON() {
-        const { address, blockHash, blockNumber, data, index, removed, topics, transactionHash, transactionIndex } = this;
+        const { address, blockHash, blockNumber, data, index, removed, topics, transactionHash, transactionIndex, } = this;
         return {
             _type: "log",
-            address, blockHash, blockNumber, data, index,
-            removed, topics, transactionHash, transactionIndex
+            address,
+            blockHash,
+            blockNumber,
+            data,
+            index,
+            removed,
+            topics,
+            transactionHash,
+            transactionIndex,
         };
     }
     async getBlock() {
@@ -432,26 +448,37 @@ class TransactionReceipt {
             energyPrice: (tx.effectiveEnergyPrice || tx.energyPrice),
             //byzantium: tx.byzantium,
             status: tx.status,
-            root: tx.root
+            root: tx.root,
         });
     }
-    get logs() { return this.#logs; }
+    get logs() {
+        return this.#logs;
+    }
     toJSON() {
         const { to, from, contractAddress, hash, index, blockHash, blockNumber, logsBloom, logs, //byzantium,
-        status, root } = this;
+        status, root, } = this;
         return {
             _type: "TransactionReceipt",
-            blockHash, blockNumber,
+            blockHash,
+            blockNumber,
             //byzantium,
             contractAddress,
             cumulativeEnergyUsed: toJson(this.cumulativeEnergyUsed),
             from,
             energyPrice: toJson(this.energyPrice),
             energyUsed: toJson(this.energyUsed),
-            hash, index, logs, logsBloom, root, status, to
+            hash,
+            index,
+            logs,
+            logsBloom,
+            root,
+            status,
+            to,
         };
     }
-    get length() { return this.logs.length; }
+    get length() {
+        return this.logs.length;
+    }
     [Symbol.iterator]() {
         let index = 0;
         return {
@@ -460,7 +487,7 @@ class TransactionReceipt {
                     return { value: this.logs[index++], done: false };
                 }
                 return { value: undefined, done: true };
-            }
+            },
         };
     }
     get fee() {
@@ -481,7 +508,7 @@ class TransactionReceipt {
         return tx;
     }
     async getResult() {
-        return (await this.provider.getTransactionResult(this.hash));
+        return await this.provider.getTransactionResult(this.hash);
     }
     async confirmations() {
         return (await this.provider.getBlockNumber()) - this.blockNumber + 1;
@@ -603,8 +630,8 @@ class TransactionResponse {
      */
     constructor(tx, provider) {
         this.provider = provider;
-        this.blockNumber = (tx.blockNumber != null) ? tx.blockNumber : null;
-        this.blockHash = (tx.blockHash != null) ? tx.blockHash : null;
+        this.blockNumber = tx.blockNumber != null ? tx.blockNumber : null;
+        this.blockHash = tx.blockHash != null ? tx.blockHash : null;
         this.hash = tx.hash;
         this.index = tx.index;
         this.from = tx.from;
@@ -626,11 +653,16 @@ class TransactionResponse {
         return {
             _type: "TransactionReceipt",
             networkId: toJson(this.networkId),
-            data, from,
+            data,
+            from,
             energyLimit: toJson(this.energyLimit),
             energyPrice: toJson(this.energyPrice),
             hash,
-            nonce, signature, to, index, type,
+            nonce,
+            signature,
+            to,
+            index,
+            type,
             value: toJson(this.value),
         };
     }
@@ -674,11 +706,11 @@ class TransactionResponse {
      *  wait until enough confirmations have completed.
      */
     async wait(_confirms, _timeout) {
-        const confirms = (_confirms == null) ? 1 : _confirms;
-        const timeout = (_timeout == null) ? 0 : _timeout;
+        const confirms = _confirms == null ? 1 : _confirms;
+        const timeout = _timeout == null ? 0 : _timeout;
         let startBlock = this.#startBlock;
         let nextScan = -1;
-        let stopScanning = (startBlock === -1) ? true : false;
+        let stopScanning = startBlock === -1 ? true : false;
         const checkReplacement = async () => {
             // Get the current transaction count for this sender
             if (stopScanning) {
@@ -686,7 +718,7 @@ class TransactionResponse {
             }
             const { blockNumber, nonce } = await (0, index_js_1.resolveProperties)({
                 blockNumber: this.provider.getBlockNumber(),
-                nonce: this.provider.getTransactionCount(this.from)
+                nonce: this.provider.getTransactionCount(this.from),
             });
             // No transaction or our nonce has not been mined yet; but we
             // can start scanning later when we do start
@@ -740,23 +772,27 @@ class TransactionResponse {
                             return;
                         }
                         // We will retry this on the next block (this case could be optimized)
-                        if ((blockNumber - receipt.blockNumber + 1) < confirms) {
+                        if (blockNumber - receipt.blockNumber + 1 < confirms) {
                             return;
                         }
                         // The reason we were replaced
                         let reason = "replaced";
-                        if (tx.data === this.data && tx.to === this.to && tx.value === this.value) {
+                        if (tx.data === this.data &&
+                            tx.to === this.to &&
+                            tx.value === this.value) {
                             reason = "repriced";
                         }
-                        else if (tx.data === "0x" && tx.from === tx.to && tx.value === BN_0) {
+                        else if (tx.data === "0x" &&
+                            tx.from === tx.to &&
+                            tx.value === BN_0) {
                             reason = "cancelled";
                         }
                         (0, index_js_1.assert)(false, "transaction was replaced", "TRANSACTION_REPLACED", {
-                            cancelled: (reason === "replaced" || reason === "cancelled"),
+                            cancelled: reason === "replaced" || reason === "cancelled",
                             reason,
                             replacement: tx.replaceableTransaction(startBlock),
                             hash: tx.hash,
-                            receipt
+                            receipt,
                         });
                     }
                 }
@@ -781,16 +817,22 @@ class TransactionResponse {
         const waiter = new Promise((resolve, reject) => {
             // List of things to cancel when we have a result (one way or the other)
             const cancellers = [];
-            const cancel = () => { cancellers.forEach((c) => c()); };
+            const cancel = () => {
+                cancellers.forEach((c) => c());
+            };
             // On cancel, stop scanning for replacements
-            cancellers.push(() => { stopScanning = true; });
+            cancellers.push(() => {
+                stopScanning = true;
+            });
             // Set up any timeout requested
             if (timeout > 0) {
                 const timer = setTimeout(() => {
                     cancel();
                     reject((0, index_js_1.makeError)("wait for transaction timeout", "TIMEOUT"));
                 }, timeout);
-                cancellers.push(() => { clearTimeout(timer); });
+                cancellers.push(() => {
+                    clearTimeout(timer);
+                });
             }
             const txListener = async (receipt) => {
                 // Done; return it!
@@ -799,7 +841,9 @@ class TransactionResponse {
                     resolve(receipt);
                 }
             };
-            cancellers.push(() => { this.provider.off(this.hash, txListener); });
+            cancellers.push(() => {
+                this.provider.off(this.hash, txListener);
+            });
             this.provider.on(this.hash, txListener);
             // We support replacement detection; start checking
             if (startBlock >= 0) {
@@ -821,7 +865,9 @@ class TransactionResponse {
                         this.provider.once("block", replaceListener);
                     }
                 };
-                cancellers.push(() => { this.provider.off("block", replaceListener); });
+                cancellers.push(() => {
+                    this.provider.off("block", replaceListener);
+                });
                 this.provider.once("block", replaceListener);
             }
         });
@@ -839,7 +885,7 @@ class TransactionResponse {
      *  unmined transactions.
      */
     isMined() {
-        return (this.blockHash != null);
+        return this.blockHash != null;
     }
     /**
      *  Returns true if the transaction is a legacy (i.e. ``type == 0``)
@@ -849,7 +895,7 @@ class TransactionResponse {
      *  the ``null``-ness for hardfork-specific properties set correctly.
      */
     isLegacy() {
-        return (this.type === 0);
+        return this.type === 0;
     }
     /**
      *  Returns a filter which can be used to listen for orphan events
@@ -895,14 +941,17 @@ function createRemovedTransactionFilter(tx) {
     return { orphan: "drop-transaction", tx };
 }
 function createRemovedLogFilter(log) {
-    return { orphan: "drop-log", log: {
+    return {
+        orphan: "drop-log",
+        log: {
             transactionHash: log.transactionHash,
             blockHash: log.blockHash,
             blockNumber: log.blockNumber,
             address: log.address,
             data: log.data,
             topics: Object.freeze(log.topics.slice()),
-            index: log.index
-        } };
+            index: log.index,
+        },
+    };
 }
 //# sourceMappingURL=provider.js.map

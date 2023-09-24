@@ -8,8 +8,7 @@ import { Logger } from "../logger/logger.js";
 import * as RLP from "../crypto/rlp.js";
 import { BigNumber } from "../bigNumber/bigNumber.js";
 import { networkIdToPrefix } from "../address/index.js";
-import { Zero } from "../constants/numbers.js";
-const logger = new Logger('transaction/0.0.1');
+const logger = new Logger("transaction/0.0.1");
 const BN_0 = BigInt(0);
 function handleAddress(value) {
     if (value === "0x") {
@@ -21,7 +20,7 @@ function parse(data) {
     const handleNumber = (value) => {
         // @ts-ignore
         if (value === "0x") {
-            return Zero;
+            return BigNumber.from(0);
         }
         return BigNumber.from(value);
     };
@@ -67,13 +66,19 @@ const transactionFields = [
     { name: "data" },
 ];
 const allowedTransactionKeys = {
-    networkId: true, data: true, energyLimit: true, energyPrice: true, nonce: true, to: true, value: true
+    networkId: true,
+    data: true,
+    energyLimit: true,
+    energyPrice: true,
+    nonce: true,
+    to: true,
+    value: true,
 };
 function serialize(transaction, signature) {
     checkProperties(transaction, allowedTransactionKeys);
     const raw = [];
     (!!signature ? transactionFields : unsignedTransactionFields).forEach(function ({ numeric, maxLength, name, length }) {
-        let value = transaction[name] || ([]);
+        let value = transaction[name] || [];
         const options = {};
         if (numeric) {
             options.hexPad = "left";
@@ -82,13 +87,13 @@ function serialize(transaction, signature) {
         value = arrayify(tmpHexlified);
         // Fixed-width field
         if (length && value.length !== length && value.length > 0) {
-            logger.throwArgumentError("invalid length for " + name, ("transaction:" + name), value);
+            logger.throwArgumentError("invalid length for " + name, "transaction:" + name, value);
         }
         // Variable-width (with a maximum)
         if (maxLength) {
             value = stripZeros(value);
             if (value.length > maxLength) {
-                logger.throwArgumentError("invalid length for " + name, ("transaction:" + name), value);
+                logger.throwArgumentError("invalid length for " + name, "transaction:" + name, value);
             }
         }
         const hexlified = hexlify(value);
@@ -126,20 +131,30 @@ export class Transaction {
      *  The ``to`` address for the transaction or ``null`` if the
      *  transaction is an ``init`` transaction.
      */
-    get to() { return this.#to; }
+    get to() {
+        return this.#to;
+    }
     set to(value) {
-        this.#to = (value == null) ? null : getAddress(value);
+        this.#to = value == null ? null : getAddress(value);
     }
     /**
      *  The transaction nonce.
      */
-    get nonce() { return this.#nonce; }
-    set nonce(value) { this.#nonce = getNumber(value, "value"); }
+    get nonce() {
+        return this.#nonce;
+    }
+    set nonce(value) {
+        this.#nonce = getNumber(value, "value");
+    }
     /**
      *  The energy limit.
      */
-    get energyLimit() { return this.#energyLimit; }
-    set energyLimit(value) { this.#energyLimit = getBigInt(value); }
+    get energyLimit() {
+        return this.#energyLimit;
+    }
+    set energyLimit(value) {
+        this.#energyLimit = getBigInt(value);
+    }
     /**
      *  The energy price.
      *
@@ -154,32 +169,44 @@ export class Transaction {
         return value;
     }
     set energyPrice(value) {
-        this.#energyPrice = (value == null) ? null : getBigInt(value, "energyPrice");
+        this.#energyPrice = value == null ? null : getBigInt(value, "energyPrice");
     }
     /**
      *  The transaction data. For ``init`` transactions this is the
      *  deployment code.
      */
-    get data() { return this.#data; }
-    set data(value) { this.#data = hexlify(value); }
+    get data() {
+        return this.#data;
+    }
+    set data(value) {
+        this.#data = hexlify(value);
+    }
     /**
      *  The amount of xcb (in ore) to send in this transactions.
      */
-    get value() { return this.#value; }
+    get value() {
+        return this.#value;
+    }
     set value(value) {
         this.#value = getBigInt(value, "value");
     }
     /**
      *  The chain ID this transaction is valid on.
      */
-    get networkId() { return this.#networkId; }
-    set networkId(value) { this.#networkId = getBigInt(value); }
+    get networkId() {
+        return this.#networkId;
+    }
+    set networkId(value) {
+        this.#networkId = getBigInt(value);
+    }
     /**
      *  If signed, the signature for this transaction.
      */
-    get signature() { return this.#sig || null; }
+    get signature() {
+        return this.#sig || null;
+    }
     set signature(value) {
-        this.#sig = (value == null) ? null : value;
+        this.#sig = value == null ? null : value;
     }
     /**
      *  Creates a new Transaction with default values.
@@ -295,7 +322,7 @@ export class Transaction {
         if (tx == null) {
             return new Transaction();
         }
-        if (typeof (tx) === "string") {
+        if (typeof tx === "string") {
             const payload = getBytes(tx);
             return Transaction.from(parse(payload));
         }

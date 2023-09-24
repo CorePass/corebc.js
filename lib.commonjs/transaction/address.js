@@ -20,10 +20,9 @@ function publicToAddress(key, prefix) {
     return "0x" + prefix + checksum + removeHexPrefix(val);
 }
 exports.publicToAddress = publicToAddress;
-;
 function computeAddress(key, prefix) {
     let pubkey;
-    if (typeof (key) === "string") {
+    if (typeof key === "string") {
         pubkey = index_js_2.SigningKey.computePublicKey(key, false);
     }
     else {

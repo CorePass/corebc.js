@@ -12,8 +12,12 @@ class EventLog extends provider_js_1.Log {
         const args = iface.decodeEventLog(fragment, log.data, log.topics);
         (0, index_js_1.defineProperties)(this, { args, fragment, interface: iface });
     }
-    get eventName() { return this.fragment.name; }
-    get eventSignature() { return this.fragment.format(); }
+    get eventName() {
+        return this.fragment.name;
+    }
+    get eventSignature() {
+        return this.fragment.format();
+    }
 }
 exports.EventLog = EventLog;
 class ContractTransactionReceipt extends provider_js_1.TransactionReceipt {
@@ -24,7 +28,9 @@ class ContractTransactionReceipt extends provider_js_1.TransactionReceipt {
     }
     get logs() {
         return super.logs.map((log) => {
-            const fragment = log.topics.length ? this.#iface.getEvent(log.topics[0]) : null;
+            const fragment = log.topics.length
+                ? this.#iface.getEvent(log.topics[0])
+                : null;
             if (fragment) {
                 return new EventLog(log, this.#iface, fragment);
             }

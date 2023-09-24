@@ -47,14 +47,16 @@ class Result extends Array {
         // Can't just pass in ...items since an array of length 1
         // is a special case in the super.
         super(items.length);
-        items.forEach((item, index) => { this[index] = item; });
+        items.forEach((item, index) => {
+            this[index] = item;
+        });
         // Find all unique keys
         const nameCounts = names.reduce((accum, name) => {
-            if (typeof (name) === "string") {
+            if (typeof name === "string") {
                 accum.set(name, (accum.get(name) || 0) + 1);
             }
             return accum;
-        }, (new Map()));
+        }, new Map());
         // Remove any key thats not unique
         this.#names = Object.freeze(items.map((item, index) => {
             const name = names[index];
@@ -71,7 +73,7 @@ class Result extends Array {
         // Proxy indices and names so we can trap deferred errors
         return new Proxy(this, {
             get: (target, prop, receiver) => {
-                if (typeof (prop) === "string") {
+                if (typeof prop === "string") {
                     // Index accessor
                     if (prop.match(/^[0-9]+$/)) {
                         const index = (0, index_js_1.getNumber)(prop, "%index");
@@ -93,16 +95,18 @@ class Result extends Array {
                         // Make sure functions work with private variables
                         // See: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy#no_private_property_forwarding
                         return function (...args) {
-                            return value.apply((this === receiver) ? target : this, args);
+                            return value.apply(this === receiver ? target : this, args);
                         };
                     }
                     else if (!(prop in target)) {
                         // Possible name accessor
-                        return target.getValue.apply((this === receiver) ? target : this, [prop]);
+                        return target.getValue.apply(this === receiver ? target : this, [
+                            prop,
+                        ]);
                     }
                 }
                 return Reflect.get(target, prop, receiver);
-            }
+            },
         });
     }
     /**
@@ -130,7 +134,7 @@ class Result extends Array {
     toObject() {
         return this.#names.reduce((accum, name, index) => {
             (0, index_js_1.assert)(name != null, "value at index ${ index } unnamed", "UNSUPPORTED_OPERATION", {
-                operation: "toObject()"
+                operation: "toObject()",
             });
             // Add values for names that don't conflict
             if (!(name in accum)) {
@@ -253,7 +257,11 @@ function checkResultErrors(result) {
 exports.checkResultErrors = checkResultErrors;
 function getValue(value) {
     let bytes = (0, index_js_1.toBeArray)(value);
-    (0, index_js_1.assert)(bytes.length <= exports.WordSize, "value out-of-bounds", "BUFFER_OVERRUN", { buffer: bytes, length: exports.WordSize, offset: bytes.length });
+    (0, index_js_1.assert)(bytes.length <= exports.WordSize, "value out-of-bounds", "BUFFER_OVERRUN", {
+        buffer: bytes,
+        length: exports.WordSize,
+        offset: bytes.length,
+    });
     if (bytes.length !== exports.WordSize) {
         bytes = (0, index_js_1.getBytesCopy)((0, index_js_1.concat)([Padding.slice(bytes.length % exports.WordSize), bytes]));
     }
@@ -278,7 +286,10 @@ class Coder {
     dynamic;
     constructor(name, type, localName, dynamic) {
         (0, index_js_1.defineProperties)(this, { name, type, localName, dynamic }, {
-            name: "string", type: "string", localName: "string", dynamic: "boolean"
+            name: "string",
+            type: "string",
+            localName: "string",
+            dynamic: "boolean",
         });
     }
     _throwError(message, value) {
@@ -300,7 +311,9 @@ class Writer {
     get data() {
         return (0, index_js_1.concat)(this.#data);
     }
-    get length() { return this.#dataLength; }
+    get length() {
+        return this.#dataLength;
+    }
     #writeData(data) {
         this.#data.push(data);
         this.#dataLength += data.length;
@@ -350,21 +363,31 @@ class Reader {
         this.#data = (0, index_js_1.getBytesCopy)(data);
         this.#offset = 0;
     }
-    get data() { return (0, index_js_1.hexlify)(this.#data); }
-    get dataLength() { return this.#data.length; }
-    get consumed() { return this.#offset; }
-    get bytes() { return new Uint8Array(this.#data); }
+    get data() {
+        return (0, index_js_1.hexlify)(this.#data);
+    }
+    get dataLength() {
+        return this.#data.length;
+    }
+    get consumed() {
+        return this.#offset;
+    }
+    get bytes() {
+        return new Uint8Array(this.#data);
+    }
     #peekBytes(offset, length, loose) {
         let alignedLength = Math.ceil(length / exports.WordSize) * exports.WordSize;
         if (this.#offset + alignedLength > this.#data.length) {
-            if (this.allowLoose && loose && this.#offset + length <= this.#data.length) {
+            if (this.allowLoose &&
+                loose &&
+                this.#offset + length <= this.#data.length) {
                 alignedLength = length;
             }
             else {
                 (0, index_js_1.assert)(false, "data out-of-bounds", "BUFFER_OVERRUN", {
                     buffer: (0, index_js_1.getBytesCopy)(this.#data),
                     length: this.#data.length,
-                    offset: this.#offset + alignedLength
+                    offset: this.#offset + alignedLength,
                 });
             }
         }

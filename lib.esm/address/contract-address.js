@@ -9,7 +9,7 @@ import { hexDataLength, hexDataSlice } from "../utils/data.js";
 import { Logger } from "../logger/logger.js";
 import { removeHexPrefix } from "../transaction/address.js";
 import { calculateCheckSum } from "./index.js";
-const logger = new Logger('contract-address/0.0.1');
+const logger = new Logger("contract-address/0.0.1");
 /**
  *  Returns the address that would result from a ``CREATE`` for %%tx%%.
  *
@@ -67,7 +67,7 @@ export function getCreate2Address(from, salt, initCodeHash) {
         logger.throwArgumentError("initCodeHash must be 32 bytes", "initCodeHash", initCodeHash);
     }
     const val = hexDataSlice(sha256(concat(["0xff", getAddress(from), salt, initCodeHash])), 12);
-    console.log({ 'contract-address/74=>should be string': val });
+    console.log({ "contract-address/74=>should be string": val });
     const prefix = from.substring(2, 4);
     const checksum = calculateCheckSum(val, prefix);
     return "0x" + prefix + checksum + removeHexPrefix(val);

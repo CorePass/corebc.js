@@ -71,7 +71,10 @@ class PocketProvider extends provider_jsonrpc_js_1.JsonRpcProvider {
         const options = { staticNetwork: network };
         const request = PocketProvider.getRequest(network, applicationId, applicationSecret);
         super(request, network, options);
-        (0, index_js_1.defineProperties)(this, { applicationId, applicationSecret });
+        (0, index_js_1.defineProperties)(this, {
+            applicationId,
+            applicationSecret,
+        });
     }
     _getProvider(networkId) {
         try {
@@ -102,7 +105,7 @@ class PocketProvider extends provider_jsonrpc_js_1.JsonRpcProvider {
         return request;
     }
     isCommunityResource() {
-        return (this.applicationId === defaultApplicationId);
+        return this.applicationId === defaultApplicationId;
     }
 }
 exports.PocketProvider = PocketProvider;

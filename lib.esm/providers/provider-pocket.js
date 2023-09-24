@@ -11,7 +11,7 @@
  *
  *  @_subsection: api/providers/thirdparty:Pocket  [providers-pocket]
  */
-import { defineProperties, FetchRequest, assertArgument } from "../utils/index.js";
+import { defineProperties, FetchRequest, assertArgument, } from "../utils/index.js";
 import { showThrottleMessage } from "./community.js";
 import { Network } from "./network.js";
 import { JsonRpcProvider } from "./provider-jsonrpc.js";
@@ -68,7 +68,10 @@ export class PocketProvider extends JsonRpcProvider {
         const options = { staticNetwork: network };
         const request = PocketProvider.getRequest(network, applicationId, applicationSecret);
         super(request, network, options);
-        defineProperties(this, { applicationId, applicationSecret });
+        defineProperties(this, {
+            applicationId,
+            applicationSecret,
+        });
     }
     _getProvider(networkId) {
         try {
@@ -99,7 +102,7 @@ export class PocketProvider extends JsonRpcProvider {
         return request;
     }
     isCommunityResource() {
-        return (this.applicationId === defaultApplicationId);
+        return this.applicationId === defaultApplicationId;
     }
 }
 //# sourceMappingURL=provider-pocket.js.map

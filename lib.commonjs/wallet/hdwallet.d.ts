@@ -69,7 +69,7 @@ export declare class HDNodeWallet extends BaseWallet {
     /**
      *  @private
      */
-    constructor({ guard, seed, signingKey, parentFingerprint, path, index, depth, mnemonic, provider, prefix }: {
+    constructor({ guard, seed, signingKey, parentFingerprint, path, index, depth, mnemonic, provider, prefix, }: {
         guard: any;
         seed: string;
         signingKey: SigningKey;
@@ -128,7 +128,7 @@ export declare class HDNodeWallet extends BaseWallet {
     /**
      *  Creates an HD Node from a mnemonic %%phrase%%.
      */
-    static fromPhrase({ phrase, prefix, password, path, wordlist }: {
+    static fromPhrase({ phrase, prefix, password, path, wordlist, }: {
         phrase: string;
         prefix: string;
         password?: string;
@@ -138,7 +138,7 @@ export declare class HDNodeWallet extends BaseWallet {
     /**
      *  Creates an HD Node from a %%seed%%.
      */
-    static fromSeed({ seed, prefix, path }: {
+    static fromSeed({ seed, prefix, path, }: {
         seed: string;
         prefix: string;
         path?: string;

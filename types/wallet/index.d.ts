@@ -19,7 +19,7 @@
 export { BaseWallet } from "./base-wallet.js";
 export { defaultPath, getAccountPath, getIndexedAccountPath, HDNodeWallet, } from "./hdwallet.js";
 export { isCrowdsaleJson, decryptCrowdsaleJson } from "./json-crowdsale.js";
-export { isKeystoreJson, decryptKeystoreJsonSync, decryptKeystoreJson, encryptKeystoreJson, encryptKeystoreJsonSync } from "./json-keystore.js";
+export { isKeystoreJson, decryptKeystoreJsonSync, decryptKeystoreJson, encryptKeystoreJson, encryptKeystoreJsonSync, } from "./json-keystore.js";
 export { Mnemonic } from "./mnemonic.js";
 export { Wallet } from "./wallet.js";
 export type { CrowdsaleAccount } from "./json-crowdsale.js";
