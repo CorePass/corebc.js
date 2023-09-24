@@ -35,13 +35,21 @@ export class Network {
      *  This is the canonical name, as networks migh have multiple
      *  names.
      */
-    get name() { return this.#name; }
-    set name(value) { this.#name = value; }
+    get name() {
+        return this.#name;
+    }
+    set name(value) {
+        this.#name = value;
+    }
     /**
      *  The network chain ID.
      */
-    get networkId() { return this.#networkId; }
-    set networkId(value) { this.#networkId = getBigInt(value, "networkId"); }
+    get networkId() {
+        return this.#networkId;
+    }
+    set networkId(value) {
+        this.#networkId = getBigInt(value, "networkId");
+    }
     /**
      *  Returns true if %%other%% matches this network. Any chain ID
      *  must match, and if no chain ID is present, the name must match.
@@ -53,30 +61,30 @@ export class Network {
         if (other == null) {
             return false;
         }
-        if (typeof (other) === "string") {
+        if (typeof other === "string") {
             try {
-                return (this.networkId === getBigInt(other));
+                return this.networkId === getBigInt(other);
             }
             catch (error) { }
-            return (this.name === other);
+            return this.name === other;
         }
-        if (typeof (other) === "number" || typeof (other) === "bigint") {
+        if (typeof other === "number" || typeof other === "bigint") {
             try {
-                return (this.networkId === getBigInt(other));
+                return this.networkId === getBigInt(other);
             }
             catch (error) { }
             return false;
         }
-        if (typeof (other) === "object") {
+        if (typeof other === "object") {
             if (other.networkId != null) {
                 try {
-                    return (this.networkId === getBigInt(other.networkId));
+                    return this.networkId === getBigInt(other.networkId);
                 }
                 catch (error) { }
                 return false;
             }
             if (other.name != null) {
-                return (this.name === other.name);
+                return this.name === other.name;
             }
             return false;
         }
@@ -105,14 +113,14 @@ export class Network {
      *  a fragment.
      */
     getPlugin(name) {
-        return (this.#plugins.get(name)) || null;
+        return this.#plugins.get(name) || null;
     }
     /**
      *  Gets a list of all plugins that match %%name%%, with otr without
      *  a fragment.
      */
     getPlugins(basename) {
-        return (this.plugins.filter((p) => (p.name.split("#")[0] === basename)));
+        return (this.plugins.filter((p) => p.name.split("#")[0] === basename));
     }
     /**
      *  Create a copy of this Network.
@@ -131,7 +139,7 @@ export class Network {
      *  values.
      */
     computeIntrinsicEnergy(tx) {
-        const costs = this.getPlugin("org.corebc.plugins.network.EnergyCost") || (new EnergyCostPlugin());
+        const costs = this.getPlugin("org.corebc.plugins.network.EnergyCost") || new EnergyCostPlugin();
         let energy = costs.txBase;
         if (tx.to == null) {
             energy += costs.txCreate;
@@ -158,30 +166,31 @@ export class Network {
             return Network.from("mainnet");
         }
         // Canonical name or chain ID
-        if (typeof (network) === "number") {
+        if (typeof network === "number") {
             network = BigInt(network);
         }
-        if (typeof (network) === "string" || typeof (network) === "bigint") {
+        if (typeof network === "string" || typeof network === "bigint") {
             const networkFunc = Networks.get(network);
             if (networkFunc) {
                 return networkFunc();
             }
-            if (typeof (network) === "bigint") {
+            if (typeof network === "bigint") {
                 return new Network("unknown", network);
             }
             assertArgument(false, "unknown network", "network", network);
         }
         // Clonable with network-like abilities
-        if (typeof (network.clone) === "function") {
+        if (typeof network.clone === "function") {
             const clone = network.clone();
             //if (typeof(network.name) !== "string" || typeof(network.networkId) !== "number") {
             //}
             return clone;
         }
         // Networkish
-        if (typeof (network) === "object") {
-            assertArgument(typeof (network.name) === "string" && typeof (network.networkId) === "number", "invalid network object name or networkId", "network", network);
-            const custom = new Network((network.name), (network.networkId));
+        if (typeof network === "object") {
+            assertArgument(typeof network.name === "string" &&
+                typeof network.networkId === "number", "invalid network object name or networkId", "network", network);
+            const custom = new Network(network.name, network.networkId);
             //if ((<any>network).layerOneConnection) {
             //    custom.attachPlugin(new LayerOneConnectionPlugin((<any>network).layerOneConnection));
             //}
@@ -194,7 +203,7 @@ export class Network {
      *  an instance of a Network representing that chain.
      */
     static register(nameOrnetworkId, networkFunc) {
-        if (typeof (nameOrnetworkId) === "number") {
+        if (typeof nameOrnetworkId === "number") {
             nameOrnetworkId = BigInt(nameOrnetworkId);
         }
         const existing = Networks.get(nameOrnetworkId);

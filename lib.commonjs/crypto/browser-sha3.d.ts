@@ -1,5 +1,5 @@
-import { BytesLike } from '../utils/data.js';
-import { SupportedAlgorithm } from './sha3.js';
+import { BytesLike } from "../utils/data.js";
+import { SupportedAlgorithm } from "./sha3.js";
 export declare function ripemd160(data: BytesLike): string;
 export declare function sha256(data: BytesLike): string;
 export declare function sha512(data: BytesLike): string;

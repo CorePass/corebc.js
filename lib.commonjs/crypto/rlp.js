@@ -4,7 +4,7 @@ exports.decode = exports.encode = void 0;
 const index_js_1 = require("../index.js");
 const logger_js_1 = require("../logger/logger.js");
 const data_js_1 = require("../utils/data.js");
-const logger = new logger_js_1.Logger('rlp/0.0.1');
+const logger = new logger_js_1.Logger("rlp/0.0.1");
 function arrayifyInteger(value) {
     const result = [];
     while (value) {
@@ -17,7 +17,7 @@ function arrayifyInteger(value) {
 function unarrayifyInteger(data, offset, length) {
     let result = 0;
     for (let i = 0; i < length; i++) {
-        result = (result * 256) + data[offset + i];
+        result = result * 256 + data[offset + i];
     }
     return result;
 }
@@ -64,7 +64,7 @@ function _decodeChildren(data, offset, childOffset, length) {
             logger.throwError("child data too short", logger_js_1.Logger.errors.BUFFER_OVERRUN, {});
         }
     }
-    return { consumed: (1 + length), result: result };
+    return { consumed: 1 + length, result: result };
 }
 // returns { consumed: number, result: Object }
 function _decode(data, offset) {
@@ -100,7 +100,7 @@ function _decode(data, offset) {
             logger.throwError("data array too short", logger_js_1.Logger.errors.BUFFER_OVERRUN, {});
         }
         const result = (0, index_js_1.hexlify)(data.slice(offset + 1 + lengthLength, offset + 1 + lengthLength + length));
-        return { consumed: (1 + lengthLength + length), result: result };
+        return { consumed: 1 + lengthLength + length, result: result };
     }
     else if (data[offset] >= 0x80) {
         const length = data[offset] - 0x80;
@@ -108,7 +108,7 @@ function _decode(data, offset) {
             logger.throwError("data too short", logger_js_1.Logger.errors.BUFFER_OVERRUN, {});
         }
         const result = (0, index_js_1.hexlify)(data.slice(offset + 1, offset + 1 + length));
-        return { consumed: (1 + length), result: result };
+        return { consumed: 1 + length, result: result };
     }
     return { consumed: 1, result: (0, index_js_1.hexlify)(data[offset]) };
 }

@@ -17,7 +17,9 @@ const provider_jsonrpc_js_1 = require("./provider-jsonrpc.js");
 class SocketSubscriber {
     #provider;
     #filter;
-    get filter() { return JSON.parse(this.#filter); }
+    get filter() {
+        return JSON.parse(this.#filter);
+    }
     #filterId;
     #paused;
     #emitPromise;
@@ -29,14 +31,15 @@ class SocketSubscriber {
         this.#emitPromise = null;
     }
     start() {
-        this.#filterId = this.#provider.send("xcb_subscribe", this.filter).then((filterId) => {
-            ;
+        this.#filterId = this.#provider
+            .send("xcb_subscribe", this.filter)
+            .then((filterId) => {
             this.#provider._register(filterId, this);
             return filterId;
         });
     }
     stop() {
-        (this.#filterId).then((filterId) => {
+        this.#filterId.then((filterId) => {
             this.#provider.send("xcb_unsubscribe", [filterId]);
         });
         this.#filterId = null;
@@ -96,7 +99,9 @@ class SocketPendingSubscriber extends SocketSubscriber {
 exports.SocketPendingSubscriber = SocketPendingSubscriber;
 class SocketEventSubscriber extends SocketSubscriber {
     #logFilter;
-    get logFilter() { return JSON.parse(this.#logFilter); }
+    get logFilter() {
+        return JSON.parse(this.#logFilter);
+    }
     constructor(provider, filter) {
         super(provider, ["logs", filter]);
         this.#logFilter = JSON.stringify(filter);
@@ -125,13 +130,13 @@ class SocketProvider extends provider_jsonrpc_js_1.JsonRpcApiProvider {
     }
     // This value is only valid after _start has been called
     /*
-    get _network(): Network {
-        if (this.#network == null) {
-            throw new Error("this shouldn't happen");
-        }
-        return this.#network.clone();
-    }
-    */
+      get _network(): Network {
+          if (this.#network == null) {
+              throw new Error("this shouldn't happen");
+          }
+          return this.#network.clone();
+      }
+      */
     _getSubscriber(sub) {
         switch (sub.type) {
             case "close":
@@ -177,18 +182,18 @@ class SocketProvider extends provider_jsonrpc_js_1.JsonRpcApiProvider {
     }
     // Sub-classes must call this once they are connected
     /*
-    async _start(): Promise<void> {
-        if (this.#ready) { return; }
-
-        for (const { payload } of this.#callbacks.values()) {
-            await this._write(JSON.stringify(payload));
-        }
-
-        this.#ready = (async function() {
-            await super._start();
-        })();
-    }
-    */
+      async _start(): Promise<void> {
+          if (this.#ready) { return; }
+  
+          for (const { payload } of this.#callbacks.values()) {
+              await this._write(JSON.stringify(payload));
+          }
+  
+          this.#ready = (async function() {
+              await super._start();
+          })();
+      }
+      */
     // Sub-classes must call this for each message
     async _processMessage(message) {
         const result = (JSON.parse(message));
@@ -197,7 +202,7 @@ class SocketProvider extends provider_jsonrpc_js_1.JsonRpcApiProvider {
             if (callback == null) {
                 this.emit("error", (0, index_js_1.makeError)("received result for unknown id", "UNKNOWN_ERROR", {
                     reasonCode: "UNKNOWN_ID",
-                    result
+                    result,
                 }));
                 return;
             }

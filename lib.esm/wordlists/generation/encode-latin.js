@@ -81,14 +81,16 @@ function fold(words, sep) {
     return output;
 }
 function camelcase(words) {
-    return words.map((word) => {
+    return words
+        .map((word) => {
         if (word.match(Word)) {
             return word[0].toUpperCase() + word.substring(1);
         }
         else {
             return word;
         }
-    }).join("");
+    })
+        .join("");
 }
 //let cc = 0, ce = 0;
 /*
@@ -133,7 +135,7 @@ export class BitWriter {
         this.#bitLength = 0;
     }
     write(value) {
-        const maxValue = ((1 << this.width) - 1);
+        const maxValue = (1 << this.width) - 1;
         while (value > maxValue) {
             this.#data.push(0);
             this.#bitLength += this.width;
@@ -164,7 +166,7 @@ export class BitWriter {
             }
             result += Base64[accum >> (bits - 6)];
             bits -= 6;
-            accum &= ((1 << bits) - 1);
+            accum &= (1 << bits) - 1;
         }
         if (result.length !== this.length) {
             throw new Error(`Hmm: ${this.length} ${result.length} ${result}`);
@@ -172,7 +174,6 @@ export class BitWriter {
         return result;
     }
 }
-;
 function sorted(text) {
     const letters = text.split("");
     letters.sort();
@@ -187,7 +188,7 @@ export function extractAccents(words) {
     for (const word of words) {
         for (let i = 0; i < word.length; i++) {
             const c = word[i];
-            if (c >= 'a' && c <= 'z') {
+            if (c >= "a" && c <= "z") {
                 continue;
             }
             // Make sure this positions and codepoint make sense
@@ -198,8 +199,7 @@ export function extractAccents(words) {
                 throw new Error(`unmatched accent: ${c}`);
             }
             const ac = c.charCodeAt(0), lastLetter = word[i - 1];
-            ;
-            const follows = (followsMap.get(ac) || "");
+            const follows = followsMap.get(ac) || "";
             if (follows.indexOf(lastLetter) === -1) {
                 followsMap.set(ac, sorted(follows + lastLetter));
             }
@@ -247,13 +247,20 @@ export function extractAccents(words) {
         }
         const positionsLength = positions.length;
         const positionDataLength = positionData.length;
-        accents.push({ accent, follows, positions, positionsLength, positionData, positionDataLength });
+        accents.push({
+            accent,
+            follows,
+            positions,
+            positionsLength,
+            positionData,
+            positionDataLength,
+        });
     }
     words = words.map((word) => {
         let result = "";
         for (let i = 0; i < word.length; i++) {
             const c = word[i];
-            if (c >= 'a' && c <= 'z') {
+            if (c >= "a" && c <= "z") {
                 result += c;
             }
         }
@@ -288,9 +295,13 @@ export function encodeOwl(words) {
             tally[key] = (tally[key] || 0) + 1;
         }
         const sorted = Object.keys(tally).map((text) => {
-            return { text, count: tally[text], save: (tally[text] * (text.length - 1)) };
+            return {
+                text,
+                count: tally[text],
+                save: tally[text] * (text.length - 1),
+            };
         });
-        sorted.sort((a, b) => (b.save - a.save));
+        sorted.sort((a, b) => b.save - a.save);
         return sorted[0].text;
     }
     // Make substitutions
@@ -308,12 +319,14 @@ export function encodeOwl(words) {
 function encodeWords(_words) {
     const { accents, words } = extractAccents(_words);
     const { data, subs } = encodeOwl(words);
-    const accentData = accents.map(({ accent, follows, positionData }) => {
+    const accentData = accents
+        .map(({ accent, follows, positionData }) => {
         return `${follows}${accent}${positionData}`;
-    }).join(",");
+    })
+        .join(",");
     return {
         data: `0${subs}${data}`,
-        accents: accentData
+        accents: accentData,
     };
 }
 // CLI
@@ -326,7 +339,7 @@ if (accents) {
     console.log("ACCENTS:  ", JSON.stringify(accents));
     console.log("LENGTH:   ", data.length);
     console.log("CHECKSUM: ", id(content));
-    console.log("RATIO:    ", Math.trunc(100 * data.length / content.length) + "%");
+    console.log("RATIO:    ", Math.trunc((100 * data.length) / content.length) + "%");
     if (rec.join("\n") !== words.join("\n")) {
         throw new Error("no match!");
     }
@@ -336,7 +349,7 @@ else {
     console.log("DATA:     ", JSON.stringify(data));
     console.log("LENGTH:   ", data.length);
     console.log("CHECKSUM: ", id(content));
-    console.log("RATIO:    ", Math.trunc(100 * data.length / content.length) + "%");
+    console.log("RATIO:    ", Math.trunc((100 * data.length) / content.length) + "%");
     if (rec.join("\n") !== words.join("\n")) {
         throw new Error("no match!");
     }

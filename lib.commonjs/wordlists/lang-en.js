@@ -19,7 +19,9 @@ class LangEn extends wordlist_owl_js_1.WordlistOwl {
      *
      *  @_ignore:
      */
-    constructor() { super("en", words, checksum); }
+    constructor() {
+        super("en", words, checksum);
+    }
     /**
      *  Returns a singleton instance of a ``LangEn``, creating it
      *  if this is the first time being called.

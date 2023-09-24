@@ -9,52 +9,60 @@ import { version } from "../_version.js";
 import { defineProperties } from "./properties.js";
 
 import type {
-    TransactionRequest, TransactionReceipt, TransactionResponse
+  TransactionRequest,
+  TransactionReceipt,
+  TransactionResponse,
 } from "../providers/index.js";
 
 import type { FetchRequest, FetchResponse } from "./fetch.js";
 
 export type ErrorInfo<T> = Omit<T, "code" | "name" | "message">;
 
-
 function stringify(value: any): any {
-    if (value == null) { return "null"; }
+  if (value == null) {
+    return "null";
+  }
 
-    if (Array.isArray(value)) {
-        return "[ " + (value.map(stringify)).join(", ") + " ]";
+  if (Array.isArray(value)) {
+    return "[ " + value.map(stringify).join(", ") + " ]";
+  }
+
+  if (value instanceof Uint8Array) {
+    const HEX = "0123456789abcdef";
+    let result = "0x";
+    for (let i = 0; i < value.length; i++) {
+      result += HEX[value[i] >> 4];
+      result += HEX[value[i] & 0xf];
     }
+    return result;
+  }
 
-    if (value instanceof Uint8Array) {
-        const HEX = "0123456789abcdef";
-        let result = "0x";
-        for (let i = 0; i < value.length; i++) {
-            result += HEX[value[i] >> 4];
-            result += HEX[value[i] & 0xf];
-        }
-        return result;
+  if (typeof value === "object" && typeof value.toJSON === "function") {
+    return stringify(value.toJSON());
+  }
+
+  switch (typeof value) {
+    case "boolean":
+    case "symbol":
+      return value.toString();
+    case "bigint":
+      return BigInt(value).toString();
+    case "number":
+      return value.toString();
+    case "string":
+      return JSON.stringify(value);
+    case "object": {
+      const keys = Object.keys(value);
+      keys.sort();
+      return (
+        "{ " +
+        keys.map((k) => `${stringify(k)}: ${stringify(value[k])}`).join(", ") +
+        " }"
+      );
     }
+  }
 
-    if (typeof(value) === "object" && typeof(value.toJSON) === "function") {
-        return stringify(value.toJSON());
-    }
-
-    switch (typeof(value)) {
-        case "boolean": case "symbol":
-            return value.toString();
-        case "bigint":
-            return BigInt(value).toString();
-        case "number":
-            return (value).toString();
-        case "string":
-            return JSON.stringify(value);
-        case "object": {
-            const keys = Object.keys(value);
-            keys.sort();
-            return "{ " + keys.map((k) => `${ stringify(k) }: ${ stringify(value[k]) }`).join(", ") + " }";
-        }
-    }
-
-    return `[ COULD NOT SERIALIZE ]`;
+  return `[ COULD NOT SERIALIZE ]`;
 }
 
 /**
@@ -119,49 +127,59 @@ function stringify(value: any): any {
  *  **``"ACTION_REJECTED"``** - see [[ActionRejectedError]]
  */
 export type ErrorCode =
+  // Generic Errors
+  | "UNKNOWN_ERROR"
+  | "NOT_IMPLEMENTED"
+  | "UNSUPPORTED_OPERATION"
+  | "NETWORK_ERROR"
+  | "SERVER_ERROR"
+  | "TIMEOUT"
+  | "BAD_DATA"
+  | "CANCELLED"
 
-    // Generic Errors
-    "UNKNOWN_ERROR" | "NOT_IMPLEMENTED" | "UNSUPPORTED_OPERATION" |
-    "NETWORK_ERROR" | "SERVER_ERROR" | "TIMEOUT" | "BAD_DATA" |
-    "CANCELLED" |
+  // Operational Errors
+  | "BUFFER_OVERRUN"
+  | "NUMERIC_FAULT"
 
-    // Operational Errors
-    "BUFFER_OVERRUN" |  "NUMERIC_FAULT" |
+  // Argument Errors
+  | "INVALID_ARGUMENT"
+  | "MISSING_ARGUMENT"
+  | "UNEXPECTED_ARGUMENT"
+  | "VALUE_MISMATCH"
 
-    // Argument Errors
-    "INVALID_ARGUMENT" | "MISSING_ARGUMENT" | "UNEXPECTED_ARGUMENT" |
-    "VALUE_MISMATCH" |
+  // Blockchain Errors
+  | "CALL_EXCEPTION"
+  | "INSUFFICIENT_FUNDS"
+  | "NONCE_EXPIRED"
+  | "REPLACEMENT_UNDERPRICED"
+  | "TRANSACTION_REPLACED"
+  | "UNCONFIGURED_NAME"
+  | "OFFCHAIN_FAULT"
 
-    // Blockchain Errors
-    "CALL_EXCEPTION" | "INSUFFICIENT_FUNDS" | "NONCE_EXPIRED" |
-    "REPLACEMENT_UNDERPRICED" | "TRANSACTION_REPLACED" |
-    "UNCONFIGURED_NAME" | "OFFCHAIN_FAULT" |
-
-    // User Interaction
-    "ACTION_REJECTED"
-;
+  // User Interaction
+  | "ACTION_REJECTED";
 
 /**
  *  All errors in corebc include properties to assist in
  *  machine-readable errors.
  */
 export interface CoreBCError<T extends ErrorCode = ErrorCode> extends Error {
-    /**
-     *  The string error code.
-     */
-    code: ErrorCode;
+  /**
+   *  The string error code.
+   */
+  code: ErrorCode;
 
-    /**
-     *  Additional info regarding the error that may be useful.
-     *
-     *  This is generally helpful mostly for human-based debugging.
-     */
-    info?: Record<string, any>;
+  /**
+   *  Additional info regarding the error that may be useful.
+   *
+   *  This is generally helpful mostly for human-based debugging.
+   */
+  info?: Record<string, any>;
 
-    /**
-     *  Any related error.
-     */
-    error?: Error;
+  /**
+   *  Any related error.
+   */
+  error?: Error;
 }
 
 // Generic Errors
@@ -171,7 +189,7 @@ export interface CoreBCError<T extends ErrorCode = ErrorCode> extends Error {
  *  know what the underlying problem is.
  */
 export interface UnknownError extends CoreBCError<"UNKNOWN_ERROR"> {
-    [ key: string ]: any;
+  [key: string]: any;
 }
 
 /**
@@ -179,10 +197,10 @@ export interface UnknownError extends CoreBCError<"UNKNOWN_ERROR"> {
  *  intended for the future, but is currently not implemented.
  */
 export interface NotImplementedError extends CoreBCError<"NOT_IMPLEMENTED"> {
-    /**
-     *  The attempted operation.
-     */
-    operation: string;
+  /**
+   *  The attempted operation.
+   */
+  operation: string;
 }
 
 /**
@@ -195,15 +213,16 @@ export interface NotImplementedError extends CoreBCError<"NOT_IMPLEMENTED"> {
  *  For example, a [[Wallet]] with no connected [[Provider]] is unable
  *  to send a transaction.
  */
-export interface UnsupportedOperationError extends CoreBCError<"UNSUPPORTED_OPERATION"> {
-    /**
-     *  The attempted operation.
-     */
-    operation: string;
+export interface UnsupportedOperationError
+  extends CoreBCError<"UNSUPPORTED_OPERATION"> {
+  /**
+   *  The attempted operation.
+   */
+  operation: string;
 }
 
 export interface NetworkError extends CoreBCError<"NETWORK_ERROR"> {
-    event: string;
+  event: string;
 }
 
 /**
@@ -211,15 +230,15 @@ export interface NetworkError extends CoreBCError<"NETWORK_ERROR"> {
  *  a server.
  */
 export interface ServerError extends CoreBCError<"SERVER_ERROR"> {
-    /**
-     *  The requested resource.
-     */
-    request: FetchRequest | string;
+  /**
+   *  The requested resource.
+   */
+  request: FetchRequest | string;
 
-    /**
-     *  The response received from the server, if available.
-     */
-    response?: FetchResponse;
+  /**
+   *  The response received from the server, if available.
+   */
+  response?: FetchResponse;
 }
 
 /**
@@ -231,20 +250,20 @@ export interface ServerError extends CoreBCError<"SERVER_ERROR"> {
  *  been no response to indicate whether it was processed or not.
  */
 export interface TimeoutError extends CoreBCError<"TIMEOUT"> {
-    /**
-     *  The attempted operation.
-     */
-    operation: string;
+  /**
+   *  The attempted operation.
+   */
+  operation: string;
 
-    /**
-     *  The reason.
-     */
-    reason: string;
+  /**
+   *  The reason.
+   */
+  reason: string;
 
-    /**
-     *  The resource request, if available.
-     */
-    request?: FetchRequest;
+  /**
+   *  The resource request, if available.
+   */
+  request?: FetchRequest;
 }
 
 /**
@@ -252,19 +271,17 @@ export interface TimeoutError extends CoreBCError<"TIMEOUT"> {
  *  be correctly interpretted.
  */
 export interface BadDataError extends CoreBCError<"BAD_DATA"> {
-    /**
-     *  The data.
-     */
-    value: any;
+  /**
+   *  The data.
+   */
+  value: any;
 }
 
 /**
  *  This Error indicates that the operation was cancelled by a
  *  programmatic call, for example to ``cancel()``.
  */
-export interface CancelledError extends CoreBCError<"CANCELLED"> {
-}
-
+export interface CancelledError extends CoreBCError<"CANCELLED"> {}
 
 // Operational Errors
 
@@ -276,20 +293,20 @@ export interface CancelledError extends CoreBCError<"CANCELLED"> {
  *  exploits when parsing data.
  */
 export interface BufferOverrunError extends CoreBCError<"BUFFER_OVERRUN"> {
-    /**
-     *  The buffer that was overrun.
-     */
-    buffer: Uint8Array;
+  /**
+   *  The buffer that was overrun.
+   */
+  buffer: Uint8Array;
 
-    /**
-     *  The length of the buffer.
-     */
-    length: number;
+  /**
+   *  The length of the buffer.
+   */
+  length: number;
 
-    /**
-     *  The offset that was requested.
-     */
-    offset: number;
+  /**
+   *  The offset that was requested.
+   */
+  offset: number;
 }
 
 /**
@@ -300,22 +317,21 @@ export interface BufferOverrunError extends CoreBCError<"BUFFER_OVERRUN"> {
  *  a negative value.
  */
 export interface NumericFaultError extends CoreBCError<"NUMERIC_FAULT"> {
-    /**
-     *  The attempted operation.
-     */
-    operation: string;
+  /**
+   *  The attempted operation.
+   */
+  operation: string;
 
-    /**
-     *  The fault reported.
-     */
-    fault: string;
+  /**
+   *  The fault reported.
+   */
+  fault: string;
 
-    /**
-     *  The value the operation was attempted against.
-     */
-    value: any;
+  /**
+   *  The value the operation was attempted against.
+   */
+  value: any;
 }
-
 
 // Argument Errors
 
@@ -324,118 +340,123 @@ export interface NumericFaultError extends CoreBCError<"NUMERIC_FAULT"> {
  *  a function or method.
  */
 export interface InvalidArgumentError extends CoreBCError<"INVALID_ARGUMENT"> {
-    /**
-     *  The name of the argument.
-     */
-    argument: string;
+  /**
+   *  The name of the argument.
+   */
+  argument: string;
 
-    /**
-     *  The value that was provided.
-     */
-    value: any;
+  /**
+   *  The value that was provided.
+   */
+  value: any;
 
-    info?: Record<string, any>
+  info?: Record<string, any>;
 }
 
 /**
  *  This Error indicates there were too few arguments were provided.
  */
 export interface MissingArgumentError extends CoreBCError<"MISSING_ARGUMENT"> {
-    /**
-     *  The number of arguments received.
-     */
-    count: number;
+  /**
+   *  The number of arguments received.
+   */
+  count: number;
 
-    /**
-     *  The number of arguments expected.
-     */
-    expectedCount: number;
+  /**
+   *  The number of arguments expected.
+   */
+  expectedCount: number;
 }
 
 /**
  *  This Error indicates too many arguments were provided.
  */
-export interface UnexpectedArgumentError extends CoreBCError<"UNEXPECTED_ARGUMENT"> {
-    /**
-     *  The number of arguments received.
-     */
-    count: number;
+export interface UnexpectedArgumentError
+  extends CoreBCError<"UNEXPECTED_ARGUMENT"> {
+  /**
+   *  The number of arguments received.
+   */
+  count: number;
 
-    /**
-     *  The number of arguments expected.
-     */
-    expectedCount: number;
+  /**
+   *  The number of arguments expected.
+   */
+  expectedCount: number;
 }
-
 
 // Blockchain Errors
 
 /**
  *  The action that resulted in the error.
  */
-export type CallExceptionAction = "call" | "estimateEnergy" | "getTransactionResult" | "unknown";
+export type CallExceptionAction =
+  | "call"
+  | "estimateEnergy"
+  | "getTransactionResult"
+  | "unknown";
 
 /**
  *  The related transaction that caused the error.
  */
 export type CallExceptionTransaction = {
-    to: null | string;
-    from?: string;
-    data: string;
+  to: null | string;
+  from?: string;
+  data: string;
 };
 
 /**
  *  This **Error** indicates a transaction reverted.
  */
 export interface CallExceptionError extends CoreBCError<"CALL_EXCEPTION"> {
-    /**
-     *  The action being performed when the revert was encountered.
-     */
-    action: CallExceptionAction;
+  /**
+   *  The action being performed when the revert was encountered.
+   */
+  action: CallExceptionAction;
 
-    /**
-     *  The revert data returned.
-     */
-    data: null | string;
+  /**
+   *  The revert data returned.
+   */
+  data: null | string;
 
-    /**
-     *  A human-readable representation of data, if possible.
-     */
-    reason: null | string;
+  /**
+   *  A human-readable representation of data, if possible.
+   */
+  reason: null | string;
 
-    /**
-     *  The transaction that triggered the exception.
-     */
-    transaction: CallExceptionTransaction,
+  /**
+   *  The transaction that triggered the exception.
+   */
+  transaction: CallExceptionTransaction;
 
-    /**
-     *  The contract invocation details, if available.
-     */
-    invocation: null | {
-        method: string;
-        signature: string;
-        args: Array<any>;
-    }
+  /**
+   *  The contract invocation details, if available.
+   */
+  invocation: null | {
+    method: string;
+    signature: string;
+    args: Array<any>;
+  };
 
-    /**
-     *  The built-in or custom revert error, if available
-     */
-    revert: null | {
-        signature: string;
-        name: string;
-        args: Array<any>;
-    }
+  /**
+   *  The built-in or custom revert error, if available
+   */
+  revert: null | {
+    signature: string;
+    name: string;
+    args: Array<any>;
+  };
 }
 
 /**
  *  The sending account has insufficient funds to cover the
  *  entire transaction cost.
  */
-export interface InsufficientFundsError extends CoreBCError<"INSUFFICIENT_FUNDS"> {
-    /**
-     *  The transaction.
-     */
-    transaction: TransactionRequest;
+export interface InsufficientFundsError
+  extends CoreBCError<"INSUFFICIENT_FUNDS"> {
+  /**
+   *  The transaction.
+   */
+  transaction: TransactionRequest;
 }
 
 /**
@@ -443,10 +464,10 @@ export interface InsufficientFundsError extends CoreBCError<"INSUFFICIENT_FUNDS"
  *  transaction that has been included.
  */
 export interface NonceExpiredError extends CoreBCError<"NONCE_EXPIRED"> {
-    /**
-     *  The transaction.
-     */
-    transaction: TransactionRequest;
+  /**
+   *  The transaction.
+   */
+  transaction: TransactionRequest;
 }
 
 /**
@@ -454,15 +475,15 @@ export interface NonceExpiredError extends CoreBCError<"NONCE_EXPIRED"> {
  *  be further processed.
  */
 export interface OffchainFaultError extends CoreBCError<"OFFCHAIN_FAULT"> {
-    /**
-     *  The transaction.
-     */
-    transaction?: TransactionRequest;
+  /**
+   *  The transaction.
+   */
+  transaction?: TransactionRequest;
 
-    /**
-     *  The reason the CCIP-read failed.
-     */
-    reason: string;
+  /**
+   *  The reason the CCIP-read failed.
+   */
+  reason: string;
 }
 
 /**
@@ -470,42 +491,44 @@ export interface OffchainFaultError extends CoreBCError<"OFFCHAIN_FAULT"> {
  *  insufficient additional fee to afford evicting the old
  *  transaction from the memory pool.
  */
-export interface ReplacementUnderpricedError extends CoreBCError<"REPLACEMENT_UNDERPRICED"> {
-    /**
-     *  The transaction.
-     */
-    transaction: TransactionRequest;
+export interface ReplacementUnderpricedError
+  extends CoreBCError<"REPLACEMENT_UNDERPRICED"> {
+  /**
+   *  The transaction.
+   */
+  transaction: TransactionRequest;
 }
 
 /**
  *  A pending transaction was replaced by another.
  */
-export interface TransactionReplacedError extends CoreBCError<"TRANSACTION_REPLACED"> {
-    /**
-     *  If the transaction was cancelled, such that the original
-     *  effects of the transaction cannot be assured.
-     */
-    cancelled: boolean;
+export interface TransactionReplacedError
+  extends CoreBCError<"TRANSACTION_REPLACED"> {
+  /**
+   *  If the transaction was cancelled, such that the original
+   *  effects of the transaction cannot be assured.
+   */
+  cancelled: boolean;
 
-    /**
-     *  The reason the transaction was replaced.
-     */
-    reason: "repriced" | "cancelled" | "replaced";
+  /**
+   *  The reason the transaction was replaced.
+   */
+  reason: "repriced" | "cancelled" | "replaced";
 
-    /**
-     *  The hash of the replaced transaction.
-     */
-    hash: string;
+  /**
+   *  The hash of the replaced transaction.
+   */
+  hash: string;
 
-    /**
-     *  The transaction that replaced the transaction.
-     */
-    replacement: TransactionResponse;
+  /**
+   *  The transaction that replaced the transaction.
+   */
+  replacement: TransactionResponse;
 
-    /**
-     *  The receipt of the transaction that replace the transaction.
-     */
-    receipt: TransactionReceipt;
+  /**
+   *  The receipt of the transaction that replace the transaction.
+   */
+  receipt: TransactionReceipt;
 }
 
 /**
@@ -515,11 +538,12 @@ export interface TransactionReplacedError extends CoreBCError<"TRANSACTION_REPLA
  *  This could indicate an ENS name is unowned or that the current
  *  address being pointed to is the [[ZeroAddress]].
  */
-export interface UnconfiguredNameError extends CoreBCError<"UNCONFIGURED_NAME"> {
-    /**
-     *  The ENS name that was requested
-     */
-    value: string;
+export interface UnconfiguredNameError
+  extends CoreBCError<"UNCONFIGURED_NAME"> {
+  /**
+   *  The ENS name that was requested
+   */
+  value: string;
 }
 
 /**
@@ -531,19 +555,25 @@ export interface UnconfiguredNameError extends CoreBCError<"UNCONFIGURED_NAME"> 
  *  this error is thrown.
  */
 export interface ActionRejectedError extends CoreBCError<"ACTION_REJECTED"> {
-    /**
-     *  The requested action.
-     */
-    action: "requestAccess" | "sendTransaction" | "signMessage" | "signTransaction" | "signTypedData" | "unknown",
+  /**
+   *  The requested action.
+   */
+  action:
+    | "requestAccess"
+    | "sendTransaction"
+    | "signMessage"
+    | "signTransaction"
+    | "signTypedData"
+    | "unknown";
 
-    /**
-     *  The reason the action was rejected.
-     *
-     *  If there is already a pending request, some clients may indicate
-     *  there is already a ``"pending"`` action. This prevents an app
-     *  from spamming the user.
-     */
-    reason: "expired" | "rejected" | "pending"
+  /**
+   *  The reason the action was rejected.
+   *
+   *  If there is already a pending request, some clients may indicate
+   *  there is already a ``"pending"`` action. This prevents an app
+   *  from spamming the user.
+   */
+  reason: "expired" | "rejected" | "pending";
 }
 
 // Coding; converts an ErrorCode its Typed Error
@@ -554,36 +584,49 @@ export interface ActionRejectedError extends CoreBCError<"ACTION_REJECTED"> {
  *
  *  @flatworm-skip-docs
  */
-export type CodedCoreBCError<T> =
-    T extends "UNKNOWN_ERROR" ? UnknownError:
-    T extends "NOT_IMPLEMENTED" ? NotImplementedError:
-    T extends "UNSUPPORTED_OPERATION" ? UnsupportedOperationError:
-    T extends "NETWORK_ERROR" ? NetworkError:
-    T extends "SERVER_ERROR" ? ServerError:
-    T extends "TIMEOUT" ? TimeoutError:
-    T extends "BAD_DATA" ? BadDataError:
-    T extends "CANCELLED" ? CancelledError:
-
-    T extends "BUFFER_OVERRUN" ? BufferOverrunError:
-    T extends "NUMERIC_FAULT" ? NumericFaultError:
-
-    T extends "INVALID_ARGUMENT" ? InvalidArgumentError:
-    T extends "MISSING_ARGUMENT" ? MissingArgumentError:
-    T extends "UNEXPECTED_ARGUMENT" ? UnexpectedArgumentError:
-
-    T extends "CALL_EXCEPTION" ? CallExceptionError:
-    T extends "INSUFFICIENT_FUNDS" ? InsufficientFundsError:
-    T extends "NONCE_EXPIRED" ? NonceExpiredError:
-    T extends "OFFCHAIN_FAULT" ? OffchainFaultError:
-    T extends "REPLACEMENT_UNDERPRICED" ? ReplacementUnderpricedError:
-    T extends "TRANSACTION_REPLACED" ? TransactionReplacedError:
-    T extends "UNCONFIGURED_NAME" ? UnconfiguredNameError:
-
-    T extends "ACTION_REJECTED" ? ActionRejectedError:
-
-    never;
-
-
+export type CodedCoreBCError<T> = T extends "UNKNOWN_ERROR"
+  ? UnknownError
+  : T extends "NOT_IMPLEMENTED"
+  ? NotImplementedError
+  : T extends "UNSUPPORTED_OPERATION"
+  ? UnsupportedOperationError
+  : T extends "NETWORK_ERROR"
+  ? NetworkError
+  : T extends "SERVER_ERROR"
+  ? ServerError
+  : T extends "TIMEOUT"
+  ? TimeoutError
+  : T extends "BAD_DATA"
+  ? BadDataError
+  : T extends "CANCELLED"
+  ? CancelledError
+  : T extends "BUFFER_OVERRUN"
+  ? BufferOverrunError
+  : T extends "NUMERIC_FAULT"
+  ? NumericFaultError
+  : T extends "INVALID_ARGUMENT"
+  ? InvalidArgumentError
+  : T extends "MISSING_ARGUMENT"
+  ? MissingArgumentError
+  : T extends "UNEXPECTED_ARGUMENT"
+  ? UnexpectedArgumentError
+  : T extends "CALL_EXCEPTION"
+  ? CallExceptionError
+  : T extends "INSUFFICIENT_FUNDS"
+  ? InsufficientFundsError
+  : T extends "NONCE_EXPIRED"
+  ? NonceExpiredError
+  : T extends "OFFCHAIN_FAULT"
+  ? OffchainFaultError
+  : T extends "REPLACEMENT_UNDERPRICED"
+  ? ReplacementUnderpricedError
+  : T extends "TRANSACTION_REPLACED"
+  ? TransactionReplacedError
+  : T extends "UNCONFIGURED_NAME"
+  ? UnconfiguredNameError
+  : T extends "ACTION_REJECTED"
+  ? ActionRejectedError
+  : never;
 
 /**
  *  Returns true if the %%error%% matches an error thrown by corebc
@@ -604,15 +647,18 @@ export type CodedCoreBCError<T> =
  *      }
  *    }
  */
-export function isError<K extends ErrorCode, T extends CodedCoreBCError<K>>(error: any, code: K): error is T {
-    return (error && (<CoreBCError>error).code === code);
+export function isError<K extends ErrorCode, T extends CodedCoreBCError<K>>(
+  error: any,
+  code: K,
+): error is T {
+  return error && (<CoreBCError>error).code === code;
 }
 
 /**
  *  Returns true if %%error%% is a [[CallExceptionError].
  */
 export function isCallException(error: any): error is CallExceptionError {
-    return isError(error, "CALL_EXCEPTION");
+  return isError(error, "CALL_EXCEPTION");
 }
 
 /**
@@ -625,49 +671,57 @@ export function isCallException(error: any): error is CallExceptionError {
  *  required properties. The error message will also include the %%meeage%%,
  *  corebc version, %%code%% and all aditional properties, serialized.
  */
-export function makeError<K extends ErrorCode, T extends CodedCoreBCError<K>>(message: string, code: K, info?: ErrorInfo<T>): T {
-    {
-        const details: Array<string> = [];
-        if (info) {
-            if ("message" in info || "code" in info || "name" in info) {
-                throw new Error(`value will overwrite populated values: ${ stringify(info) }`);
-            }
-            for (const key in info) {
-                const value = <any>(info[<keyof ErrorInfo<T>>key]);
-//                try {
-                    details.push(key + "=" + stringify(value));
-//                } catch (error: any) {
-//                console.log("MMM", error.message);
-//                    details.push(key + "=[could not serialize object]");
-//                }
-            }
-        }
-        details.push(`code=${ code }`);
-        details.push(`version=${ version }`);
-
-        if (details.length) {
-            message += " (" + details.join(", ") + ")";
-        }
+export function makeError<K extends ErrorCode, T extends CodedCoreBCError<K>>(
+  message: string,
+  code: K,
+  info?: ErrorInfo<T>,
+): T {
+  {
+    const details: Array<string> = [];
+    if (info) {
+      if ("message" in info || "code" in info || "name" in info) {
+        throw new Error(
+          `value will overwrite populated values: ${stringify(info)}`,
+        );
+      }
+      for (const key in info) {
+        const value = <any>info[<keyof ErrorInfo<T>>key];
+        //                try {
+        details.push(key + "=" + stringify(value));
+        //                } catch (error: any) {
+        //                console.log("MMM", error.message);
+        //                    details.push(key + "=[could not serialize object]");
+        //                }
+      }
     }
+    details.push(`code=${code}`);
+    details.push(`version=${version}`);
 
-    let error;
-    switch (code) {
-        case "INVALID_ARGUMENT":
-            error = new TypeError(message);
-            break;
-        case "NUMERIC_FAULT":
-        case "BUFFER_OVERRUN":
-            error = new RangeError(message);
-            break;
-        default:
-            error = new Error(message);
+    if (details.length) {
+      message += " (" + details.join(", ") + ")";
     }
+  }
 
-    defineProperties<CoreBCError>(<CoreBCError>error, { code });
+  let error;
+  switch (code) {
+    case "INVALID_ARGUMENT":
+      error = new TypeError(message);
+      break;
+    case "NUMERIC_FAULT":
+    case "BUFFER_OVERRUN":
+      error = new RangeError(message);
+      break;
+    default:
+      error = new Error(message);
+  }
 
-    if (info) { Object.assign(error, info); }
+  defineProperties<CoreBCError>(<CoreBCError>error, { code });
 
-    return <T>error;
+  if (info) {
+    Object.assign(error, info);
+  }
+
+  return <T>error;
 }
 
 /**
@@ -676,10 +730,16 @@ export function makeError<K extends ErrorCode, T extends CodedCoreBCError<K>>(me
  *
  *  @see [[api:makeError]]
  */
-export function assert<K extends ErrorCode, T extends CodedCoreBCError<K>>(check: unknown, message: string, code: K, info?: ErrorInfo<T>): asserts check {
-    if (!check) { throw makeError(message, code, info); }
+export function assert<K extends ErrorCode, T extends CodedCoreBCError<K>>(
+  check: unknown,
+  message: string,
+  code: K,
+  info?: ErrorInfo<T>,
+): asserts check {
+  if (!check) {
+    throw makeError(message, code, info);
+  }
 }
-
 
 /**
  *  A simple helper to simply ensuring provided arguments match expected
@@ -688,53 +748,89 @@ export function assert<K extends ErrorCode, T extends CodedCoreBCError<K>>(check
  *  In TypeScript environments, the %%check%% has been asserted true, so
  *  any further code does not need additional compile-time checks.
  */
-export function assertArgument(check: unknown, message: string, name: string, value: unknown): asserts check {
-    assert(check, message, "INVALID_ARGUMENT", { argument: name, value: value });
+export function assertArgument(
+  check: unknown,
+  message: string,
+  name: string,
+  value: unknown,
+): asserts check {
+  assert(check, message, "INVALID_ARGUMENT", { argument: name, value: value });
 }
 
-export function assertArgumentCount(count: number, expectedCount: number, message?: string): void {
-    if (message == null) { message = ""; }
-    if (message) { message = ": " + message; }
+export function assertArgumentCount(
+  count: number,
+  expectedCount: number,
+  message?: string,
+): void {
+  if (message == null) {
+    message = "";
+  }
+  if (message) {
+    message = ": " + message;
+  }
 
-    assert(count >= expectedCount, "missing arguemnt" + message, "MISSING_ARGUMENT", {
-        count: count,
-        expectedCount: expectedCount
-    });
+  assert(
+    count >= expectedCount,
+    "missing arguemnt" + message,
+    "MISSING_ARGUMENT",
+    {
+      count: count,
+      expectedCount: expectedCount,
+    },
+  );
 
-    assert(count <= expectedCount, "too many arguemnts" + message, "UNEXPECTED_ARGUMENT", {
-        count: count,
-        expectedCount: expectedCount
-    });
+  assert(
+    count <= expectedCount,
+    "too many arguemnts" + message,
+    "UNEXPECTED_ARGUMENT",
+    {
+      count: count,
+      expectedCount: expectedCount,
+    },
+  );
 }
 
-const _normalizeForms = ["NFD", "NFC", "NFKD", "NFKC"].reduce((accum, form) => {
+const _normalizeForms = ["NFD", "NFC", "NFKD", "NFKC"].reduce(
+  (accum, form) => {
     try {
-        // General test for normalize
+      // General test for normalize
+      /* c8 ignore start */
+      if ("test".normalize(form) !== "test") {
+        throw new Error("bad");
+      }
+      /* c8 ignore stop */
+
+      if (form === "NFD") {
+        const check = String.fromCharCode(0xe9).normalize("NFD");
+        const expected = String.fromCharCode(0x65, 0x0301);
         /* c8 ignore start */
-        if ("test".normalize(form) !== "test") { throw new Error("bad"); };
-        /* c8 ignore stop */
-
-        if (form === "NFD") {
-            const check = String.fromCharCode(0xe9).normalize("NFD");
-            const expected = String.fromCharCode(0x65, 0x0301)
-            /* c8 ignore start */
-            if (check !== expected) { throw new Error("broken") }
-            /* c8 ignore stop */
+        if (check !== expected) {
+          throw new Error("broken");
         }
+        /* c8 ignore stop */
+      }
 
-        accum.push(form);
-    } catch(error) { }
+      accum.push(form);
+    } catch (error) {}
 
     return accum;
-}, <Array<string>>[]);
+  },
+  <Array<string>>[],
+);
 
 /**
  *  Throws if the normalization %%form%% is not supported.
  */
 export function assertNormalize(form: string): void {
-    assert(_normalizeForms.indexOf(form) >= 0, "platform missing String.prototype.normalize", "UNSUPPORTED_OPERATION", {
-        operation: "String.prototype.normalize", info: { form }
-    });
+  assert(
+    _normalizeForms.indexOf(form) >= 0,
+    "platform missing String.prototype.normalize",
+    "UNSUPPORTED_OPERATION",
+    {
+      operation: "String.prototype.normalize",
+      info: { form },
+    },
+  );
 }
 
 /**
@@ -743,16 +839,28 @@ export function assertNormalize(form: string): void {
  *  by ensuring the %%givenGaurd%% matches the file-scoped %%guard%%,
  *  throwing if not, indicating the %%className%% if provided.
  */
-export function assertPrivate(givenGuard: any, guard: any, className?: string): void {
-    if (className == null) { className = ""; }
-    if (givenGuard !== guard) {
-        let method = className, operation = "new";
-        if (className) {
-            method += ".";
-            operation += " " + className;
-        }
-        assert(false, `private constructor; use ${ method }from* methods`, "UNSUPPORTED_OPERATION", {
-            operation
-        });
+export function assertPrivate(
+  givenGuard: any,
+  guard: any,
+  className?: string,
+): void {
+  if (className == null) {
+    className = "";
+  }
+  if (givenGuard !== guard) {
+    let method = className,
+      operation = "new";
+    if (className) {
+      method += ".";
+      operation += " " + className;
     }
+    assert(
+      false,
+      `private constructor; use ${method}from* methods`,
+      "UNSUPPORTED_OPERATION",
+      {
+        operation,
+      },
+    );
+  }
 }

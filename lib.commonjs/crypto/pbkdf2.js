@@ -42,7 +42,9 @@ function pbkdf2(_password, _salt, iterations, keylen, algo) {
 }
 exports.pbkdf2 = pbkdf2;
 pbkdf2._ = _pbkdf2;
-pbkdf2.lock = function () { locked = true; };
+pbkdf2.lock = function () {
+    locked = true;
+};
 pbkdf2.register = function (func) {
     if (locked) {
         throw new Error("pbkdf2 is locked");

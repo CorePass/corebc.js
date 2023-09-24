@@ -15,7 +15,7 @@ class FixedBytesCoder extends abstract_coder_js_1.Coder {
         (0, index_js_1.defineProperties)(this, { size }, { size: "number" });
     }
     defaultValue() {
-        return ("0x0000000000000000000000000000000000000000000000000000000000000000").substring(0, 2 + this.size * 2);
+        return "0x0000000000000000000000000000000000000000000000000000000000000000".substring(0, 2 + this.size * 2);
     }
     encode(writer, _value) {
         let data = (0, index_js_1.getBytesCopy)(typed_js_1.Typed.dereference(_value, this.type));

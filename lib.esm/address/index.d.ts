@@ -97,7 +97,7 @@ declare function getContractAddress(transaction: {
     from: string;
     nonce: BigNumberish;
 }): string;
-export { getAddress, getIcapAddress, calculateCheckSum, networkIdToPrefix, getContractAddress };
+export { getAddress, getIcapAddress, calculateCheckSum, networkIdToPrefix, getContractAddress, };
 export { getCreateAddress, getCreate2Address } from "./contract-address.js";
 export { isAddressable, isAddress, resolveAddress } from "./checks.js";
 //# sourceMappingURL=index.d.ts.map

@@ -13,7 +13,7 @@ function pack(writer, coders, values) {
     if (Array.isArray(values)) {
         arrayValues = values;
     }
-    else if (values && typeof (values) === "object") {
+    else if (values && typeof values === "object") {
         let unique = {};
         arrayValues = coders.map((coder) => {
             const name = coder.localName;
@@ -48,7 +48,9 @@ function pack(writer, coders, values) {
         }
     });
     // Backfill all the dynamic offsets, now that we know the static length
-    updateFuncs.forEach((func) => { func(staticWriter.length); });
+    updateFuncs.forEach((func) => {
+        func(staticWriter.length);
+    });
     let length = writer.appendWriter(staticWriter);
     length += writer.appendWriter(dynamicWriter);
     return length;
@@ -112,8 +114,8 @@ class ArrayCoder extends abstract_coder_js_1.Coder {
     coder;
     length;
     constructor(coder, length, localName) {
-        const type = (coder.type + "[" + (length >= 0 ? length : "") + "]");
-        const dynamic = (length === -1 || coder.dynamic);
+        const type = coder.type + "[" + (length >= 0 ? length : "") + "]";
+        const dynamic = length === -1 || coder.dynamic;
         super("array", type, localName, dynamic);
         (0, index_js_1.defineProperties)(this, { coder, length });
     }
@@ -136,7 +138,7 @@ class ArrayCoder extends abstract_coder_js_1.Coder {
             count = value.length;
             writer.writeValue(value.length);
         }
-        (0, index_js_1.assertArgumentCount)(value.length, count, "coder array" + (this.localName ? (" " + this.localName) : ""));
+        (0, index_js_1.assertArgumentCount)(value.length, count, "coder array" + (this.localName ? " " + this.localName : ""));
         let coders = [];
         for (let i = 0; i < value.length; i++) {
             coders.push(this.coder);
@@ -152,7 +154,11 @@ class ArrayCoder extends abstract_coder_js_1.Coder {
             // slot requires at least 32 bytes for their value (or 32
             // bytes as a link to the data). This could use a much
             // tighter bound, but we are erroring on the side of safety.
-            (0, index_js_1.assert)(count * abstract_coder_js_1.WordSize <= reader.dataLength, "insufficient data length", "BUFFER_OVERRUN", { buffer: reader.bytes, offset: count * abstract_coder_js_1.WordSize, length: reader.dataLength });
+            (0, index_js_1.assert)(count * abstract_coder_js_1.WordSize <= reader.dataLength, "insufficient data length", "BUFFER_OVERRUN", {
+                buffer: reader.bytes,
+                offset: count * abstract_coder_js_1.WordSize,
+                length: reader.dataLength,
+            });
         }
         let coders = [];
         for (let i = 0; i < count; i++) {

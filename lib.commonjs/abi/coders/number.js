@@ -14,7 +14,7 @@ class NumberCoder extends abstract_coder_js_1.Coder {
     size;
     signed;
     constructor(size, signed, localName) {
-        const name = ((signed ? "int" : "uint") + (size * 8));
+        const name = (signed ? "int" : "uint") + size * 8;
         super(name, name, localName, false);
         (0, index_js_1.defineProperties)(this, { size, signed }, { size: "number", signed: "boolean" });
     }
@@ -26,7 +26,7 @@ class NumberCoder extends abstract_coder_js_1.Coder {
         // Check bounds are safe for encoding
         let maxUintValue = (0, index_js_1.mask)(BN_MAX_UINT256, abstract_coder_js_1.WordSize * 8);
         if (this.signed) {
-            let bounds = (0, index_js_1.mask)(maxUintValue, (this.size * 8) - 1);
+            let bounds = (0, index_js_1.mask)(maxUintValue, this.size * 8 - 1);
             if (value > bounds || value < -(bounds + BN_1)) {
                 this._throwError("value out-of-bounds", _value);
             }

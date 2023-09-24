@@ -16,7 +16,9 @@ export class LangPt extends WordlistOwl {
      *
      *  @_ignore:
      */
-    constructor() { super("pt", words, checksum); }
+    constructor() {
+        super("pt", words, checksum);
+    }
     /**
      *  Returns a singleton instance of a ``LangPt``, creating it
      *  if this is the first time being called.

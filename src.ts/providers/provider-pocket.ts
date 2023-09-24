@@ -12,7 +12,9 @@
  *  @_subsection: api/providers/thirdparty:Pocket  [providers-pocket]
  */
 import {
-    defineProperties, FetchRequest, assertArgument
+  defineProperties,
+  FetchRequest,
+  assertArgument,
 } from "../utils/index.js";
 
 import { AbstractProvider } from "./abstract-provider.js";
@@ -26,21 +28,20 @@ import type { Networkish } from "./network.js";
 const defaultApplicationId = "62e1ad51b37b8e00394bda3b";
 
 function getHost(name: string): string {
-    switch (name) {
-        case "mainnet":
-            return  "eth-mainnet.gateway.pokt.network";
-        case "goerli":
-            return "eth-goerli.gateway.pokt.network";
+  switch (name) {
+    case "mainnet":
+      return "eth-mainnet.gateway.pokt.network";
+    case "goerli":
+      return "eth-goerli.gateway.pokt.network";
 
-        case "matic":
-            return "poly-mainnet.gateway.pokt.network";
-        case "matic-mumbai":
-            return "polygon-mumbai-rpc.gateway.pokt.network";
-    }
+    case "matic":
+      return "poly-mainnet.gateway.pokt.network";
+    case "matic-mumbai":
+      return "polygon-mumbai-rpc.gateway.pokt.network";
+  }
 
-    assertArgument(false, "unsupported network", "network", name);
+  assertArgument(false, "unsupported network", "network", name);
 }
-
 
 /**
  *  The **PocketProvider** connects to the [[link-pocket]]
@@ -51,71 +52,102 @@ function getHost(name: string): string {
  *  gain access to an increased rate-limit, it is highly
  *  recommended to [sign up here](link-pocket-signup).
  */
-export class PocketProvider extends JsonRpcProvider implements CommunityResourcable {
+export class PocketProvider
+  extends JsonRpcProvider
+  implements CommunityResourcable
+{
+  /**
+   *  The Application ID for the Pocket connection.
+   */
+  readonly applicationId!: string;
 
-    /**
-     *  The Application ID for the Pocket connection.
-     */
-    readonly applicationId!: string;
+  /**
+   *  The Application Secret for making authenticated requests
+   *  to the Pocket connection.
+   */
+  readonly applicationSecret!: null | string;
 
-    /**
-     *  The Application Secret for making authenticated requests
-     *  to the Pocket connection.
-     */
-    readonly applicationSecret!: null | string;
-
-    /**
-     *  Create a new **PocketProvider**.
-     *
-     *  By default connecting to ``mainnet`` with a highly throttled
-     *  API key.
-     */
-    constructor(_network?: Networkish, applicationId?: null | string, applicationSecret?: null | string) {
-        if (_network == null) { _network = "mainnet"; }
-        const network = Network.from(_network);
-        if (applicationId == null) { applicationId = defaultApplicationId; }
-        if (applicationSecret == null) { applicationSecret = null; }
-
-        const options = { staticNetwork: network };
-
-        const request = PocketProvider.getRequest(network, applicationId, applicationSecret);
-        super(request, network, options);
-
-        defineProperties<PocketProvider>(this, { applicationId, applicationSecret });
+  /**
+   *  Create a new **PocketProvider**.
+   *
+   *  By default connecting to ``mainnet`` with a highly throttled
+   *  API key.
+   */
+  constructor(
+    _network?: Networkish,
+    applicationId?: null | string,
+    applicationSecret?: null | string,
+  ) {
+    if (_network == null) {
+      _network = "mainnet";
+    }
+    const network = Network.from(_network);
+    if (applicationId == null) {
+      applicationId = defaultApplicationId;
+    }
+    if (applicationSecret == null) {
+      applicationSecret = null;
     }
 
-    _getProvider(networkId: number): AbstractProvider {
-        try {
-            return new PocketProvider(networkId, this.applicationId, this.applicationSecret);
-        } catch (error) { }
-        return super._getProvider(networkId);
+    const options = { staticNetwork: network };
+
+    const request = PocketProvider.getRequest(
+      network,
+      applicationId,
+      applicationSecret,
+    );
+    super(request, network, options);
+
+    defineProperties<PocketProvider>(this, {
+      applicationId,
+      applicationSecret,
+    });
+  }
+
+  _getProvider(networkId: number): AbstractProvider {
+    try {
+      return new PocketProvider(
+        networkId,
+        this.applicationId,
+        this.applicationSecret,
+      );
+    } catch (error) {}
+    return super._getProvider(networkId);
+  }
+
+  /**
+   *  Returns a prepared request for connecting to %%network%% with
+   *  %%applicationId%%.
+   */
+  static getRequest(
+    network: Network,
+    applicationId?: null | string,
+    applicationSecret?: null | string,
+  ): FetchRequest {
+    if (applicationId == null) {
+      applicationId = defaultApplicationId;
     }
 
-    /**
-     *  Returns a prepared request for connecting to %%network%% with
-     *  %%applicationId%%.
-     */
-    static getRequest(network: Network, applicationId?: null | string, applicationSecret?: null | string): FetchRequest {
-        if (applicationId == null) { applicationId = defaultApplicationId; }
+    const request = new FetchRequest(
+      `https:/\/${getHost(network.name)}/v1/lb/${applicationId}`,
+    );
+    request.allowGzip = true;
 
-        const request = new FetchRequest(`https:/\/${ getHost(network.name) }/v1/lb/${ applicationId }`);
-        request.allowGzip = true;
-
-        if (applicationSecret) {
-            request.setCredentials("", applicationSecret);
-        }
-
-        if (applicationId === defaultApplicationId) {
-            request.retryFunc = async (request, response, attempt) => {
-                showThrottleMessage("PocketProvider");
-                return true;
-            };
-        }
-
-        return request;
+    if (applicationSecret) {
+      request.setCredentials("", applicationSecret);
     }
 
-    isCommunityResource(): boolean {
-        return (this.applicationId === defaultApplicationId);
+    if (applicationId === defaultApplicationId) {
+      request.retryFunc = async (request, response, attempt) => {
+        showThrottleMessage("PocketProvider");
+        return true;
+      };
     }
+
+    return request;
+  }
+
+  isCommunityResource(): boolean {
+    return this.applicationId === defaultApplicationId;
+  }
 }

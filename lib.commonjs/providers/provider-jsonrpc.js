@@ -20,26 +20,28 @@ const subscriber_polling_js_1 = require("./subscriber-polling.js");
 const Primitive = "bigint,boolean,function,number,string,symbol".split(/,/g);
 //const Methods = "getAddress,then".split(/,/g);
 function deepCopy(value) {
-    if (value == null || Primitive.indexOf(typeof (value)) >= 0) {
+    if (value == null || Primitive.indexOf(typeof value) >= 0) {
         return value;
     }
     // Keep any Addressable
-    if (typeof (value.getAddress) === "function") {
+    if (typeof value.getAddress === "function") {
         return value;
     }
     if (Array.isArray(value)) {
-        return (value.map(deepCopy));
+        return value.map(deepCopy);
     }
-    if (typeof (value) === "object") {
+    if (typeof value === "object") {
         return Object.keys(value).reduce((accum, key) => {
             accum[key] = value[key];
             return accum;
         }, {});
     }
-    throw new Error(`should not happen: ${value} (${typeof (value)})`);
+    throw new Error(`should not happen: ${value} (${typeof value})`);
 }
 function stall(duration) {
-    return new Promise((resolve) => { setTimeout(resolve, duration); });
+    return new Promise((resolve) => {
+        setTimeout(resolve, duration);
+    });
 }
 function getLowerCase(value) {
     if (value) {
@@ -48,14 +50,14 @@ function getLowerCase(value) {
     return value;
 }
 function isPollable(value) {
-    return (value && typeof (value.pollingInterval) === "number");
+    return value && typeof value.pollingInterval === "number";
 }
 const defaultOptions = {
     polling: false,
     staticNetwork: null,
     batchStallTime: 10,
-    batchMaxSize: (1 << 20),
-    batchMaxCount: 100 // 100 requests
+    batchMaxSize: 1 << 20,
+    batchMaxCount: 100, // 100 requests
 };
 // @TODO: Unchecked Signers
 class JsonRpcSigner extends abstract_signer_js_1.AbstractSigner {
@@ -67,7 +69,7 @@ class JsonRpcSigner extends abstract_signer_js_1.AbstractSigner {
     }
     connect(provider) {
         (0, index_js_4.assert)(false, "cannot reconnect JsonRpcSigner", "UNSUPPORTED_OPERATION", {
-            operation: "signer.connect"
+            operation: "signer.connect",
         });
     }
     async getAddress() {
@@ -99,7 +101,10 @@ class JsonRpcSigner extends abstract_signer_js_1.AbstractSigner {
         // we look it up for them.
         if (tx.energyLimit == null) {
             promises.push((async () => {
-                tx.energyLimit = await this.provider.estimateEnergy({ ...tx, from: this.address });
+                tx.energyLimit = await this.provider.estimateEnergy({
+                    ...tx,
+                    from: this.address,
+                });
             })());
         }
         // The address may be an ENS name or Addressable
@@ -124,7 +129,7 @@ class JsonRpcSigner extends abstract_signer_js_1.AbstractSigner {
         // Unfortunately, JSON-RPC only provides and opaque transaction hash
         // for a response, and we need the actual transaction, so we poll
         // for it; it should show up very quickly
-        return await (new Promise((resolve, reject) => {
+        return await new Promise((resolve, reject) => {
             const timeouts = [1000, 100];
             const checkTx = async () => {
                 // Try getting the transaction
@@ -134,10 +139,12 @@ class JsonRpcSigner extends abstract_signer_js_1.AbstractSigner {
                     return;
                 }
                 // Wait another 4 seconds
-                this.provider._setTimeout(() => { checkTx(); }, timeouts.pop() || 4000);
+                this.provider._setTimeout(() => {
+                    checkTx();
+                }, timeouts.pop() || 4000);
             };
             checkTx();
-        }));
+        });
     }
     async signTransaction(_tx) {
         const tx = deepCopy(_tx);
@@ -154,9 +161,10 @@ class JsonRpcSigner extends abstract_signer_js_1.AbstractSigner {
         return await this.provider.send("xcb_signTransaction", [hexTx]);
     }
     async signMessage(_message) {
-        const message = ((typeof (_message) === "string") ? (0, index_js_4.toUtf8Bytes)(_message) : _message);
+        const message = typeof _message === "string" ? (0, index_js_4.toUtf8Bytes)(_message) : _message;
         return await this.provider.send("personal_sign", [
-            (0, index_js_4.hexlify)(message), this.address.toLowerCase()
+            (0, index_js_4.hexlify)(message),
+            this.address.toLowerCase(),
         ]);
     }
     async signTypedData(domain, types, _value) {
@@ -169,18 +177,21 @@ class JsonRpcSigner extends abstract_signer_js_1.AbstractSigner {
         });
         return await this.provider.send("xcb_signTypedData_v4", [
             this.address.toLowerCase(),
-            JSON.stringify(index_js_3.TypedDataEncoder.getPayload(populated.domain, types, populated.value))
+            JSON.stringify(index_js_3.TypedDataEncoder.getPayload(populated.domain, types, populated.value)),
         ]);
     }
     async unlock(password) {
         return this.provider.send("personal_unlockAccount", [
-            this.address.toLowerCase(), password, null
+            this.address.toLowerCase(),
+            password,
+            null,
         ]);
     }
     async _legacySignMessage(_message) {
-        const message = ((typeof (_message) === "string") ? (0, index_js_4.toUtf8Bytes)(_message) : _message);
+        const message = typeof _message === "string" ? (0, index_js_4.toUtf8Bytes)(_message) : _message;
         return await this.provider.send("xcb_sign", [
-            this.address.toLowerCase(), (0, index_js_4.hexlify)(message)
+            this.address.toLowerCase(),
+            (0, index_js_4.hexlify)(message),
         ]);
     }
 }
@@ -209,28 +220,30 @@ class JsonRpcApiProvider extends abstract_provider_js_1.AbstractProvider {
             return;
         }
         // If we aren't using batching, no hard in sending it immeidately
-        const stallTime = (this._getOption("batchMaxCount") === 1) ? 0 : this._getOption("batchStallTime");
+        const stallTime = this._getOption("batchMaxCount") === 1
+            ? 0
+            : this._getOption("batchStallTime");
         this.#drainTimer = setTimeout(() => {
             this.#drainTimer = null;
             const payloads = this.#payloads;
             this.#payloads = [];
             while (payloads.length) {
                 // Create payload batches that satisfy our batch constraints
-                const batch = [(payloads.shift())];
+                const batch = [payloads.shift()];
                 while (payloads.length) {
                     if (batch.length === this.#options.batchMaxCount) {
                         break;
                     }
-                    batch.push((payloads.shift()));
+                    batch.push(payloads.shift());
                     const bytes = JSON.stringify(batch.map((p) => p.payload));
                     if (bytes.length > this.#options.batchMaxSize) {
-                        payloads.unshift((batch.pop()));
+                        payloads.unshift(batch.pop());
                         break;
                     }
                 }
                 // Process the result to each payload
                 (async () => {
-                    const payload = ((batch.length === 1) ? batch[0].payload : batch.map((p) => p.payload));
+                    const payload = batch.length === 1 ? batch[0].payload : batch.map((p) => p.payload);
                     this.emit("debug", { action: "sendRpcPayload", payload });
                     try {
                         // console.log({payload})
@@ -240,10 +253,13 @@ class JsonRpcApiProvider extends abstract_provider_js_1.AbstractProvider {
                         // Process results in batch order
                         for (const { resolve, reject, payload } of batch) {
                             // Find the matching result
-                            const resp = result.filter((r) => (r.id === payload.id))[0];
+                            const resp = result.filter((r) => r.id === payload.id)[0];
                             // No result; the node failed us in unexpected ways
                             if (resp == null) {
-                                return reject((0, index_js_4.makeError)("no response from server", "BAD_DATA", { value: result, info: { payload } }));
+                                return reject((0, index_js_4.makeError)("no response from server", "BAD_DATA", {
+                                    value: result,
+                                    info: { payload },
+                                }));
                             }
                             // The response is an error
                             if ("error" in resp) {
@@ -302,12 +318,12 @@ class JsonRpcApiProvider extends abstract_provider_js_1.AbstractProvider {
         return this.#network;
     }
     /*
-     {
-        assert(false, "sub-classes must override _send", "UNSUPPORTED_OPERATION", {
-            operation: "jsonRpcApiProvider._send"
-        });
-    }
-    */
+       {
+          assert(false, "sub-classes must override _send", "UNSUPPORTED_OPERATION", {
+              operation: "jsonRpcApiProvider._send"
+          });
+      }
+      */
     /**
      *  Resolves to the non-normalized value by performing %%req%%.
      *
@@ -339,7 +355,10 @@ class JsonRpcApiProvider extends abstract_provider_js_1.AbstractProvider {
         }
         // We are not ready yet; use the primitive _send
         const payload = {
-            id: this.#nextId++, method: "xcb_networkId", params: [], jsonrpc: "2.0"
+            id: this.#nextId++,
+            method: "xcb_networkId",
+            params: [],
+            jsonrpc: "2.0",
         };
         this.emit("debug", { action: "sendRpcPayload", payload });
         let result;
@@ -422,7 +441,9 @@ class JsonRpcApiProvider extends abstract_provider_js_1.AbstractProvider {
     /**
      *  Returns true only if the [[_start]] has been called.
      */
-    get ready() { return this.#notReady == null; }
+    get ready() {
+        return this.#notReady == null;
+    }
     /**
      *  Returns %%tx%% as a normalized JSON-RPC transaction request,
      *  which has all values hexlified and any numeric values converted
@@ -431,7 +452,14 @@ class JsonRpcApiProvider extends abstract_provider_js_1.AbstractProvider {
     getRpcTransaction(tx) {
         const result = {};
         // JSON-RPC now requires numeric values to be "quantity" values
-        ["networkId", "energyLimit", "energyPrice", "type", "nonce", "value"].forEach((key) => {
+        [
+            "networkId",
+            "energyLimit",
+            "energyPrice",
+            "type",
+            "nonce",
+            "value",
+        ].forEach((key) => {
             if (tx[key] == null) {
                 return;
             }
@@ -465,66 +493,66 @@ class JsonRpcApiProvider extends abstract_provider_js_1.AbstractProvider {
             case "getBalance": {
                 return {
                     method: "xcb_getBalance",
-                    args: [getLowerCase(req.address), req.blockTag]
+                    args: [getLowerCase(req.address), req.blockTag],
                 };
             }
             case "getTransactionCount":
                 return {
                     method: "xcb_getTransactionCount",
-                    args: [getLowerCase(req.address), req.blockTag]
+                    args: [getLowerCase(req.address), req.blockTag],
                 };
             case "getCode":
                 return {
                     method: "xcb_getCode",
-                    args: [getLowerCase(req.address), req.blockTag]
+                    args: [getLowerCase(req.address), req.blockTag],
                 };
             case "getStorage":
                 return {
                     method: "xcb_getStorageAt",
                     args: [
                         getLowerCase(req.address),
-                        ("0x" + req.position.toString(16)),
-                        req.blockTag
-                    ]
+                        "0x" + req.position.toString(16),
+                        req.blockTag,
+                    ],
                 };
             case "broadcastTransaction":
                 return {
                     method: "xcb_sendRawTransaction",
-                    args: [req.signedTransaction]
+                    args: [req.signedTransaction],
                 };
             case "getBlock":
                 if ("blockTag" in req) {
                     return {
                         method: "xcb_getBlockByNumber",
-                        args: [req.blockTag, !!req.includeTransactions]
+                        args: [req.blockTag, !!req.includeTransactions],
                     };
                 }
                 else if ("blockHash" in req) {
                     return {
                         method: "xcb_getBlockByHash",
-                        args: [req.blockHash, !!req.includeTransactions]
+                        args: [req.blockHash, !!req.includeTransactions],
                     };
                 }
                 break;
             case "getTransaction":
                 return {
                     method: "xcb_getTransactionByHash",
-                    args: [req.hash]
+                    args: [req.hash],
                 };
             case "getTransactionReceipt":
                 return {
                     method: "xcb_getTransactionReceipt",
-                    args: [req.hash]
+                    args: [req.hash],
                 };
             case "call":
                 return {
                     method: "xcb_call",
-                    args: [this.getRpcTransaction(req.transaction), req.blockTag]
+                    args: [this.getRpcTransaction(req.transaction), req.blockTag],
                 };
             case "estimateEnergy": {
                 return {
                     method: "xcb_estimateEnergy",
-                    args: [this.getRpcTransaction(req.transaction)]
+                    args: [this.getRpcTransaction(req.transaction)],
                 };
             }
             case "getLogs":
@@ -553,21 +581,22 @@ class JsonRpcApiProvider extends abstract_provider_js_1.AbstractProvider {
             const msg = error.message;
             if (!msg.match(/revert/i) && msg.match(/insufficient funds/i)) {
                 return (0, index_js_4.makeError)("insufficient funds", "INSUFFICIENT_FUNDS", {
-                    transaction: (payload.params[0]),
-                    info: { payload, error }
+                    transaction: payload.params[0],
+                    info: { payload, error },
                 });
             }
         }
         if (method === "xcb_call" || method === "xcb_estimateEnergy") {
             const result = spelunkData(error);
-            const e = index_js_1.AbiCoder.getBuiltinCallException((method === "xcb_call") ? "call" : "estimateEnergy", (payload.params[0]), (result ? result.data : null));
+            const e = index_js_1.AbiCoder.getBuiltinCallException(method === "xcb_call" ? "call" : "estimateEnergy", payload.params[0], result ? result.data : null);
             e.info = { error, payload };
             return e;
         }
         // Only estimateEnergy and call can return arbitrary contract-defined text, so now we
         // we can process text safely.
         const message = JSON.stringify(spelunkMessage(error));
-        if (typeof (error.message) === "string" && error.message.match(/user denied|corebc-user-denied/i)) {
+        if (typeof error.message === "string" &&
+            error.message.match(/user denied|corebc-user-denied/i)) {
             const actionMap = {
                 xcb_sign: "signMessage",
                 personal_sign: "signMessage",
@@ -578,34 +607,45 @@ class JsonRpcApiProvider extends abstract_provider_js_1.AbstractProvider {
                 wallet_requestAccounts: "requestAccess",
             };
             return (0, index_js_4.makeError)(`user rejected action`, "ACTION_REJECTED", {
-                action: (actionMap[method] || "unknown"),
+                action: actionMap[method] || "unknown",
                 reason: "rejected",
-                info: { payload, error }
+                info: { payload, error },
             });
         }
-        if (method === "xcb_sendRawTransaction" || method === "xcb_sendTransaction") {
-            const transaction = (payload.params[0]);
+        if (method === "xcb_sendRawTransaction" ||
+            method === "xcb_sendTransaction") {
+            const transaction = payload.params[0];
             if (message.match(/insufficient funds|base fee exceeds energy limit/i)) {
                 return (0, index_js_4.makeError)("insufficient funds for intrinsic transaction cost", "INSUFFICIENT_FUNDS", {
-                    transaction, info: { error }
+                    transaction,
+                    info: { error },
                 });
             }
             if (message.match(/nonce/i) && message.match(/too low/i)) {
-                return (0, index_js_4.makeError)("nonce has already been used", "NONCE_EXPIRED", { transaction, info: { error } });
+                return (0, index_js_4.makeError)("nonce has already been used", "NONCE_EXPIRED", {
+                    transaction,
+                    info: { error },
+                });
             }
             // "replacement transaction underpriced"
-            if (message.match(/replacement transaction/i) && message.match(/underpriced/i)) {
-                return (0, index_js_4.makeError)("replacement fee too low", "REPLACEMENT_UNDERPRICED", { transaction, info: { error } });
+            if (message.match(/replacement transaction/i) &&
+                message.match(/underpriced/i)) {
+                return (0, index_js_4.makeError)("replacement fee too low", "REPLACEMENT_UNDERPRICED", {
+                    transaction,
+                    info: { error },
+                });
             }
             if (message.match(/only replay-protected/i)) {
                 return (0, index_js_4.makeError)("legacy pre-eip-155 transactions not supported", "UNSUPPORTED_OPERATION", {
-                    operation: method, info: { transaction, info: { error } }
+                    operation: method,
+                    info: { transaction, info: { error } },
                 });
             }
         }
         if (message.match(/the method .* does not exist/i)) {
             return (0, index_js_4.makeError)("unsupported operation", "UNSUPPORTED_OPERATION", {
-                operation: payload.method, info: { error }
+                operation: payload.method,
+                info: { error },
             });
         }
         return (0, index_js_4.makeError)("could not coalesce error", "UNKNOWN_ERROR", { error });
@@ -628,8 +668,9 @@ class JsonRpcApiProvider extends abstract_provider_js_1.AbstractProvider {
         const id = this.#nextId++;
         const promise = new Promise((resolve, reject) => {
             this.#payloads.push({
-                resolve, reject,
-                payload: { method, params, id, jsonrpc: "2.0" }
+                resolve,
+                reject,
+                payload: { method, params, id, jsonrpc: "2.0" },
             });
         });
         // If there is not a pending drainTimer, set one
@@ -654,8 +695,8 @@ class JsonRpcApiProvider extends abstract_provider_js_1.AbstractProvider {
         }
         const accountsPromise = this.send("xcb_accounts", []);
         // Account index
-        if (typeof (address) === "number") {
-            const accounts = (await accountsPromise);
+        if (typeof address === "number") {
+            const accounts = await accountsPromise;
             if (address >= accounts.length) {
                 throw new Error("no such account");
             }
@@ -663,7 +704,7 @@ class JsonRpcApiProvider extends abstract_provider_js_1.AbstractProvider {
         }
         const { accounts } = await (0, index_js_4.resolveProperties)({
             network: this.getNetwork(),
-            accounts: accountsPromise
+            accounts: accountsPromise,
         });
         // Account address
         address = (0, index_js_2.getAddress)(address);
@@ -696,7 +737,9 @@ class JsonRpcApiPollingProvider extends JsonRpcApiProvider {
     /**
      *  The polling interval (default: 4000 ms)
      */
-    get pollingInterval() { return this.#pollingInterval; }
+    get pollingInterval() {
+        return this.#pollingInterval;
+    }
     set pollingInterval(value) {
         if (!Number.isInteger(value) || value < 0) {
             throw new Error("invalid interval");
@@ -722,10 +765,10 @@ class JsonRpcProvider extends JsonRpcApiPollingProvider {
     #connect;
     constructor(url, network, options) {
         if (url == null) {
-            url = "http:/\/localhost:8545";
+            url = "http://localhost:8545";
         }
         super(network, options);
-        if (typeof (url) === "string") {
+        if (typeof url === "string") {
             this.#connect = new index_js_4.FetchRequest(url);
         }
         else {
@@ -762,11 +805,13 @@ function spelunkData(value) {
         return null;
     }
     // These *are* the droids we're looking for.
-    if (typeof (value.message) === "string" && value.message.match("reverted") && (0, index_js_4.isHexString)(value.data)) {
+    if (typeof value.message === "string" &&
+        value.message.match("reverted") &&
+        (0, index_js_4.isHexString)(value.data)) {
         return { message: value.message, data: value.data };
     }
     // Spelunk further...
-    if (typeof (value) === "object") {
+    if (typeof value === "object") {
         for (const key in value) {
             const result = spelunkData(value[key]);
             if (result) {
@@ -776,7 +821,7 @@ function spelunkData(value) {
         return null;
     }
     // Might be a JSON string we can further descend...
-    if (typeof (value) === "string") {
+    if (typeof value === "string") {
         try {
             return spelunkData(JSON.parse(value));
         }
@@ -789,17 +834,17 @@ function _spelunkMessage(value, result) {
         return;
     }
     // These *are* the droids we're looking for.
-    if (typeof (value.message) === "string") {
+    if (typeof value.message === "string") {
         result.push(value.message);
     }
     // Spelunk further...
-    if (typeof (value) === "object") {
+    if (typeof value === "object") {
         for (const key in value) {
             _spelunkMessage(value[key], result);
         }
     }
     // Might be a JSON string we can further descend...
-    if (typeof (value) === "string") {
+    if (typeof value === "string") {
         try {
             return _spelunkMessage(JSON.parse(value), result);
         }

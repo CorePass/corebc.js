@@ -1,6 +1,5 @@
 import { assertArgument } from "../utils/index.js";
 import { JsonRpcApiPollingProvider } from "./provider-jsonrpc.js";
-;
 export class BrowserProvider extends JsonRpcApiPollingProvider {
     #request;
     constructor(core, network) {
@@ -34,10 +33,12 @@ export class BrowserProvider extends JsonRpcApiPollingProvider {
             return [{ id: payload.id, result }];
         }
         catch (e) {
-            return [{
+            return [
+                {
                     id: payload.id,
-                    error: { code: e.code, data: e.data, message: e.message }
-                }];
+                    error: { code: e.code, data: e.data, message: e.message },
+                },
+            ];
         }
     }
     getRpcError(payload, error) {
@@ -59,11 +60,11 @@ export class BrowserProvider extends JsonRpcApiPollingProvider {
             address = 0;
         }
         const accounts = await this.send("xcb_accounts", []);
-        if (typeof (address) === "number") {
-            return (accounts.length > address);
+        if (typeof address === "number") {
+            return accounts.length > address;
         }
         address = address.toLowerCase();
-        return accounts.filter((a) => (a.toLowerCase() === address)).length !== 0;
+        return (accounts.filter((a) => a.toLowerCase() === address).length !== 0);
     }
     async getSigner(address) {
         if (address == null) {

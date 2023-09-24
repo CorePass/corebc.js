@@ -18,7 +18,8 @@ function getPollingSubscriber(provider, event) {
         return new PollingTransactionSubscriber(provider, event);
     }
     (0, index_js_1.assert)(false, "unsupported polling event", "UNSUPPORTED_OPERATION", {
-        operation: "getPollingSubscriber", info: { event }
+        operation: "getPollingSubscriber",
+        info: { event },
     });
 }
 exports.getPollingSubscriber = getPollingSubscriber;
@@ -41,8 +42,12 @@ class PollingBlockSubscriber {
         this.#interval = 4000;
         this.#blockNumber = -2;
     }
-    get pollingInterval() { return this.#interval; }
-    set pollingInterval(value) { this.#interval = value; }
+    get pollingInterval() {
+        return this.#interval;
+    }
+    set pollingInterval(value) {
+        this.#interval = value;
+    }
     async #poll() {
         try {
             const blockNumber = await this.#provider.getBlockNumber();
@@ -133,8 +138,12 @@ class OnBlockSubscriber {
         this.#running = false;
         this.#provider.off("block", this.#poll);
     }
-    pause(dropWhilePaused) { this.stop(); }
-    resume() { this.start(); }
+    pause(dropWhilePaused) {
+        this.stop();
+    }
+    resume() {
+        this.start();
+    }
 }
 exports.OnBlockSubscriber = OnBlockSubscriber;
 /**

@@ -26,7 +26,6 @@ import { getBytes, getBytesCopy } from "./data.js";
 export function decodeBase64(value) {
     return getBytesCopy(Buffer.from(value, "base64"));
 }
-;
 /**
  *  Encodes %%data%% as a base-64 encoded string.
  *

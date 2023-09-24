@@ -31,7 +31,9 @@ function ripemd160(_data) {
 }
 exports.ripemd160 = ripemd160;
 ripemd160._ = _ripemd160;
-ripemd160.lock = function () { locked = true; };
+ripemd160.lock = function () {
+    locked = true;
+};
 ripemd160.register = function (func) {
     if (locked) {
         throw new TypeError("ripemd160 is locked");

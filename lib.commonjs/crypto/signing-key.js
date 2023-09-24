@@ -13,7 +13,7 @@ const data_js_1 = require("../utils/data.js");
 const logger_js_1 = require("../logger/logger.js");
 const crypto_js_1 = require("./crypto.js");
 const buffer_1 = require("buffer");
-const logger = new logger_js_1.Logger('signing-key/0.0.1');
+const logger = new logger_js_1.Logger("signing-key/0.0.1");
 //const N = BigInt("0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141");
 // Make noble-secp256k1 sync
 /**
@@ -26,20 +26,24 @@ class SigningKey {
      *  Creates a new **SigningKey** for %%privateKey%%.
      */
     constructor(privateKey) {
-        (0, index_js_1.assertArgument)((0, index_js_1.dataLength)('0x' + privateKey) === 57, "invalid private key", "privateKey", "[REDACTED]");
-        this.#privateKey = (0, index_js_1.hexlify)('0x' + privateKey);
+        (0, index_js_1.assertArgument)((0, index_js_1.dataLength)("0x" + privateKey) === 57, "invalid private key", "privateKey", "[REDACTED]");
+        this.#privateKey = (0, index_js_1.hexlify)("0x" + privateKey);
     }
     /**
      *  The private key.
      */
-    get privateKey() { return this.#privateKey; }
+    get privateKey() {
+        return this.#privateKey;
+    }
     /**
      *  The uncompressed public key.
      *
      * This will always begin with the prefix ``0x04`` and be 132
      * characters long (the ``0x`` prefix and 130 hexadecimal nibbles).
      */
-    get publicKey() { return SigningKey.computePublicKey(this.#privateKey); }
+    get publicKey() {
+        return SigningKey.computePublicKey(this.#privateKey);
+    }
     /**
      *  The compressed public key.
      *
@@ -47,7 +51,9 @@ class SigningKey {
      *  and be 68 characters long (the ``0x`` prefix and 33 hexadecimal
      *  nibbles)
      */
-    get compressedPublicKey() { return SigningKey.computePublicKey(this.#privateKey, true); }
+    get compressedPublicKey() {
+        return SigningKey.computePublicKey(this.#privateKey, true);
+    }
     /**
      *  Return the signature of the signed %%digest%%.
      */

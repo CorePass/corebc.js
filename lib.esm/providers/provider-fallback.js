@@ -3,7 +3,7 @@
  *
  *  @_section: api/providers/fallback-provider:Fallback Provider [about-fallback-provider]
  */
-import { getBigInt, getNumber, assert, assertArgument } from "../utils/index.js";
+import { getBigInt, getNumber, assert, assertArgument, } from "../utils/index.js";
 import { AbstractProvider } from "./abstract-provider.js";
 import { Network } from "./network.js";
 const BN_1 = BigInt("1");
@@ -17,23 +17,34 @@ function shuffle(array) {
     }
 }
 function stall(duration) {
-    return new Promise((resolve) => { setTimeout(resolve, duration); });
+    return new Promise((resolve) => {
+        setTimeout(resolve, duration);
+    });
 }
-function getTime() { return (new Date()).getTime(); }
+function getTime() {
+    return new Date().getTime();
+}
 function stringify(value) {
     return JSON.stringify(value, (key, value) => {
-        if (typeof (value) === "bigint") {
+        if (typeof value === "bigint") {
             return { type: "bigint", value: value.toString() };
         }
         return value;
     });
 }
-;
 const defaultConfig = { stallTimeout: 400, priority: 1, weight: 1 };
 const defaultState = {
-    blockNumber: -2, requests: 0, lateResponses: 0, errorResponses: 0,
-    outOfSync: -1, unsupportedEvents: 0, rollingDuration: 0, score: 0,
-    _network: null, _updateNumber: null, _totalTime: 0
+    blockNumber: -2,
+    requests: 0,
+    lateResponses: 0,
+    errorResponses: 0,
+    outOfSync: -1,
+    unsupportedEvents: 0,
+    rollingDuration: 0,
+    score: 0,
+    _network: null,
+    _updateNumber: null,
+    _totalTime: 0,
 };
 async function waitForSync(config, blockNumber) {
     while (config.blockNumber < 0 || config.blockNumber < blockNumber) {
@@ -55,12 +66,12 @@ function _normalize(value) {
         return "null";
     }
     if (Array.isArray(value)) {
-        return "[" + (value.map(_normalize)).join(",") + "]";
+        return "[" + value.map(_normalize).join(",") + "]";
     }
-    if (typeof (value) === "object" && typeof (value.toJSON) === "function") {
+    if (typeof value === "object" && typeof value.toJSON === "function") {
         return _normalize(value.toJSON());
     }
-    switch (typeof (value)) {
+    switch (typeof value) {
         case "boolean":
         case "symbol":
             return value.toString();
@@ -72,7 +83,11 @@ function _normalize(value) {
         case "object": {
             const keys = Object.keys(value);
             keys.sort();
-            return "{" + keys.map((k) => `${JSON.stringify(k)}:${_normalize(value[k])}`).join(",") + "}";
+            return ("{" +
+                keys
+                    .map((k) => `${JSON.stringify(k)}:${_normalize(value[k])}`)
+                    .join(",") +
+                "}");
         }
     }
     console.log("Could not serialize", value);
@@ -134,7 +149,7 @@ function getMedian(quorum, results) {
         return undefined;
     }
     // Get the sorted values
-    values.sort((a, b) => ((a < b) ? -1 : (b > a) ? 1 : 0));
+    values.sort((a, b) => (a < b ? -1 : b > a ? 1 : 0));
     const mid = Math.floor(values.length / 2);
     // Odd-length; take the middle value
     if (values.length % 2) {
@@ -180,7 +195,9 @@ function getFuzzyMode(quorum, results) {
         // Use this result, if this result meets quorum and has either:
         // - a better weight
         // - or equal weight, but the result is larger
-        if (weight >= quorum && (weight > bestWeight || (bestResult != null && weight === bestWeight && result > bestResult))) {
+        if (weight >= quorum &&
+            (weight > bestWeight ||
+                (bestResult != null && weight === bestWeight && result > bestResult))) {
             bestWeight = weight;
             bestResult = result;
         }
@@ -213,7 +230,7 @@ export class FallbackProvider extends AbstractProvider {
         this.quorum = 2; //Math.ceil(providers.length /  2);
         this.eventQuorum = 1;
         this.eventWorkers = 1;
-        assertArgument(this.quorum <= this.#configs.reduce((a, c) => (a + c.weight), 0), "quorum exceed provider wieght", "quorum", this.quorum);
+        assertArgument(this.quorum <= this.#configs.reduce((a, c) => a + c.weight, 0), "quorum exceed provider wieght", "quorum", this.quorum);
     }
     get providerConfigs() {
         return this.#configs.map((c) => {
@@ -246,7 +263,7 @@ export class FallbackProvider extends AbstractProvider {
             case "getBalance":
                 return await provider.getBalance(req.address, req.blockTag);
             case "getBlock": {
-                const block = ("blockHash" in req) ? req.blockHash : req.blockTag;
+                const block = "blockHash" in req ? req.blockHash : req.blockTag;
                 return await provider.getBlock(block, req.includeTransactions);
             }
             case "getBlockNumber":
@@ -279,7 +296,7 @@ export class FallbackProvider extends AbstractProvider {
         // Shuffle the states, sorted by priority
         const allConfigs = this.#configs.slice();
         shuffle(allConfigs);
-        allConfigs.sort((a, b) => (b.priority - a.priority));
+        allConfigs.sort((a, b) => b.priority - a.priority);
         for (const config of allConfigs) {
             if (configs.indexOf(config) === -1) {
                 return config;
@@ -296,8 +313,11 @@ export class FallbackProvider extends AbstractProvider {
         }
         // Create a new runner
         const runner = {
-            config, result: null, didBump: false,
-            perform: null, staller: null
+            config,
+            result: null,
+            didBump: false,
+            perform: null,
+            staller: null,
         };
         const now = getTime();
         // Start performing this operation
@@ -311,7 +331,7 @@ export class FallbackProvider extends AbstractProvider {
                 config.errorResponses++;
                 runner.result = { error };
             }
-            const dt = (getTime() - now);
+            const dt = getTime() - now;
             config._totalTime += dt;
             config.rollingDuration = 0.95 * config.rollingDuration + 0.05 * dt;
             runner.perform = null;
@@ -343,13 +363,13 @@ export class FallbackProvider extends AbstractProvider {
                 // Check all the networks match
                 let networkId = null;
                 for (const config of this.#configs) {
-                    const network = (config._network);
+                    const network = config._network;
                     if (networkId == null) {
                         networkId = network.networkId;
                     }
                     else if (network.networkId !== networkId) {
                         assert(false, "cannot mix providers on different networks", "UNSUPPORTED_OPERATION", {
-                            operation: "new FallbackProvider"
+                            operation: "new FallbackProvider",
                         });
                     }
                 }
@@ -367,7 +387,7 @@ export class FallbackProvider extends AbstractProvider {
             }
         }
         // Are there enough results to event meet quorum?
-        if (results.reduce((a, r) => (a + r.weight), 0) < this.quorum) {
+        if (results.reduce((a, r) => a + r.weight, 0) < this.quorum) {
             return undefined;
         }
         switch (req.method) {
@@ -377,7 +397,7 @@ export class FallbackProvider extends AbstractProvider {
                     this.#height = Math.ceil(getNumber(getMedian(this.quorum, this.#configs.map((c) => ({
                         value: c.blockNumber,
                         tag: getNumber(c.blockNumber).toString(),
-                        weight: c.weight
+                        weight: c.weight,
                     })))));
                 }
                 // Find the mode across all the providers, allowing for
@@ -415,7 +435,7 @@ export class FallbackProvider extends AbstractProvider {
                 return getAnyResult(this.quorum, results);
         }
         assert(false, "unsupported method", "UNSUPPORTED_OPERATION", {
-            operation: `_perform(${stringify(req.method)})`
+            operation: `_perform(${stringify(req.method)})`,
         });
     }
     async #waitForQuorum(running, req) {
@@ -460,7 +480,10 @@ export class FallbackProvider extends AbstractProvider {
         // All providers have returned, and we have no result
         assert(interesting.length > 0, "quorum not met", "SERVER_ERROR", {
             request: "%sub-requests",
-            info: { request: req, results: Array.from(running).map((r) => stringify(r.result)) }
+            info: {
+                request: req,
+                results: Array.from(running).map((r) => stringify(r.result)),
+            },
         });
         // Wait for someone to either complete its perform or stall out
         await Promise.race(interesting);
@@ -485,7 +508,7 @@ export class FallbackProvider extends AbstractProvider {
             const result = getAnyResult(this.quorum, results);
             assert(result !== undefined, "problem multi-broadcasting", "SERVER_ERROR", {
                 request: "%sub-requests",
-                info: { request: req, results: results.map(stringify) }
+                info: { request: req, results: results.map(stringify) },
             });
             if (result instanceof Error) {
                 throw result;

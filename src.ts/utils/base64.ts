@@ -10,7 +10,6 @@ import { getBytes, getBytesCopy } from "./data.js";
 
 import type { BytesLike } from "./data.js";
 
-
 /**
  *  Decodes the base-64 encoded %%value%%.
  *
@@ -28,8 +27,8 @@ import type { BytesLike } from "./data.js";
  *    //_result:
  */
 export function decodeBase64(value: string): Uint8Array {
-    return getBytesCopy(Buffer.from(value, "base64"));
-};
+  return getBytesCopy(Buffer.from(value, "base64"));
+}
 
 /**
  *  Encodes %%data%% as a base-64 encoded string.
@@ -52,5 +51,5 @@ export function decodeBase64(value: string): Uint8Array {
  *    //_result:
  */
 export function encodeBase64(data: BytesLike): string {
-    return Buffer.from(getBytes(data)).toString("base64");
+  return Buffer.from(getBytes(data)).toString("base64");
 }

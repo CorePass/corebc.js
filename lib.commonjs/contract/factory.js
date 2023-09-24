@@ -18,13 +18,13 @@ class ContractFactory {
         if (bytecode instanceof Uint8Array) {
             bytecode = (0, index_js_3.hexlify)((0, index_js_3.getBytes)(bytecode));
         }
-        else if (typeof (bytecode) === "string") {
+        else if (typeof bytecode === "string") {
             bytecode = bytecode;
         }
         else if ((0, data_js_1.isBytes)(bytecode)) {
             bytecode = (0, index_js_3.hexlify)(bytecode);
         }
-        else if (bytecode && typeof (bytecode.object) === "string") {
+        else if (bytecode && typeof bytecode.object === "string") {
             // Allow the bytecode object from the Solidity compiler
             bytecode = bytecode.object;
         }
@@ -34,7 +34,9 @@ class ContractFactory {
         }
         (0, index_js_3.defineProperties)(this, {
             // @ts-ignore
-            bytecode, interface: iface, runner: (runner || null)
+            bytecode,
+            interface: iface,
+            runner: runner || null,
         });
     }
     async getDeployTransaction(...args) {
@@ -47,13 +49,16 @@ class ContractFactory {
             throw new Error("incorrect number of arguments to constructor");
         }
         const resolvedArgs = await (0, contract_js_1.resolveArgs)(this.runner, fragment.inputs, args);
-        const data = (0, index_js_3.concat)([this.bytecode, this.interface.encodeDeploy(resolvedArgs)]);
+        const data = (0, index_js_3.concat)([
+            this.bytecode,
+            this.interface.encodeDeploy(resolvedArgs),
+        ]);
         return Object.assign({}, overrides, { data });
     }
     async deploy(...args) {
         const tx = await this.getDeployTransaction(...args);
-        (0, index_js_3.assert)(this.runner && typeof (this.runner.sendTransaction) === "function", "factory runner does not support sending transactions", "UNSUPPORTED_OPERATION", {
-            operation: "sendTransaction"
+        (0, index_js_3.assert)(this.runner && typeof this.runner.sendTransaction === "function", "factory runner does not support sending transactions", "UNSUPPORTED_OPERATION", {
+            operation: "sendTransaction",
         });
         const sentTx = await this.runner.sendTransaction(tx);
         const address = (0, index_js_2.getCreateAddress)(sentTx);
@@ -64,7 +69,7 @@ class ContractFactory {
     }
     static fromSolidity(output, runner) {
         (0, index_js_3.assertArgument)(output != null, "bad compiler output", "output", output);
-        if (typeof (output) === "string") {
+        if (typeof output === "string") {
             output = JSON.parse(output);
         }
         const abi = output.abi;

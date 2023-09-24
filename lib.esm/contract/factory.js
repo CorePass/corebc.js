@@ -1,6 +1,6 @@
 import { Interface } from "../abi/index.js";
 import { getCreateAddress } from "../address/index.js";
-import { concat, defineProperties, getBytes, hexlify, assert, assertArgument } from "../utils/index.js";
+import { concat, defineProperties, getBytes, hexlify, assert, assertArgument, } from "../utils/index.js";
 import { BaseContract, copyOverrides, resolveArgs } from "./contract.js";
 import { isBytes } from "../utils/data.js";
 // A = Arguments to the constructor
@@ -15,13 +15,13 @@ export class ContractFactory {
         if (bytecode instanceof Uint8Array) {
             bytecode = hexlify(getBytes(bytecode));
         }
-        else if (typeof (bytecode) === "string") {
+        else if (typeof bytecode === "string") {
             bytecode = bytecode;
         }
         else if (isBytes(bytecode)) {
             bytecode = hexlify(bytecode);
         }
-        else if (bytecode && typeof (bytecode.object) === "string") {
+        else if (bytecode && typeof bytecode.object === "string") {
             // Allow the bytecode object from the Solidity compiler
             bytecode = bytecode.object;
         }
@@ -31,7 +31,9 @@ export class ContractFactory {
         }
         defineProperties(this, {
             // @ts-ignore
-            bytecode, interface: iface, runner: (runner || null)
+            bytecode,
+            interface: iface,
+            runner: runner || null,
         });
     }
     async getDeployTransaction(...args) {
@@ -44,13 +46,16 @@ export class ContractFactory {
             throw new Error("incorrect number of arguments to constructor");
         }
         const resolvedArgs = await resolveArgs(this.runner, fragment.inputs, args);
-        const data = concat([this.bytecode, this.interface.encodeDeploy(resolvedArgs)]);
+        const data = concat([
+            this.bytecode,
+            this.interface.encodeDeploy(resolvedArgs),
+        ]);
         return Object.assign({}, overrides, { data });
     }
     async deploy(...args) {
         const tx = await this.getDeployTransaction(...args);
-        assert(this.runner && typeof (this.runner.sendTransaction) === "function", "factory runner does not support sending transactions", "UNSUPPORTED_OPERATION", {
-            operation: "sendTransaction"
+        assert(this.runner && typeof this.runner.sendTransaction === "function", "factory runner does not support sending transactions", "UNSUPPORTED_OPERATION", {
+            operation: "sendTransaction",
         });
         const sentTx = await this.runner.sendTransaction(tx);
         const address = getCreateAddress(sentTx);
@@ -61,7 +66,7 @@ export class ContractFactory {
     }
     static fromSolidity(output, runner) {
         assertArgument(output != null, "bad compiler output", "output", output);
-        if (typeof (output) === "string") {
+        if (typeof output === "string") {
             output = JSON.parse(output);
         }
         const abi = output.abi;

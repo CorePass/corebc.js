@@ -5,7 +5,9 @@ const index_js_1 = require("../utils/index.js");
 exports.PluginIdFallbackProvider = "org.corebc.plugins.provider.QualifiedPlugin";
 class CheckQualifiedPlugin {
     constructor() {
-        (0, index_js_1.defineProperties)(this, { name: exports.PluginIdFallbackProvider });
+        (0, index_js_1.defineProperties)(this, {
+            name: exports.PluginIdFallbackProvider,
+        });
     }
     connect(provider) {
         return this;
@@ -19,7 +21,8 @@ class CheckQualifiedPlugin {
 exports.CheckQualifiedPlugin = CheckQualifiedPlugin;
 class PossiblyPrunedTransactionPlugin extends CheckQualifiedPlugin {
     isQualified(action, result) {
-        if (action.method === "getTransaction" || action.method === "getTransactionReceipt") {
+        if (action.method === "getTransaction" ||
+            action.method === "getTransactionReceipt") {
             if (result == null) {
                 return false;
             }

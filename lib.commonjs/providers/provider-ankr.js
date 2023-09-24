@@ -93,14 +93,16 @@ class AnkrProvider extends provider_jsonrpc_js_1.JsonRpcProvider {
     }
     getRpcError(payload, error) {
         if (payload.method === "xcb_sendRawTransaction") {
-            if (error && error.error && error.error.message === "INTERNAL_ERROR: could not replace existing tx") {
+            if (error &&
+                error.error &&
+                error.error.message === "INTERNAL_ERROR: could not replace existing tx") {
                 error.error.message = "replacement transaction underpriced";
             }
         }
         return super.getRpcError(payload, error);
     }
     isCommunityResource() {
-        return (this.apiKey === defaultApiKey);
+        return this.apiKey === defaultApiKey;
     }
 }
 exports.AnkrProvider = AnkrProvider;

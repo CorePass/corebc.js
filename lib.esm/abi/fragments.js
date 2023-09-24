@@ -4,9 +4,8 @@
  *  @_subsection api/abi/abi-coder:Fragments  [about-fragments]
  */
 var _a;
-import { defineProperties, getBigInt, getNumber, assert, assertPrivate, assertArgument } from "../utils/index.js";
+import { defineProperties, getBigInt, getNumber, assert, assertPrivate, assertArgument, } from "../utils/index.js";
 import { id } from "../hash/index.js";
-;
 // [ "a", "b" ] => { "a": 1, "b": 1 }
 function setify(items) {
     const result = new Set();
@@ -26,9 +25,12 @@ const _keywords = [_kwTypes, _kwModifiers, _kwOther, _kwVisib].join(" ");
 const Keywords = setify(_keywords.split(" "));
 // Single character tokens
 const SimpleTokens = {
-    "(": "OPEN_PAREN", ")": "CLOSE_PAREN",
-    "[": "OPEN_BRACKET", "]": "CLOSE_BRACKET",
-    ",": "COMMA", "@": "AT"
+    "(": "OPEN_PAREN",
+    ")": "CLOSE_PAREN",
+    "[": "OPEN_BRACKET",
+    "]": "CLOSE_BRACKET",
+    ",": "COMMA",
+    "@": "AT",
 };
 // Parser regexes to consume the next token
 const regexWhitespacePrefix = new RegExp("^(\\s*)");
@@ -40,20 +42,28 @@ const regexType = new RegExp("^(address|bool|bytes([0-9]*)|string|u?int([0-9]*))
 class TokenString {
     #offset;
     #tokens;
-    get offset() { return this.#offset; }
-    get length() { return this.#tokens.length - this.#offset; }
+    get offset() {
+        return this.#offset;
+    }
+    get length() {
+        return this.#tokens.length - this.#offset;
+    }
     constructor(tokens) {
         this.#offset = 0;
         this.#tokens = tokens.slice();
     }
-    clone() { return new _a(this.#tokens); }
-    reset() { this.#offset = 0; }
+    clone() {
+        return new _a(this.#tokens);
+    }
+    reset() {
+        this.#offset = 0;
+    }
     #subTokenString(from = 0, to = 0) {
         return new _a(this.#tokens.slice(from, to).map((t) => {
             return Object.freeze(Object.assign({}, t, {
-                match: (t.match - from),
-                linkBack: (t.linkBack - from),
-                linkNext: (t.linkNext - from),
+                match: t.match - from,
+                linkBack: t.linkBack - from,
+                linkNext: t.linkNext - from,
             }));
         }));
     }
@@ -107,7 +117,7 @@ class TokenString {
     // Returns the next value, if it is a keyword in `allowed`
     peekKeyword(allowed) {
         const top = this.peekType("KEYWORD");
-        return (top != null && allowed.has(top)) ? top : null;
+        return top != null && allowed.has(top) ? top : null;
     }
     // Returns the value of the next token if it is `type`
     peekType(type) {
@@ -115,7 +125,7 @@ class TokenString {
             return null;
         }
         const top = this.peek();
-        return (top.type === type) ? top.text : null;
+        return top.type === type ? top.text : null;
     }
     // Returns the next token; throws if out of tokens
     pop() {
@@ -136,7 +146,7 @@ _a = TokenString;
 function lex(text) {
     const tokens = [];
     const throwError = (message) => {
-        const token = (offset < text.length) ? JSON.stringify(text[offset]) : "$EOI";
+        const token = offset < text.length ? JSON.stringify(text[offset]) : "$EOI";
         throw new Error(`invalid token ${token} at ${offset}: ${message}`);
     };
     let brackets = [];
@@ -150,9 +160,18 @@ function lex(text) {
             offset += match[1].length;
             cur = text.substring(offset);
         }
-        const token = { depth: brackets.length, linkBack: -1, linkNext: -1, match: -1, type: "", text: "", offset, value: -1 };
+        const token = {
+            depth: brackets.length,
+            linkBack: -1,
+            linkNext: -1,
+            match: -1,
+            type: "",
+            text: "",
+            offset,
+            value: -1,
+        };
         tokens.push(token);
-        let type = (SimpleTokens[cur[0]] || "");
+        let type = SimpleTokens[cur[0]] || "";
         if (type) {
             token.type = type;
             token.text = cur[0];
@@ -166,14 +185,14 @@ function lex(text) {
                     throwError("no matching open bracket");
                 }
                 token.match = brackets.pop();
-                (tokens[token.match]).match = tokens.length - 1;
+                tokens[token.match].match = tokens.length - 1;
                 token.depth--;
                 token.linkBack = commas.pop();
-                (tokens[token.linkBack]).linkNext = tokens.length - 1;
+                tokens[token.linkBack].linkNext = tokens.length - 1;
             }
             else if (type === "COMMA") {
                 token.linkBack = commas.pop();
-                (tokens[token.linkBack]).linkNext = tokens.length - 1;
+                tokens[token.linkBack].linkNext = tokens.length - 1;
                 commas.push(tokens.length - 1);
             }
             else if (type === "OPEN_BRACKET") {
@@ -185,12 +204,14 @@ function lex(text) {
                 if (tokens.length > 0 && tokens[tokens.length - 1].type === "NUMBER") {
                     const value = tokens.pop().text;
                     suffix = value + suffix;
-                    (tokens[tokens.length - 1]).value = getNumber(value);
+                    tokens[tokens.length - 1].value =
+                        getNumber(value);
                 }
-                if (tokens.length === 0 || tokens[tokens.length - 1].type !== "BRACKET") {
+                if (tokens.length === 0 ||
+                    tokens[tokens.length - 1].type !== "BRACKET") {
                     throw new Error("missing opening bracket");
                 }
-                (tokens[tokens.length - 1]).text += suffix;
+                tokens[tokens.length - 1].text += suffix;
             }
             continue;
         }
@@ -322,7 +343,7 @@ function verifyBasicType(type) {
     else if (match[3]) {
         // intXX or uintXX
         const size = parseInt(match[3]);
-        assertArgument(size !== 0 && size <= 256 && (size % 8) === 0, "invalid numeric width", "type", type);
+        assertArgument(size !== 0 && size <= 256 && size % 8 === 0, "invalid numeric width", "type", type);
     }
     return type;
 }
@@ -403,7 +424,13 @@ export class ParamType {
             throw new Error("");
         }
         defineProperties(this, {
-            name, type, baseType, indexed, components, arrayLength, arrayChildren
+            name,
+            type,
+            baseType,
+            indexed,
+            components,
+            arrayLength,
+            arrayChildren,
         });
     }
     /**
@@ -423,10 +450,10 @@ export class ParamType {
         }
         if (format === "json") {
             let result = {
-                type: ((this.baseType === "tuple") ? "tuple" : this.type),
-                name: (this.name || undefined)
+                type: this.baseType === "tuple" ? "tuple" : this.type,
+                name: this.name || undefined,
             };
-            if (typeof (this.indexed) === "boolean") {
+            if (typeof this.indexed === "boolean") {
                 result.indexed = this.indexed;
             }
             if (this.isTuple()) {
@@ -438,14 +465,19 @@ export class ParamType {
         // Array
         if (this.isArray()) {
             result += this.arrayChildren.format(format);
-            result += `[${(this.arrayLength < 0 ? "" : String(this.arrayLength))}]`;
+            result += `[${this.arrayLength < 0 ? "" : String(this.arrayLength)}]`;
         }
         else {
             if (this.isTuple()) {
                 if (format !== "sighash") {
                     result += this.type;
                 }
-                result += "(" + this.components.map((comp) => comp.format(format)).join((format === "full") ? ", " : ",") + ")";
+                result +=
+                    "(" +
+                        this.components
+                            .map((comp) => comp.format(format))
+                            .join(format === "full" ? ", " : ",") +
+                        ")";
             }
             else {
                 result += this.type;
@@ -477,7 +509,7 @@ export class ParamType {
      *  and [[arrayLength]] are non-null.
      */
     isArray() {
-        return (this.baseType === "array");
+        return this.baseType === "array";
     }
     /**
      *  Returns true if %%this%% is a Tuple type.
@@ -486,7 +518,7 @@ export class ParamType {
      *  is non-null.
      */
     isTuple() {
-        return (this.baseType === "tuple");
+        return this.baseType === "tuple";
     }
     /**
      *  Returns true if %%this%% is an Indexable type.
@@ -495,7 +527,7 @@ export class ParamType {
      *  is non-null.
      */
     isIndexable() {
-        return (this.indexed != null);
+        return this.indexed != null;
     }
     /**
      *  Walks the **ParamType** with %%value%%, calling %%process%%
@@ -510,7 +542,7 @@ export class ParamType {
                 throw new Error("array is wrong length");
             }
             const _this = this;
-            return value.map((v) => (_this.arrayChildren.walk(v, process)));
+            return value.map((v) => _this.arrayChildren.walk(v, process));
         }
         if (this.isTuple()) {
             if (!Array.isArray(value)) {
@@ -520,7 +552,7 @@ export class ParamType {
                 throw new Error("array is wrong length");
             }
             const _this = this;
-            return value.map((v, i) => (_this.components[i].walk(v, process)));
+            return value.map((v, i) => _this.components[i].walk(v, process));
         }
         return process(this.type, value);
     }
@@ -550,7 +582,7 @@ export class ParamType {
                 result = value.slice();
             }
             else {
-                if (value == null || typeof (value) !== "object") {
+                if (value == null || typeof value !== "object") {
                     throw new Error("invalid tuple value");
                 }
                 result = components.map((param) => {
@@ -576,7 +608,9 @@ export class ParamType {
         }
         const result = process(this.type, value);
         if (result.then) {
-            promises.push((async function () { setValue(await result); })());
+            promises.push((async function () {
+                setValue(await result);
+            })());
         }
         else {
             setValue(result);
@@ -610,13 +644,14 @@ export class ParamType {
         if (ParamType.isParamType(obj)) {
             return obj;
         }
-        if (typeof (obj) === "string") {
+        if (typeof obj === "string") {
             return ParamType.from(lex(obj), allowIndexed);
         }
         else if (obj instanceof TokenString) {
             let type = "", baseType = "";
             let comps = null;
-            if (consumeKeywords(obj, setify(["tuple"])).has("tuple") || obj.peekType("OPEN_PAREN")) {
+            if (consumeKeywords(obj, setify(["tuple"])).has("tuple") ||
+                obj.peekType("OPEN_PAREN")) {
                 // Tuple
                 baseType = "tuple";
                 comps = obj.popParams().map((t) => ParamType.from(t));
@@ -646,14 +681,14 @@ export class ParamType {
                 }
                 indexed = true;
             }
-            const name = (obj.peekType("ID") ? obj.pop().text : "");
+            const name = obj.peekType("ID") ? obj.pop().text : "";
             if (obj.length) {
                 throw new Error("leftover tokens");
             }
             return new ParamType(_guard, name, type, baseType, indexed, comps, arrayLength, arrayChildren);
         }
         const name = obj.name;
-        assertArgument(!name || (typeof (name) === "string" && name.match(regexId)), "invalid name", "obj.name", name);
+        assertArgument(!name || (typeof name === "string" && name.match(regexId)), "invalid name", "obj.name", name);
         let indexed = obj.indexed;
         if (indexed != null) {
             assertArgument(allowIndexed, "parameter cannot be indexed", "obj.indexed", obj.indexed);
@@ -665,12 +700,16 @@ export class ParamType {
             const arrayLength = parseInt(arrayMatch[2] || "-1");
             const arrayChildren = ParamType.from({
                 type: arrayMatch[1],
-                components: obj.components
+                components: obj.components,
             });
             return new ParamType(_guard, name || "", type, "array", indexed, null, arrayLength, arrayChildren);
         }
-        if (type === "tuple" || type.startsWith("tuple(" /* fix: ) */) || type.startsWith("(" /* fix: ) */)) {
-            const comps = (obj.components != null) ? obj.components.map((c) => ParamType.from(c)) : null;
+        if (type === "tuple" ||
+            type.startsWith("tuple(" /* fix: ) */) ||
+            type.startsWith("(" /* fix: ) */)) {
+            const comps = obj.components != null
+                ? obj.components.map((c) => ParamType.from(c))
+                : null;
             const tuple = new ParamType(_guard, name || "", type, "tuple", indexed, comps, null, null);
             // @TODO: use lexer to validate and normalize type
             return tuple;
@@ -682,7 +721,7 @@ export class ParamType {
      *  Returns true if %%value%% is a **ParamType**.
      */
     static isParamType(value) {
-        return (value && value[internal] === ParamTypeInternal);
+        return value && value[internal] === ParamTypeInternal;
     }
 }
 /**
@@ -710,7 +749,7 @@ export class Fragment {
      *  ABI frgament type.
      */
     static from(obj) {
-        if (typeof (obj) === "string") {
+        if (typeof obj === "string") {
             // Try parsing JSON...
             try {
                 Fragment.from(JSON.parse(obj));
@@ -723,30 +762,40 @@ export class Fragment {
             // Human-readable ABI (already lexed)
             const type = obj.peekKeyword(KwTypes);
             switch (type) {
-                case "constructor": return ConstructorFragment.from(obj);
-                case "error": return ErrorFragment.from(obj);
-                case "event": return EventFragment.from(obj);
+                case "constructor":
+                    return ConstructorFragment.from(obj);
+                case "error":
+                    return ErrorFragment.from(obj);
+                case "event":
+                    return EventFragment.from(obj);
                 case "fallback":
                 case "receive":
                     return FallbackFragment.from(obj);
-                case "function": return FunctionFragment.from(obj);
-                case "struct": return StructFragment.from(obj);
+                case "function":
+                    return FunctionFragment.from(obj);
+                case "struct":
+                    return StructFragment.from(obj);
             }
         }
-        else if (typeof (obj) === "object") {
+        else if (typeof obj === "object") {
             // JSON ABI
             switch (obj.type) {
-                case "constructor": return ConstructorFragment.from(obj);
-                case "error": return ErrorFragment.from(obj);
-                case "event": return EventFragment.from(obj);
+                case "constructor":
+                    return ConstructorFragment.from(obj);
+                case "error":
+                    return ErrorFragment.from(obj);
+                case "event":
+                    return EventFragment.from(obj);
                 case "fallback":
                 case "receive":
                     return FallbackFragment.from(obj);
-                case "function": return FunctionFragment.from(obj);
-                case "struct": return StructFragment.from(obj);
+                case "function":
+                    return FunctionFragment.from(obj);
+                case "struct":
+                    return StructFragment.from(obj);
             }
             assert(false, `unsupported type: ${obj.type}`, "UNSUPPORTED_OPERATION", {
-                operation: "Fragment.from"
+                operation: "Fragment.from",
             });
         }
         assertArgument(false, "unsupported frgament object", "obj", obj);
@@ -796,13 +845,15 @@ export class NamedFragment extends Fragment {
      */
     constructor(guard, type, name, inputs) {
         super(guard, type, inputs);
-        assertArgument(typeof (name) === "string" && name.match(regexId), "invalid identifier", "name", name);
+        assertArgument(typeof name === "string" && name.match(regexId), "invalid identifier", "name", name);
         inputs = Object.freeze(inputs.slice());
         defineProperties(this, { name });
     }
 }
 function joinParams(format, params) {
-    return "(" + params.map((p) => p.format(format)).join((format === "full") ? ", " : ",") + ")";
+    return ("(" +
+        params.map((p) => p.format(format)).join(format === "full" ? ", " : ",") +
+        ")");
 }
 /**
  *  A Fragment which represents a //Custom Error//.
@@ -843,7 +894,7 @@ export class ErrorFragment extends NamedFragment {
         if (ErrorFragment.isFragment(obj)) {
             return obj;
         }
-        if (typeof (obj) === "string") {
+        if (typeof obj === "string") {
             return ErrorFragment.from(lex(obj));
         }
         else if (obj instanceof TokenString) {
@@ -855,7 +906,7 @@ export class ErrorFragment extends NamedFragment {
         return new ErrorFragment(_guard, obj.name, obj.inputs ? obj.inputs.map(ParamType.from) : []);
     }
     static isFragment(value) {
-        return (value && value[internal] === ErrorFragmentInternal);
+        return value && value[internal] === ErrorFragmentInternal;
     }
 }
 /**
@@ -886,7 +937,7 @@ export class EventFragment extends NamedFragment {
                 type: "event",
                 anonymous: this.anonymous,
                 name: this.name,
-                inputs: this.inputs.map((i) => JSON.parse(i.format(format)))
+                inputs: this.inputs.map((i) => JSON.parse(i.format(format))),
             });
         }
         const result = [];
@@ -908,7 +959,7 @@ export class EventFragment extends NamedFragment {
         if (EventFragment.isFragment(obj)) {
             return obj;
         }
-        if (typeof (obj) === "string") {
+        if (typeof obj === "string") {
             return EventFragment.from(lex(obj));
         }
         else if (obj instanceof TokenString) {
@@ -921,7 +972,7 @@ export class EventFragment extends NamedFragment {
         return new EventFragment(_guard, obj.name, obj.inputs ? obj.inputs.map((p) => ParamType.from(p, true)) : [], !!obj.anonymous);
     }
     static isFragment(value) {
-        return (value && value[internal] === EventFragmentInternal);
+        return value && value[internal] === EventFragmentInternal;
     }
 }
 /**
@@ -935,7 +986,9 @@ export class ConstructorFragment extends Fragment {
      */
     constructor(guard, type, inputs, payable, energy) {
         super(guard, type, inputs);
-        Object.defineProperty(this, internal, { value: ConstructorFragmentInternal });
+        Object.defineProperty(this, internal, {
+            value: ConstructorFragmentInternal,
+        });
         defineProperties(this, { payable, energy });
     }
     format(format) {
@@ -943,14 +996,14 @@ export class ConstructorFragment extends Fragment {
         if (format === "json") {
             return JSON.stringify({
                 type: "constructor",
-                stateMutability: (this.payable ? "payable" : "undefined"),
+                stateMutability: this.payable ? "payable" : "undefined",
                 payable: this.payable,
-                energy: ((this.energy != null) ? this.energy : undefined),
-                inputs: this.inputs.map((i) => JSON.parse(i.format(format)))
+                energy: this.energy != null ? this.energy : undefined,
+                inputs: this.inputs.map((i) => JSON.parse(i.format(format))),
             });
         }
         const result = [`constructor${joinParams(format, this.inputs)}`];
-        result.push((this.payable) ? "payable" : "nonpayable");
+        result.push(this.payable ? "payable" : "nonpayable");
         if (this.energy != null) {
             result.push(`@${this.energy.toString()}`);
         }
@@ -960,7 +1013,7 @@ export class ConstructorFragment extends Fragment {
         if (ConstructorFragment.isFragment(obj)) {
             return obj;
         }
-        if (typeof (obj) === "string") {
+        if (typeof obj === "string") {
             return ConstructorFragment.from(lex(obj));
         }
         else if (obj instanceof TokenString) {
@@ -971,10 +1024,10 @@ export class ConstructorFragment extends Fragment {
             consumeEoi(obj);
             return new ConstructorFragment(_guard, "constructor", inputs, payable, energy);
         }
-        return new ConstructorFragment(_guard, "constructor", obj.inputs ? obj.inputs.map(ParamType.from) : [], !!obj.payable, (obj.energy != null) ? obj.energy : null);
+        return new ConstructorFragment(_guard, "constructor", obj.inputs ? obj.inputs.map(ParamType.from) : [], !!obj.payable, obj.energy != null ? obj.energy : null);
     }
     static isFragment(value) {
-        return (value && value[internal] === ConstructorFragmentInternal);
+        return value && value[internal] === ConstructorFragmentInternal;
     }
 }
 /**
@@ -991,9 +1044,9 @@ export class FallbackFragment extends Fragment {
         defineProperties(this, { payable });
     }
     format(format) {
-        const type = ((this.inputs.length === 0) ? "receive" : "fallback");
+        const type = this.inputs.length === 0 ? "receive" : "fallback";
         if (format === "json") {
-            const stateMutability = (this.payable ? "payable" : "nonpayable");
+            const stateMutability = this.payable ? "payable" : "nonpayable";
             return JSON.stringify({ type, stateMutability });
         }
         return `${type}()${this.payable ? " payable" : ""}`;
@@ -1002,7 +1055,7 @@ export class FallbackFragment extends Fragment {
         if (FallbackFragment.isFragment(obj)) {
             return obj;
         }
-        if (typeof (obj) === "string") {
+        if (typeof obj === "string") {
             return FallbackFragment.from(lex(obj));
         }
         else if (obj instanceof TokenString) {
@@ -1041,13 +1094,13 @@ export class FallbackFragment extends Fragment {
         }
         if (obj.type === "fallback") {
             const inputs = [ParamType.from("bytes")];
-            const payable = (obj.stateMutability === "payable");
+            const payable = obj.stateMutability === "payable";
             return new FallbackFragment(_guard, inputs, payable);
         }
         assertArgument(false, "invalid fallback description", "obj", obj);
     }
     static isFragment(value) {
-        return (value && value[internal] === FallbackFragmentInternal);
+        return value && value[internal] === FallbackFragmentInternal;
     }
 }
 /**
@@ -1082,9 +1135,15 @@ export class FunctionFragment extends NamedFragment {
         super(guard, "function", name, inputs);
         Object.defineProperty(this, internal, { value: FunctionFragmentInternal });
         outputs = Object.freeze(outputs.slice());
-        const constant = (stateMutability === "view" || stateMutability === "pure");
-        const payable = (stateMutability === "payable");
-        defineProperties(this, { constant, energy, outputs, payable, stateMutability });
+        const constant = stateMutability === "view" || stateMutability === "pure";
+        const payable = stateMutability === "payable";
+        defineProperties(this, {
+            constant,
+            energy,
+            outputs,
+            payable,
+            stateMutability,
+        });
     }
     /**
      *  The Function selector.
@@ -1101,9 +1160,11 @@ export class FunctionFragment extends NamedFragment {
                 type: "function",
                 name: this.name,
                 constant: this.constant,
-                stateMutability: ((this.stateMutability !== "nonpayable") ? this.stateMutability : undefined),
+                stateMutability: this.stateMutability !== "nonpayable"
+                    ? this.stateMutability
+                    : undefined,
                 payable: this.payable,
-                energy: ((this.energy != null) ? this.energy : undefined),
+                energy: this.energy != null ? this.energy : undefined,
                 inputs: this.inputs.map((i) => JSON.parse(i.format(format))),
                 outputs: this.outputs.map((o) => JSON.parse(o.format(format))),
             });
@@ -1136,7 +1197,7 @@ export class FunctionFragment extends NamedFragment {
         if (FunctionFragment.isFragment(obj)) {
             return obj;
         }
-        if (typeof (obj) === "string") {
+        if (typeof obj === "string") {
             return FunctionFragment.from(lex(obj));
         }
         else if (obj instanceof TokenString) {
@@ -1155,25 +1216,25 @@ export class FunctionFragment extends NamedFragment {
         // Use legacy Solidity ABI logic if stateMutability is missing
         if (stateMutability == null) {
             stateMutability = "payable";
-            if (typeof (obj.constant) === "boolean") {
+            if (typeof obj.constant === "boolean") {
                 stateMutability = "view";
                 if (!obj.constant) {
                     stateMutability = "payable";
-                    if (typeof (obj.payable) === "boolean" && !obj.payable) {
+                    if (typeof obj.payable === "boolean" && !obj.payable) {
                         stateMutability = "nonpayable";
                     }
                 }
             }
-            else if (typeof (obj.payable) === "boolean" && !obj.payable) {
+            else if (typeof obj.payable === "boolean" && !obj.payable) {
                 stateMutability = "nonpayable";
             }
         }
         // @TODO: verifyState for stateMutability (e.g. throw if
         //        payable: false but stateMutability is "nonpayable")
-        return new FunctionFragment(_guard, obj.name, stateMutability, obj.inputs ? obj.inputs.map(ParamType.from) : [], obj.outputs ? obj.outputs.map(ParamType.from) : [], (obj.energy != null) ? obj.energy : null);
+        return new FunctionFragment(_guard, obj.name, stateMutability, obj.inputs ? obj.inputs.map(ParamType.from) : [], obj.outputs ? obj.outputs.map(ParamType.from) : [], obj.energy != null ? obj.energy : null);
     }
     static isFragment(value) {
-        return (value && value[internal] === FunctionFragmentInternal);
+        return value && value[internal] === FunctionFragmentInternal;
     }
 }
 /**
@@ -1191,7 +1252,7 @@ export class StructFragment extends NamedFragment {
         throw new Error("@TODO");
     }
     static from(obj) {
-        if (typeof (obj) === "string") {
+        if (typeof obj === "string") {
             return StructFragment.from(lex(obj));
         }
         else if (obj instanceof TokenString) {
@@ -1203,7 +1264,7 @@ export class StructFragment extends NamedFragment {
         return new StructFragment(_guard, obj.name, obj.inputs ? obj.inputs.map(ParamType.from) : []);
     }
     static isFragment(value) {
-        return (value && value[internal] === StructFragmentInternal);
+        return value && value[internal] === StructFragmentInternal;
     }
 }
 //# sourceMappingURL=fragments.js.map

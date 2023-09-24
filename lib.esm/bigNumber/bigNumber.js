@@ -11,16 +11,17 @@ import { hexlify, isHexString } from "../index.js";
 import { Logger } from "../logger/logger.js";
 import { isBytes } from "../utils/data.js";
 var BN = _BN.BN;
-const logger = new Logger('bigNumber/0.0.1');
+const logger = new Logger("bigNumber/0.0.1");
 const _constructorGuard = {};
 const MAX_SAFE = 0x1fffffffffffff;
 export function isBigNumberish(value) {
-    return (value != null) && (BigNumber.isBigNumber(value) ||
-        (typeof (value) === "number" && (value % 1) === 0) ||
-        (typeof (value) === "string" && !!value.match(/^-?[0-9]+$/)) ||
-        isHexString(value) ||
-        (typeof (value) === "bigint") ||
-        isBytes(value));
+    return (value != null &&
+        (BigNumber.isBigNumber(value) ||
+            (typeof value === "number" && value % 1 === 0) ||
+            (typeof value === "string" && !!value.match(/^-?[0-9]+$/)) ||
+            isHexString(value) ||
+            typeof value === "bigint" ||
+            isBytes(value)));
 }
 // Only warn about passing 10 into radix once
 let _warnedToStringRadix = false;
@@ -31,7 +32,7 @@ export class BigNumber {
         logger.checkNew(new.target, BigNumber);
         if (constructorGuard !== _constructorGuard) {
             logger.throwError("cannot call constructor directly; use BigNumber.from", Logger.errors.UNSUPPORTED_OPERATION, {
-                operation: "new (BigNumber)"
+                operation: "new (BigNumber)",
             });
         }
         this._hex = hex;
@@ -135,7 +136,7 @@ export class BigNumber {
         return toBN(this).gte(toBN(other));
     }
     isNegative() {
-        return (this._hex[0] === "-");
+        return this._hex[0] === "-";
     }
     isZero() {
         return toBN(this).isZero();
@@ -156,7 +157,7 @@ export class BigNumber {
         }
         catch (e) { }
         return logger.throwError("this platform does not support BigInt", Logger.errors.UNSUPPORTED_OPERATION, {
-            value: this.toString()
+            value: this.toString(),
         });
     }
     toString() {
@@ -187,7 +188,7 @@ export class BigNumber {
         if (value instanceof BigNumber) {
             return value;
         }
-        if (typeof (value) === "string") {
+        if (typeof value === "string") {
             if (value.match(/^-?0x[0-9a-f]+$/i)) {
                 return new BigNumber(_constructorGuard, toHex(value));
             }
@@ -196,7 +197,7 @@ export class BigNumber {
             }
             return logger.throwArgumentError("invalid BigNumber string", "value", value);
         }
-        if (typeof (value) === "number") {
+        if (typeof value === "number") {
             if (value % 1) {
                 throwFault("underflow", "BigNumber.from", value);
             }
@@ -206,7 +207,7 @@ export class BigNumber {
             return BigNumber.from(String(value));
         }
         const anyValue = value;
-        if (typeof (anyValue) === "bigint") {
+        if (typeof anyValue === "bigint") {
             return BigNumber.from(anyValue.toString());
         }
         if (isBytes(anyValue)) {
@@ -216,7 +217,7 @@ export class BigNumber {
             // Hexable interface (takes priority)
             if (anyValue.toHexString) {
                 const hex = anyValue.toHexString();
-                if (typeof (hex) === "string") {
+                if (typeof hex === "string") {
                     return BigNumber.from(hex);
                 }
             }
@@ -227,8 +228,9 @@ export class BigNumber {
                 if (hex == null && anyValue.type === "BigNumber") {
                     hex = anyValue.hex;
                 }
-                if (typeof (hex) === "string") {
-                    if (isHexString(hex) || (hex[0] === "-" && isHexString(hex.substring(1)))) {
+                if (typeof hex === "string") {
+                    if (isHexString(hex) ||
+                        (hex[0] === "-" && isHexString(hex.substring(1)))) {
                         return BigNumber.from(hex);
                     }
                 }
@@ -244,7 +246,7 @@ export class BigNumber {
 // @ts-ignore
 function toHex(value) {
     // For BN, call on the hex string
-    if (typeof (value) !== "string") {
+    if (typeof value !== "string") {
         return toHex(value.toString(16));
     }
     // If negative, prepend the negative sign to the normalized positive value
@@ -290,7 +292,7 @@ function toBigNumber(value) {
 function toBN(value) {
     const hex = BigNumber.from(value).toHexString();
     if (hex[0] === "-") {
-        return (new BN("-" + hex.substring(3), 16));
+        return new BN("-" + hex.substring(3), 16);
     }
     return new BN(hex.substring(2), 16);
 }
@@ -303,10 +305,10 @@ function throwFault(fault, operation, value) {
 }
 // value should have no prefix
 export function _base36To16(value) {
-    return (new BN(value, 36)).toString(16);
+    return new BN(value, 36).toString(16);
 }
 // value should have no prefix
 export function _base16To36(value) {
-    return (new BN(value, 16)).toString(36);
+    return new BN(value, 16).toString(36);
 }
 //# sourceMappingURL=bigNumber.js.map

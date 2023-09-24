@@ -17,7 +17,9 @@ function splitBuffer(data) {
 }
 export class IpcSocketProvider extends SocketProvider {
     #socket;
-    get socket() { return this.#socket; }
+    get socket() {
+        return this.#socket;
+    }
     constructor(path, network) {
         super(network);
         this.#socket = connect(path);

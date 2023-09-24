@@ -1,4 +1,3 @@
-
 export { LangCz } from "./lang-cz.js";
 export { LangEs } from "./lang-es.js";
 export { LangFr } from "./lang-fr.js";

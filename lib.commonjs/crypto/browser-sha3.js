@@ -9,7 +9,7 @@ const sha3_browser_js_1 = tslib_1.__importDefault(require("bcrypto/lib/sha3-brow
 const logger_js_1 = require("../logger/logger.js");
 const data_js_1 = require("../utils/data.js");
 const sha3_js_1 = require("./sha3.js");
-const logger = new logger_js_1.Logger('corebc-crypto/browser-sha3/0.0.1');
+const logger = new logger_js_1.Logger("corebc-crypto/browser-sha3/0.0.1");
 function ripemd160(data) {
     const d = Buffer.from((0, data_js_1.arrayify)(data));
     const h = ripemd160_browser_1.default.digest(d);
@@ -39,7 +39,7 @@ function computeHmac(algorithm, key, data) {
     }
     logger.throwError("unsupported algorithm - " + algorithm, logger_js_1.Logger.errors.UNSUPPORTED_OPERATION, {
         operation: "computeHmac",
-        algorithm: algorithm
+        algorithm: algorithm,
     });
     return "";
 }

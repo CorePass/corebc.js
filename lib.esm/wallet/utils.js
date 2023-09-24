@@ -3,7 +3,7 @@
  */
 import { getBytesCopy, assertArgument, toUtf8Bytes } from "../utils/index.js";
 export function looseArrayify(hexString) {
-    if (typeof (hexString) === "string" && !hexString.startsWith("0x")) {
+    if (typeof hexString === "string" && !hexString.startsWith("0x")) {
         hexString = "0x" + hexString;
     }
     return getBytesCopy(hexString);
@@ -11,12 +11,12 @@ export function looseArrayify(hexString) {
 export function zpad(value, length) {
     value = String(value);
     while (value.length < length) {
-        value = '0' + value;
+        value = "0" + value;
     }
     return value;
 }
 export function getPassword(password) {
-    if (typeof (password) === 'string') {
+    if (typeof password === "string") {
         return toUtf8Bytes(password, "NFKC");
     }
     return getBytesCopy(password);
@@ -26,9 +26,9 @@ export function spelunk(object, _path) {
     assertArgument(match != null, "invalid path", "path", _path);
     const path = match[1];
     const type = match[3];
-    const reqd = (match[4] === "!");
+    const reqd = match[4] === "!";
     let cur = object;
-    for (const comp of path.toLowerCase().split('.')) {
+    for (const comp of path.toLowerCase().split(".")) {
         // Search for a child object with a case-insensitive matching key
         if (Array.isArray(cur)) {
             if (!comp.match(/^[0-9]+$/)) {
@@ -36,7 +36,7 @@ export function spelunk(object, _path) {
             }
             cur = cur[parseInt(comp)];
         }
-        else if (typeof (cur) === "object") {
+        else if (typeof cur === "object") {
             let found = null;
             for (const key in cur) {
                 if (key.toLowerCase() === comp) {
@@ -56,7 +56,7 @@ export function spelunk(object, _path) {
     assertArgument(!reqd || cur != null, "missing required value", "path", path);
     if (type && cur != null) {
         if (type === "int") {
-            if (typeof (cur) === "string" && cur.match(/^-?[0-9]+$/)) {
+            if (typeof cur === "string" && cur.match(/^-?[0-9]+$/)) {
                 return parseInt(cur);
             }
             else if (Number.isSafeInteger(cur)) {
@@ -64,19 +64,19 @@ export function spelunk(object, _path) {
             }
         }
         if (type === "number") {
-            if (typeof (cur) === "string" && cur.match(/^-?[0-9.]*$/)) {
+            if (typeof cur === "string" && cur.match(/^-?[0-9.]*$/)) {
                 return parseFloat(cur);
             }
         }
         if (type === "data") {
-            if (typeof (cur) === "string") {
+            if (typeof cur === "string") {
                 return looseArrayify(cur);
             }
         }
         if (type === "array" && Array.isArray(cur)) {
             return cur;
         }
-        if (type === typeof (cur)) {
+        if (type === typeof cur) {
             return cur;
         }
         assertArgument(false, `wrong type found for ${type} `, "path", path);

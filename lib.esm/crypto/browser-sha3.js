@@ -1,12 +1,12 @@
 "use strict";
 // @ts-ignore
-import _ripemd160 from 'bcrypto/lib/ripemd160-browser';
+import _ripemd160 from "bcrypto/lib/ripemd160-browser";
 // @ts-ignore
-import sha3 from 'bcrypto/lib/sha3-browser.js';
-import { Logger } from '../logger/logger.js';
-import { arrayify, hexlify } from '../utils/data.js';
-import { SupportedAlgorithm } from './sha3.js';
-const logger = new Logger('corebc-crypto/browser-sha3/0.0.1');
+import sha3 from "bcrypto/lib/sha3-browser.js";
+import { Logger } from "../logger/logger.js";
+import { arrayify, hexlify } from "../utils/data.js";
+import { SupportedAlgorithm } from "./sha3.js";
+const logger = new Logger("corebc-crypto/browser-sha3/0.0.1");
 export function ripemd160(data) {
     const d = Buffer.from(arrayify(data));
     const h = _ripemd160.digest(d);
@@ -33,7 +33,7 @@ export function computeHmac(algorithm, key, data) {
     }
     logger.throwError("unsupported algorithm - " + algorithm, Logger.errors.UNSUPPORTED_OPERATION, {
         operation: "computeHmac",
-        algorithm: algorithm
+        algorithm: algorithm,
     });
     return "";
 }

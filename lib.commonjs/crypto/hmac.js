@@ -40,7 +40,9 @@ function computeHmac(algorithm, _key, _data) {
 }
 exports.computeHmac = computeHmac;
 computeHmac._ = _computeHmac;
-computeHmac.lock = function () { locked = true; };
+computeHmac.lock = function () {
+    locked = true;
+};
 computeHmac.register = function (func) {
     if (locked) {
         throw new Error("computeHmac is locked");

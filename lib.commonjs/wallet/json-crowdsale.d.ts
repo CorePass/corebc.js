@@ -1,7 +1,4 @@
 /**
- *  @_subsection: api/wallet:JSON Wallets  [json-wallets]
- */
-/**
  *  The data stored within a JSON Crowdsale wallet is fairly
  *  minimal.
  */

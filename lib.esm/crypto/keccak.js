@@ -37,7 +37,9 @@ export function keccak256(_data) {
     return hexlify(__keccak256(data));
 }
 keccak256._ = _keccak256;
-keccak256.lock = function () { locked = true; };
+keccak256.lock = function () {
+    locked = true;
+};
 keccak256.register = function (func) {
     if (locked) {
         throw new TypeError("keccak256 is locked");

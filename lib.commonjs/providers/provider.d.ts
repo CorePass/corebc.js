@@ -178,9 +178,9 @@ export declare class Block implements BlockParams, Iterable<string> {
     /**
      *
      */
-    isLondon(): this is (Block & {
+    isLondon(): this is Block & {
         baseFeePerEnergy: bigint;
-    });
+    };
     orphanedEvent(): OrphanFilter;
 }
 export declare class Log implements LogParams {
@@ -378,11 +378,11 @@ export declare class TransactionResponse implements TransactionLike<string>, Tra
      *  This provides a Type Guard that this transaction will have
      *  the ``null``-ness for hardfork-specific properties set correctly.
      */
-    isLegacy(): this is (TransactionResponse & {
+    isLegacy(): this is TransactionResponse & {
         accessList: null;
         maxFeePerEnergy: null;
         maxPriorityFeePerEnergy: null;
-    });
+    };
     /**
      *  Returns a filter which can be used to listen for orphan events
      *  that evict this transaction.

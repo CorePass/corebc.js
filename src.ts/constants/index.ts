@@ -7,15 +7,14 @@
 export { ZeroAddress } from "./addresses.js";
 export { ZeroHash } from "./hashes.js";
 export {
-    N,
-    NegativeOne,
-    Zero,
-    One,
-    Two,
-    OrePerXCB,
-    MaxUint256,
-    MinInt256,
-    MaxInt256
+  N,
+  NegativeOne,
+  Zero,
+  One,
+  Two,
+  OrePerXCB,
+  MaxUint256,
+  MinInt256,
+  MaxInt256,
 } from "./numbers.js";
 export { CoreSymbol, MessagePrefix } from "./strings.js";
-

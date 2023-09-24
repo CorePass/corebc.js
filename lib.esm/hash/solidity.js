@@ -1,6 +1,6 @@
 import { getAddress } from "../address/index.js";
 import { sha256 as _sha256 } from "../crypto/index.js";
-import { concat, dataLength, getBytes, hexlify, toBeArray, toTwos, toUtf8Bytes, zeroPadBytes, zeroPadValue, assertArgument } from "../utils/index.js";
+import { concat, dataLength, getBytes, hexlify, toBeArray, toTwos, toUtf8Bytes, zeroPadBytes, zeroPadValue, assertArgument, } from "../utils/index.js";
 const regexBytes = new RegExp("^bytes([0-9]+)$");
 const regexNumber = new RegExp("^(u?int)([0-9]*)$");
 const regexArray = new RegExp("^(.*)\\[([0-9]*)\\]$");
@@ -16,7 +16,7 @@ function _pack(type, value, isArray) {
         case "bytes":
             return getBytes(value);
         case "bool":
-            value = (!!value ? "0x01" : "0x00");
+            value = !!value ? "0x01" : "0x00";
             if (isArray) {
                 return getBytes(zeroPadValue(value, 32));
             }
@@ -24,9 +24,12 @@ function _pack(type, value, isArray) {
     }
     let match = type.match(regexNumber);
     if (match) {
-        let signed = (match[1] === "int");
+        let signed = match[1] === "int";
         let size = parseInt(match[2] || "256");
-        assertArgument((!match[2] || match[2] === String(size)) && (size % 8 === 0) && size !== 0 && size <= 256, "invalid number type", "type", type);
+        assertArgument((!match[2] || match[2] === String(size)) &&
+            size % 8 === 0 &&
+            size !== 0 &&
+            size <= 256, "invalid number type", "type", type);
         if (isArray) {
             size = 256;
         }

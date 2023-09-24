@@ -8,7 +8,7 @@ const data_js_1 = require("../utils/data.js");
 const logger_js_1 = require("../logger/logger.js");
 const address_js_1 = require("../transaction/address.js");
 const index_js_4 = require("./index.js");
-const logger = new logger_js_1.Logger('contract-address/0.0.1');
+const logger = new logger_js_1.Logger("contract-address/0.0.1");
 /**
  *  Returns the address that would result from a ``CREATE`` for %%tx%%.
  *
@@ -67,7 +67,7 @@ function getCreate2Address(from, salt, initCodeHash) {
         logger.throwArgumentError("initCodeHash must be 32 bytes", "initCodeHash", initCodeHash);
     }
     const val = (0, data_js_1.hexDataSlice)((0, index_js_3.sha256)((0, index_js_1.concat)(["0xff", (0, index_js_2.getAddress)(from), salt, initCodeHash])), 12);
-    console.log({ 'contract-address/74=>should be string': val });
+    console.log({ "contract-address/74=>should be string": val });
     const prefix = from.substring(2, 4);
     const checksum = (0, index_js_4.calculateCheckSum)(val, prefix);
     return "0x" + prefix + checksum + (0, address_js_1.removeHexPrefix)(val);

@@ -15,7 +15,7 @@
  *
  *  @_subsection: api/providers/thirdparty:QuickNode  [providers-quicknode]
  */
-import { defineProperties, FetchRequest, assertArgument } from "../utils/index.js";
+import { defineProperties, FetchRequest, assertArgument, } from "../utils/index.js";
 import { showThrottleMessage } from "./community.js";
 import { Network } from "./network.js";
 import { JsonRpcProvider } from "./provider-jsonrpc.js";
@@ -76,7 +76,7 @@ export class QuickNodeProvider extends JsonRpcProvider {
         return super._getProvider(networkId);
     }
     isCommunityResource() {
-        return (this.token === defaultToken);
+        return this.token === defaultToken;
     }
     /**
      *  Returns a new request prepared for %%network%% and the

@@ -6,12 +6,12 @@
  */
 import { Logger } from "../logger/logger.js";
 import { assert, assertArgument } from "./errors.js";
-const logger = new Logger('utils/data/0.0.1');
+const logger = new Logger("utils/data/0.0.1");
 function isHexable(value) {
-    return !!(value.toHexString);
+    return !!value.toHexString;
 }
 function isInteger(value) {
-    return (typeof (value) === "number" && value == value && (value % 1) === 0);
+    return typeof value === "number" && value == value && value % 1 === 0;
 }
 export function isBytes(value) {
     if (value == null) {
@@ -20,7 +20,7 @@ export function isBytes(value) {
     if (value.constructor === Uint8Array) {
         return true;
     }
-    if (typeof (value) === "string") {
+    if (typeof value === "string") {
         return false;
     }
     if (!isInteger(value.length) || value.length < 0) {
@@ -41,7 +41,7 @@ function _getBytes(value, name, copy) {
         }
         return value;
     }
-    if (typeof (value) === "string" && value.match(/^0x([0-9a-f][0-9a-f])*$/i)) {
+    if (typeof value === "string" && value.match(/^0x([0-9a-f][0-9a-f])*$/i)) {
         const result = new Uint8Array((value.length - 2) / 2);
         let offset = 2;
         for (let i = 0; i < result.length; i++) {
@@ -80,13 +80,13 @@ export function getBytesCopy(value, name) {
  *  bytes of data (e.g. ``0x1234`` is 2 bytes).
  */
 export function isHexString(value, length) {
-    if (typeof (value) !== "string" || !value.match(/^0x[0-9A-Fa-f]*$/)) {
+    if (typeof value !== "string" || !value.match(/^0x[0-9A-Fa-f]*$/)) {
         return false;
     }
-    if (typeof (length) === "number" && value.length !== 2 + 2 * length) {
+    if (typeof length === "number" && value.length !== 2 + 2 * length) {
         return false;
     }
-    if (length === true && (value.length % 2) !== 0) {
+    if (length === true && value.length % 2 !== 0) {
         return false;
     }
     return true;
@@ -96,7 +96,7 @@ export function isHexString(value, length) {
  *  data (i.e. a valid [[DataHexString]] or a Uint8Array).
  */
 export function isBytesLike(value) {
-    return (isHexString(value, true) || (value instanceof Uint8Array));
+    return isHexString(value, true) || value instanceof Uint8Array;
 }
 const HexCharacters = "0123456789abcdef";
 /**
@@ -106,14 +106,17 @@ export function hexlify(value, options) {
     if (!options) {
         options = {};
     }
-    if (typeof value === 'string') {
-        if (value.includes(',') && value.startsWith('0x')) {
-            const v = value.replace('0x', '').split(',').map((item) => Number(item));
+    if (typeof value === "string") {
+        if (value.includes(",") && value.startsWith("0x")) {
+            const v = value
+                .replace("0x", "")
+                .split(",")
+                .map((item) => Number(item));
             // @ts-ignore
             value = new Uint8Array(v);
         }
     }
-    if (typeof (value) === "number") {
+    if (typeof value === "number") {
         logger.checkSafeUint53(value, "invalid hexlify value");
         let hex = "";
         while (value) {
@@ -128,14 +131,16 @@ export function hexlify(value, options) {
         }
         return "0x00";
     }
-    if (typeof (value) === "bigint") {
+    if (typeof value === "bigint") {
         value = value.toString(16);
         if (value.length % 2) {
-            return ("0x0" + value);
+            return "0x0" + value;
         }
         return "0x" + value;
     }
-    if (options.allowMissingPrefix && typeof (value) === "string" && value.substring(0, 2) !== "0x") {
+    if (options.allowMissingPrefix &&
+        typeof value === "string" &&
+        value.substring(0, 2) !== "0x") {
         value = "0x" + value;
     }
     if (isHexable(value)) {
@@ -173,10 +178,10 @@ export function concat(items) {
     return "0x" + items.map((d) => hexlify(d).substring(2)).join("");
 }
 export function hexDataSlice(data, offset, endOffset) {
-    if (typeof (data) !== "string") {
+    if (typeof data !== "string") {
         data = hexlify(data);
     }
-    else if (!isHexString(data) || (data.length % 2)) {
+    else if (!isHexString(data) || data.length % 2) {
         logger.throwArgumentError("invalid hexData", "value", data);
     }
     offset = 2 + 2 * offset;
@@ -186,10 +191,10 @@ export function hexDataSlice(data, offset, endOffset) {
     return "0x" + data.substring(offset);
 }
 export function hexDataLength(data) {
-    if (typeof (data) !== "string") {
+    if (typeof data !== "string") {
         data = hexlify(data);
     }
-    else if (!isHexString(data) || (data.length % 2)) {
+    else if (!isHexString(data) || data.length % 2) {
         return null;
     }
     return (data.length - 2) / 2;
@@ -213,10 +218,12 @@ export function dataSlice(data, start, end) {
     const bytes = getBytes(data);
     if (end != null && end > bytes.length) {
         assert(false, "cannot slice beyond data bounds", "BUFFER_OVERRUN", {
-            buffer: bytes, length: bytes.length, offset: end
+            buffer: bytes,
+            length: bytes.length,
+            offset: end,
         });
     }
-    return hexlify(bytes.slice((start == null) ? 0 : start, (end == null) ? bytes.length : end));
+    return hexlify(bytes.slice(start == null ? 0 : start, end == null ? bytes.length : end));
 }
 /**
  *  Return the [[DataHexString]] result by stripping all **leading**
@@ -234,7 +241,7 @@ function zeroPad(data, length, left) {
     assert(length >= bytes.length, "padding exceeds data length", "BUFFER_OVERRUN", {
         buffer: new Uint8Array(bytes),
         length: length,
-        offset: length + 1
+        offset: length + 1,
     });
     const result = new Uint8Array(length);
     result.fill(0);
@@ -292,7 +299,7 @@ export function arrayify(value, options) {
     if (!options) {
         options = {};
     }
-    if (typeof (value) === "number") {
+    if (typeof value === "number") {
         logger.checkSafeUint53(value, "invalid arrayify value");
         const result = [];
         while (value) {
@@ -305,7 +312,9 @@ export function arrayify(value, options) {
         }
         return addSlice(new Uint8Array(result));
     }
-    if (options.allowMissingPrefix && typeof (value) === "string" && value.substring(0, 2) !== "0x") {
+    if (options.allowMissingPrefix &&
+        typeof value === "string" &&
+        value.substring(0, 2) !== "0x") {
         value = "0x" + value;
     }
     if (isHexable(value)) {

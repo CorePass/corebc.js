@@ -5,13 +5,19 @@ const logger_js_1 = require("../logger/logger.js");
 const data_js_1 = require("../utils/data.js");
 const crypto_js_1 = require("./crypto.js");
 const buffer_1 = require("buffer");
-const logger = new logger_js_1.Logger('sha3/0.0.1');
+const logger = new logger_js_1.Logger("sha3/0.0.1");
 const _sha256 = function (data) {
-    let v = "0x" + (0, crypto_js_1.createHash)("sha3-256").update(buffer_1.Buffer.from((0, data_js_1.arrayify)(data))).digest("hex");
+    let v = "0x" +
+        (0, crypto_js_1.createHash)("sha3-256")
+            .update(buffer_1.Buffer.from((0, data_js_1.arrayify)(data)))
+            .digest("hex");
     return v;
 };
 const _sha512 = function (data) {
-    let v = "0x" + (0, crypto_js_1.createHash)("sha3-512").update(buffer_1.Buffer.from((0, data_js_1.arrayify)(data))).digest("hex");
+    let v = "0x" +
+        (0, crypto_js_1.createHash)("sha3-512")
+            .update(buffer_1.Buffer.from((0, data_js_1.arrayify)(data)))
+            .digest("hex");
     return v;
 };
 // @ts-ignore
@@ -41,11 +47,13 @@ var SupportedAlgorithm;
     SupportedAlgorithm["sha256"] = "sha256";
     SupportedAlgorithm["sha512"] = "sha512";
 })(SupportedAlgorithm || (exports.SupportedAlgorithm = SupportedAlgorithm = {}));
-;
 function ripemd160(data) {
-    let createdHash = "0x" + (0, crypto_js_1.createHash)("ripemd160").update(buffer_1.Buffer.from((0, data_js_1.arrayify)(data))).digest("hex");
+    let createdHash = "0x" +
+        (0, crypto_js_1.createHash)("ripemd160")
+            .update(buffer_1.Buffer.from((0, data_js_1.arrayify)(data)))
+            .digest("hex");
     const v = "0x" + createdHash;
-    if (typeof createdHash !== 'string') {
+    if (typeof createdHash !== "string") {
         createdHash = (0, data_js_1.hexlify)(createdHash);
         return createdHash;
     }
@@ -53,9 +61,11 @@ function ripemd160(data) {
 }
 exports.ripemd160 = ripemd160;
 function sha256(data) {
-    let createdHash = (0, crypto_js_1.createHash)("sha3-256").update(buffer_1.Buffer.from((0, data_js_1.arrayify)(data))).digest("hex");
+    let createdHash = (0, crypto_js_1.createHash)("sha3-256")
+        .update(buffer_1.Buffer.from((0, data_js_1.arrayify)(data)))
+        .digest("hex");
     const v = "0x" + createdHash;
-    if (typeof createdHash !== 'string') {
+    if (typeof createdHash !== "string") {
         createdHash = (0, data_js_1.hexlify)(createdHash);
         return createdHash;
     }
@@ -79,13 +89,15 @@ function computeHmac(algorithm, key, data) {
     }
     logger.throwError("unsupported algorithm - " + algorithm, logger_js_1.Logger.errors.UNSUPPORTED_OPERATION, {
         operation: "computeHmac",
-        algorithm: algorithm
+        algorithm: algorithm,
     });
     return "";
 }
 exports.computeHmac = computeHmac;
 sha256._ = _sha256;
-sha256.lock = function () { locked256 = true; };
+sha256.lock = function () {
+    locked256 = true;
+};
 sha256.register = function (func) {
     if (locked256) {
         throw new Error("sha256 is locked");
@@ -110,9 +122,11 @@ Object.freeze(sha256);
  *    //_result:
  */
 function sha512(data) {
-    let createdHash = (0, crypto_js_1.createHash)("sha3-512").update(buffer_1.Buffer.from((0, data_js_1.arrayify)(data))).digest("hex");
+    let createdHash = (0, crypto_js_1.createHash)("sha3-512")
+        .update(buffer_1.Buffer.from((0, data_js_1.arrayify)(data)))
+        .digest("hex");
     const v = "0x" + createdHash;
-    if (typeof createdHash !== 'string') {
+    if (typeof createdHash !== "string") {
         createdHash = (0, data_js_1.hexlify)(createdHash);
         return createdHash;
     }
@@ -120,7 +134,9 @@ function sha512(data) {
 }
 exports.sha512 = sha512;
 sha512._ = _sha512;
-sha512.lock = function () { locked512 = true; };
+sha512.lock = function () {
+    locked512 = true;
+};
 sha512.register = function (func) {
     if (locked512) {
         throw new Error("sha512 is locked");

@@ -52,7 +52,8 @@ class FilterIdSubscriber {
                 filterId = await this.#filterIdPromise;
             }
             catch (error) {
-                if (!(0, index_js_1.isError)(error, "UNSUPPORTED_OPERATION") || error.operation !== "xcb_newFilter") {
+                if (!(0, index_js_1.isError)(error, "UNSUPPORTED_OPERATION") ||
+                    error.operation !== "xcb_newFilter") {
                     throw error;
                 }
             }
@@ -73,7 +74,9 @@ class FilterIdSubscriber {
             if (this.#hault) {
                 return;
             }
-            const result = await this.#provider.send("xcb_getFilterChanges", [filterId]);
+            const result = await this.#provider.send("xcb_getFilterChanges", [
+                filterId,
+            ]);
             await this._emitResults(this.#provider, result);
         }
         catch (error) {
@@ -112,7 +115,9 @@ class FilterIdSubscriber {
         }
         this.#provider.off("block", this.#poller);
     }
-    resume() { this.start(); }
+    resume() {
+        this.start();
+    }
 }
 exports.FilterIdSubscriber = FilterIdSubscriber;
 /**

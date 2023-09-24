@@ -32,9 +32,11 @@ function getTens(decimals) {
 function checkValue(val, format, safeOp) {
     const width = BigInt(format.width);
     if (format.signed) {
-        const limit = (BN_1 << (width - BN_1));
+        const limit = BN_1 << (width - BN_1);
         (0, errors_js_1.assert)(safeOp == null || (val >= -limit && val < limit), "overflow", "NUMERIC_FAULT", {
-            operation: safeOp, fault: "overflow", value: val
+            operation: safeOp,
+            fault: "overflow",
+            value: val,
         });
         if (val > BN_0) {
             val = (0, maths_js_1.fromTwos)((0, maths_js_1.mask)(val, width), width);
@@ -44,22 +46,24 @@ function checkValue(val, format, safeOp) {
         }
     }
     else {
-        const limit = (BN_1 << width);
+        const limit = BN_1 << width;
         (0, errors_js_1.assert)(safeOp == null || (val >= 0 && val < limit), "overflow", "NUMERIC_FAULT", {
-            operation: safeOp, fault: "overflow", value: val
+            operation: safeOp,
+            fault: "overflow",
+            value: val,
         });
-        val = (((val % limit) + limit) % limit) & (limit - BN_1);
+        val = ((val % limit) + limit) % limit & (limit - BN_1);
     }
     return val;
 }
 function getFormat(value) {
-    if (typeof (value) === "number") {
+    if (typeof value === "number") {
         value = `fixed128x${value}`;
     }
     let signed = true;
     let width = 128;
     let decimals = 18;
-    if (typeof (value) === "string") {
+    if (typeof value === "string") {
         // Parse the format string
         if (value === "fixed") {
             // defaults...
@@ -70,7 +74,7 @@ function getFormat(value) {
         else {
             const match = value.match(/^(u?)fixed([0-9]+)x([0-9]+)$/);
             (0, errors_js_1.assertArgument)(match, "invalid fixed format", "format", value);
-            signed = (match[1] !== "u");
+            signed = match[1] !== "u";
             width = parseInt(match[2]);
             decimals = parseInt(match[3]);
         }
@@ -82,14 +86,14 @@ function getFormat(value) {
             if (v[key] == null) {
                 return defaultValue;
             }
-            (0, errors_js_1.assertArgument)(typeof (v[key]) === type, "invalid fixed format (" + key + " not " + type + ")", "format." + key, v[key]);
+            (0, errors_js_1.assertArgument)(typeof v[key] === type, "invalid fixed format (" + key + " not " + type + ")", "format." + key, v[key]);
             return v[key];
         };
         signed = check("signed", "boolean", signed);
         width = check("width", "number", width);
         decimals = check("decimals", "number", decimals);
     }
-    (0, errors_js_1.assertArgument)((width % 8) === 0, "invalid FixedNumber width (not byte aligned)", "format.width", width);
+    (0, errors_js_1.assertArgument)(width % 8 === 0, "invalid FixedNumber width (not byte aligned)", "format.width", width);
     (0, errors_js_1.assertArgument)(decimals <= 80, "invalid FixedNumber decimals (too large)", "format.decimals", decimals);
     const name = (signed ? "" : "u") + "fixed" + String(width) + "x" + String(decimals);
     return { signed, width, decimals, name };
@@ -103,7 +107,7 @@ function toString(val, decimals) {
     let str = val.toString();
     // No decimal point for whole values
     if (decimals === 0) {
-        return (negative + str);
+        return negative + str;
     }
     // Pad out to the whole component (including a whole digit)
     while (str.length <= decimals) {
@@ -120,7 +124,7 @@ function toString(val, decimals) {
     while (str[str.length - 1] === "0" && str[str.length - 2] !== ".") {
         str = str.substring(0, str.length - 1);
     }
-    return (negative + str);
+    return negative + str;
 }
 /**
  *  A FixedNumber represents a value over its [[FixedFormat]]
@@ -191,46 +195,54 @@ class FixedNumber {
      *  If true, negative values are permitted, otherwise only
      *  positive values and zero are allowed.
      */
-    get signed() { return this.#format.signed; }
+    get signed() {
+        return this.#format.signed;
+    }
     /**
      *  The number of bits available to store the value.
      */
-    get width() { return this.#format.width; }
+    get width() {
+        return this.#format.width;
+    }
     /**
      *  The number of decimal places in the fixed-point arithment field.
      */
-    get decimals() { return this.#format.decimals; }
+    get decimals() {
+        return this.#format.decimals;
+    }
     /**
      *  The value as an integer, based on the smallest unit the
      *  [[decimals]] allow.
      */
-    get value() { return this.#val; }
+    get value() {
+        return this.#val;
+    }
     #checkFormat(other) {
         (0, errors_js_1.assertArgument)(this.format === other.format, "incompatible format; use fixedNumber.toFormat", "other", other);
     }
     #checkValue(val, safeOp) {
         /*
-                const width = BigInt(this.width);
-                if (this.signed) {
-                    const limit = (BN_1 << (width - BN_1));
-                    assert(safeOp == null || (val >= -limit  && val < limit), "overflow", "NUMERIC_FAULT", {
-                        operation: <string>safeOp, fault: "overflow", value: val
-                    });
-        
-                    if (val > BN_0) {
-                        val = fromTwos(mask(val, width), width);
-                    } else {
-                        val = -fromTwos(mask(-val, width), width);
-                    }
-        
+            const width = BigInt(this.width);
+            if (this.signed) {
+                const limit = (BN_1 << (width - BN_1));
+                assert(safeOp == null || (val >= -limit  && val < limit), "overflow", "NUMERIC_FAULT", {
+                    operation: <string>safeOp, fault: "overflow", value: val
+                });
+    
+                if (val > BN_0) {
+                    val = fromTwos(mask(val, width), width);
                 } else {
-                    const masked = mask(val, width);
-                    assert(safeOp == null || (val >= 0 && val === masked), "overflow", "NUMERIC_FAULT", {
-                        operation: <string>safeOp, fault: "overflow", value: val
-                    });
-                    val = masked;
+                    val = -fromTwos(mask(-val, width), width);
                 }
-        */
+    
+            } else {
+                const masked = mask(val, width);
+                assert(safeOp == null || (val >= 0 && val === masked), "overflow", "NUMERIC_FAULT", {
+                    operation: <string>safeOp, fault: "overflow", value: val
+                });
+                val = masked;
+            }
+    */
         val = checkValue(val, this.#format, safeOp);
         return new _a(_guard, val, this.#format);
     }
@@ -242,13 +254,17 @@ class FixedNumber {
      *  Returns a new [[FixedNumber]] with the result of %%this%% added
      *  to %%other%%, ignoring overflow.
      */
-    addUnsafe(other) { return this.#add(other); }
+    addUnsafe(other) {
+        return this.#add(other);
+    }
     /**
      *  Returns a new [[FixedNumber]] with the result of %%this%% added
      *  to %%other%%. A [[NumericFaultError]] is thrown if overflow
      *  occurs.
      */
-    add(other) { return this.#add(other, "add"); }
+    add(other) {
+        return this.#add(other, "add");
+    }
     #sub(o, safeOp) {
         this.#checkFormat(o);
         return this.#checkValue(this.#val - o.#val, safeOp);
@@ -257,13 +273,17 @@ class FixedNumber {
      *  Returns a new [[FixedNumber]] with the result of %%other%% subtracted
      *  from %%this%%, ignoring overflow.
      */
-    subUnsafe(other) { return this.#sub(other); }
+    subUnsafe(other) {
+        return this.#sub(other);
+    }
     /**
      *  Returns a new [[FixedNumber]] with the result of %%other%% subtracted
      *  from %%this%%. A [[NumericFaultError]] is thrown if overflow
      *  occurs.
      */
-    sub(other) { return this.#sub(other, "sub"); }
+    sub(other) {
+        return this.#sub(other, "sub");
+    }
     #mul(o, safeOp) {
         this.#checkFormat(o);
         return this.#checkValue((this.#val * o.#val) / this.#tens, safeOp);
@@ -272,13 +292,17 @@ class FixedNumber {
      *  Returns a new [[FixedNumber]] with the result of %%this%% multiplied
      *  by %%other%%, ignoring overflow and underflow (precision loss).
      */
-    mulUnsafe(other) { return this.#mul(other); }
+    mulUnsafe(other) {
+        return this.#mul(other);
+    }
     /**
      *  Returns a new [[FixedNumber]] with the result of %%this%% multiplied
      *  by %%other%%. A [[NumericFaultError]] is thrown if overflow
      *  occurs.
      */
-    mul(other) { return this.#mul(other, "mul"); }
+    mul(other) {
+        return this.#mul(other, "mul");
+    }
     /**
      *  Returns a new [[FixedNumber]] with the result of %%this%% multiplied
      *  by %%other%%. A [[NumericFaultError]] is thrown if overflow
@@ -287,14 +311,18 @@ class FixedNumber {
     mulSignal(other) {
         this.#checkFormat(other);
         const value = this.#val * other.#val;
-        (0, errors_js_1.assert)((value % this.#tens) === BN_0, "precision lost during signalling mul", "NUMERIC_FAULT", {
-            operation: "mulSignal", fault: "underflow", value: this
+        (0, errors_js_1.assert)(value % this.#tens === BN_0, "precision lost during signalling mul", "NUMERIC_FAULT", {
+            operation: "mulSignal",
+            fault: "underflow",
+            value: this,
         });
         return this.#checkValue(value / this.#tens, "mulSignal");
     }
     #div(o, safeOp) {
         (0, errors_js_1.assert)(o.#val !== BN_0, "division by zero", "NUMERIC_FAULT", {
-            operation: "div", fault: "divide-by-zero", value: this
+            operation: "div",
+            fault: "divide-by-zero",
+            value: this,
         });
         this.#checkFormat(o);
         return this.#checkValue((this.#val * this.#tens) / o.#val, safeOp);
@@ -304,13 +332,17 @@ class FixedNumber {
      *  by %%other%%, ignoring underflow (precision loss). A
      *  [[NumericFaultError]] is thrown if overflow occurs.
      */
-    divUnsafe(other) { return this.#div(other); }
+    divUnsafe(other) {
+        return this.#div(other);
+    }
     /**
      *  Returns a new [[FixedNumber]] with the result of %%this%% divided
      *  by %%other%%, ignoring underflow (precision loss). A
      *  [[NumericFaultError]] is thrown if overflow occurs.
      */
-    div(other) { return this.#div(other, "div"); }
+    div(other) {
+        return this.#div(other, "div");
+    }
     /**
      *  Returns a new [[FixedNumber]] with the result of %%this%% divided
      *  by %%other%%. A [[NumericFaultError]] is thrown if underflow
@@ -318,12 +350,16 @@ class FixedNumber {
      */
     divSignal(other) {
         (0, errors_js_1.assert)(other.#val !== BN_0, "division by zero", "NUMERIC_FAULT", {
-            operation: "div", fault: "divide-by-zero", value: this
+            operation: "div",
+            fault: "divide-by-zero",
+            value: this,
         });
         this.#checkFormat(other);
-        const value = (this.#val * this.#tens);
-        (0, errors_js_1.assert)((value % other.#val) === BN_0, "precision lost during signalling div", "NUMERIC_FAULT", {
-            operation: "divSignal", fault: "underflow", value: this
+        const value = this.#val * this.#tens;
+        (0, errors_js_1.assert)(value % other.#val === BN_0, "precision lost during signalling div", "NUMERIC_FAULT", {
+            operation: "divSignal",
+            fault: "underflow",
+            value: this,
         });
         return this.#checkValue(value / other.#val, "divSignal");
     }
@@ -356,23 +392,33 @@ class FixedNumber {
     /**
      *  Returns true if %%other%% is equal to %%this%%.
      */
-    eq(other) { return this.cmp(other) === 0; }
+    eq(other) {
+        return this.cmp(other) === 0;
+    }
     /**
      *  Returns true if %%other%% is less than to %%this%%.
      */
-    lt(other) { return this.cmp(other) < 0; }
+    lt(other) {
+        return this.cmp(other) < 0;
+    }
     /**
      *  Returns true if %%other%% is less than or equal to %%this%%.
      */
-    lte(other) { return this.cmp(other) <= 0; }
+    lte(other) {
+        return this.cmp(other) <= 0;
+    }
     /**
      *  Returns true if %%other%% is greater than to %%this%%.
      */
-    gt(other) { return this.cmp(other) > 0; }
+    gt(other) {
+        return this.cmp(other) > 0;
+    }
     /**
      *  Returns true if %%other%% is greater than or equal to %%this%%.
      */
-    gte(other) { return this.cmp(other) >= 0; }
+    gte(other) {
+        return this.cmp(other) >= 0;
+    }
     /**
      *  Returns a new [[FixedNumber]] which is the largest **integer**
      *  that is less than or equal to %%this%%.
@@ -424,15 +470,21 @@ class FixedNumber {
     /**
      *  Returns true if %%this%% is equal to ``0``.
      */
-    isZero() { return (this.#val === BN_0); }
+    isZero() {
+        return this.#val === BN_0;
+    }
     /**
      *  Returns true if %%this%% is less than ``0``.
      */
-    isNegative() { return (this.#val < BN_0); }
+    isNegative() {
+        return this.#val < BN_0;
+    }
     /**
      *  Returns the string representation of %%this%%.
      */
-    toString() { return this._value; }
+    toString() {
+        return this._value;
+    }
     /**
      *  Returns a float approximation.
      *
@@ -440,7 +492,9 @@ class FixedNumber {
      *  can only return an approximation and most values will contain
      *  rounding errors.
      */
-    toUnsafeFloat() { return parseFloat(this.toString()); }
+    toUnsafeFloat() {
+        return parseFloat(this.toString());
+    }
     /**
      *  Return a new [[FixedNumber]] with the same value but has had
      *  its field set to %%format%%.
@@ -467,8 +521,10 @@ class FixedNumber {
         const delta = decimals - format.decimals;
         if (delta > 0) {
             const tens = getTens(delta);
-            (0, errors_js_1.assert)((value % tens) === BN_0, "value loses precision for format", "NUMERIC_FAULT", {
-                operation: "fromValue", fault: "underflow", value: _value
+            (0, errors_js_1.assert)(value % tens === BN_0, "value loses precision for format", "NUMERIC_FAULT", {
+                operation: "fromValue",
+                fault: "underflow",
+                value: _value,
             });
             value /= tens;
         }
@@ -486,16 +542,18 @@ class FixedNumber {
      */
     static fromString(_value, _format) {
         const match = _value.match(/^(-?)([0-9]*)\.?([0-9]*)$/);
-        (0, errors_js_1.assertArgument)(match && (match[2].length + match[3].length) > 0, "invalid FixedNumber string value", "value", _value);
+        (0, errors_js_1.assertArgument)(match && match[2].length + match[3].length > 0, "invalid FixedNumber string value", "value", _value);
         const format = getFormat(_format);
-        let whole = (match[2] || "0"), decimal = (match[3] || "");
+        let whole = match[2] || "0", decimal = match[3] || "";
         // Pad out the decimals
         while (decimal.length < format.decimals) {
             decimal += Zeros;
         }
         // Check precision is safe
         (0, errors_js_1.assert)(decimal.substring(format.decimals).match(/^0*$/), "too many decimals for format", "NUMERIC_FAULT", {
-            operation: "fromString", fault: "underflow", value: _value
+            operation: "fromString",
+            fault: "underflow",
+            value: _value,
         });
         // Remove extra padding
         decimal = decimal.substring(0, format.decimals);

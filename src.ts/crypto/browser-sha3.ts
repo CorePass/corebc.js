@@ -1,48 +1,54 @@
 "use strict";
 
 // @ts-ignore
-import _ripemd160 from 'bcrypto/lib/ripemd160-browser';
+import _ripemd160 from "bcrypto/lib/ripemd160-browser";
 // @ts-ignore
-import sha3 from 'bcrypto/lib/sha3-browser.js';
+import sha3 from "bcrypto/lib/sha3-browser.js";
 
+import { Logger } from "../logger/logger.js";
+import { arrayify, BytesLike, hexlify } from "../utils/data.js";
+import { SupportedAlgorithm } from "./sha3.js";
 
-import { Logger } from '../logger/logger.js';
-import { arrayify, BytesLike, hexlify } from '../utils/data.js';
-import { SupportedAlgorithm } from './sha3.js';
-
-const logger = new Logger('corebc-crypto/browser-sha3/0.0.1');
+const logger = new Logger("corebc-crypto/browser-sha3/0.0.1");
 
 export function ripemd160(data: BytesLike): string {
-    const d = Buffer.from(arrayify(data));
-    const h = _ripemd160.digest(d);
-    return hexlify(h);
+  const d = Buffer.from(arrayify(data));
+  const h = _ripemd160.digest(d);
+  return hexlify(h);
 }
 
 export function sha256(data: BytesLike): string {
-    const d = Buffer.from(arrayify(data));
-    const h = sha3.digest(d, 256);
-    return hexlify(h);
+  const d = Buffer.from(arrayify(data));
+  const h = sha3.digest(d, 256);
+  return hexlify(h);
 }
 
 export function sha512(data: BytesLike): string {
-    const d = Buffer.from(arrayify(data));
-    const h = sha3.digest(d, 512);
-    return hexlify(h);
+  const d = Buffer.from(arrayify(data));
+  const h = sha3.digest(d, 512);
+  return hexlify(h);
 }
 
-export function computeHmac(algorithm: SupportedAlgorithm, key: BytesLike, data: BytesLike): string {
-    const d = Buffer.from(arrayify(data));
-    const k = Buffer.from(arrayify(key));
-    if (algorithm === SupportedAlgorithm.sha256) {
-        return hexlify(sha3.mac(d, k, 256));
-    } else if (algorithm === SupportedAlgorithm.sha512) {
-        return hexlify(sha3.mac(d, k, 512));
-    }
+export function computeHmac(
+  algorithm: SupportedAlgorithm,
+  key: BytesLike,
+  data: BytesLike,
+): string {
+  const d = Buffer.from(arrayify(data));
+  const k = Buffer.from(arrayify(key));
+  if (algorithm === SupportedAlgorithm.sha256) {
+    return hexlify(sha3.mac(d, k, 256));
+  } else if (algorithm === SupportedAlgorithm.sha512) {
+    return hexlify(sha3.mac(d, k, 512));
+  }
 
-    logger.throwError("unsupported algorithm - " + algorithm, Logger.errors.UNSUPPORTED_OPERATION, {
-        operation: "computeHmac",
-        algorithm: algorithm
-    });
-    return "";
+  logger.throwError(
+    "unsupported algorithm - " + algorithm,
+    Logger.errors.UNSUPPORTED_OPERATION,
+    {
+      operation: "computeHmac",
+      algorithm: algorithm,
+    },
+  );
+  return "";
 }
-

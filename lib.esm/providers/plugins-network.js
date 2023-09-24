@@ -21,14 +21,14 @@ export class EnergyCostPlugin extends NetworkPlugin {
         if (effectiveBlock == null) {
             effectiveBlock = 0;
         }
-        super(`org.corebc.network.plugins.EnergyCost#${(effectiveBlock || 0)}`);
+        super(`org.corebc.network.plugins.EnergyCost#${effectiveBlock || 0}`);
         const props = { effectiveBlock };
         function set(name, nullish) {
             let value = (costs || {})[name];
             if (value == null) {
                 value = nullish;
             }
-            assertArgument(typeof (value) === "number", `invalud value for ${name}`, "costs", costs);
+            assertArgument(typeof value === "number", `invalud value for ${name}`, "costs", costs);
             props[name] = value;
         }
         set("txBase", 21000);

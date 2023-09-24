@@ -18,7 +18,9 @@ export class WordlistOwlA extends WordlistOwl {
         super(locale, data, checksum);
         this.#accent = accent;
     }
-    get _accent() { return this.#accent; }
+    get _accent() {
+        return this.#accent;
+    }
     _decodeWords() {
         return decodeOwlA(this._data, this._accent);
     }

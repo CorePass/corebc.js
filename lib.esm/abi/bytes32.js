@@ -3,7 +3,7 @@
  *
  *  @_docloc: api/utils:Bytes32 Strings
  */
-import { getBytes, toUtf8Bytes, toUtf8String, zeroPadBytes } from "../utils/index.js";
+import { getBytes, toUtf8Bytes, toUtf8String, zeroPadBytes, } from "../utils/index.js";
 /**
  *  Encodes %%text%% as a Bytes32 string.
  */

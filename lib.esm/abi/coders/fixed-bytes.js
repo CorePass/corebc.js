@@ -12,7 +12,7 @@ export class FixedBytesCoder extends Coder {
         defineProperties(this, { size }, { size: "number" });
     }
     defaultValue() {
-        return ("0x0000000000000000000000000000000000000000000000000000000000000000").substring(0, 2 + this.size * 2);
+        return "0x0000000000000000000000000000000000000000000000000000000000000000".substring(0, 2 + this.size * 2);
     }
     encode(writer, _value) {
         let data = getBytesCopy(Typed.dereference(_value, this.type));

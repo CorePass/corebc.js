@@ -12,17 +12,19 @@ const provider_fallback_js_1 = require("./provider-fallback.js");
 const provider_jsonrpc_js_1 = require("./provider-jsonrpc.js");
 const provider_websocket_js_1 = require("./provider-websocket.js");
 function isWebSocketLike(value) {
-    return (value && typeof (value.send) === "function" &&
-        typeof (value.close) === "function");
+    return (value &&
+        typeof value.send === "function" &&
+        typeof value.close === "function");
 }
 function getDefaultProvider(network, options) {
     if (options == null) {
         options = {};
     }
-    if (typeof (network) === "string" && network.match(/^https?:/)) {
+    if (typeof network === "string" && network.match(/^https?:/)) {
         return new provider_jsonrpc_js_1.JsonRpcProvider(network);
     }
-    if (typeof (network) === "string" && network.match(/^wss?:/) || isWebSocketLike(network)) {
+    if ((typeof network === "string" && network.match(/^wss?:/)) ||
+        isWebSocketLike(network)) {
         return new provider_websocket_js_1.WebSocketProvider(network);
     }
     const providers = [];
@@ -54,7 +56,7 @@ function getDefaultProvider(network, options) {
         try {
             let projectId = options.infura;
             let projectSecret = undefined;
-            if (typeof (projectId) === "object") {
+            if (typeof projectId === "object") {
                 projectSecret = projectId.projectSecret;
                 projectId = projectId.projectId;
             }
@@ -65,20 +67,20 @@ function getDefaultProvider(network, options) {
         }
     }
     /*
-        if (options.pocket !== "-") {
-            try {
-                let appId = options.pocket;
-                let secretKey: undefined | string = undefined;
-                let loadBalancer: undefined | boolean = undefined;
-                if (typeof(appId) === "object") {
-                    loadBalancer = !!appId.loadBalancer;
-                    secretKey = appId.secretKey;
-                    appId = appId.appId;
-                }
-                providers.push(new PocketProvider(network, appId, secretKey, loadBalancer));
-            } catch (error) { console.log(error); }
-        }
-    */
+      if (options.pocket !== "-") {
+          try {
+              let appId = options.pocket;
+              let secretKey: undefined | string = undefined;
+              let loadBalancer: undefined | boolean = undefined;
+              if (typeof(appId) === "object") {
+                  loadBalancer = !!appId.loadBalancer;
+                  secretKey = appId.secretKey;
+                  appId = appId.appId;
+              }
+              providers.push(new PocketProvider(network, appId, secretKey, loadBalancer));
+          } catch (error) { console.log(error); }
+      }
+  */
     if (options.quicknode !== "-") {
         try {
             let token = options.quicknode;
@@ -89,7 +91,7 @@ function getDefaultProvider(network, options) {
         }
     }
     (0, index_js_1.assert)(providers.length, "unsupported default network", "UNSUPPORTED_OPERATION", {
-        operation: "getDefaultProvider"
+        operation: "getDefaultProvider",
     });
     if (providers.length === 1) {
         return providers[0];

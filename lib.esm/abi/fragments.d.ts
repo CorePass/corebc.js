@@ -147,28 +147,28 @@ export declare class ParamType {
      *  This provides a type gaurd ensuring that [[arrayChildren]]
      *  and [[arrayLength]] are non-null.
      */
-    isArray(): this is (ParamType & {
+    isArray(): this is ParamType & {
         arrayChildren: ParamType;
         arrayLength: number;
-    });
+    };
     /**
      *  Returns true if %%this%% is a Tuple type.
      *
      *  This provides a type gaurd ensuring that [[components]]
      *  is non-null.
      */
-    isTuple(): this is (ParamType & {
+    isTuple(): this is ParamType & {
         components: ReadonlyArray<ParamType>;
-    });
+    };
     /**
      *  Returns true if %%this%% is an Indexable type.
      *
      *  This provides a type gaurd ensuring that [[indexed]]
      *  is non-null.
      */
-    isIndexable(): this is (ParamType & {
+    isIndexable(): this is ParamType & {
         indexed: boolean;
-    });
+    };
     /**
      *  Walks the **ParamType** with %%value%%, calling %%process%%
      *  on each type, destructing the %%value%% recursively.

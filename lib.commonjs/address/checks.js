@@ -18,7 +18,7 @@ const index_js_2 = require("./index.js");
  *    //_result:
  */
 function isAddressable(value) {
-    return (value && typeof (value.getAddress) === "function");
+    return value && typeof value.getAddress === "function";
 }
 exports.isAddressable = isAddressable;
 /**
@@ -57,8 +57,9 @@ function isAddress(value) {
 exports.isAddress = isAddress;
 async function checkAddress(target, promise) {
     const result = await promise;
-    if (result == null || result === "0x0000000000000000000000000000000000000000") {
-        (0, index_js_1.assert)(typeof (target) !== "string", "unconfigured name", "UNCONFIGURED_NAME", { value: target });
+    if (result == null ||
+        result === "0x0000000000000000000000000000000000000000") {
+        (0, index_js_1.assert)(typeof target !== "string", "unconfigured name", "UNCONFIGURED_NAME", { value: target });
         (0, index_js_1.assertArgument)(false, "invalid AddressLike value; did not resolve to a value address", "target", target);
     }
     return (0, index_js_2.getAddress)(result);
@@ -98,7 +99,7 @@ async function checkAddress(target, promise) {
  *    //_error:
  */
 function resolveAddress(target) {
-    if (typeof (target) === "string") {
+    if (typeof target === "string") {
         return (0, index_js_2.getAddress)(target);
         // assert(resolver != null, "ENS resolution requires a provider",
         //     "UNSUPPORTED_OPERATION", { operation: "resolveName" });
@@ -107,7 +108,7 @@ function resolveAddress(target) {
     else if (isAddressable(target)) {
         return checkAddress(target, target.getAddress());
     }
-    else if (target && typeof (target.then) === "function") {
+    else if (target && typeof target.then === "function") {
         return checkAddress(target, target);
     }
     (0, index_js_1.assertArgument)(false, "unsupported addressable value", "target", target);

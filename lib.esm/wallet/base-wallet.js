@@ -2,7 +2,7 @@ import { getAddress } from "../address/index.js";
 import { hashMessage, TypedDataEncoder } from "../hash/index.js";
 import { AbstractSigner } from "../providers/index.js";
 import { computeAddress, Transaction } from "../transaction/index.js";
-import { defineProperties, resolveProperties, assert, assertArgument } from "../utils/index.js";
+import { defineProperties, resolveProperties, assert, assertArgument, } from "../utils/index.js";
 import { sha256 } from "../crypto/index.js";
 /**
  *  The **BaseWallet** is a stream-lined implementation of a
@@ -29,10 +29,10 @@ export class BaseWallet extends AbstractSigner {
      *  If %%provider%% is not specified, only offline methods can
      *  be used.
      */
-    constructor({ signingKey, prefix, provider }) {
+    constructor({ signingKey, prefix, provider, }) {
         super(provider);
         this.prefix = prefix;
-        assertArgument(signingKey && typeof (signingKey.sign) === "function", "invalid signingKey key", "signingKey", "[ REDACTED ]");
+        assertArgument(signingKey && typeof signingKey.sign === "function", "invalid signingKey key", "signingKey", "[ REDACTED ]");
         this.#signingKey = signingKey;
         const address = computeAddress(this.#signingKey, prefix);
         defineProperties(this, { address });
@@ -42,15 +42,23 @@ export class BaseWallet extends AbstractSigner {
     /**
      *  The [[SigningKey]] used for signing payloads.
      */
-    get signingKey() { return this.#signingKey; }
+    get signingKey() {
+        return this.#signingKey;
+    }
     /**
      *  The private key for this wallet.
      */
-    get privateKey() { return this.signingKey.privateKey; }
-    async getAddress() { return this.address; }
+    get privateKey() {
+        return this.signingKey.privateKey;
+    }
+    async getAddress() {
+        return this.address;
+    }
     connect(provider) {
         return new BaseWallet({
-            signingKey: this.#signingKey, prefix: this.prefix, provider
+            signingKey: this.#signingKey,
+            prefix: this.prefix,
+            provider,
         });
     }
     async signTransaction(tx) {
@@ -66,7 +74,7 @@ export class BaseWallet extends AbstractSigner {
             tx.from = from;
         }
         if (tx.from != null) {
-            assertArgument(getAddress((tx.from)) === this.address, "transaction from address mismatch", "tx.from", tx.from);
+            assertArgument(getAddress(tx.from) === this.address, "transaction from address mismatch", "tx.from", tx.from);
             delete tx.from;
         }
         // Build the transaction
@@ -95,11 +103,11 @@ export class BaseWallet extends AbstractSigner {
             //        need a provider
             assert(this.provider != null, "cannot resolve ENS names without a provider", "UNSUPPORTED_OPERATION", {
                 operation: "resolveName",
-                info: { name }
+                info: { name },
             });
             const address = getAddress(name);
             assert(address != null, "unconfigured ENS name", "UNCONFIGURED_NAME", {
-                value: name
+                value: name,
             });
             return address;
         });

@@ -21,7 +21,9 @@ class WordlistOwlA extends wordlist_owl_js_1.WordlistOwl {
         super(locale, data, checksum);
         this.#accent = accent;
     }
-    get _accent() { return this.#accent; }
+    get _accent() {
+        return this.#accent;
+    }
     _decodeWords() {
         return (0, decode_owla_js_1.decodeOwlA)(this._data, this._accent);
     }

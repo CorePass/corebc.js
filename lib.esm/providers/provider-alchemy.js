@@ -3,7 +3,7 @@
  *
  *  @_subsection: api/providers/thirdparty:Alchemy  [providers-alchemy]
  */
-import { defineProperties, resolveProperties, assert, assertArgument, FetchRequest } from "../utils/index.js";
+import { defineProperties, resolveProperties, assert, assertArgument, FetchRequest, } from "../utils/index.js";
 import { showThrottleMessage } from "./community.js";
 import { Network } from "./network.js";
 import { JsonRpcProvider } from "./provider-jsonrpc.js";
@@ -68,7 +68,7 @@ export class AlchemyProvider extends JsonRpcProvider {
         if (req.method === "getTransactionResult") {
             const { trace, tx } = await resolveProperties({
                 trace: this.send("trace_transaction", [req.hash]),
-                tx: this.getTransaction(req.hash)
+                tx: this.getTransaction(req.hash),
             });
             if (trace == null || tx == null) {
                 return null;
@@ -77,7 +77,7 @@ export class AlchemyProvider extends JsonRpcProvider {
             let error = false;
             try {
                 data = trace[0].result.output;
-                error = (trace[0].error === "Reverted");
+                error = trace[0].error === "Reverted";
             }
             catch (error) { }
             if (data) {
@@ -87,16 +87,18 @@ export class AlchemyProvider extends JsonRpcProvider {
                     reason: null,
                     transaction: tx,
                     invocation: null,
-                    revert: null // @TODO
+                    revert: null, // @TODO
                 });
                 return data;
             }
-            assert(false, "could not parse trace result", "BAD_DATA", { value: trace });
+            assert(false, "could not parse trace result", "BAD_DATA", {
+                value: trace,
+            });
         }
         return await super._perform(req);
     }
     isCommunityResource() {
-        return (this.apiKey === defaultApiKey);
+        return this.apiKey === defaultApiKey;
     }
     static getRequest(network, apiKey) {
         if (apiKey == null) {

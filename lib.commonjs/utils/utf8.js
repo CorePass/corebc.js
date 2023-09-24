@@ -37,7 +37,7 @@ function ignoreFunc(reason, offset, bytes, output, badCodepoint) {
 function replaceFunc(reason, offset, bytes, output, badCodepoint) {
     // Overlong representations are otherwise "valid" code points; just non-deistingtished
     if (reason === "OVERLONG") {
-        (0, errors_js_1.assertArgument)(typeof (badCodepoint) === "number", "invalid bad code point for replacement", "badCodepoint", badCodepoint);
+        (0, errors_js_1.assertArgument)(typeof badCodepoint === "number", "invalid bad code point for replacement", "badCodepoint", badCodepoint);
         output.push(badCodepoint);
         return 0;
     }
@@ -64,7 +64,7 @@ function replaceFunc(reason, offset, bytes, output, badCodepoint) {
 exports.Utf8ErrorFuncs = Object.freeze({
     error: errorFunc,
     ignore: ignoreFunc,
-    replace: replaceFunc
+    replace: replaceFunc,
 });
 // http://stackoverflow.com/questions/13356493/decode-utf-8-with-javascript#13691499
 function getUtf8CodePoints(_bytes, onError) {
@@ -124,7 +124,6 @@ function getUtf8CodePoints(_bytes, onError) {
                 res = null;
                 break;
             }
-            ;
             res = (res << 6) | (nextChar & 0x3f);
             i++;
         }
@@ -175,7 +174,7 @@ function toUtf8Bytes(str, form) {
         else if ((c & 0xfc00) == 0xd800) {
             i++;
             const c2 = str.charCodeAt(i);
-            (0, errors_js_1.assertArgument)(i < str.length && ((c2 & 0xfc00) === 0xdc00), "invalid surrogate pair", "str", str);
+            (0, errors_js_1.assertArgument)(i < str.length && (c2 & 0xfc00) === 0xdc00, "invalid surrogate pair", "str", str);
             // Surrogate Pair
             const pair = 0x10000 + ((c & 0x03ff) << 10) + (c2 & 0x03ff);
             result.push((pair >> 18) | 0xf0);
@@ -192,16 +191,17 @@ function toUtf8Bytes(str, form) {
     return new Uint8Array(result);
 }
 exports.toUtf8Bytes = toUtf8Bytes;
-;
 //export
 function _toUtf8String(codePoints) {
-    return codePoints.map((codePoint) => {
+    return codePoints
+        .map((codePoint) => {
         if (codePoint <= 0xffff) {
             return String.fromCharCode(codePoint);
         }
         codePoint -= 0x10000;
-        return String.fromCharCode((((codePoint >> 10) & 0x3ff) + 0xd800), ((codePoint & 0x3ff) + 0xdc00));
-    }).join("");
+        return String.fromCharCode(((codePoint >> 10) & 0x3ff) + 0xd800, (codePoint & 0x3ff) + 0xdc00);
+    })
+        .join("");
 }
 /**
  *  Returns the string represented by the UTF-8 data %%bytes%%.

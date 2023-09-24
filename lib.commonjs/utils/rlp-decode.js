@@ -14,7 +14,7 @@ function hexlifyByte(value) {
 function unarrayifyInteger(data, offset, length) {
     let result = 0;
     for (let i = 0; i < length; i++) {
-        result = (result * 256) + data[offset + i];
+        result = result * 256 + data[offset + i];
     }
     return result;
 }
@@ -25,19 +25,25 @@ function _decodeChildren(data, offset, childOffset, length) {
         result.push(decoded.result);
         childOffset += decoded.consumed;
         (0, errors_js_1.assert)(childOffset <= offset + 1 + length, "child data too short", "BUFFER_OVERRUN", {
-            buffer: data, length, offset
+            buffer: data,
+            length,
+            offset,
         });
     }
-    return { consumed: (1 + length), result: result };
+    return { consumed: 1 + length, result: result };
 }
 // returns { consumed: number, result: Object }
 function _decode(data, offset) {
     (0, errors_js_1.assert)(data.length !== 0, "data too short", "BUFFER_OVERRUN", {
-        buffer: data, length: 0, offset: 1
+        buffer: data,
+        length: 0,
+        offset: 1,
     });
     const checkOffset = (offset) => {
         (0, errors_js_1.assert)(offset <= data.length, "data short segment too short", "BUFFER_OVERRUN", {
-            buffer: data, length: data.length, offset
+            buffer: data,
+            length: data.length,
+            offset,
         });
     };
     // Array with extra length prefix
@@ -59,13 +65,13 @@ function _decode(data, offset) {
         const length = unarrayifyInteger(data, offset + 1, lengthLength);
         checkOffset(offset + 1 + lengthLength + length);
         const result = (0, data_js_1.hexlify)(data.slice(offset + 1 + lengthLength, offset + 1 + lengthLength + length));
-        return { consumed: (1 + lengthLength + length), result: result };
+        return { consumed: 1 + lengthLength + length, result: result };
     }
     else if (data[offset] >= 0x80) {
         const length = data[offset] - 0x80;
         checkOffset(offset + 1 + length);
         const result = (0, data_js_1.hexlify)(data.slice(offset + 1, offset + 1 + length));
-        return { consumed: (1 + length), result: result };
+        return { consumed: 1 + length, result: result };
     }
     return { consumed: 1, result: hexlifyByte(data[offset]) };
 }

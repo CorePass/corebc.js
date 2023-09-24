@@ -1,13 +1,3 @@
-/**
- *  The JSON Wallet formats allow a simple way to store the private
- *  keys needed in Core along with related information and allows
- *  for extensible forms of encryption.
- *
- *  These utilities facilitate decrypting and encrypting the most common
- *  JSON Wallet formats.
- *
- *  @_subsection: api/wallet:JSON Wallets  [json-wallets]
- */
 import type { ProgressCallback } from "../crypto/index.js";
 import type { BytesLike } from "../utils/index.js";
 /**

@@ -132,12 +132,12 @@ export declare class Transaction implements TransactionLike<string> {
      *  This provides a Type Guard that properties requiring a signed
      *  transaction are non-null.
      */
-    isSigned(): this is (Transaction & {
+    isSigned(): this is Transaction & {
         type: number;
         typeName: string;
         from: string;
         signature: Signature;
-    });
+    };
     /**
      *  The serialized transaction.
      *

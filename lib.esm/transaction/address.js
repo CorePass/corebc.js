@@ -15,10 +15,9 @@ export function publicToAddress(key, prefix) {
     const checksum = calculateCheckSum(val, prefix);
     return "0x" + prefix + checksum + removeHexPrefix(val);
 }
-;
 export function computeAddress(key, prefix) {
     let pubkey;
-    if (typeof (key) === "string") {
+    if (typeof key === "string") {
         pubkey = SigningKey.computePublicKey(key, false);
     }
     else {

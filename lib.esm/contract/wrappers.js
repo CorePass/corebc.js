@@ -1,4 +1,4 @@
-import { Log, TransactionReceipt, TransactionResponse } from "../providers/provider.js";
+import { Log, TransactionReceipt, TransactionResponse, } from "../providers/provider.js";
 import { defineProperties, EventPayload } from "../utils/index.js";
 export class EventLog extends Log {
     interface;
@@ -9,8 +9,12 @@ export class EventLog extends Log {
         const args = iface.decodeEventLog(fragment, log.data, log.topics);
         defineProperties(this, { args, fragment, interface: iface });
     }
-    get eventName() { return this.fragment.name; }
-    get eventSignature() { return this.fragment.format(); }
+    get eventName() {
+        return this.fragment.name;
+    }
+    get eventSignature() {
+        return this.fragment.format();
+    }
 }
 export class ContractTransactionReceipt extends TransactionReceipt {
     #iface;
@@ -20,7 +24,9 @@ export class ContractTransactionReceipt extends TransactionReceipt {
     }
     get logs() {
         return super.logs.map((log) => {
-            const fragment = log.topics.length ? this.#iface.getEvent(log.topics[0]) : null;
+            const fragment = log.topics.length
+                ? this.#iface.getEvent(log.topics[0])
+                : null;
             if (fragment) {
                 return new EventLog(log, this.#iface, fragment);
             }

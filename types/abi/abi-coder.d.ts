@@ -14,8 +14,8 @@ import { Result } from "./coders/abstract-coder.js";
 import { ParamType } from "./fragments.js";
 import type { BytesLike, CallExceptionAction, CallExceptionError } from "../utils/index.js";
 /**
-  * About AbiCoder
-  */
+ * About AbiCoder
+ */
 export declare class AbiCoder {
     #private;
     /**

@@ -32,13 +32,13 @@ const index_js_4 = require("../crypto/index.js");
  *
  */
 function hashMessage(message) {
-    if (typeof (message) === "string") {
+    if (typeof message === "string") {
         message = (0, index_js_3.toUtf8Bytes)(message);
     }
     return (0, index_js_4.sha256)((0, index_js_3.concat)([
         (0, index_js_3.toUtf8Bytes)(index_js_1.MessagePrefix),
         (0, index_js_3.toUtf8Bytes)(String(message.length)),
-        message
+        message,
     ]));
 }
 exports.hashMessage = hashMessage;

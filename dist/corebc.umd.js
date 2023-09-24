@@ -1,9 +1,9 @@
 const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 'undefined' ? window: typeof global !== 'undefined' ? global: typeof self !== 'undefined' ? self: {});
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('buffer'), require('bcrypto/lib/ed448-browser.js'), require('bn.js'), require('bcrypto/lib/pbkdf2-browser.js'), require('bcrypto/lib/sha3-512.js'), require('utf8')) :
-    typeof define === 'function' && define.amd ? define(['exports', 'buffer', 'bcrypto/lib/ed448-browser.js', 'bn.js', 'bcrypto/lib/pbkdf2-browser.js', 'bcrypto/lib/sha3-512.js', 'utf8'], factory) :
-    (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.corebc = {}, global.buffer, global.ed448, global._BN, global.pbkdf2$2, global.SHA3_512, global.utf8));
-})(this, (function (exports, buffer, ed448, _BN, pbkdf2$2, SHA3_512, utf8) { 'use strict';
+    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('buffer'), require('bcrypto/lib/ed448-browser.js'), require('bn.js'), require('bcrypto/lib/pbkdf2-browser.js'), require('bcrypto/lib/sha3-512.js'), require('aes-js'), require('utf8')) :
+    typeof define === 'function' && define.amd ? define(['exports', 'buffer', 'bcrypto/lib/ed448-browser.js', 'bn.js', 'bcrypto/lib/pbkdf2-browser.js', 'bcrypto/lib/sha3-512.js', 'aes-js', 'utf8'], factory) :
+    (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.corebc = {}, global.buffer, global.ed448, global._BN, global.pbkdf2$2, global.SHA3_512, global.pkg, global.utf8));
+})(this, (function (exports, buffer, ed448, _BN, pbkdf2$2, SHA3_512, pkg, utf8) { 'use strict';
 
     /* Do NOT modify this file; see /src.ts/_admin/update-version.ts */
     /**
@@ -13,7 +13,14 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
 
     let _permanentCensorErrors = false;
     let _censorErrors = false;
-    const LogLevels = { debug: 1, "default": 2, info: 2, warning: 3, error: 4, off: 5 };
+    const LogLevels = {
+        debug: 1,
+        default: 2,
+        info: 2,
+        warning: 3,
+        error: 4,
+        off: 5,
+    };
     let _logLevel = LogLevels["default"];
     let _globalLogger = null;
     function _checkNormalize() {
@@ -25,7 +32,6 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                     if ("test".normalize(form) !== "test") {
                         throw new Error("bad normalize");
                     }
-                    ;
                 }
                 catch (error) {
                     missing.push(form);
@@ -34,7 +40,8 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             if (missing.length) {
                 throw new Error("missing " + missing.join(", "));
             }
-            if (String.fromCharCode(0xe9).normalize("NFD") !== String.fromCharCode(0x65, 0x0301)) {
+            if (String.fromCharCode(0xe9).normalize("NFD") !==
+                String.fromCharCode(0x65, 0x0301)) {
                 throw new Error("broken implementation");
             }
         }
@@ -128,14 +135,14 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
     })(ErrorCode || (ErrorCode = {}));
     const HEX = "0123456789abcdef";
     class Logger {
-        version = '0.0.1';
+        version = "0.0.1";
         static errors = ErrorCode;
         static levels = LogLevel;
         constructor(version) {
             Object.defineProperty(this, "version", {
                 enumerable: true,
                 value: version,
-                writable: false
+                writable: false,
             });
         }
         _log(logLevel, args) {
@@ -209,7 +216,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         throwArgumentError(message, name, value) {
             return this.throwError(message, Logger.errors.INVALID_ARGUMENT, {
                 argument: name,
-                value: value
+                value: value,
             });
         }
         assert(condition, message, code, params) {
@@ -227,12 +234,13 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         checkNormalize(message) {
             if (_normalizeError) {
                 this.throwError("platform missing String.prototype.normalize", Logger.errors.UNSUPPORTED_OPERATION, {
-                    operation: "String.prototype.normalize", form: _normalizeError
+                    operation: "String.prototype.normalize",
+                    form: _normalizeError,
                 });
             }
         }
         checkSafeUint53(value, message) {
-            if (typeof (value) !== "number") {
+            if (typeof value !== "number") {
                 return;
             }
             if (message == null) {
@@ -242,14 +250,14 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 this.throwError(message, Logger.errors.NUMERIC_FAULT, {
                     operation: "checkSafeInteger",
                     fault: "out-of-safe-range",
-                    value: value
+                    value: value,
                 });
             }
             if (value % 1) {
                 this.throwError(message, Logger.errors.NUMERIC_FAULT, {
                     operation: "checkSafeInteger",
                     fault: "non-integer",
-                    value: value
+                    value: value,
                 });
             }
         }
@@ -263,39 +271,45 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             if (count < expectedCount) {
                 this.throwError("missing argument" + message, Logger.errors.MISSING_ARGUMENT, {
                     count: count,
-                    expectedCount: expectedCount
+                    expectedCount: expectedCount,
                 });
             }
             if (count > expectedCount) {
                 this.throwError("too many arguments" + message, Logger.errors.UNEXPECTED_ARGUMENT, {
                     count: count,
-                    expectedCount: expectedCount
+                    expectedCount: expectedCount,
                 });
             }
         }
         checkNew(target, kind) {
             if (target === Object || target == null) {
-                this.throwError("missing new", Logger.errors.MISSING_NEW, { name: kind.name });
+                this.throwError("missing new", Logger.errors.MISSING_NEW, {
+                    name: kind.name,
+                });
             }
         }
         checkAbstract(target, kind) {
             if (target === kind) {
-                this.throwError("cannot instantiate abstract class " + JSON.stringify(kind.name) + " directly; use a sub-class", Logger.errors.UNSUPPORTED_OPERATION, { name: target.name, operation: "new" });
+                this.throwError("cannot instantiate abstract class " +
+                    JSON.stringify(kind.name) +
+                    " directly; use a sub-class", Logger.errors.UNSUPPORTED_OPERATION, { name: target.name, operation: "new" });
             }
             else if (target === Object || target == null) {
-                this.throwError("missing new", Logger.errors.MISSING_NEW, { name: kind.name });
+                this.throwError("missing new", Logger.errors.MISSING_NEW, {
+                    name: kind.name,
+                });
             }
         }
         static globalLogger() {
             if (!_globalLogger) {
-                _globalLogger = new Logger('logger/0.0.1');
+                _globalLogger = new Logger("logger/0.0.1");
             }
             return _globalLogger;
         }
         static setCensorship(censorship, permanent) {
             if (!censorship && permanent) {
                 this.globalLogger().throwError("cannot permanently disable censorship", Logger.errors.UNSUPPORTED_OPERATION, {
-                    operation: "setCensorship"
+                    operation: "setCensorship",
                 });
             }
             if (_permanentCensorErrors) {
@@ -303,7 +317,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                     return;
                 }
                 this.globalLogger().throwError("error censorship permanent", Logger.errors.UNSUPPORTED_OPERATION, {
-                    operation: "setCensorship"
+                    operation: "setCensorship",
                 });
             }
             _censorErrors = !!censorship;
@@ -327,9 +341,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
      *
      *  @_subsection api/utils:Properties  [about-properties]
      */
-    const logger$7 = new Logger('utils/properties/0.0.1');
+    const logger$7 = new Logger("utils/properties/0.0.1");
     function checkType(value, type, name) {
-        const types = type.split("|").map(t => t.trim());
+        const types = type.split("|").map((t) => t.trim());
         for (let i = 0; i < types.length; i++) {
             switch (type) {
                 case "any":
@@ -338,7 +352,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 case "boolean":
                 case "number":
                 case "string":
-                    if (typeof (value) === type) {
+                    if (typeof value === type) {
                         return;
                     }
             }
@@ -369,15 +383,19 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
     function defineProperties(target, values, types) {
         for (let key in values) {
             let value = values[key];
-            const type = (types ? types[key] : null);
+            const type = types ? types[key] : null;
             if (type) {
                 checkType(value, type, key);
             }
-            Object.defineProperty(target, key, { enumerable: true, value, writable: false });
+            Object.defineProperty(target, key, {
+                enumerable: true,
+                value,
+                writable: false,
+            });
         }
     }
     function checkProperties(object, properties) {
-        if (!object || typeof (object) !== "object") {
+        if (!object || typeof object !== "object") {
             logger$7.throwArgumentError("invalid object", "object", object);
         }
         Object.keys(object).forEach((key) => {
@@ -397,7 +415,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             return "null";
         }
         if (Array.isArray(value)) {
-            return "[ " + (value.map(stringify$1)).join(", ") + " ]";
+            return "[ " + value.map(stringify$1).join(", ") + " ]";
         }
         if (value instanceof Uint8Array) {
             const HEX = "0123456789abcdef";
@@ -408,23 +426,25 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             }
             return result;
         }
-        if (typeof (value) === "object" && typeof (value.toJSON) === "function") {
+        if (typeof value === "object" && typeof value.toJSON === "function") {
             return stringify$1(value.toJSON());
         }
-        switch (typeof (value)) {
+        switch (typeof value) {
             case "boolean":
             case "symbol":
                 return value.toString();
             case "bigint":
                 return BigInt(value).toString();
             case "number":
-                return (value).toString();
+                return value.toString();
             case "string":
                 return JSON.stringify(value);
             case "object": {
                 const keys = Object.keys(value);
                 keys.sort();
-                return "{ " + keys.map((k) => `${stringify$1(k)}: ${stringify$1(value[k])}`).join(", ") + " }";
+                return ("{ " +
+                    keys.map((k) => `${stringify$1(k)}: ${stringify$1(value[k])}`).join(", ") +
+                    " }");
             }
         }
         return `[ COULD NOT SERIALIZE ]`;
@@ -449,7 +469,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
      *    }
      */
     function isError(error, code) {
-        return (error && error.code === code);
+        return error && error.code === code;
     }
     /**
      *  Returns true if %%error%% is a [[CallExceptionError].
@@ -475,7 +495,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                     throw new Error(`value will overwrite populated values: ${stringify$1(info)}`);
                 }
                 for (const key in info) {
-                    const value = (info[key]);
+                    const value = info[key];
                     //                try {
                     details.push(key + "=" + stringify$1(value));
                     //                } catch (error: any) {
@@ -538,11 +558,11 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         }
         assert(count >= expectedCount, "missing arguemnt" + message, "MISSING_ARGUMENT", {
             count: count,
-            expectedCount: expectedCount
+            expectedCount: expectedCount,
         });
         assert(count <= expectedCount, "too many arguemnts" + message, "UNEXPECTED_ARGUMENT", {
             count: count,
-            expectedCount: expectedCount
+            expectedCount: expectedCount,
         });
     }
     const _normalizeForms = ["NFD", "NFC", "NFKD", "NFKC"].reduce((accum, form) => {
@@ -552,7 +572,6 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             if ("test".normalize(form) !== "test") {
                 throw new Error("bad");
             }
-            ;
             /* c8 ignore stop */
             if (form === "NFD") {
                 const check = String.fromCharCode(0xe9).normalize("NFD");
@@ -573,7 +592,8 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
      */
     function assertNormalize(form) {
         assert(_normalizeForms.indexOf(form) >= 0, "platform missing String.prototype.normalize", "UNSUPPORTED_OPERATION", {
-            operation: "String.prototype.normalize", info: { form }
+            operation: "String.prototype.normalize",
+            info: { form },
         });
     }
     /**
@@ -593,7 +613,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 operation += " " + className;
             }
             assert(false, `private constructor; use ${method}from* methods`, "UNSUPPORTED_OPERATION", {
-                operation
+                operation,
             });
         }
     }
@@ -604,12 +624,12 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
      *
      *  @_subsection api/utils:Data Helpers  [about-data]
      */
-    const logger$6 = new Logger('utils/data/0.0.1');
+    const logger$6 = new Logger("utils/data/0.0.1");
     function isHexable(value) {
-        return !!(value.toHexString);
+        return !!value.toHexString;
     }
     function isInteger(value) {
-        return (typeof (value) === "number" && value == value && (value % 1) === 0);
+        return typeof value === "number" && value == value && value % 1 === 0;
     }
     function isBytes(value) {
         if (value == null) {
@@ -618,7 +638,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         if (value.constructor === Uint8Array) {
             return true;
         }
-        if (typeof (value) === "string") {
+        if (typeof value === "string") {
             return false;
         }
         if (!isInteger(value.length) || value.length < 0) {
@@ -639,7 +659,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             }
             return value;
         }
-        if (typeof (value) === "string" && value.match(/^0x([0-9a-f][0-9a-f])*$/i)) {
+        if (typeof value === "string" && value.match(/^0x([0-9a-f][0-9a-f])*$/i)) {
             const result = new Uint8Array((value.length - 2) / 2);
             let offset = 2;
             for (let i = 0; i < result.length; i++) {
@@ -678,13 +698,13 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
      *  bytes of data (e.g. ``0x1234`` is 2 bytes).
      */
     function isHexString(value, length) {
-        if (typeof (value) !== "string" || !value.match(/^0x[0-9A-Fa-f]*$/)) {
+        if (typeof value !== "string" || !value.match(/^0x[0-9A-Fa-f]*$/)) {
             return false;
         }
-        if (typeof (length) === "number" && value.length !== 2 + 2 * length) {
+        if (typeof length === "number" && value.length !== 2 + 2 * length) {
             return false;
         }
-        if (length === true && (value.length % 2) !== 0) {
+        if (length === true && value.length % 2 !== 0) {
             return false;
         }
         return true;
@@ -694,7 +714,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
      *  data (i.e. a valid [[DataHexString]] or a Uint8Array).
      */
     function isBytesLike(value) {
-        return (isHexString(value, true) || (value instanceof Uint8Array));
+        return isHexString(value, true) || value instanceof Uint8Array;
     }
     const HexCharacters = "0123456789abcdef";
     /**
@@ -704,14 +724,17 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         if (!options) {
             options = {};
         }
-        if (typeof value === 'string') {
-            if (value.includes(',') && value.startsWith('0x')) {
-                const v = value.replace('0x', '').split(',').map((item) => Number(item));
+        if (typeof value === "string") {
+            if (value.includes(",") && value.startsWith("0x")) {
+                const v = value
+                    .replace("0x", "")
+                    .split(",")
+                    .map((item) => Number(item));
                 // @ts-ignore
                 value = new Uint8Array(v);
             }
         }
-        if (typeof (value) === "number") {
+        if (typeof value === "number") {
             logger$6.checkSafeUint53(value, "invalid hexlify value");
             let hex = "";
             while (value) {
@@ -726,14 +749,16 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             }
             return "0x00";
         }
-        if (typeof (value) === "bigint") {
+        if (typeof value === "bigint") {
             value = value.toString(16);
             if (value.length % 2) {
-                return ("0x0" + value);
+                return "0x0" + value;
             }
             return "0x" + value;
         }
-        if (options.allowMissingPrefix && typeof (value) === "string" && value.substring(0, 2) !== "0x") {
+        if (options.allowMissingPrefix &&
+            typeof value === "string" &&
+            value.substring(0, 2) !== "0x") {
             value = "0x" + value;
         }
         if (isHexable(value)) {
@@ -771,10 +796,10 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         return "0x" + items.map((d) => hexlify(d).substring(2)).join("");
     }
     function hexDataSlice(data, offset, endOffset) {
-        if (typeof (data) !== "string") {
+        if (typeof data !== "string") {
             data = hexlify(data);
         }
-        else if (!isHexString(data) || (data.length % 2)) {
+        else if (!isHexString(data) || data.length % 2) {
             logger$6.throwArgumentError("invalid hexData", "value", data);
         }
         offset = 2 + 2 * offset;
@@ -784,10 +809,10 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         return "0x" + data.substring(offset);
     }
     function hexDataLength(data) {
-        if (typeof (data) !== "string") {
+        if (typeof data !== "string") {
             data = hexlify(data);
         }
-        else if (!isHexString(data) || (data.length % 2)) {
+        else if (!isHexString(data) || data.length % 2) {
             return null;
         }
         return (data.length - 2) / 2;
@@ -811,10 +836,12 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         const bytes = getBytes(data);
         if (end != null && end > bytes.length) {
             assert(false, "cannot slice beyond data bounds", "BUFFER_OVERRUN", {
-                buffer: bytes, length: bytes.length, offset: end
+                buffer: bytes,
+                length: bytes.length,
+                offset: end,
             });
         }
-        return hexlify(bytes.slice((start == null) ? 0 : start, (end == null) ? bytes.length : end));
+        return hexlify(bytes.slice(start == null ? 0 : start, end == null ? bytes.length : end));
     }
     /**
      *  Return the [[DataHexString]] result by stripping all **leading**
@@ -832,7 +859,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         assert(length >= bytes.length, "padding exceeds data length", "BUFFER_OVERRUN", {
             buffer: new Uint8Array(bytes),
             length: length,
-            offset: length + 1
+            offset: length + 1,
         });
         const result = new Uint8Array(length);
         result.fill(0);
@@ -890,7 +917,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         if (!options) {
             options = {};
         }
-        if (typeof (value) === "number") {
+        if (typeof value === "number") {
             logger$6.checkSafeUint53(value, "invalid arrayify value");
             const result = [];
             while (value) {
@@ -903,7 +930,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             }
             return addSlice(new Uint8Array(result));
         }
-        if (options.allowMissingPrefix && typeof (value) === "string" && value.substring(0, 2) !== "0x") {
+        if (options.allowMissingPrefix &&
+            typeof value === "string" &&
+            value.substring(0, 2) !== "0x") {
             value = "0x" + value;
         }
         if (isHexable(value)) {
@@ -954,7 +983,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
     }
 
     var BN = _BN.BN;
-    const logger$5 = new Logger('bigNumber/0.0.1');
+    const logger$5 = new Logger("bigNumber/0.0.1");
     const _constructorGuard = {};
     const MAX_SAFE = 0x1fffffffffffff;
     // Only warn about passing 10 into radix once
@@ -966,7 +995,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             logger$5.checkNew(new.target, BigNumber);
             if (constructorGuard !== _constructorGuard) {
                 logger$5.throwError("cannot call constructor directly; use BigNumber.from", Logger.errors.UNSUPPORTED_OPERATION, {
-                    operation: "new (BigNumber)"
+                    operation: "new (BigNumber)",
                 });
             }
             this._hex = hex;
@@ -1070,7 +1099,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             return toBN(this).gte(toBN(other));
         }
         isNegative() {
-            return (this._hex[0] === "-");
+            return this._hex[0] === "-";
         }
         isZero() {
             return toBN(this).isZero();
@@ -1091,7 +1120,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             }
             catch (e) { }
             return logger$5.throwError("this platform does not support BigInt", Logger.errors.UNSUPPORTED_OPERATION, {
-                value: this.toString()
+                value: this.toString(),
             });
         }
         toString() {
@@ -1122,7 +1151,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             if (value instanceof BigNumber) {
                 return value;
             }
-            if (typeof (value) === "string") {
+            if (typeof value === "string") {
                 if (value.match(/^-?0x[0-9a-f]+$/i)) {
                     return new BigNumber(_constructorGuard, toHex(value));
                 }
@@ -1131,7 +1160,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 }
                 return logger$5.throwArgumentError("invalid BigNumber string", "value", value);
             }
-            if (typeof (value) === "number") {
+            if (typeof value === "number") {
                 if (value % 1) {
                     throwFault("underflow", "BigNumber.from", value);
                 }
@@ -1141,7 +1170,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 return BigNumber.from(String(value));
             }
             const anyValue = value;
-            if (typeof (anyValue) === "bigint") {
+            if (typeof anyValue === "bigint") {
                 return BigNumber.from(anyValue.toString());
             }
             if (isBytes(anyValue)) {
@@ -1151,7 +1180,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 // Hexable interface (takes priority)
                 if (anyValue.toHexString) {
                     const hex = anyValue.toHexString();
-                    if (typeof (hex) === "string") {
+                    if (typeof hex === "string") {
                         return BigNumber.from(hex);
                     }
                 }
@@ -1162,8 +1191,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                     if (hex == null && anyValue.type === "BigNumber") {
                         hex = anyValue.hex;
                     }
-                    if (typeof (hex) === "string") {
-                        if (isHexString(hex) || (hex[0] === "-" && isHexString(hex.substring(1)))) {
+                    if (typeof hex === "string") {
+                        if (isHexString(hex) ||
+                            (hex[0] === "-" && isHexString(hex.substring(1)))) {
                             return BigNumber.from(hex);
                         }
                     }
@@ -1179,7 +1209,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
     // @ts-ignore
     function toHex(value) {
         // For BN, call on the hex string
-        if (typeof (value) !== "string") {
+        if (typeof value !== "string") {
             return toHex(value.toString(16));
         }
         // If negative, prepend the negative sign to the normalized positive value
@@ -1225,7 +1255,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
     function toBN(value) {
         const hex = BigNumber.from(value).toHexString();
         if (hex[0] === "-") {
-            return (new BN("-" + hex.substring(3), 16));
+            return new BN("-" + hex.substring(3), 16);
         }
         return new BN(hex.substring(2), 16);
     }
@@ -1237,7 +1267,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         return logger$5.throwError(fault, Logger.errors.NUMERIC_FAULT, params);
     }
 
-    const logger$4 = new Logger('rlp/0.0.1');
+    const logger$4 = new Logger("rlp/0.0.1");
     function arrayifyInteger$1(value) {
         const result = [];
         while (value) {
@@ -1250,7 +1280,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
     function unarrayifyInteger$1(data, offset, length) {
         let result = 0;
         for (let i = 0; i < length; i++) {
-            result = (result * 256) + data[offset + i];
+            result = result * 256 + data[offset + i];
         }
         return result;
     }
@@ -1296,7 +1326,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 logger$4.throwError("child data too short", Logger.errors.BUFFER_OVERRUN, {});
             }
         }
-        return { consumed: (1 + length), result: result };
+        return { consumed: 1 + length, result: result };
     }
     // returns { consumed: number, result: Object }
     function _decode$1(data, offset) {
@@ -1332,7 +1362,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 logger$4.throwError("data array too short", Logger.errors.BUFFER_OVERRUN, {});
             }
             const result = hexlify(data.slice(offset + 1 + lengthLength, offset + 1 + lengthLength + length));
-            return { consumed: (1 + lengthLength + length), result: result };
+            return { consumed: 1 + lengthLength + length, result: result };
         }
         else if (data[offset] >= 0x80) {
             const length = data[offset] - 0x80;
@@ -1340,7 +1370,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 logger$4.throwError("data too short", Logger.errors.BUFFER_OVERRUN, {});
             }
             const result = hexlify(data.slice(offset + 1, offset + 1 + length));
-            return { consumed: (1 + length), result: result };
+            return { consumed: 1 + length, result: result };
         }
         return { consumed: 1, result: hexlify(data[offset]) };
     }
@@ -2247,13 +2277,15 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
     function fromTwos(_value, _width) {
         const value = getUint(_value, "value");
         const width = BigInt(getNumber(_width, "width"));
-        assert((value >> width) === BN_0$9, "overflow", "NUMERIC_FAULT", {
-            operation: "fromTwos", fault: "overflow", value: _value
+        assert(value >> width === BN_0$9, "overflow", "NUMERIC_FAULT", {
+            operation: "fromTwos",
+            fault: "overflow",
+            value: _value,
         });
         // Top bit set; treat as a negative value
         if (value >> (width - BN_1$5)) {
             const mask = (BN_1$5 << width) - BN_1$5;
-            return -(((~value) & mask) + BN_1$5);
+            return -((~value & mask) + BN_1$5);
         }
         return value;
     }
@@ -2266,18 +2298,22 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
     function toTwos(_value, _width) {
         let value = getBigInt(_value, "value");
         const width = BigInt(getNumber(_width, "width"));
-        const limit = (BN_1$5 << (width - BN_1$5));
+        const limit = BN_1$5 << (width - BN_1$5);
         if (value < BN_0$9) {
             value = -value;
             assert(value <= limit, "too low", "NUMERIC_FAULT", {
-                operation: "toTwos", fault: "overflow", value: _value
+                operation: "toTwos",
+                fault: "overflow",
+                value: _value,
             });
             const mask = (BN_1$5 << width) - BN_1$5;
-            return ((~value) & mask) + BN_1$5;
+            return (~value & mask) + BN_1$5;
         }
         else {
             assert(value < limit, "too high", "NUMERIC_FAULT", {
-                operation: "toTwos", fault: "overflow", value: _value
+                operation: "toTwos",
+                fault: "overflow",
+                value: _value,
             });
         }
         return value;
@@ -2295,8 +2331,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
      *  a BigInt, then an ArgumentError will be thrown for %%name%%.
      */
     function getBigInt(value, name) {
-        switch (typeof (value)) {
-            case "bigint": return value;
+        switch (typeof value) {
+            case "bigint":
+                return value;
             case "number":
                 assertArgument(Number.isInteger(value), "underflow", name || "value", value);
                 assertArgument(value >= -maxValue && value <= maxValue, "overflow", name || "value", value);
@@ -2320,7 +2357,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
     function getUint(value, name) {
         const result = getBigInt(value, name);
         assert(result >= BN_0$9, "unsigned value cannot be negative", "NUMERIC_FAULT", {
-            fault: "overflow", operation: "getUint", value
+            fault: "overflow",
+            operation: "getUint",
+            value,
         });
         return result;
     }
@@ -2345,7 +2384,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
      *  a //number//, then an ArgumentError will be thrown for %%name%%.
      */
     function getNumber(value, name) {
-        switch (typeof (value)) {
+        switch (typeof value) {
             case "bigint":
                 assertArgument(value >= -maxValue && value <= maxValue, "overflow", name || "value", value);
                 return Number(value);
@@ -2391,10 +2430,10 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             assert(width * 2 >= result.length, `value exceeds width (${width} bits)`, "NUMERIC_FAULT", {
                 operation: "toBeHex",
                 fault: "overflow",
-                value: _value
+                value: _value,
             });
             // Pad the value to the required width
-            while (result.length < (width * 2)) {
+            while (result.length < width * 2) {
                 result = "0" + result;
             }
         }
@@ -2580,7 +2619,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
     function replaceFunc(reason, offset, bytes, output, badCodepoint) {
         // Overlong representations are otherwise "valid" code points; just non-deistingtished
         if (reason === "OVERLONG") {
-            assertArgument(typeof (badCodepoint) === "number", "invalid bad code point for replacement", "badCodepoint", badCodepoint);
+            assertArgument(typeof badCodepoint === "number", "invalid bad code point for replacement", "badCodepoint", badCodepoint);
             output.push(badCodepoint);
             return 0;
         }
@@ -2607,7 +2646,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
     const Utf8ErrorFuncs = Object.freeze({
         error: errorFunc,
         ignore: ignoreFunc,
-        replace: replaceFunc
+        replace: replaceFunc,
     });
     // http://stackoverflow.com/questions/13356493/decode-utf-8-with-javascript#13691499
     function getUtf8CodePoints(_bytes, onError) {
@@ -2717,7 +2756,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             else if ((c & 0xfc00) == 0xd800) {
                 i++;
                 const c2 = str.charCodeAt(i);
-                assertArgument(i < str.length && ((c2 & 0xfc00) === 0xdc00), "invalid surrogate pair", "str", str);
+                assertArgument(i < str.length && (c2 & 0xfc00) === 0xdc00, "invalid surrogate pair", "str", str);
                 // Surrogate Pair
                 const pair = 0x10000 + ((c & 0x03ff) << 10) + (c2 & 0x03ff);
                 result.push((pair >> 18) | 0xf0);
@@ -2735,13 +2774,15 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
     }
     //export
     function _toUtf8String(codePoints) {
-        return codePoints.map((codePoint) => {
+        return codePoints
+            .map((codePoint) => {
             if (codePoint <= 0xffff) {
                 return String.fromCharCode(codePoint);
             }
             codePoint -= 0x10000;
-            return String.fromCharCode((((codePoint >> 10) & 0x3ff) + 0xd800), ((codePoint & 0x3ff) + 0xdc00));
-        }).join("");
+            return String.fromCharCode(((codePoint >> 10) & 0x3ff) + 0xd800, (codePoint & 0x3ff) + 0xdc00);
+        })
+            .join("");
     }
     /**
      *  Returns the string represented by the UTF-8 data %%bytes%%.
@@ -2768,22 +2809,24 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         const protocol = req.url.split(":")[0].toLowerCase();
         assert(protocol === "http" || protocol === "https", `unsupported protocol ${protocol}`, "UNSUPPORTED_OPERATION", {
             info: { protocol },
-            operation: "request"
+            operation: "request",
         });
         assert(protocol === "https" || !req.credentials || req.allowInsecureAuthentication, "insecure authorized connections unsupported", "UNSUPPORTED_OPERATION", {
-            operation: "request"
+            operation: "request",
         });
         let signal = undefined;
         if (_signal) {
             const controller = new AbortController();
             signal = controller.signal;
-            _signal.addListener(() => { controller.abort(); });
+            _signal.addListener(() => {
+                controller.abort();
+            });
         }
         const init = {
             method: req.method,
             headers: new Headers(Array.from(req)),
             body: req.body || undefined,
-            signal
+            signal,
         };
         try {
             const resp = await fetch(req.url, init);
@@ -2792,15 +2835,17 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 headers[key.toLowerCase()] = value;
             });
             const respBody = await resp.arrayBuffer();
-            const body = (respBody == null) ? null : new Uint8Array(respBody);
+            const body = respBody == null ? null : new Uint8Array(respBody);
             return {
                 statusCode: resp.status,
                 statusMessage: resp.statusText,
-                headers, body
+                headers,
+                body,
             };
         }
         catch (error) {
             console.log({ error });
+            return undefined;
         }
     }
 
@@ -2814,7 +2859,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
     // The global FetchGetUrlFunc implementation.
     let getUrlFunc = getUrl;
     const reData = new RegExp("^data:([^;:]*)?(;base64)?,(.*)$", "i");
-    const reIpfs = new RegExp("^ipfs:/\/(ipfs/)?(.*)$", "i");
+    const reIpfs = new RegExp("^ipfs://(ipfs/)?(.*)$", "i");
     // If locked, new Gateways cannot be added
     let locked$5 = false;
     // https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URLs
@@ -2825,8 +2870,8 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 throw new Error("invalid data");
             }
             return new FetchResponse(200, "OK", {
-                "content-type": (match[1] || "text/plain"),
-            }, (match[2] ? decodeBase64(match[3]) : unpercent(match[3])));
+                "content-type": match[1] || "text/plain",
+            }, match[2] ? decodeBase64(match[3]) : unpercent(match[3]));
         }
         catch (error) {
             return new FetchResponse(599, "BAD REQUEST (invalid data: URI)", {}, null, new FetchRequest(url));
@@ -2852,8 +2897,8 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         return gatewayIpfs;
     }
     const Gateways = {
-        "data": dataGatewayFunc,
-        "ipfs": getIpfsGatewayFunc("https:/\/gateway.ipfs.io/ipfs/")
+        data: dataGatewayFunc,
+        ipfs: getIpfsGatewayFunc("https://gateway.ipfs.io/ipfs/"),
     };
     const fetchSignals = new WeakMap();
     /**
@@ -2871,18 +2916,22 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 }
                 this.#cancelled = true;
                 for (const listener of this.#listeners) {
-                    setTimeout(() => { listener(); }, 0);
+                    setTimeout(() => {
+                        listener();
+                    }, 0);
                 }
                 this.#listeners = [];
             });
         }
         addListener(listener) {
             assert(!this.#cancelled, "singal already cancelled", "UNSUPPORTED_OPERATION", {
-                operation: "fetchCancelSignal.addCancelListener"
+                operation: "fetchCancelSignal.addCancelListener",
             });
             this.#listeners.push(listener);
         }
-        get cancelled() { return this.#cancelled; }
+        get cancelled() {
+            return this.#cancelled;
+        }
         checkSignal() {
             assert(!this.cancelled, "cancelled", "CANCELLED", {});
         }
@@ -2928,7 +2977,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         /**
          *  The fetch URI to requrest.
          */
-        get url() { return this.#url; }
+        get url() {
+            return this.#url;
+        }
         set url(url) {
             this.#url = String(url);
         }
@@ -2962,7 +3013,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 this.#body = undefined;
                 this.#bodyType = undefined;
             }
-            else if (typeof (body) === "string") {
+            else if (typeof body === "string") {
                 this.#body = toUtf8Bytes(body);
                 this.#bodyType = "text/plain";
             }
@@ -2970,7 +3021,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 this.#body = body;
                 this.#bodyType = "application/octet-stream";
             }
-            else if (typeof (body) === "object") {
+            else if (typeof body === "object") {
                 this.#body = toUtf8Bytes(JSON.stringify(body));
                 this.#bodyType = "application/json";
             }
@@ -2982,7 +3033,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  Returns true if the request has a body.
          */
         hasBody() {
-            return (this.#body != null);
+            return this.#body != null;
         }
         /**
          *  The HTTP method to use when requesting the URI. If no method
@@ -3057,11 +3108,12 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                     if (index < keys.length) {
                         const key = keys[index++];
                         return {
-                            value: [key, headers[key]], done: false
+                            value: [key, headers[key]],
+                            done: false,
                         };
                     }
                     return { value: undefined, done: true };
-                }
+                },
             };
         }
         /**
@@ -3103,7 +3155,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  The timeout (in milliseconds) to wait for a complere response.
          *  //(default: 5 minutes)//
          */
-        get timeout() { return this.#timeout; }
+        get timeout() {
+            return this.#timeout;
+        }
         set timeout(timeout) {
             assertArgument(timeout >= 0, "timeout must be non-zero", "timeout", timeout);
             this.#timeout = timeout;
@@ -3161,7 +3215,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             this.#timeout = 300000;
             this.#throttle = {
                 slotInterval: SLOT_INTERVAL,
-                maxAttempts: MAX_ATTEMPTS
+                maxAttempts: MAX_ATTEMPTS,
             };
         }
         toString() {
@@ -3184,7 +3238,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 return _response.makeServerError("exceeded maximum retry limit");
             }
             assert(getTime$2() <= expires, "timeout", "TIMEOUT", {
-                operation: "request.send", reason: "timeout", request: _request
+                operation: "request.send",
+                reason: "timeout",
+                request: _request,
             });
             if (delay > 0) {
                 await wait(delay);
@@ -3203,8 +3259,10 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                         }
                         catch (error) {
                             // Something went wrong during processing; throw a 5xx server error
-                            if (error.throttle == null || typeof (error.stall) !== "number") {
-                                response.makeServerError("error in post-processing function", error).assertOk();
+                            if (error.throttle == null || typeof error.stall !== "number") {
+                                response
+                                    .makeServerError("error in post-processing function", error)
+                                    .assertOk();
                             }
                             // Ignore throttling
                         }
@@ -3223,7 +3281,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 // Redirect
                 try {
                     const location = response.headers.location || "";
-                    return req.redirect(location).#send(attempt + 1, expires, 0, _request, response);
+                    return req
+                        .redirect(location)
+                        .#send(attempt + 1, expires, 0, _request, response);
                 }
                 catch (error) { }
                 // Things won't get any better on another attempt; abort
@@ -3231,13 +3291,18 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             }
             else if (response.statusCode === 429) {
                 // Throttle
-                if (this.retryFunc == null || (await this.retryFunc(req, response, attempt))) {
+                if (this.retryFunc == null ||
+                    (await this.retryFunc(req, response, attempt))) {
                     const retryAfter = response.headers["retry-after"];
-                    let delay = this.#throttle.slotInterval * Math.trunc(Math.random() * Math.pow(2, attempt));
-                    if (typeof (retryAfter) === "string" && retryAfter.match(/^[1-9][0-9]*$/)) {
+                    let delay = this.#throttle.slotInterval *
+                        Math.trunc(Math.random() * Math.pow(2, attempt));
+                    if (typeof retryAfter === "string" &&
+                        retryAfter.match(/^[1-9][0-9]*$/)) {
                         delay = parseInt(retryAfter);
                     }
-                    return req.clone().#send(attempt + 1, expires, delay, _request, response);
+                    return req
+                        .clone()
+                        .#send(attempt + 1, expires, delay, _request, response);
                 }
             }
             if (this.processFunc) {
@@ -3247,15 +3312,20 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 }
                 catch (error) {
                     // Something went wrong during processing; throw a 5xx server error
-                    if (error.throttle == null || typeof (error.stall) !== "number") {
-                        response.makeServerError("error in post-processing function", error).assertOk();
+                    if (error.throttle == null || typeof error.stall !== "number") {
+                        response
+                            .makeServerError("error in post-processing function", error)
+                            .assertOk();
                     }
                     // Throttle
-                    let delay = this.#throttle.slotInterval * Math.trunc(Math.random() * Math.pow(2, attempt));
+                    let delay = this.#throttle.slotInterval *
+                        Math.trunc(Math.random() * Math.pow(2, attempt));
                     if (error.stall >= 0) {
                         delay = error.stall;
                     }
-                    return req.clone().#send(attempt + 1, expires, delay, _request, response);
+                    return req
+                        .clone()
+                        .#send(attempt + 1, expires, delay, _request, response);
                 }
             }
             return response;
@@ -3292,8 +3362,10 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             // - non-GET requests
             // - downgrading the security (e.g. https => http)
             // - to non-HTTP (or non-HTTPS) protocols [this could be relaxed?]
-            assert(this.method === "GET" && (current !== "https" || target !== "http") && location.match(/^https?:/), `unsupported redirect`, "UNSUPPORTED_OPERATION", {
-                operation: `redirect(${this.method} ${JSON.stringify(this.url)} => ${JSON.stringify(location)})`
+            assert(this.method === "GET" &&
+                (current !== "https" || target !== "http") &&
+                location.match(/^https?:/), `unsupported redirect`, "UNSUPPORTED_OPERATION", {
+                operation: `redirect(${this.method} ${JSON.stringify(this.url)} => ${JSON.stringify(location)})`,
             });
             // Create a copy of this request, with a new URL
             const req = new FetchRequest(location);
@@ -3423,20 +3495,26 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         /**
          *  The response status code.
          */
-        get statusCode() { return this.#statusCode; }
+        get statusCode() {
+            return this.#statusCode;
+        }
         /**
          *  The response status message.
          */
-        get statusMessage() { return this.#statusMessage; }
+        get statusMessage() {
+            return this.#statusMessage;
+        }
         /**
          *  The response headers. All keys are lower-case.
          */
-        get headers() { return Object.assign({}, this.#headers); }
+        get headers() {
+            return Object.assign({}, this.#headers);
+        }
         /**
          *  The response body, or ``null`` if there was no body.
          */
         get body() {
-            return (this.#body == null) ? null : new Uint8Array(this.#body);
+            return this.#body == null ? null : new Uint8Array(this.#body);
         }
         /**
          *  The response body as a UTF-8 encoded string, or the empty
@@ -3446,11 +3524,12 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          */
         get bodyText() {
             try {
-                return (this.#body == null) ? "" : toUtf8String(this.#body);
+                return this.#body == null ? "" : toUtf8String(this.#body);
             }
             catch (error) {
                 assert(false, "response body is not valid UTF-8 data", "UNSUPPORTED_OPERATION", {
-                    operation: "bodyText", info: { response: this }
+                    operation: "bodyText",
+                    info: { response: this },
                 });
             }
         }
@@ -3466,7 +3545,8 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             }
             catch (error) {
                 assert(false, "response body is not valid JSON", "UNSUPPORTED_OPERATION", {
-                    operation: "bodyJson", info: { response: this }
+                    operation: "bodyJson",
+                    info: { response: this },
                 });
             }
         }
@@ -3479,11 +3559,12 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                     if (index < keys.length) {
                         const key = keys[index++];
                         return {
-                            value: [key, headers[key]], done: false
+                            value: [key, headers[key]],
+                            done: false,
                         };
                     }
                     return { value: undefined, done: true };
-                }
+                },
             };
         }
         constructor(statusCode, statusMessage, headers, body, request) {
@@ -3493,8 +3574,8 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 accum[k.toLowerCase()] = String(headers[k]);
                 return accum;
             }, {});
-            this.#body = ((body == null) ? null : new Uint8Array(body));
-            this.#request = (request || null);
+            this.#body = body == null ? null : new Uint8Array(body);
+            this.#request = request || null;
             this.#error = { message: "" };
         }
         /**
@@ -3541,17 +3622,21 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  Returns true of the response has a body.
          */
         hasBody() {
-            return (this.#body != null);
+            return this.#body != null;
         }
         /**
          *  The request made for this response.
          */
-        get request() { return this.#request; }
+        get request() {
+            return this.#request;
+        }
         /**
          *  Returns true if this response was a success statusCode.
          */
         ok() {
-            return (this.#error.message === "" && this.statusCode >= 200 && this.statusCode < 300);
+            return (this.#error.message === "" &&
+                this.statusCode >= 200 &&
+                this.statusCode < 300);
         }
         /**
          *  Throws a ``SERVER_ERROR`` if this response is not ok.
@@ -3565,11 +3650,15 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 message = `server response ${this.statusCode} ${this.statusMessage}`;
             }
             assert(false, message, "SERVER_ERROR", {
-                request: (this.request || "unknown request"), response: this, error
+                request: this.request || "unknown request",
+                response: this,
+                error,
             });
         }
     }
-    function getTime$2() { return (new Date()).getTime(); }
+    function getTime$2() {
+        return new Date().getTime();
+    }
     function unpercent(value) {
         return toUtf8Bytes(value.replace(/%([0-9a-f][0-9a-f])/gi, (all, code) => {
             return String.fromCharCode(parseInt(code, 16));
@@ -3601,9 +3690,11 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
     function checkValue(val, format, safeOp) {
         const width = BigInt(format.width);
         if (format.signed) {
-            const limit = (BN_1$4 << (width - BN_1$4));
+            const limit = BN_1$4 << (width - BN_1$4);
             assert(safeOp == null || (val >= -limit && val < limit), "overflow", "NUMERIC_FAULT", {
-                operation: safeOp, fault: "overflow", value: val
+                operation: safeOp,
+                fault: "overflow",
+                value: val,
             });
             if (val > BN_0$7) {
                 val = fromTwos(mask(val, width), width);
@@ -3613,22 +3704,24 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             }
         }
         else {
-            const limit = (BN_1$4 << width);
+            const limit = BN_1$4 << width;
             assert(safeOp == null || (val >= 0 && val < limit), "overflow", "NUMERIC_FAULT", {
-                operation: safeOp, fault: "overflow", value: val
+                operation: safeOp,
+                fault: "overflow",
+                value: val,
             });
-            val = (((val % limit) + limit) % limit) & (limit - BN_1$4);
+            val = ((val % limit) + limit) % limit & (limit - BN_1$4);
         }
         return val;
     }
     function getFormat(value) {
-        if (typeof (value) === "number") {
+        if (typeof value === "number") {
             value = `fixed128x${value}`;
         }
         let signed = true;
         let width = 128;
         let decimals = 18;
-        if (typeof (value) === "string") {
+        if (typeof value === "string") {
             // Parse the format string
             if (value === "fixed") ;
             else if (value === "ufixed") {
@@ -3637,7 +3730,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             else {
                 const match = value.match(/^(u?)fixed([0-9]+)x([0-9]+)$/);
                 assertArgument(match, "invalid fixed format", "format", value);
-                signed = (match[1] !== "u");
+                signed = match[1] !== "u";
                 width = parseInt(match[2]);
                 decimals = parseInt(match[3]);
             }
@@ -3649,14 +3742,14 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 if (v[key] == null) {
                     return defaultValue;
                 }
-                assertArgument(typeof (v[key]) === type, "invalid fixed format (" + key + " not " + type + ")", "format." + key, v[key]);
+                assertArgument(typeof v[key] === type, "invalid fixed format (" + key + " not " + type + ")", "format." + key, v[key]);
                 return v[key];
             };
             signed = check("signed", "boolean", signed);
             width = check("width", "number", width);
             decimals = check("decimals", "number", decimals);
         }
-        assertArgument((width % 8) === 0, "invalid FixedNumber width (not byte aligned)", "format.width", width);
+        assertArgument(width % 8 === 0, "invalid FixedNumber width (not byte aligned)", "format.width", width);
         assertArgument(decimals <= 80, "invalid FixedNumber decimals (too large)", "format.decimals", decimals);
         const name = (signed ? "" : "u") + "fixed" + String(width) + "x" + String(decimals);
         return { signed, width, decimals, name };
@@ -3670,7 +3763,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         let str = val.toString();
         // No decimal point for whole values
         if (decimals === 0) {
-            return (negative + str);
+            return negative + str;
         }
         // Pad out to the whole component (including a whole digit)
         while (str.length <= decimals) {
@@ -3687,7 +3780,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         while (str[str.length - 1] === "0" && str[str.length - 2] !== ".") {
             str = str.substring(0, str.length - 1);
         }
-        return (negative + str);
+        return negative + str;
     }
     /**
      *  A FixedNumber represents a value over its [[FixedFormat]]
@@ -3758,46 +3851,54 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  If true, negative values are permitted, otherwise only
          *  positive values and zero are allowed.
          */
-        get signed() { return this.#format.signed; }
+        get signed() {
+            return this.#format.signed;
+        }
         /**
          *  The number of bits available to store the value.
          */
-        get width() { return this.#format.width; }
+        get width() {
+            return this.#format.width;
+        }
         /**
          *  The number of decimal places in the fixed-point arithment field.
          */
-        get decimals() { return this.#format.decimals; }
+        get decimals() {
+            return this.#format.decimals;
+        }
         /**
          *  The value as an integer, based on the smallest unit the
          *  [[decimals]] allow.
          */
-        get value() { return this.#val; }
+        get value() {
+            return this.#val;
+        }
         #checkFormat(other) {
             assertArgument(this.format === other.format, "incompatible format; use fixedNumber.toFormat", "other", other);
         }
         #checkValue(val, safeOp) {
             /*
-                    const width = BigInt(this.width);
-                    if (this.signed) {
-                        const limit = (BN_1 << (width - BN_1));
-                        assert(safeOp == null || (val >= -limit  && val < limit), "overflow", "NUMERIC_FAULT", {
-                            operation: <string>safeOp, fault: "overflow", value: val
-                        });
-            
-                        if (val > BN_0) {
-                            val = fromTwos(mask(val, width), width);
-                        } else {
-                            val = -fromTwos(mask(-val, width), width);
-                        }
-            
+                const width = BigInt(this.width);
+                if (this.signed) {
+                    const limit = (BN_1 << (width - BN_1));
+                    assert(safeOp == null || (val >= -limit  && val < limit), "overflow", "NUMERIC_FAULT", {
+                        operation: <string>safeOp, fault: "overflow", value: val
+                    });
+        
+                    if (val > BN_0) {
+                        val = fromTwos(mask(val, width), width);
                     } else {
-                        const masked = mask(val, width);
-                        assert(safeOp == null || (val >= 0 && val === masked), "overflow", "NUMERIC_FAULT", {
-                            operation: <string>safeOp, fault: "overflow", value: val
-                        });
-                        val = masked;
+                        val = -fromTwos(mask(-val, width), width);
                     }
-            */
+        
+                } else {
+                    const masked = mask(val, width);
+                    assert(safeOp == null || (val >= 0 && val === masked), "overflow", "NUMERIC_FAULT", {
+                        operation: <string>safeOp, fault: "overflow", value: val
+                    });
+                    val = masked;
+                }
+        */
             val = checkValue(val, this.#format, safeOp);
             return new _a$1(_guard$5, val, this.#format);
         }
@@ -3809,13 +3910,17 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  Returns a new [[FixedNumber]] with the result of %%this%% added
          *  to %%other%%, ignoring overflow.
          */
-        addUnsafe(other) { return this.#add(other); }
+        addUnsafe(other) {
+            return this.#add(other);
+        }
         /**
          *  Returns a new [[FixedNumber]] with the result of %%this%% added
          *  to %%other%%. A [[NumericFaultError]] is thrown if overflow
          *  occurs.
          */
-        add(other) { return this.#add(other, "add"); }
+        add(other) {
+            return this.#add(other, "add");
+        }
         #sub(o, safeOp) {
             this.#checkFormat(o);
             return this.#checkValue(this.#val - o.#val, safeOp);
@@ -3824,13 +3929,17 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  Returns a new [[FixedNumber]] with the result of %%other%% subtracted
          *  from %%this%%, ignoring overflow.
          */
-        subUnsafe(other) { return this.#sub(other); }
+        subUnsafe(other) {
+            return this.#sub(other);
+        }
         /**
          *  Returns a new [[FixedNumber]] with the result of %%other%% subtracted
          *  from %%this%%. A [[NumericFaultError]] is thrown if overflow
          *  occurs.
          */
-        sub(other) { return this.#sub(other, "sub"); }
+        sub(other) {
+            return this.#sub(other, "sub");
+        }
         #mul(o, safeOp) {
             this.#checkFormat(o);
             return this.#checkValue((this.#val * o.#val) / this.#tens, safeOp);
@@ -3839,13 +3948,17 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  Returns a new [[FixedNumber]] with the result of %%this%% multiplied
          *  by %%other%%, ignoring overflow and underflow (precision loss).
          */
-        mulUnsafe(other) { return this.#mul(other); }
+        mulUnsafe(other) {
+            return this.#mul(other);
+        }
         /**
          *  Returns a new [[FixedNumber]] with the result of %%this%% multiplied
          *  by %%other%%. A [[NumericFaultError]] is thrown if overflow
          *  occurs.
          */
-        mul(other) { return this.#mul(other, "mul"); }
+        mul(other) {
+            return this.#mul(other, "mul");
+        }
         /**
          *  Returns a new [[FixedNumber]] with the result of %%this%% multiplied
          *  by %%other%%. A [[NumericFaultError]] is thrown if overflow
@@ -3854,14 +3967,18 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         mulSignal(other) {
             this.#checkFormat(other);
             const value = this.#val * other.#val;
-            assert((value % this.#tens) === BN_0$7, "precision lost during signalling mul", "NUMERIC_FAULT", {
-                operation: "mulSignal", fault: "underflow", value: this
+            assert(value % this.#tens === BN_0$7, "precision lost during signalling mul", "NUMERIC_FAULT", {
+                operation: "mulSignal",
+                fault: "underflow",
+                value: this,
             });
             return this.#checkValue(value / this.#tens, "mulSignal");
         }
         #div(o, safeOp) {
             assert(o.#val !== BN_0$7, "division by zero", "NUMERIC_FAULT", {
-                operation: "div", fault: "divide-by-zero", value: this
+                operation: "div",
+                fault: "divide-by-zero",
+                value: this,
             });
             this.#checkFormat(o);
             return this.#checkValue((this.#val * this.#tens) / o.#val, safeOp);
@@ -3871,13 +3988,17 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  by %%other%%, ignoring underflow (precision loss). A
          *  [[NumericFaultError]] is thrown if overflow occurs.
          */
-        divUnsafe(other) { return this.#div(other); }
+        divUnsafe(other) {
+            return this.#div(other);
+        }
         /**
          *  Returns a new [[FixedNumber]] with the result of %%this%% divided
          *  by %%other%%, ignoring underflow (precision loss). A
          *  [[NumericFaultError]] is thrown if overflow occurs.
          */
-        div(other) { return this.#div(other, "div"); }
+        div(other) {
+            return this.#div(other, "div");
+        }
         /**
          *  Returns a new [[FixedNumber]] with the result of %%this%% divided
          *  by %%other%%. A [[NumericFaultError]] is thrown if underflow
@@ -3885,12 +4006,16 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          */
         divSignal(other) {
             assert(other.#val !== BN_0$7, "division by zero", "NUMERIC_FAULT", {
-                operation: "div", fault: "divide-by-zero", value: this
+                operation: "div",
+                fault: "divide-by-zero",
+                value: this,
             });
             this.#checkFormat(other);
-            const value = (this.#val * this.#tens);
-            assert((value % other.#val) === BN_0$7, "precision lost during signalling div", "NUMERIC_FAULT", {
-                operation: "divSignal", fault: "underflow", value: this
+            const value = this.#val * this.#tens;
+            assert(value % other.#val === BN_0$7, "precision lost during signalling div", "NUMERIC_FAULT", {
+                operation: "divSignal",
+                fault: "underflow",
+                value: this,
             });
             return this.#checkValue(value / other.#val, "divSignal");
         }
@@ -3923,23 +4048,33 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         /**
          *  Returns true if %%other%% is equal to %%this%%.
          */
-        eq(other) { return this.cmp(other) === 0; }
+        eq(other) {
+            return this.cmp(other) === 0;
+        }
         /**
          *  Returns true if %%other%% is less than to %%this%%.
          */
-        lt(other) { return this.cmp(other) < 0; }
+        lt(other) {
+            return this.cmp(other) < 0;
+        }
         /**
          *  Returns true if %%other%% is less than or equal to %%this%%.
          */
-        lte(other) { return this.cmp(other) <= 0; }
+        lte(other) {
+            return this.cmp(other) <= 0;
+        }
         /**
          *  Returns true if %%other%% is greater than to %%this%%.
          */
-        gt(other) { return this.cmp(other) > 0; }
+        gt(other) {
+            return this.cmp(other) > 0;
+        }
         /**
          *  Returns true if %%other%% is greater than or equal to %%this%%.
          */
-        gte(other) { return this.cmp(other) >= 0; }
+        gte(other) {
+            return this.cmp(other) >= 0;
+        }
         /**
          *  Returns a new [[FixedNumber]] which is the largest **integer**
          *  that is less than or equal to %%this%%.
@@ -3991,15 +4126,21 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         /**
          *  Returns true if %%this%% is equal to ``0``.
          */
-        isZero() { return (this.#val === BN_0$7); }
+        isZero() {
+            return this.#val === BN_0$7;
+        }
         /**
          *  Returns true if %%this%% is less than ``0``.
          */
-        isNegative() { return (this.#val < BN_0$7); }
+        isNegative() {
+            return this.#val < BN_0$7;
+        }
         /**
          *  Returns the string representation of %%this%%.
          */
-        toString() { return this._value; }
+        toString() {
+            return this._value;
+        }
         /**
          *  Returns a float approximation.
          *
@@ -4007,7 +4148,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  can only return an approximation and most values will contain
          *  rounding errors.
          */
-        toUnsafeFloat() { return parseFloat(this.toString()); }
+        toUnsafeFloat() {
+            return parseFloat(this.toString());
+        }
         /**
          *  Return a new [[FixedNumber]] with the same value but has had
          *  its field set to %%format%%.
@@ -4034,8 +4177,10 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             const delta = decimals - format.decimals;
             if (delta > 0) {
                 const tens = getTens(delta);
-                assert((value % tens) === BN_0$7, "value loses precision for format", "NUMERIC_FAULT", {
-                    operation: "fromValue", fault: "underflow", value: _value
+                assert(value % tens === BN_0$7, "value loses precision for format", "NUMERIC_FAULT", {
+                    operation: "fromValue",
+                    fault: "underflow",
+                    value: _value,
                 });
                 value /= tens;
             }
@@ -4053,16 +4198,18 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          */
         static fromString(_value, _format) {
             const match = _value.match(/^(-?)([0-9]*)\.?([0-9]*)$/);
-            assertArgument(match && (match[2].length + match[3].length) > 0, "invalid FixedNumber string value", "value", _value);
+            assertArgument(match && match[2].length + match[3].length > 0, "invalid FixedNumber string value", "value", _value);
             const format = getFormat(_format);
-            let whole = (match[2] || "0"), decimal = (match[3] || "");
+            let whole = match[2] || "0", decimal = match[3] || "";
             // Pad out the decimals
             while (decimal.length < format.decimals) {
                 decimal += Zeros;
             }
             // Check precision is safe
             assert(decimal.substring(format.decimals).match(/^0*$/), "too many decimals for format", "NUMERIC_FAULT", {
-                operation: "fromString", fault: "underflow", value: _value
+                operation: "fromString",
+                fault: "underflow",
+                value: _value,
             });
             // Remove extra padding
             decimal = decimal.substring(0, format.decimals);
@@ -4103,7 +4250,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
     function unarrayifyInteger(data, offset, length) {
         let result = 0;
         for (let i = 0; i < length; i++) {
-            result = (result * 256) + data[offset + i];
+            result = result * 256 + data[offset + i];
         }
         return result;
     }
@@ -4114,19 +4261,25 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             result.push(decoded.result);
             childOffset += decoded.consumed;
             assert(childOffset <= offset + 1 + length, "child data too short", "BUFFER_OVERRUN", {
-                buffer: data, length, offset
+                buffer: data,
+                length,
+                offset,
             });
         }
-        return { consumed: (1 + length), result: result };
+        return { consumed: 1 + length, result: result };
     }
     // returns { consumed: number, result: Object }
     function _decode(data, offset) {
         assert(data.length !== 0, "data too short", "BUFFER_OVERRUN", {
-            buffer: data, length: 0, offset: 1
+            buffer: data,
+            length: 0,
+            offset: 1,
         });
         const checkOffset = (offset) => {
             assert(offset <= data.length, "data short segment too short", "BUFFER_OVERRUN", {
-                buffer: data, length: data.length, offset
+                buffer: data,
+                length: data.length,
+                offset,
             });
         };
         // Array with extra length prefix
@@ -4148,13 +4301,13 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             const length = unarrayifyInteger(data, offset + 1, lengthLength);
             checkOffset(offset + 1 + lengthLength + length);
             const result = hexlify(data.slice(offset + 1 + lengthLength, offset + 1 + lengthLength + length));
-            return { consumed: (1 + lengthLength + length), result: result };
+            return { consumed: 1 + lengthLength + length, result: result };
         }
         else if (data[offset] >= 0x80) {
             const length = data[offset] - 0x80;
             checkOffset(offset + 1 + length);
             const result = hexlify(data.slice(offset + 1, offset + 1 + length));
-            return { consumed: (1 + length), result: result };
+            return { consumed: 1 + length, result: result };
         }
         return { consumed: 1, result: hexlifyByte(data[offset]) };
     }
@@ -4249,7 +4402,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         "mcore",
         ///micore, 10^15 ore or 1 mcore
         "micore",
-        "core"
+        "core",
     ];
     /**
      *  Converts %%value%% into a //decimal string//, assuming %%unit%% decimal
@@ -4259,7 +4412,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
      */
     function formatUnits(value, unit) {
         let decimals = 18;
-        if (typeof (unit) === "string") {
+        if (typeof unit === "string") {
             const index = names.indexOf(unit);
             assertArgument(index >= 0, "invalid unit", "unit", unit);
             decimals = 3 * index;
@@ -4283,23 +4436,27 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         //if the number is in scientific notation remove it
         // @ts-ignore
         if (/\d+\.?\d*e[\+\-]*\d+/i.test(num)) {
-            var zero = '0', 
+            var zero = "0", 
             // @ts-ignore
-            parts = String(num).toLowerCase().split('e'), //split into coeff and exponent
+            parts = String(num).toLowerCase().split("e"), //split into coeff and exponent
             e = parts.pop(), //store the exponential part
             // @ts-ignore
             l = Math.abs(e), //get the number of zeros
             // @ts-ignore
-            sign = e / l, coeff_array = parts[0].split('.');
+            sign = e / l, coeff_array = parts[0].split(".");
             if (sign === -1) {
                 l = l - coeff_array[0].length;
                 if (l < 0) {
                     // @ts-ignore
-                    num = coeff_array[0].slice(0, l) + '.' + coeff_array[0].slice(l) + (coeff_array.length === 2 ? coeff_array[1] : '');
+                    num =
+                        coeff_array[0].slice(0, l) +
+                            "." +
+                            coeff_array[0].slice(l) +
+                            (coeff_array.length === 2 ? coeff_array[1] : "");
                 }
                 else {
                     // @ts-ignore
-                    num = zero + '.' + new Array(l + 1).join(zero) + coeff_array.join('');
+                    num = zero + "." + new Array(l + 1).join(zero) + coeff_array.join("");
                 }
             }
             else {
@@ -4308,32 +4465,32 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                     l = l - dec.length;
                 if (l < 0) {
                     // @ts-ignore
-                    num = coeff_array[0] + dec.slice(0, l) + '.' + dec.slice(l);
+                    num = coeff_array[0] + dec.slice(0, l) + "." + dec.slice(l);
                 }
                 else {
                     // @ts-ignore
-                    num = coeff_array.join('') + new Array(l + 1).join(zero);
+                    num = coeff_array.join("") + new Array(l + 1).join(zero);
                 }
             }
         }
         // @ts-ignore
-        return nsign < 0 ? '-' + num : num;
+        return nsign < 0 ? "-" + num : num;
     };
     const trimDecimals = (n, decimals = 18) => {
-        n += '';
-        if (n.indexOf('.') === -1)
+        n += "";
+        if (n.indexOf(".") === -1)
             return n;
-        const arr = n.split('.');
+        const arr = n.split(".");
         const fraction = arr[1].substr(0, decimals);
-        return arr[0] + '.' + fraction;
+        return arr[0] + "." + fraction;
     };
     function parseUnits(value, unit) {
-        assertArgument(typeof (value) === "string", "value must be a string", "value", value);
-        if (value.includes('e')) {
+        assertArgument(typeof value === "string", "value must be a string", "value", value);
+        if (value.includes("e")) {
             value = scientificToDecimal(value).toString();
         }
         let decimals = 18;
-        if (typeof (unit) === "string") {
+        if (typeof unit === "string") {
             const index = names.indexOf(unit);
             assertArgument(index >= 0, "invalid unit", "unit", unit);
             decimals = 3 * index;
@@ -4397,22 +4554,22 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             return privateKey;
         }
         static getPublicKeyFromPrivateKey(privateKey) {
-            var secret = Buffer.from(privateKey, 'hex');
+            var secret = Buffer.from(privateKey, "hex");
             if (secret[56] > 127) {
                 var scalar = secret.slice(0, 56);
                 scalar[0] &= 0xfc;
                 scalar[55] |= 0x80;
                 var publicKey = this._channel.publicKeyFromScalar(scalar);
-                return Buffer.from(publicKey).toString('hex');
+                return Buffer.from(publicKey).toString("hex");
             }
             else {
                 var publicKey = this._channel.publicKeyCreate(secret);
-                return Buffer.from(publicKey).toString('hex');
+                return Buffer.from(publicKey).toString("hex");
             }
         }
         static signWithPrivateKey(privateKey, msg) {
-            var msgToSign = Buffer.from(msg, 'hex');
-            var secret = Buffer.from(privateKey, 'hex');
+            var msgToSign = Buffer.from(msg, "hex");
+            var secret = Buffer.from(privateKey, "hex");
             if (secret[56] > 127) {
                 var prefix = secret.slice(0, 57);
                 prefix[0] &= 0xfc;
@@ -4420,11 +4577,11 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 prefix[55] |= 0x80;
                 var scalar = prefix.slice(0, 56);
                 var signedMessage = this._channel.signWithScalar(msgToSign, scalar, prefix);
-                return Buffer.from(signedMessage).toString('hex');
+                return Buffer.from(signedMessage).toString("hex");
             }
             else {
                 var signedMessage = this._channel.sign(msgToSign, secret);
-                return Buffer.from(signedMessage).toString('hex');
+                return Buffer.from(signedMessage).toString("hex");
             }
         }
         static signWithPrivateKeyNConcatPubkey(privateKey, msg) {
@@ -4436,9 +4593,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             return this._channel.verify(msgHash, signedMsg, pubKey);
         }
         static SHA512Hash(password, salt) {
-            var p1 = Buffer.from(password, 'hex');
-            var s1 = Buffer.from(salt, 'hex');
-            return Buffer.from(pbkdf2$2.derive(SHA3_512, p1, s1, 2048, 57)).toString('hex');
+            var p1 = Buffer.from(password, "hex");
+            var s1 = Buffer.from(salt, "hex");
+            return Buffer.from(pbkdf2$2.derive(SHA3_512, p1, s1, 2048, 57)).toString("hex");
         }
         static concatenateAndHex(prefix, key, index, salt) {
             var ind = Buffer.alloc(4);
@@ -4449,13 +4606,12 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 ind[i] = j % 256;
                 j = Math.floor(j / 256);
             }
-            var t = p.toString('hex') + key + ind.toString('hex');
+            var t = p.toString("hex") + key + ind.toString("hex");
             return Ed448Goldilock.SHA512Hash(t, salt);
         }
-        ;
         static addScalar(a, b) {
-            var a1 = Buffer.from(a, 'hex');
-            var b1 = Buffer.from(b.substr(0, 106) + "00000000", 'hex');
+            var a1 = Buffer.from(a, "hex");
+            var b1 = Buffer.from(b.substr(0, 106) + "00000000", "hex");
             b1[0] &= 0xfc;
             var c = Buffer.alloc(57);
             var hold = 0;
@@ -4464,20 +4620,18 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 c[i] = hold % 256;
                 hold = Math.floor(hold / 256);
             }
-            return c.toString('hex');
+            return c.toString("hex");
         }
-        ;
         static seedToExtendedPrivate(seed) {
             var s1 = Ed448Goldilock.SHA512Hash(seed, "6d6e656d6f6e6963666f72746865636861696e");
             var s2 = Ed448Goldilock.SHA512Hash(seed, "6d6e656d6f6e6963666f727468656b6579");
-            var b = Buffer.from(s2, 'hex');
+            var b = Buffer.from(s2, "hex");
             b[56] |= 0x80;
             b[55] |= 0x80;
             b[55] &= 0xbf;
-            var s3 = b.toString('hex');
+            var s3 = b.toString("hex");
             return s1 + s3;
         }
-        ;
         static childPrivateToPrivate(s, index) {
             var s0 = s.substr(0, 114);
             var s1 = s.substr(114, 228);
@@ -4494,7 +4648,6 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 return r0 + Ed448Goldilock.addScalar(s1, r1);
             }
         }
-        ;
         static HDWalletGenerateKeyFromSeed(seed, index) {
             var m = Ed448Goldilock.seedToExtendedPrivate(seed);
             var k1 = Ed448Goldilock.childPrivateToPrivate(m, 0x80000000 + 44);
@@ -4508,41 +4661,45 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
 
     /* Browser Crypto Shims */
     function getGlobal$1() {
-        if (typeof self !== 'undefined') {
+        if (typeof self !== "undefined") {
             return self;
         }
-        if (typeof window !== 'undefined') {
+        if (typeof window !== "undefined") {
             return window;
         }
-        if (typeof global !== 'undefined') {
+        if (typeof global !== "undefined") {
             return global;
         }
-        throw new Error('unable to locate global object');
+        throw new Error("unable to locate global object");
     }
     const anyGlobal = getGlobal$1();
     const crypto = anyGlobal.crypto || anyGlobal.msCrypto;
     function createHash(algo) {
         switch (algo) {
-            case "sha256": return sha256$1.create();
-            case "sha512": return sha512$1.create();
-            case "sha3-256": return sha3_256.create();
-            case "sha3-512": return sha3_512.create();
+            case "sha256":
+                return sha256$1.create();
+            case "sha512":
+                return sha512$1.create();
+            case "sha3-256":
+                return sha3_256.create();
+            case "sha3-512":
+                return sha3_512.create();
         }
         assertArgument(false, "invalid hashing algorithm name", "algorithm", algo);
     }
     function createHmac(_algo, key) {
-        const algo = ({ sha256: sha256$1, sha512: sha512$1 }[_algo]);
+        const algo = { sha256: sha256$1, sha512: sha512$1 }[_algo];
         assertArgument(algo != null, "invalid hmac algorithm", "algorithm", _algo);
         return hmac.create(algo, key);
     }
     function pbkdf2Sync(password, salt, iterations, keylen, _algo) {
-        const algo = ({ sha256: sha256$1, sha512: sha512$1 }[_algo]);
+        const algo = { sha256: sha256$1, sha512: sha512$1 }[_algo];
         assertArgument(algo != null, "invalid pbkdf2 algorithm", "algorithm", _algo);
         return pbkdf2$1(algo, password, salt, { c: iterations, dkLen: keylen });
     }
     function randomBytes$1(length) {
         assert(crypto != null, "platform does not support secure random numbers", "UNSUPPORTED_OPERATION", {
-            operation: "randomBytes"
+            operation: "randomBytes",
         });
         assertArgument(Number.isInteger(length) && length > 0 && length <= 1024, "invalid length", "length", length);
         const result = new Uint8Array(length);
@@ -4551,11 +4708,17 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
     }
 
     const _sha256 = function (data) {
-        let v = "0x" + createHash("sha3-256").update(buffer.Buffer.from(arrayify(data))).digest("hex");
+        let v = "0x" +
+            createHash("sha3-256")
+                .update(buffer.Buffer.from(arrayify(data)))
+                .digest("hex");
         return v;
     };
     const _sha512 = function (data) {
-        let v = "0x" + createHash("sha3-512").update(buffer.Buffer.from(arrayify(data))).digest("hex");
+        let v = "0x" +
+            createHash("sha3-512")
+                .update(buffer.Buffer.from(arrayify(data)))
+                .digest("hex");
         return v;
     };
     let locked256 = false, locked512 = false;
@@ -4582,9 +4745,11 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         SupportedAlgorithm["sha512"] = "sha512";
     })(SupportedAlgorithm || (SupportedAlgorithm = {}));
     function sha256(data) {
-        let createdHash = createHash("sha3-256").update(buffer.Buffer.from(arrayify(data))).digest("hex");
+        let createdHash = createHash("sha3-256")
+            .update(buffer.Buffer.from(arrayify(data)))
+            .digest("hex");
         const v = "0x" + createdHash;
-        if (typeof createdHash !== 'string') {
+        if (typeof createdHash !== "string") {
             createdHash = hexlify(createdHash);
             return createdHash;
         }
@@ -4596,7 +4761,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         return hexlified;
     }
     sha256._ = _sha256;
-    sha256.lock = function () { locked256 = true; };
+    sha256.lock = function () {
+        locked256 = true;
+    };
     sha256.register = function (func) {
         if (locked256) {
             throw new Error("sha256 is locked");
@@ -4620,16 +4787,20 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
      *    //_result:
      */
     function sha512(data) {
-        let createdHash = createHash("sha3-512").update(buffer.Buffer.from(arrayify(data))).digest("hex");
+        let createdHash = createHash("sha3-512")
+            .update(buffer.Buffer.from(arrayify(data)))
+            .digest("hex");
         const v = "0x" + createdHash;
-        if (typeof createdHash !== 'string') {
+        if (typeof createdHash !== "string") {
             createdHash = hexlify(createdHash);
             return createdHash;
         }
         return v;
     }
     sha512._ = _sha512;
-    sha512.lock = function () { locked512 = true; };
+    sha512.lock = function () {
+        locked512 = true;
+    };
     sha512.register = function (func) {
         if (locked512) {
             throw new Error("sha512 is locked");
@@ -4637,7 +4808,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
     };
     Object.freeze(sha256);
 
-    const logger$3 = new Logger('contract-address/0.0.1');
+    const logger$3 = new Logger("contract-address/0.0.1");
     /**
      *  Returns the address that would result from a ``CREATE`` for %%tx%%.
      *
@@ -4695,7 +4866,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             logger$3.throwArgumentError("initCodeHash must be 32 bytes", "initCodeHash", initCodeHash);
         }
         const val = hexDataSlice(sha256(concat(["0xff", getAddress(from), salt, initCodeHash])), 12);
-        console.log({ 'contract-address/74=>should be string': val });
+        console.log({ "contract-address/74=>should be string": val });
         const prefix = from.substring(2, 4);
         const checksum = calculateCheckSum(val, prefix);
         return "0x" + prefix + checksum + removeHexPrefix(val);
@@ -4716,7 +4887,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
      *    //_result:
      */
     function isAddressable(value) {
-        return (value && typeof (value.getAddress) === "function");
+        return value && typeof value.getAddress === "function";
     }
     /**
      *  Returns true if %%value%% is a valid address.
@@ -4753,8 +4924,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
     }
     async function checkAddress(target, promise) {
         const result = await promise;
-        if (result == null || result === "0x0000000000000000000000000000000000000000") {
-            assert(typeof (target) !== "string", "unconfigured name", "UNCONFIGURED_NAME", { value: target });
+        if (result == null ||
+            result === "0x0000000000000000000000000000000000000000") {
+            assert(typeof target !== "string", "unconfigured name", "UNCONFIGURED_NAME", { value: target });
             assertArgument(false, "invalid AddressLike value; did not resolve to a value address", "target", target);
         }
         return getAddress(result);
@@ -4794,7 +4966,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
      *    //_error:
      */
     function resolveAddress(target) {
-        if (typeof (target) === "string") {
+        if (typeof target === "string") {
             return getAddress(target);
             // assert(resolver != null, "ENS resolution requires a provider",
             //     "UNSUPPORTED_OPERATION", { operation: "resolveName" });
@@ -4803,7 +4975,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         else if (isAddressable(target)) {
             return checkAddress(target, target.getAddress());
         }
-        else if (target && typeof (target.then) === "function") {
+        else if (target && typeof target.then === "function") {
             return checkAddress(target, target);
         }
         assertArgument(false, "unsupported addressable value", "target", target);
@@ -4823,7 +4995,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
      *
      *  @_section: api/address:Addresses  [about-addresses]
      */
-    const logger$2 = new Logger('address/0.0.1');
+    const logger$2 = new Logger("address/0.0.1");
     const precompiledAddresses = [
         "0000000000000000000000000000000000000000000000000000000000000000",
         "0000000000000000000000000000000000000000000000000000000000000001",
@@ -4843,11 +5015,13 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         const address = getBytes("0x" + _address.replace("0x", ""));
         const prefix = getBytes("0x" + _prefix.replace("0x", ""));
         const tmpConcated = new Uint8Array([...address, ...prefix]);
-        const hexedConcat = (hexlify(tmpConcated)).replace('0x', '') + "00";
+        const hexedConcat = hexlify(tmpConcated).replace("0x", "") + "00";
         const mods = Array.from(hexedConcat.toUpperCase(), (c) => {
             const charCode = c.charCodeAt(0);
-            return (charCode > 64 && charCode < 91) ? (charCode - 55).toString() : (charCode - 48).toString();
-        }).join('');
+            return charCode > 64 && charCode < 91
+                ? (charCode - 55).toString()
+                : (charCode - 48).toString();
+        }).join("");
         const bigVal = BigInt(mods);
         const val97 = BigInt(97);
         const val98 = BigInt(98);
@@ -4892,7 +5066,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
      *    //_error:
      */
     function getAddress(address) {
-        if (typeof (address) !== "string") {
+        if (typeof address !== "string") {
             logger$2.throwArgumentError("invalid address", "address", address);
         }
         if (!address.match(/^(0x)?[0-9a-fA-F]{44}$/)) {
@@ -4962,7 +5136,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         return hexlify(__computeHmac(algorithm, key, data));
     }
     computeHmac._ = _computeHmac;
-    computeHmac.lock = function () { locked$4 = true; };
+    computeHmac.lock = function () {
+        locked$4 = true;
+    };
     computeHmac.register = function (func) {
         if (locked$4) {
             throw new Error("computeHmac is locked");
@@ -5100,7 +5276,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         return hexlify(__ripemd160(data));
     }
     ripemd160._ = _ripemd160;
-    ripemd160.lock = function () { locked$3 = true; };
+    ripemd160.lock = function () {
+        locked$3 = true;
+    };
     ripemd160.register = function (func) {
         if (locked$3) {
             throw new TypeError("ripemd160 is locked");
@@ -5147,7 +5325,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         return hexlify(__pbkdf2(password, salt, iterations, keylen, algo));
     }
     pbkdf2._ = _pbkdf2;
-    pbkdf2.lock = function () { locked$2 = true; };
+    pbkdf2.lock = function () {
+        locked$2 = true;
+    };
     pbkdf2.register = function (func) {
         if (locked$2) {
             throw new Error("pbkdf2 is locked");
@@ -5180,7 +5360,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         return __randomBytes(length);
     }
     randomBytes._ = _randomBytes;
-    randomBytes.lock = function () { locked$1 = true; };
+    randomBytes.lock = function () {
+        locked$1 = true;
+    };
     randomBytes.register = function (func) {
         if (locked$1) {
             throw new Error("randomBytes is locked");
@@ -5455,7 +5637,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         return hexlify(await __scryptAsync(passwd, salt, N, r, p, dkLen, progress));
     }
     scrypt._ = _scryptAsync;
-    scrypt.lock = function () { lockedAsync = true; };
+    scrypt.lock = function () {
+        lockedAsync = true;
+    };
     scrypt.register = function (func) {
         if (lockedAsync) {
             throw new Error("scrypt is locked");
@@ -5491,7 +5675,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         return hexlify(__scryptSync(passwd, salt, N, r, p, dkLen));
     }
     scryptSync._ = _scryptSync;
-    scryptSync.lock = function () { lockedSync = true; };
+    scryptSync.lock = function () {
+        lockedSync = true;
+    };
     scryptSync.register = function (func) {
         if (lockedSync) {
             throw new Error("scryptSync is locked");
@@ -5537,7 +5723,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         return hexlify(__keccak256(data));
     }
     keccak256._ = _keccak256;
-    keccak256.lock = function () { locked = true; };
+    keccak256.lock = function () {
+        locked = true;
+    };
     keccak256.register = function (func) {
         if (locked) {
             throw new TypeError("keccak256 is locked");
@@ -5805,7 +5993,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
      *
      *  @_subsection: api/crypto:Signing  [about-signing]
      */
-    const logger$1 = new Logger('signing-key/0.0.1');
+    const logger$1 = new Logger("signing-key/0.0.1");
     //const N = BigInt("0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141");
     // Make noble-secp256k1 sync
     /**
@@ -5818,20 +6006,24 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  Creates a new **SigningKey** for %%privateKey%%.
          */
         constructor(privateKey) {
-            assertArgument(dataLength('0x' + privateKey) === 57, "invalid private key", "privateKey", "[REDACTED]");
-            this.#privateKey = hexlify('0x' + privateKey);
+            assertArgument(dataLength("0x" + privateKey) === 57, "invalid private key", "privateKey", "[REDACTED]");
+            this.#privateKey = hexlify("0x" + privateKey);
         }
         /**
          *  The private key.
          */
-        get privateKey() { return this.#privateKey; }
+        get privateKey() {
+            return this.#privateKey;
+        }
         /**
          *  The uncompressed public key.
          *
          * This will always begin with the prefix ``0x04`` and be 132
          * characters long (the ``0x`` prefix and 130 hexadecimal nibbles).
          */
-        get publicKey() { return SigningKey.computePublicKey(this.#privateKey); }
+        get publicKey() {
+            return SigningKey.computePublicKey(this.#privateKey);
+        }
         /**
          *  The compressed public key.
          *
@@ -5839,7 +6031,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  and be 68 characters long (the ``0x`` prefix and 33 hexadecimal
          *  nibbles)
          */
-        get compressedPublicKey() { return SigningKey.computePublicKey(this.#privateKey, true); }
+        get compressedPublicKey() {
+            return SigningKey.computePublicKey(this.#privateKey, true);
+        }
         /**
          *  Return the signature of the signed %%digest%%.
          */
@@ -6009,7 +6203,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  This represents the ``x`` coordinate of a "reference" or
          *  challenge point, from which the ``y`` can be computed.
          */
-        get r() { return this.#r; }
+        get r() {
+            return this.#r;
+        }
         set r(value) {
             assertArgument(dataLength(value) === 32, "invalid r", "value", value);
             this.#r = hexlify(value);
@@ -6017,7 +6213,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         /**
          *  The ``s`` value for a signature.
          */
-        get s() { return this.#s; }
+        get s() {
+            return this.#s;
+        }
         set s(_value) {
             assertArgument(dataLength(_value) === 32, "invalid s", "value", _value);
             const value = hexlify(_value);
@@ -6034,7 +6232,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  It is normalized to the values ``27`` or ``28`` for legacy
          *  purposes.
          */
-        get v() { return this.#v; }
+        get v() {
+            return this.#v;
+        }
         set v(value) {
             const v = getNumber(value, "value");
             assertArgument(v === 27 || v === 28, "invalid v", "v", value);
@@ -6044,7 +6244,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  The EIP-155 ``v`` for legacy transactions. For non-legacy
          *  transactions, this value is ``null``.
          */
-        get networkV() { return this.#networkV; }
+        get networkV() {
+            return this.#networkV;
+        }
         /**
          *  The chain ID for EIP-155 legacy transactions. For non-legacy
          *  transactions, this value is ``null``.
@@ -6062,7 +6264,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  See ``v`` for more details on how this value is used.
          */
         get yParity() {
-            return (this.v === 27) ? 0 : 1;
+            return this.v === 27 ? 0 : 1;
         }
         /**
          *  The [[link-eip-2098]] compact representation of the ``yParity``
@@ -6086,7 +6288,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  The serialized representation.
          */
         get serialized() {
-            return concat([this.r, this.s, (this.yParity ? "0x1c" : "0x1b")]);
+            return concat([this.r, this.s, this.yParity ? "0x1c" : "0x1b"]);
         }
         /**
          *  @private
@@ -6098,7 +6300,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             this.#v = v;
             this.#networkV = null;
         }
-        [Symbol.for('nodejs.util.inspect.custom')]() {
+        [Symbol.for("nodejs.util.inspect.custom")]() {
             return `Signature { r: "${this.r}", s: "${this.s}", yParity: ${this.yParity}, networkV: ${this.networkV} }`;
         }
         /**
@@ -6118,8 +6320,10 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             const networkV = this.networkV;
             return {
                 _type: "signature",
-                networkV: ((networkV != null) ? networkV.toString() : null),
-                r: this.r, s: this.s, v: this.v,
+                networkV: networkV != null ? networkV.toString() : null,
+                r: this.r,
+                s: this.s,
+                v: this.v,
             };
         }
         /**
@@ -6135,7 +6339,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         static getnetworkId(v) {
             const bv = getBigInt(v, "v");
             // The v is not an EIP-155 v, so it is the unspecified chain ID
-            if ((bv == BN_27) || (bv == BN_28)) {
+            if (bv == BN_27 || bv == BN_28) {
                 return BN_0$6;
             }
             // Bad value for an EIP-155 v
@@ -6157,7 +6361,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *
          */
         static getnetworkIdV(networkId, v) {
-            return (getBigInt(networkId) * BN_2$1) + BigInt(35 + v - 27);
+            return getBigInt(networkId) * BN_2$1 + BigInt(35 + v - 27);
         }
         /**
          *  Compute the normalized legacy transaction ``v`` from a ``yParirty``,
@@ -6190,7 +6394,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             }
             assertArgument(bv >= BN_35, "invalid v", "v", v);
             // Otherwise, EIP-155 v means odd is 27 and even is 28
-            return (bv & BN_1$3) ? 27 : 28;
+            return bv & BN_1$3 ? 27 : 28;
         }
     }
 
@@ -6227,7 +6431,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
     }
     function computeAddress(key, prefix) {
         let pubkey;
-        if (typeof (key) === "string") {
+        if (typeof key === "string") {
             pubkey = SigningKey.computePublicKey(key, false);
         }
         else {
@@ -6294,14 +6498,16 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             // Can't just pass in ...items since an array of length 1
             // is a special case in the super.
             super(items.length);
-            items.forEach((item, index) => { this[index] = item; });
+            items.forEach((item, index) => {
+                this[index] = item;
+            });
             // Find all unique keys
             const nameCounts = names.reduce((accum, name) => {
-                if (typeof (name) === "string") {
+                if (typeof name === "string") {
                     accum.set(name, (accum.get(name) || 0) + 1);
                 }
                 return accum;
-            }, (new Map()));
+            }, new Map());
             // Remove any key thats not unique
             this.#names = Object.freeze(items.map((item, index) => {
                 const name = names[index];
@@ -6318,7 +6524,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             // Proxy indices and names so we can trap deferred errors
             return new Proxy(this, {
                 get: (target, prop, receiver) => {
-                    if (typeof (prop) === "string") {
+                    if (typeof prop === "string") {
                         // Index accessor
                         if (prop.match(/^[0-9]+$/)) {
                             const index = getNumber(prop, "%index");
@@ -6340,16 +6546,18 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                             // Make sure functions work with private variables
                             // See: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy#no_private_property_forwarding
                             return function (...args) {
-                                return value.apply((this === receiver) ? target : this, args);
+                                return value.apply(this === receiver ? target : this, args);
                             };
                         }
                         else if (!(prop in target)) {
                             // Possible name accessor
-                            return target.getValue.apply((this === receiver) ? target : this, [prop]);
+                            return target.getValue.apply(this === receiver ? target : this, [
+                                prop,
+                            ]);
                         }
                     }
                     return Reflect.get(target, prop, receiver);
-                }
+                },
             });
         }
         /**
@@ -6377,7 +6585,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         toObject() {
             return this.#names.reduce((accum, name, index) => {
                 assert(name != null, "value at index ${ index } unnamed", "UNSUPPORTED_OPERATION", {
-                    operation: "toObject()"
+                    operation: "toObject()",
                 });
                 // Add values for names that don't conflict
                 if (!(name in accum)) {
@@ -6498,7 +6706,11 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
     }
     function getValue$1(value) {
         let bytes = toBeArray(value);
-        assert(bytes.length <= WordSize, "value out-of-bounds", "BUFFER_OVERRUN", { buffer: bytes, length: WordSize, offset: bytes.length });
+        assert(bytes.length <= WordSize, "value out-of-bounds", "BUFFER_OVERRUN", {
+            buffer: bytes,
+            length: WordSize,
+            offset: bytes.length,
+        });
         if (bytes.length !== WordSize) {
             bytes = getBytesCopy(concat([Padding.slice(bytes.length % WordSize), bytes]));
         }
@@ -6523,7 +6735,10 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         dynamic;
         constructor(name, type, localName, dynamic) {
             defineProperties(this, { name, type, localName, dynamic }, {
-                name: "string", type: "string", localName: "string", dynamic: "boolean"
+                name: "string",
+                type: "string",
+                localName: "string",
+                dynamic: "boolean",
             });
         }
         _throwError(message, value) {
@@ -6544,7 +6759,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         get data() {
             return concat(this.#data);
         }
-        get length() { return this.#dataLength; }
+        get length() {
+            return this.#dataLength;
+        }
         #writeData(data) {
             this.#data.push(data);
             this.#dataLength += data.length;
@@ -6593,21 +6810,31 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             this.#data = getBytesCopy(data);
             this.#offset = 0;
         }
-        get data() { return hexlify(this.#data); }
-        get dataLength() { return this.#data.length; }
-        get consumed() { return this.#offset; }
-        get bytes() { return new Uint8Array(this.#data); }
+        get data() {
+            return hexlify(this.#data);
+        }
+        get dataLength() {
+            return this.#data.length;
+        }
+        get consumed() {
+            return this.#offset;
+        }
+        get bytes() {
+            return new Uint8Array(this.#data);
+        }
         #peekBytes(offset, length, loose) {
             let alignedLength = Math.ceil(length / WordSize) * WordSize;
             if (this.#offset + alignedLength > this.#data.length) {
-                if (this.allowLoose && loose && this.#offset + length <= this.#data.length) {
+                if (this.allowLoose &&
+                    loose &&
+                    this.#offset + length <= this.#data.length) {
                     alignedLength = length;
                 }
                 else {
                     assert(false, "data out-of-bounds", "BUFFER_OVERRUN", {
                         buffer: getBytesCopy(this.#data),
                         length: this.#data.length,
-                        offset: this.#offset + alignedLength
+                        offset: this.#offset + alignedLength,
                     });
                 }
             }
@@ -6655,11 +6882,14 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             width *= -1;
         }
         // @TODO: Check range is valid for value
-        return new Typed(_gaurd, `${signed ? "" : "u"}int${width}`, value, { signed, width });
+        return new Typed(_gaurd, `${signed ? "" : "u"}int${width}`, value, {
+            signed,
+            width,
+        });
     }
     function b(value, size) {
         // @TODO: Check range is valid for value
-        return new Typed(_gaurd, `bytes${(size) ? size : ""}`, value, { size });
+        return new Typed(_gaurd, `bytes${size ? size : ""}`, value, { size });
     }
     const _typedSymbol = Symbol.for("_corebc_typed");
     class Typed {
@@ -6699,13 +6929,13 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             return 0;
         }
         isBigInt() {
-            return !!(this.type.match(/^u?int[0-9]+$/));
+            return !!this.type.match(/^u?int[0-9]+$/);
         }
         isData() {
             return this.type.startsWith("bytes");
         }
         isString() {
-            return (this.type === "string");
+            return this.type === "string";
         }
         get tupleName() {
             if (this.type !== "tuple") {
@@ -6725,115 +6955,319 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 return -1;
             }
             if (this.#options === false) {
-                return (this.value).length;
+                return this.value.length;
             }
             return null;
         }
         static from(type, value) {
             return new Typed(_gaurd, type, value);
         }
-        static uint8(v) { return n(v, 8); }
-        static uint16(v) { return n(v, 16); }
-        static uint24(v) { return n(v, 24); }
-        static uint32(v) { return n(v, 32); }
-        static uint40(v) { return n(v, 40); }
-        static uint48(v) { return n(v, 48); }
-        static uint56(v) { return n(v, 56); }
-        static uint64(v) { return n(v, 64); }
-        static uint72(v) { return n(v, 72); }
-        static uint80(v) { return n(v, 80); }
-        static uint88(v) { return n(v, 88); }
-        static uint96(v) { return n(v, 96); }
-        static uint104(v) { return n(v, 104); }
-        static uint112(v) { return n(v, 112); }
-        static uint120(v) { return n(v, 120); }
-        static uint128(v) { return n(v, 128); }
-        static uint136(v) { return n(v, 136); }
-        static uint144(v) { return n(v, 144); }
-        static uint152(v) { return n(v, 152); }
-        static uint160(v) { return n(v, 160); }
-        static uint168(v) { return n(v, 168); }
-        static uint176(v) { return n(v, 176); }
-        static uint184(v) { return n(v, 184); }
-        static uint192(v) { return n(v, 192); }
-        static uint200(v) { return n(v, 200); }
-        static uint208(v) { return n(v, 208); }
-        static uint216(v) { return n(v, 216); }
-        static uint224(v) { return n(v, 224); }
-        static uint232(v) { return n(v, 232); }
-        static uint240(v) { return n(v, 240); }
-        static uint248(v) { return n(v, 248); }
-        static uint256(v) { return n(v, 256); }
-        static uint(v) { return n(v, 256); }
-        static int8(v) { return n(v, -8); }
-        static int16(v) { return n(v, -16); }
-        static int24(v) { return n(v, -24); }
-        static int32(v) { return n(v, -32); }
-        static int40(v) { return n(v, -40); }
-        static int48(v) { return n(v, -48); }
-        static int56(v) { return n(v, -56); }
-        static int64(v) { return n(v, -64); }
-        static int72(v) { return n(v, -72); }
-        static int80(v) { return n(v, -80); }
-        static int88(v) { return n(v, -88); }
-        static int96(v) { return n(v, -96); }
-        static int104(v) { return n(v, -104); }
-        static int112(v) { return n(v, -112); }
-        static int120(v) { return n(v, -120); }
-        static int128(v) { return n(v, -128); }
-        static int136(v) { return n(v, -136); }
-        static int144(v) { return n(v, -144); }
-        static int152(v) { return n(v, -152); }
-        static int160(v) { return n(v, -160); }
-        static int168(v) { return n(v, -168); }
-        static int176(v) { return n(v, -176); }
-        static int184(v) { return n(v, -184); }
-        static int192(v) { return n(v, -192); }
-        static int200(v) { return n(v, -200); }
-        static int208(v) { return n(v, -208); }
-        static int216(v) { return n(v, -216); }
-        static int224(v) { return n(v, -224); }
-        static int232(v) { return n(v, -232); }
-        static int240(v) { return n(v, -240); }
-        static int248(v) { return n(v, -248); }
-        static int256(v) { return n(v, -256); }
-        static int(v) { return n(v, -256); }
-        static bytes1(v) { return b(v, 1); }
-        static bytes2(v) { return b(v, 2); }
-        static bytes3(v) { return b(v, 3); }
-        static bytes4(v) { return b(v, 4); }
-        static bytes5(v) { return b(v, 5); }
-        static bytes6(v) { return b(v, 6); }
-        static bytes7(v) { return b(v, 7); }
-        static bytes8(v) { return b(v, 8); }
-        static bytes9(v) { return b(v, 9); }
-        static bytes10(v) { return b(v, 10); }
-        static bytes11(v) { return b(v, 11); }
-        static bytes12(v) { return b(v, 12); }
-        static bytes13(v) { return b(v, 13); }
-        static bytes14(v) { return b(v, 14); }
-        static bytes15(v) { return b(v, 15); }
-        static bytes16(v) { return b(v, 16); }
-        static bytes17(v) { return b(v, 17); }
-        static bytes18(v) { return b(v, 18); }
-        static bytes19(v) { return b(v, 19); }
-        static bytes20(v) { return b(v, 20); }
-        static bytes21(v) { return b(v, 21); }
-        static bytes22(v) { return b(v, 22); }
-        static bytes23(v) { return b(v, 23); }
-        static bytes24(v) { return b(v, 24); }
-        static bytes25(v) { return b(v, 25); }
-        static bytes26(v) { return b(v, 26); }
-        static bytes27(v) { return b(v, 27); }
-        static bytes28(v) { return b(v, 28); }
-        static bytes29(v) { return b(v, 29); }
-        static bytes30(v) { return b(v, 30); }
-        static bytes31(v) { return b(v, 31); }
-        static bytes32(v) { return b(v, 32); }
-        static address(v) { return new Typed(_gaurd, "address", v); }
-        static bool(v) { return new Typed(_gaurd, "bool", !!v); }
-        static bytes(v) { return new Typed(_gaurd, "bytes", v); }
-        static string(v) { return new Typed(_gaurd, "string", v); }
+        static uint8(v) {
+            return n(v, 8);
+        }
+        static uint16(v) {
+            return n(v, 16);
+        }
+        static uint24(v) {
+            return n(v, 24);
+        }
+        static uint32(v) {
+            return n(v, 32);
+        }
+        static uint40(v) {
+            return n(v, 40);
+        }
+        static uint48(v) {
+            return n(v, 48);
+        }
+        static uint56(v) {
+            return n(v, 56);
+        }
+        static uint64(v) {
+            return n(v, 64);
+        }
+        static uint72(v) {
+            return n(v, 72);
+        }
+        static uint80(v) {
+            return n(v, 80);
+        }
+        static uint88(v) {
+            return n(v, 88);
+        }
+        static uint96(v) {
+            return n(v, 96);
+        }
+        static uint104(v) {
+            return n(v, 104);
+        }
+        static uint112(v) {
+            return n(v, 112);
+        }
+        static uint120(v) {
+            return n(v, 120);
+        }
+        static uint128(v) {
+            return n(v, 128);
+        }
+        static uint136(v) {
+            return n(v, 136);
+        }
+        static uint144(v) {
+            return n(v, 144);
+        }
+        static uint152(v) {
+            return n(v, 152);
+        }
+        static uint160(v) {
+            return n(v, 160);
+        }
+        static uint168(v) {
+            return n(v, 168);
+        }
+        static uint176(v) {
+            return n(v, 176);
+        }
+        static uint184(v) {
+            return n(v, 184);
+        }
+        static uint192(v) {
+            return n(v, 192);
+        }
+        static uint200(v) {
+            return n(v, 200);
+        }
+        static uint208(v) {
+            return n(v, 208);
+        }
+        static uint216(v) {
+            return n(v, 216);
+        }
+        static uint224(v) {
+            return n(v, 224);
+        }
+        static uint232(v) {
+            return n(v, 232);
+        }
+        static uint240(v) {
+            return n(v, 240);
+        }
+        static uint248(v) {
+            return n(v, 248);
+        }
+        static uint256(v) {
+            return n(v, 256);
+        }
+        static uint(v) {
+            return n(v, 256);
+        }
+        static int8(v) {
+            return n(v, -8);
+        }
+        static int16(v) {
+            return n(v, -16);
+        }
+        static int24(v) {
+            return n(v, -24);
+        }
+        static int32(v) {
+            return n(v, -32);
+        }
+        static int40(v) {
+            return n(v, -40);
+        }
+        static int48(v) {
+            return n(v, -48);
+        }
+        static int56(v) {
+            return n(v, -56);
+        }
+        static int64(v) {
+            return n(v, -64);
+        }
+        static int72(v) {
+            return n(v, -72);
+        }
+        static int80(v) {
+            return n(v, -80);
+        }
+        static int88(v) {
+            return n(v, -88);
+        }
+        static int96(v) {
+            return n(v, -96);
+        }
+        static int104(v) {
+            return n(v, -104);
+        }
+        static int112(v) {
+            return n(v, -112);
+        }
+        static int120(v) {
+            return n(v, -120);
+        }
+        static int128(v) {
+            return n(v, -128);
+        }
+        static int136(v) {
+            return n(v, -136);
+        }
+        static int144(v) {
+            return n(v, -144);
+        }
+        static int152(v) {
+            return n(v, -152);
+        }
+        static int160(v) {
+            return n(v, -160);
+        }
+        static int168(v) {
+            return n(v, -168);
+        }
+        static int176(v) {
+            return n(v, -176);
+        }
+        static int184(v) {
+            return n(v, -184);
+        }
+        static int192(v) {
+            return n(v, -192);
+        }
+        static int200(v) {
+            return n(v, -200);
+        }
+        static int208(v) {
+            return n(v, -208);
+        }
+        static int216(v) {
+            return n(v, -216);
+        }
+        static int224(v) {
+            return n(v, -224);
+        }
+        static int232(v) {
+            return n(v, -232);
+        }
+        static int240(v) {
+            return n(v, -240);
+        }
+        static int248(v) {
+            return n(v, -248);
+        }
+        static int256(v) {
+            return n(v, -256);
+        }
+        static int(v) {
+            return n(v, -256);
+        }
+        static bytes1(v) {
+            return b(v, 1);
+        }
+        static bytes2(v) {
+            return b(v, 2);
+        }
+        static bytes3(v) {
+            return b(v, 3);
+        }
+        static bytes4(v) {
+            return b(v, 4);
+        }
+        static bytes5(v) {
+            return b(v, 5);
+        }
+        static bytes6(v) {
+            return b(v, 6);
+        }
+        static bytes7(v) {
+            return b(v, 7);
+        }
+        static bytes8(v) {
+            return b(v, 8);
+        }
+        static bytes9(v) {
+            return b(v, 9);
+        }
+        static bytes10(v) {
+            return b(v, 10);
+        }
+        static bytes11(v) {
+            return b(v, 11);
+        }
+        static bytes12(v) {
+            return b(v, 12);
+        }
+        static bytes13(v) {
+            return b(v, 13);
+        }
+        static bytes14(v) {
+            return b(v, 14);
+        }
+        static bytes15(v) {
+            return b(v, 15);
+        }
+        static bytes16(v) {
+            return b(v, 16);
+        }
+        static bytes17(v) {
+            return b(v, 17);
+        }
+        static bytes18(v) {
+            return b(v, 18);
+        }
+        static bytes19(v) {
+            return b(v, 19);
+        }
+        static bytes20(v) {
+            return b(v, 20);
+        }
+        static bytes21(v) {
+            return b(v, 21);
+        }
+        static bytes22(v) {
+            return b(v, 22);
+        }
+        static bytes23(v) {
+            return b(v, 23);
+        }
+        static bytes24(v) {
+            return b(v, 24);
+        }
+        static bytes25(v) {
+            return b(v, 25);
+        }
+        static bytes26(v) {
+            return b(v, 26);
+        }
+        static bytes27(v) {
+            return b(v, 27);
+        }
+        static bytes28(v) {
+            return b(v, 28);
+        }
+        static bytes29(v) {
+            return b(v, 29);
+        }
+        static bytes30(v) {
+            return b(v, 30);
+        }
+        static bytes31(v) {
+            return b(v, 31);
+        }
+        static bytes32(v) {
+            return b(v, 32);
+        }
+        static address(v) {
+            return new Typed(_gaurd, "address", v);
+        }
+        static bool(v) {
+            return new Typed(_gaurd, "bool", !!v);
+        }
+        static bytes(v) {
+            return new Typed(_gaurd, "bytes", v);
+        }
+        static string(v) {
+            return new Typed(_gaurd, "string", v);
+        }
         static array(v, dynamic) {
             throw new Error("not implemented yet");
         }
@@ -6847,7 +7281,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  Returns true only if %%value%% is a [[Typed]] instance.
          */
         static isTyped(value) {
-            return (value && value._typedSymbol === _typedSymbol);
+            return value && value._typedSymbol === _typedSymbol;
         }
         /**
          *  If the value is a [[Typed]] instance, validates the underlying value
@@ -6922,7 +7356,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         if (Array.isArray(values)) {
             arrayValues = values;
         }
-        else if (values && typeof (values) === "object") {
+        else if (values && typeof values === "object") {
             let unique = {};
             arrayValues = coders.map((coder) => {
                 const name = coder.localName;
@@ -6957,7 +7391,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             }
         });
         // Backfill all the dynamic offsets, now that we know the static length
-        updateFuncs.forEach((func) => { func(staticWriter.length); });
+        updateFuncs.forEach((func) => {
+            func(staticWriter.length);
+        });
         let length = writer.appendWriter(staticWriter);
         length += writer.appendWriter(dynamicWriter);
         return length;
@@ -7019,8 +7455,8 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         coder;
         length;
         constructor(coder, length, localName) {
-            const type = (coder.type + "[" + (length >= 0 ? length : "") + "]");
-            const dynamic = (length === -1 || coder.dynamic);
+            const type = coder.type + "[" + (length >= 0 ? length : "") + "]";
+            const dynamic = length === -1 || coder.dynamic;
             super("array", type, localName, dynamic);
             defineProperties(this, { coder, length });
         }
@@ -7043,7 +7479,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 count = value.length;
                 writer.writeValue(value.length);
             }
-            assertArgumentCount(value.length, count, "coder array" + (this.localName ? (" " + this.localName) : ""));
+            assertArgumentCount(value.length, count, "coder array" + (this.localName ? " " + this.localName : ""));
             let coders = [];
             for (let i = 0; i < value.length; i++) {
                 coders.push(this.coder);
@@ -7059,7 +7495,11 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 // slot requires at least 32 bytes for their value (or 32
                 // bytes as a link to the data). This could use a much
                 // tighter bound, but we are erroring on the side of safety.
-                assert(count * WordSize <= reader.dataLength, "insufficient data length", "BUFFER_OVERRUN", { buffer: reader.bytes, offset: count * WordSize, length: reader.dataLength });
+                assert(count * WordSize <= reader.dataLength, "insufficient data length", "BUFFER_OVERRUN", {
+                    buffer: reader.bytes,
+                    offset: count * WordSize,
+                    length: reader.dataLength,
+                });
             }
             let coders = [];
             for (let i = 0; i < count; i++) {
@@ -7131,7 +7571,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             defineProperties(this, { size }, { size: "number" });
         }
         defaultValue() {
-            return ("0x0000000000000000000000000000000000000000000000000000000000000000").substring(0, 2 + this.size * 2);
+            return "0x0000000000000000000000000000000000000000000000000000000000000000".substring(0, 2 + this.size * 2);
         }
         encode(writer, _value) {
             let data = getBytesCopy(Typed.dereference(_value, this.type));
@@ -7178,7 +7618,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         size;
         signed;
         constructor(size, signed, localName) {
-            const name = ((signed ? "int" : "uint") + (size * 8));
+            const name = (signed ? "int" : "uint") + size * 8;
             super(name, name, localName, false);
             defineProperties(this, { size, signed }, { size: "number", signed: "boolean" });
         }
@@ -7190,7 +7630,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             // Check bounds are safe for encoding
             let maxUintValue = mask(BN_MAX_UINT256$1, WordSize * 8);
             if (this.signed) {
-                let bounds = mask(maxUintValue, (this.size * 8) - 1);
+                let bounds = mask(maxUintValue, this.size * 8 - 1);
                 if (value > bounds || value < -(bounds + BN_1$2)) {
                     this._throwError("value out-of-bounds", _value);
                 }
@@ -7242,9 +7682,11 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 }
                 types.push(coder.type);
             });
-            const type = ("tuple(" + types.join(",") + ")");
+            const type = "tuple(" + types.join(",") + ")";
             super("tuple", type, localName, dynamic);
-            defineProperties(this, { coders: Object.freeze(coders.slice()) });
+            defineProperties(this, {
+                coders: Object.freeze(coders.slice()),
+            });
         }
         defaultValue() {
             const values = [];
@@ -7340,14 +7782,14 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
      *
      *  (**i.e.** ``-8000000000000000000000000000000000000000000000000000000000000000n``)
      */
-    const MinInt256 = BigInt("0x8000000000000000000000000000000000000000000000000000000000000000") * BigInt(-1);
+    const MinInt256 = BigInt("0x8000000000000000000000000000000000000000000000000000000000000000") *
+        BigInt(-1);
     /**
      *  A constant for the maximum value for an ``int256``.
      *
      *  (**i.e.** ``0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffn``)
      */
     const MaxInt256 = BigInt("0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
-    const Zero = ( /*#__PURE__*/BigInt(0));
 
     // NFKC (composed)             // (decomposed)
     /**
@@ -7369,7 +7811,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             storageKeys: storageKeys.map((storageKey, index) => {
                 assertArgument(isHexString(storageKey, 32), "invalid slot", `storageKeys[${index}]`, storageKey);
                 return storageKey.toLowerCase();
-            })
+            }),
         };
     }
     /**
@@ -7382,11 +7824,11 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                     assertArgument(set.length === 2, "invalid slot set", `value[${index}]`, set);
                     return accessSetify(set[0], set[1]);
                 }
-                assertArgument(set != null && typeof (set) === "object", "invalid address-slot set", "value", value);
+                assertArgument(set != null && typeof set === "object", "invalid address-slot set", "value", value);
                 return accessSetify(set.address, set.storageKeys);
             });
         }
-        assertArgument(value != null && typeof (value) === "object", "invalid access list", "value", value);
+        assertArgument(value != null && typeof value === "object", "invalid access list", "value", value);
         const result = Object.keys(value).map((addr) => {
             const storageKeys = value[addr].reduce((accum, storageKey) => {
                 accum[storageKey] = true;
@@ -7394,11 +7836,11 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             }, {});
             return accessSetify(addr, Object.keys(storageKeys).sort());
         });
-        result.sort((a, b) => (a.address.localeCompare(b.address)));
+        result.sort((a, b) => a.address.localeCompare(b.address));
         return result;
     }
 
-    const logger = new Logger('transaction/0.0.1');
+    const logger = new Logger("transaction/0.0.1");
     const BN_0$4 = BigInt(0);
     function handleAddress(value) {
         if (value === "0x") {
@@ -7410,7 +7852,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         const handleNumber = (value) => {
             // @ts-ignore
             if (value === "0x") {
-                return Zero;
+                return BigNumber.from(0);
             }
             return BigNumber.from(value);
         };
@@ -7456,13 +7898,19 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         { name: "data" },
     ];
     const allowedTransactionKeys = {
-        networkId: true, data: true, energyLimit: true, energyPrice: true, nonce: true, to: true, value: true
+        networkId: true,
+        data: true,
+        energyLimit: true,
+        energyPrice: true,
+        nonce: true,
+        to: true,
+        value: true,
     };
     function serialize(transaction, signature) {
         checkProperties(transaction, allowedTransactionKeys);
         const raw = [];
         (!!signature ? transactionFields : unsignedTransactionFields).forEach(function ({ numeric, maxLength, name, length }) {
-            let value = transaction[name] || ([]);
+            let value = transaction[name] || [];
             const options = {};
             if (numeric) {
                 options.hexPad = "left";
@@ -7471,13 +7919,13 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             value = arrayify(tmpHexlified);
             // Fixed-width field
             if (length && value.length !== length && value.length > 0) {
-                logger.throwArgumentError("invalid length for " + name, ("transaction:" + name), value);
+                logger.throwArgumentError("invalid length for " + name, "transaction:" + name, value);
             }
             // Variable-width (with a maximum)
             if (maxLength) {
                 value = stripZeros(value);
                 if (value.length > maxLength) {
-                    logger.throwArgumentError("invalid length for " + name, ("transaction:" + name), value);
+                    logger.throwArgumentError("invalid length for " + name, "transaction:" + name, value);
                 }
             }
             const hexlified = hexlify(value);
@@ -7515,20 +7963,30 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  The ``to`` address for the transaction or ``null`` if the
          *  transaction is an ``init`` transaction.
          */
-        get to() { return this.#to; }
+        get to() {
+            return this.#to;
+        }
         set to(value) {
-            this.#to = (value == null) ? null : getAddress(value);
+            this.#to = value == null ? null : getAddress(value);
         }
         /**
          *  The transaction nonce.
          */
-        get nonce() { return this.#nonce; }
-        set nonce(value) { this.#nonce = getNumber(value, "value"); }
+        get nonce() {
+            return this.#nonce;
+        }
+        set nonce(value) {
+            this.#nonce = getNumber(value, "value");
+        }
         /**
          *  The energy limit.
          */
-        get energyLimit() { return this.#energyLimit; }
-        set energyLimit(value) { this.#energyLimit = getBigInt(value); }
+        get energyLimit() {
+            return this.#energyLimit;
+        }
+        set energyLimit(value) {
+            this.#energyLimit = getBigInt(value);
+        }
         /**
          *  The energy price.
          *
@@ -7543,32 +8001,44 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             return value;
         }
         set energyPrice(value) {
-            this.#energyPrice = (value == null) ? null : getBigInt(value, "energyPrice");
+            this.#energyPrice = value == null ? null : getBigInt(value, "energyPrice");
         }
         /**
          *  The transaction data. For ``init`` transactions this is the
          *  deployment code.
          */
-        get data() { return this.#data; }
-        set data(value) { this.#data = hexlify(value); }
+        get data() {
+            return this.#data;
+        }
+        set data(value) {
+            this.#data = hexlify(value);
+        }
         /**
          *  The amount of xcb (in ore) to send in this transactions.
          */
-        get value() { return this.#value; }
+        get value() {
+            return this.#value;
+        }
         set value(value) {
             this.#value = getBigInt(value, "value");
         }
         /**
          *  The chain ID this transaction is valid on.
          */
-        get networkId() { return this.#networkId; }
-        set networkId(value) { this.#networkId = getBigInt(value); }
+        get networkId() {
+            return this.#networkId;
+        }
+        set networkId(value) {
+            this.#networkId = getBigInt(value);
+        }
         /**
          *  If signed, the signature for this transaction.
          */
-        get signature() { return this.#sig || null; }
+        get signature() {
+            return this.#sig || null;
+        }
         set signature(value) {
-            this.#sig = (value == null) ? null : value;
+            this.#sig = value == null ? null : value;
         }
         /**
          *  Creates a new Transaction with default values.
@@ -7684,7 +8154,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             if (tx == null) {
                 return new Transaction();
             }
-            if (typeof (tx) === "string") {
+            if (typeof tx === "string") {
                 const payload = getBytes(tx);
                 return Transaction.from(parse(payload));
             }
@@ -7752,13 +8222,13 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
      *
      */
     function hashMessage(message) {
-        if (typeof (message) === "string") {
+        if (typeof message === "string") {
             message = toUtf8Bytes(message);
         }
         return sha256(concat([
             toUtf8Bytes(MessagePrefix),
             toUtf8Bytes(String(message.length)),
-            message
+            message,
         ]));
     }
     /**
@@ -7785,7 +8255,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             case "bytes":
                 return getBytes(value);
             case "bool":
-                value = (!!value ? "0x01" : "0x00");
+                value = !!value ? "0x01" : "0x00";
                 if (isArray) {
                     return getBytes(zeroPadValue(value, 32));
                 }
@@ -7793,9 +8263,12 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         }
         let match = type.match(regexNumber);
         if (match) {
-            let signed = (match[1] === "int");
+            let signed = match[1] === "int";
             let size = parseInt(match[2] || "256");
-            assertArgument((!match[2] || match[2] === String(size)) && (size % 8 === 0) && size !== 0 && size <= 256, "invalid number type", "type", type);
+            assertArgument((!match[2] || match[2] === String(size)) &&
+                size % 8 === 0 &&
+                size !== 0 &&
+                size <= 256, "invalid number type", "type", type);
             if (isArray) {
                 size = 256;
             }
@@ -7879,14 +8352,18 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         version: "string",
         networkId: "uint256",
         verifyingContract: "address",
-        salt: "bytes32"
+        salt: "bytes32",
     };
     const domainFieldNames = [
-        "name", "version", "networkId", "verifyingContract", "salt"
+        "name",
+        "version",
+        "networkId",
+        "verifyingContract",
+        "salt",
     ];
     function checkString(key) {
         return function (value) {
-            assertArgument(typeof (value) === "string", `invalid domain value for ${JSON.stringify(key)}`, `domain.${key}`, value);
+            assertArgument(typeof value === "string", `invalid domain value for ${JSON.stringify(key)}`, `domain.${key}`, value);
             return value;
         };
     }
@@ -7912,18 +8389,21 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             const bytes = getBytes(value, "domain.salt");
             assertArgument(bytes.length === 32, `invalid domain value "salt"`, "domain.salt", value);
             return hexlify(bytes);
-        }
+        },
     };
     function getBaseEncoder(type) {
         // intXX and uintXX
         {
             const match = type.match(/^(u?)int(\d*)$/);
             if (match) {
-                const signed = (match[1] === "");
+                const signed = match[1] === "";
                 const width = parseInt(match[2] || "256");
-                assertArgument(width % 8 === 0 && width !== 0 && width <= 256 && (match[2] == null || match[2] === String(width)), "invalid numeric width", "type", type);
-                const boundsUpper = mask(BN_MAX_UINT256, signed ? (width - 1) : width);
-                const boundsLower = signed ? ((boundsUpper + BN_1$1) * BN__1) : BN_0$3;
+                assertArgument(width % 8 === 0 &&
+                    width !== 0 &&
+                    width <= 256 &&
+                    (match[2] == null || match[2] === String(width)), "invalid numeric width", "type", type);
+                const boundsUpper = mask(BN_MAX_UINT256, signed ? width - 1 : width);
+                const boundsLower = signed ? (boundsUpper + BN_1$1) * BN__1 : BN_0$3;
                 return function (_value) {
                     const value = getBigInt(_value, "value");
                     assertArgument(value >= boundsLower && value <= boundsUpper, `value out-of-bounds for ${type}`, "value", value);
@@ -7945,23 +8425,29 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             }
         }
         switch (type) {
-            case "address": return function (value) {
-                return zeroPadValue(getAddress(value), 32);
-            };
-            case "bool": return function (value) {
-                return ((!value) ? hexFalse : hexTrue);
-            };
-            case "bytes": return function (value) {
-                return sha256(value);
-            };
-            case "string": return function (value) {
-                return id(value);
-            };
+            case "address":
+                return function (value) {
+                    return zeroPadValue(getAddress(value), 32);
+                };
+            case "bool":
+                return function (value) {
+                    return !value ? hexFalse : hexTrue;
+                };
+            case "bytes":
+                return function (value) {
+                    return sha256(value);
+                };
+            case "string":
+                return function (value) {
+                    return id(value);
+                };
         }
         return null;
     }
     function encodeType(name, fields) {
-        return `${name}(${fields.map(({ name, type }) => (type + " " + name)).join(",")})`;
+        return `${name}(${fields
+        .map(({ name, type }) => type + " " + name)
+        .join(",")})`;
     }
     class TypedDataEncoder {
         primaryType;
@@ -7993,7 +8479,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                     assertArgument(!uniqueNames.has(field.name), `duplicate variable name ${JSON.stringify(field.name)} in ${JSON.stringify(name)}`, "types", types);
                     uniqueNames.add(field.name);
                     // Get the base type (drop any array specifiers)
-                    const baseType = (field.type.match(/^([^\x5b]*)(\x5b|$)/))[1] || null;
+                    const baseType = field.type.match(/^([^\x5b]*)(\x5b|$)/)[1] || null;
                     assertArgument(baseType !== name, `circular type reference to ${JSON.stringify(baseType)}`, "types", types);
                     // Is this a base encoding type?
                     const encoder = getBaseEncoder(baseType);
@@ -8007,9 +8493,11 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 }
             }
             // Deduce the primary type
-            const primaryTypes = Array.from(parents.keys()).filter((n) => (parents.get(n).length === 0));
+            const primaryTypes = Array.from(parents.keys()).filter((n) => parents.get(n).length === 0);
             assertArgument(primaryTypes.length !== 0, "missing primary type", "types", types);
-            assertArgument(primaryTypes.length === 1, `ambiguous primary types or unused types: ${primaryTypes.map((t) => (JSON.stringify(t))).join(", ")}`, "types", types);
+            assertArgument(primaryTypes.length === 1, `ambiguous primary types or unused types: ${primaryTypes
+            .map((t) => JSON.stringify(t))
+            .join(", ")}`, "types", types);
             defineProperties(this, { primaryType: primaryTypes[0] });
             // Check for circular type references
             function checkCircular(type, found) {
@@ -8033,7 +8521,8 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             for (const [name, set] of subtypes) {
                 const st = Array.from(set);
                 st.sort();
-                this.#fullTypes.set(name, encodeType(name, types[name]) + st.map((t) => encodeType(t, types[t])).join(""));
+                this.#fullTypes.set(name, encodeType(name, types[name]) +
+                    st.map((t) => encodeType(t, types[t])).join(""));
             }
         }
         getEncoder(type) {
@@ -8148,7 +8637,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 domainFields.push({ name, type });
             }
             domainFields.sort((a, b) => {
-                return domainFieldNames.indexOf(a.name) - domainFieldNames.indexOf(b.name);
+                return (domainFieldNames.indexOf(a.name) - domainFieldNames.indexOf(b.name));
             });
             return TypedDataEncoder.hashStruct("EIP712Domain", { EIP712Domain: domainFields }, domain);
         }
@@ -8156,7 +8645,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             return concat([
                 "0x1901",
                 TypedDataEncoder.hashDomain(domain),
-                TypedDataEncoder.from(types).hash(value)
+                TypedDataEncoder.from(types).hash(value),
             ]);
         }
         static hash(domain, types, value) {
@@ -8175,7 +8664,8 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             // Look up all ENS names
             const ensCache = {};
             // Do we need to look up the domain's verifyingContract?
-            if (domain.verifyingContract && !isHexString(domain.verifyingContract, 20)) {
+            if (domain.verifyingContract &&
+                !isHexString(domain.verifyingContract, 20)) {
                 ensCache[domain.verifyingContract] = "0x";
             }
             // We are going to use the encoder to visit all the base values
@@ -8243,11 +8733,11 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                         case "bool":
                             return !!value;
                         case "string":
-                            assertArgument(typeof (value) === "string", "invalid string", "value", value);
+                            assertArgument(typeof value === "string", "invalid string", "value", value);
                             return value;
                     }
                     assertArgument(false, "unsupported type", "type", type);
-                })
+                }),
             };
         }
     }
@@ -8283,9 +8773,12 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
     const Keywords = setify(_keywords.split(" "));
     // Single character tokens
     const SimpleTokens = {
-        "(": "OPEN_PAREN", ")": "CLOSE_PAREN",
-        "[": "OPEN_BRACKET", "]": "CLOSE_BRACKET",
-        ",": "COMMA", "@": "AT"
+        "(": "OPEN_PAREN",
+        ")": "CLOSE_PAREN",
+        "[": "OPEN_BRACKET",
+        "]": "CLOSE_BRACKET",
+        ",": "COMMA",
+        "@": "AT",
     };
     // Parser regexes to consume the next token
     const regexWhitespacePrefix = new RegExp("^(\\s*)");
@@ -8297,20 +8790,28 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
     class TokenString {
         #offset;
         #tokens;
-        get offset() { return this.#offset; }
-        get length() { return this.#tokens.length - this.#offset; }
+        get offset() {
+            return this.#offset;
+        }
+        get length() {
+            return this.#tokens.length - this.#offset;
+        }
         constructor(tokens) {
             this.#offset = 0;
             this.#tokens = tokens.slice();
         }
-        clone() { return new _a(this.#tokens); }
-        reset() { this.#offset = 0; }
+        clone() {
+            return new _a(this.#tokens);
+        }
+        reset() {
+            this.#offset = 0;
+        }
         #subTokenString(from = 0, to = 0) {
             return new _a(this.#tokens.slice(from, to).map((t) => {
                 return Object.freeze(Object.assign({}, t, {
-                    match: (t.match - from),
-                    linkBack: (t.linkBack - from),
-                    linkNext: (t.linkNext - from),
+                    match: t.match - from,
+                    linkBack: t.linkBack - from,
+                    linkNext: t.linkNext - from,
                 }));
             }));
         }
@@ -8364,7 +8865,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         // Returns the next value, if it is a keyword in `allowed`
         peekKeyword(allowed) {
             const top = this.peekType("KEYWORD");
-            return (top != null && allowed.has(top)) ? top : null;
+            return top != null && allowed.has(top) ? top : null;
         }
         // Returns the value of the next token if it is `type`
         peekType(type) {
@@ -8372,7 +8873,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 return null;
             }
             const top = this.peek();
-            return (top.type === type) ? top.text : null;
+            return top.type === type ? top.text : null;
         }
         // Returns the next token; throws if out of tokens
         pop() {
@@ -8393,7 +8894,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
     function lex(text) {
         const tokens = [];
         const throwError = (message) => {
-            const token = (offset < text.length) ? JSON.stringify(text[offset]) : "$EOI";
+            const token = offset < text.length ? JSON.stringify(text[offset]) : "$EOI";
             throw new Error(`invalid token ${token} at ${offset}: ${message}`);
         };
         let brackets = [];
@@ -8407,9 +8908,18 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 offset += match[1].length;
                 cur = text.substring(offset);
             }
-            const token = { depth: brackets.length, linkBack: -1, linkNext: -1, match: -1, type: "", text: "", offset, value: -1 };
+            const token = {
+                depth: brackets.length,
+                linkBack: -1,
+                linkNext: -1,
+                match: -1,
+                type: "",
+                text: "",
+                offset,
+                value: -1,
+            };
             tokens.push(token);
-            let type = (SimpleTokens[cur[0]] || "");
+            let type = SimpleTokens[cur[0]] || "";
             if (type) {
                 token.type = type;
                 token.text = cur[0];
@@ -8423,14 +8933,14 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                         throwError("no matching open bracket");
                     }
                     token.match = brackets.pop();
-                    (tokens[token.match]).match = tokens.length - 1;
+                    tokens[token.match].match = tokens.length - 1;
                     token.depth--;
                     token.linkBack = commas.pop();
-                    (tokens[token.linkBack]).linkNext = tokens.length - 1;
+                    tokens[token.linkBack].linkNext = tokens.length - 1;
                 }
                 else if (type === "COMMA") {
                     token.linkBack = commas.pop();
-                    (tokens[token.linkBack]).linkNext = tokens.length - 1;
+                    tokens[token.linkBack].linkNext = tokens.length - 1;
                     commas.push(tokens.length - 1);
                 }
                 else if (type === "OPEN_BRACKET") {
@@ -8442,12 +8952,14 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                     if (tokens.length > 0 && tokens[tokens.length - 1].type === "NUMBER") {
                         const value = tokens.pop().text;
                         suffix = value + suffix;
-                        (tokens[tokens.length - 1]).value = getNumber(value);
+                        tokens[tokens.length - 1].value =
+                            getNumber(value);
                     }
-                    if (tokens.length === 0 || tokens[tokens.length - 1].type !== "BRACKET") {
+                    if (tokens.length === 0 ||
+                        tokens[tokens.length - 1].type !== "BRACKET") {
                         throw new Error("missing opening bracket");
                     }
-                    (tokens[tokens.length - 1]).text += suffix;
+                    tokens[tokens.length - 1].text += suffix;
                 }
                 continue;
             }
@@ -8579,7 +9091,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         else if (match[3]) {
             // intXX or uintXX
             const size = parseInt(match[3]);
-            assertArgument(size !== 0 && size <= 256 && (size % 8) === 0, "invalid numeric width", "type", type);
+            assertArgument(size !== 0 && size <= 256 && size % 8 === 0, "invalid numeric width", "type", type);
         }
         return type;
     }
@@ -8660,7 +9172,13 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 throw new Error("");
             }
             defineProperties(this, {
-                name, type, baseType, indexed, components, arrayLength, arrayChildren
+                name,
+                type,
+                baseType,
+                indexed,
+                components,
+                arrayLength,
+                arrayChildren,
             });
         }
         /**
@@ -8680,10 +9198,10 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             }
             if (format === "json") {
                 let result = {
-                    type: ((this.baseType === "tuple") ? "tuple" : this.type),
-                    name: (this.name || undefined)
+                    type: this.baseType === "tuple" ? "tuple" : this.type,
+                    name: this.name || undefined,
                 };
-                if (typeof (this.indexed) === "boolean") {
+                if (typeof this.indexed === "boolean") {
                     result.indexed = this.indexed;
                 }
                 if (this.isTuple()) {
@@ -8695,14 +9213,19 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             // Array
             if (this.isArray()) {
                 result += this.arrayChildren.format(format);
-                result += `[${(this.arrayLength < 0 ? "" : String(this.arrayLength))}]`;
+                result += `[${this.arrayLength < 0 ? "" : String(this.arrayLength)}]`;
             }
             else {
                 if (this.isTuple()) {
                     if (format !== "sighash") {
                         result += this.type;
                     }
-                    result += "(" + this.components.map((comp) => comp.format(format)).join((format === "full") ? ", " : ",") + ")";
+                    result +=
+                        "(" +
+                            this.components
+                                .map((comp) => comp.format(format))
+                                .join(format === "full" ? ", " : ",") +
+                            ")";
                 }
                 else {
                     result += this.type;
@@ -8734,7 +9257,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  and [[arrayLength]] are non-null.
          */
         isArray() {
-            return (this.baseType === "array");
+            return this.baseType === "array";
         }
         /**
          *  Returns true if %%this%% is a Tuple type.
@@ -8743,7 +9266,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  is non-null.
          */
         isTuple() {
-            return (this.baseType === "tuple");
+            return this.baseType === "tuple";
         }
         /**
          *  Returns true if %%this%% is an Indexable type.
@@ -8752,7 +9275,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  is non-null.
          */
         isIndexable() {
-            return (this.indexed != null);
+            return this.indexed != null;
         }
         /**
          *  Walks the **ParamType** with %%value%%, calling %%process%%
@@ -8767,7 +9290,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                     throw new Error("array is wrong length");
                 }
                 const _this = this;
-                return value.map((v) => (_this.arrayChildren.walk(v, process)));
+                return value.map((v) => _this.arrayChildren.walk(v, process));
             }
             if (this.isTuple()) {
                 if (!Array.isArray(value)) {
@@ -8777,7 +9300,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                     throw new Error("array is wrong length");
                 }
                 const _this = this;
-                return value.map((v, i) => (_this.components[i].walk(v, process)));
+                return value.map((v, i) => _this.components[i].walk(v, process));
             }
             return process(this.type, value);
         }
@@ -8807,7 +9330,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                     result = value.slice();
                 }
                 else {
-                    if (value == null || typeof (value) !== "object") {
+                    if (value == null || typeof value !== "object") {
                         throw new Error("invalid tuple value");
                     }
                     result = components.map((param) => {
@@ -8833,7 +9356,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             }
             const result = process(this.type, value);
             if (result.then) {
-                promises.push((async function () { setValue(await result); })());
+                promises.push((async function () {
+                    setValue(await result);
+                })());
             }
             else {
                 setValue(result);
@@ -8867,13 +9392,14 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             if (ParamType.isParamType(obj)) {
                 return obj;
             }
-            if (typeof (obj) === "string") {
+            if (typeof obj === "string") {
                 return ParamType.from(lex(obj), allowIndexed);
             }
             else if (obj instanceof TokenString) {
                 let type = "", baseType = "";
                 let comps = null;
-                if (consumeKeywords(obj, setify(["tuple"])).has("tuple") || obj.peekType("OPEN_PAREN")) {
+                if (consumeKeywords(obj, setify(["tuple"])).has("tuple") ||
+                    obj.peekType("OPEN_PAREN")) {
                     // Tuple
                     baseType = "tuple";
                     comps = obj.popParams().map((t) => ParamType.from(t));
@@ -8903,14 +9429,14 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                     }
                     indexed = true;
                 }
-                const name = (obj.peekType("ID") ? obj.pop().text : "");
+                const name = obj.peekType("ID") ? obj.pop().text : "";
                 if (obj.length) {
                     throw new Error("leftover tokens");
                 }
                 return new ParamType(_guard$2, name, type, baseType, indexed, comps, arrayLength, arrayChildren);
             }
             const name = obj.name;
-            assertArgument(!name || (typeof (name) === "string" && name.match(regexId)), "invalid name", "obj.name", name);
+            assertArgument(!name || (typeof name === "string" && name.match(regexId)), "invalid name", "obj.name", name);
             let indexed = obj.indexed;
             if (indexed != null) {
                 assertArgument(allowIndexed, "parameter cannot be indexed", "obj.indexed", obj.indexed);
@@ -8922,12 +9448,16 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 const arrayLength = parseInt(arrayMatch[2] || "-1");
                 const arrayChildren = ParamType.from({
                     type: arrayMatch[1],
-                    components: obj.components
+                    components: obj.components,
                 });
                 return new ParamType(_guard$2, name || "", type, "array", indexed, null, arrayLength, arrayChildren);
             }
-            if (type === "tuple" || type.startsWith("tuple(" /* fix: ) */) || type.startsWith("(" /* fix: ) */)) {
-                const comps = (obj.components != null) ? obj.components.map((c) => ParamType.from(c)) : null;
+            if (type === "tuple" ||
+                type.startsWith("tuple(" /* fix: ) */) ||
+                type.startsWith("(" /* fix: ) */)) {
+                const comps = obj.components != null
+                    ? obj.components.map((c) => ParamType.from(c))
+                    : null;
                 const tuple = new ParamType(_guard$2, name || "", type, "tuple", indexed, comps, null, null);
                 // @TODO: use lexer to validate and normalize type
                 return tuple;
@@ -8939,7 +9469,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  Returns true if %%value%% is a **ParamType**.
          */
         static isParamType(value) {
-            return (value && value[internal$1] === ParamTypeInternal);
+            return value && value[internal$1] === ParamTypeInternal;
         }
     }
     /**
@@ -8967,7 +9497,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  ABI frgament type.
          */
         static from(obj) {
-            if (typeof (obj) === "string") {
+            if (typeof obj === "string") {
                 // Try parsing JSON...
                 try {
                     Fragment.from(JSON.parse(obj));
@@ -8980,30 +9510,40 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 // Human-readable ABI (already lexed)
                 const type = obj.peekKeyword(KwTypes);
                 switch (type) {
-                    case "constructor": return ConstructorFragment.from(obj);
-                    case "error": return ErrorFragment.from(obj);
-                    case "event": return EventFragment.from(obj);
+                    case "constructor":
+                        return ConstructorFragment.from(obj);
+                    case "error":
+                        return ErrorFragment.from(obj);
+                    case "event":
+                        return EventFragment.from(obj);
                     case "fallback":
                     case "receive":
                         return FallbackFragment.from(obj);
-                    case "function": return FunctionFragment.from(obj);
-                    case "struct": return StructFragment.from(obj);
+                    case "function":
+                        return FunctionFragment.from(obj);
+                    case "struct":
+                        return StructFragment.from(obj);
                 }
             }
-            else if (typeof (obj) === "object") {
+            else if (typeof obj === "object") {
                 // JSON ABI
                 switch (obj.type) {
-                    case "constructor": return ConstructorFragment.from(obj);
-                    case "error": return ErrorFragment.from(obj);
-                    case "event": return EventFragment.from(obj);
+                    case "constructor":
+                        return ConstructorFragment.from(obj);
+                    case "error":
+                        return ErrorFragment.from(obj);
+                    case "event":
+                        return EventFragment.from(obj);
                     case "fallback":
                     case "receive":
                         return FallbackFragment.from(obj);
-                    case "function": return FunctionFragment.from(obj);
-                    case "struct": return StructFragment.from(obj);
+                    case "function":
+                        return FunctionFragment.from(obj);
+                    case "struct":
+                        return StructFragment.from(obj);
                 }
                 assert(false, `unsupported type: ${obj.type}`, "UNSUPPORTED_OPERATION", {
-                    operation: "Fragment.from"
+                    operation: "Fragment.from",
                 });
             }
             assertArgument(false, "unsupported frgament object", "obj", obj);
@@ -9053,13 +9593,15 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          */
         constructor(guard, type, name, inputs) {
             super(guard, type, inputs);
-            assertArgument(typeof (name) === "string" && name.match(regexId), "invalid identifier", "name", name);
+            assertArgument(typeof name === "string" && name.match(regexId), "invalid identifier", "name", name);
             inputs = Object.freeze(inputs.slice());
             defineProperties(this, { name });
         }
     }
     function joinParams(format, params) {
-        return "(" + params.map((p) => p.format(format)).join((format === "full") ? ", " : ",") + ")";
+        return ("(" +
+            params.map((p) => p.format(format)).join(format === "full" ? ", " : ",") +
+            ")");
     }
     /**
      *  A Fragment which represents a //Custom Error//.
@@ -9100,7 +9642,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             if (ErrorFragment.isFragment(obj)) {
                 return obj;
             }
-            if (typeof (obj) === "string") {
+            if (typeof obj === "string") {
                 return ErrorFragment.from(lex(obj));
             }
             else if (obj instanceof TokenString) {
@@ -9112,7 +9654,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             return new ErrorFragment(_guard$2, obj.name, obj.inputs ? obj.inputs.map(ParamType.from) : []);
         }
         static isFragment(value) {
-            return (value && value[internal$1] === ErrorFragmentInternal);
+            return value && value[internal$1] === ErrorFragmentInternal;
         }
     }
     /**
@@ -9143,7 +9685,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                     type: "event",
                     anonymous: this.anonymous,
                     name: this.name,
-                    inputs: this.inputs.map((i) => JSON.parse(i.format(format)))
+                    inputs: this.inputs.map((i) => JSON.parse(i.format(format))),
                 });
             }
             const result = [];
@@ -9165,7 +9707,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             if (EventFragment.isFragment(obj)) {
                 return obj;
             }
-            if (typeof (obj) === "string") {
+            if (typeof obj === "string") {
                 return EventFragment.from(lex(obj));
             }
             else if (obj instanceof TokenString) {
@@ -9178,7 +9720,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             return new EventFragment(_guard$2, obj.name, obj.inputs ? obj.inputs.map((p) => ParamType.from(p, true)) : [], !!obj.anonymous);
         }
         static isFragment(value) {
-            return (value && value[internal$1] === EventFragmentInternal);
+            return value && value[internal$1] === EventFragmentInternal;
         }
     }
     /**
@@ -9192,7 +9734,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          */
         constructor(guard, type, inputs, payable, energy) {
             super(guard, type, inputs);
-            Object.defineProperty(this, internal$1, { value: ConstructorFragmentInternal });
+            Object.defineProperty(this, internal$1, {
+                value: ConstructorFragmentInternal,
+            });
             defineProperties(this, { payable, energy });
         }
         format(format) {
@@ -9200,14 +9744,14 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             if (format === "json") {
                 return JSON.stringify({
                     type: "constructor",
-                    stateMutability: (this.payable ? "payable" : "undefined"),
+                    stateMutability: this.payable ? "payable" : "undefined",
                     payable: this.payable,
-                    energy: ((this.energy != null) ? this.energy : undefined),
-                    inputs: this.inputs.map((i) => JSON.parse(i.format(format)))
+                    energy: this.energy != null ? this.energy : undefined,
+                    inputs: this.inputs.map((i) => JSON.parse(i.format(format))),
                 });
             }
             const result = [`constructor${joinParams(format, this.inputs)}`];
-            result.push((this.payable) ? "payable" : "nonpayable");
+            result.push(this.payable ? "payable" : "nonpayable");
             if (this.energy != null) {
                 result.push(`@${this.energy.toString()}`);
             }
@@ -9217,7 +9761,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             if (ConstructorFragment.isFragment(obj)) {
                 return obj;
             }
-            if (typeof (obj) === "string") {
+            if (typeof obj === "string") {
                 return ConstructorFragment.from(lex(obj));
             }
             else if (obj instanceof TokenString) {
@@ -9228,10 +9772,10 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 consumeEoi(obj);
                 return new ConstructorFragment(_guard$2, "constructor", inputs, payable, energy);
             }
-            return new ConstructorFragment(_guard$2, "constructor", obj.inputs ? obj.inputs.map(ParamType.from) : [], !!obj.payable, (obj.energy != null) ? obj.energy : null);
+            return new ConstructorFragment(_guard$2, "constructor", obj.inputs ? obj.inputs.map(ParamType.from) : [], !!obj.payable, obj.energy != null ? obj.energy : null);
         }
         static isFragment(value) {
-            return (value && value[internal$1] === ConstructorFragmentInternal);
+            return value && value[internal$1] === ConstructorFragmentInternal;
         }
     }
     /**
@@ -9248,9 +9792,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             defineProperties(this, { payable });
         }
         format(format) {
-            const type = ((this.inputs.length === 0) ? "receive" : "fallback");
+            const type = this.inputs.length === 0 ? "receive" : "fallback";
             if (format === "json") {
-                const stateMutability = (this.payable ? "payable" : "nonpayable");
+                const stateMutability = this.payable ? "payable" : "nonpayable";
                 return JSON.stringify({ type, stateMutability });
             }
             return `${type}()${this.payable ? " payable" : ""}`;
@@ -9259,7 +9803,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             if (FallbackFragment.isFragment(obj)) {
                 return obj;
             }
-            if (typeof (obj) === "string") {
+            if (typeof obj === "string") {
                 return FallbackFragment.from(lex(obj));
             }
             else if (obj instanceof TokenString) {
@@ -9298,13 +9842,13 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             }
             if (obj.type === "fallback") {
                 const inputs = [ParamType.from("bytes")];
-                const payable = (obj.stateMutability === "payable");
+                const payable = obj.stateMutability === "payable";
                 return new FallbackFragment(_guard$2, inputs, payable);
             }
             assertArgument(false, "invalid fallback description", "obj", obj);
         }
         static isFragment(value) {
-            return (value && value[internal$1] === FallbackFragmentInternal);
+            return value && value[internal$1] === FallbackFragmentInternal;
         }
     }
     /**
@@ -9339,9 +9883,15 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             super(guard, "function", name, inputs);
             Object.defineProperty(this, internal$1, { value: FunctionFragmentInternal });
             outputs = Object.freeze(outputs.slice());
-            const constant = (stateMutability === "view" || stateMutability === "pure");
-            const payable = (stateMutability === "payable");
-            defineProperties(this, { constant, energy, outputs, payable, stateMutability });
+            const constant = stateMutability === "view" || stateMutability === "pure";
+            const payable = stateMutability === "payable";
+            defineProperties(this, {
+                constant,
+                energy,
+                outputs,
+                payable,
+                stateMutability,
+            });
         }
         /**
          *  The Function selector.
@@ -9358,9 +9908,11 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                     type: "function",
                     name: this.name,
                     constant: this.constant,
-                    stateMutability: ((this.stateMutability !== "nonpayable") ? this.stateMutability : undefined),
+                    stateMutability: this.stateMutability !== "nonpayable"
+                        ? this.stateMutability
+                        : undefined,
                     payable: this.payable,
-                    energy: ((this.energy != null) ? this.energy : undefined),
+                    energy: this.energy != null ? this.energy : undefined,
                     inputs: this.inputs.map((i) => JSON.parse(i.format(format))),
                     outputs: this.outputs.map((o) => JSON.parse(o.format(format))),
                 });
@@ -9393,7 +9945,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             if (FunctionFragment.isFragment(obj)) {
                 return obj;
             }
-            if (typeof (obj) === "string") {
+            if (typeof obj === "string") {
                 return FunctionFragment.from(lex(obj));
             }
             else if (obj instanceof TokenString) {
@@ -9412,25 +9964,25 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             // Use legacy Solidity ABI logic if stateMutability is missing
             if (stateMutability == null) {
                 stateMutability = "payable";
-                if (typeof (obj.constant) === "boolean") {
+                if (typeof obj.constant === "boolean") {
                     stateMutability = "view";
                     if (!obj.constant) {
                         stateMutability = "payable";
-                        if (typeof (obj.payable) === "boolean" && !obj.payable) {
+                        if (typeof obj.payable === "boolean" && !obj.payable) {
                             stateMutability = "nonpayable";
                         }
                     }
                 }
-                else if (typeof (obj.payable) === "boolean" && !obj.payable) {
+                else if (typeof obj.payable === "boolean" && !obj.payable) {
                     stateMutability = "nonpayable";
                 }
             }
             // @TODO: verifyState for stateMutability (e.g. throw if
             //        payable: false but stateMutability is "nonpayable")
-            return new FunctionFragment(_guard$2, obj.name, stateMutability, obj.inputs ? obj.inputs.map(ParamType.from) : [], obj.outputs ? obj.outputs.map(ParamType.from) : [], (obj.energy != null) ? obj.energy : null);
+            return new FunctionFragment(_guard$2, obj.name, stateMutability, obj.inputs ? obj.inputs.map(ParamType.from) : [], obj.outputs ? obj.outputs.map(ParamType.from) : [], obj.energy != null ? obj.energy : null);
         }
         static isFragment(value) {
-            return (value && value[internal$1] === FunctionFragmentInternal);
+            return value && value[internal$1] === FunctionFragmentInternal;
         }
     }
     /**
@@ -9448,7 +10000,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             throw new Error("@TODO");
         }
         static from(obj) {
-            if (typeof (obj) === "string") {
+            if (typeof obj === "string") {
                 return StructFragment.from(lex(obj));
             }
             else if (obj instanceof TokenString) {
@@ -9460,7 +10012,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             return new StructFragment(_guard$2, obj.name, obj.inputs ? obj.inputs.map(ParamType.from) : []);
         }
         static isFragment(value) {
-            return (value && value[internal$1] === StructFragmentInternal);
+            return value && value[internal$1] === StructFragmentInternal;
         }
     }
 
@@ -9514,7 +10066,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                     revert = {
                         signature: "Error(string)",
                         name: "Error",
-                        args: [reason]
+                        args: [reason],
                     };
                     message += `: ${JSON.stringify(reason)}`;
                 }
@@ -9529,7 +10081,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                     revert = {
                         signature: "Panic(uint256)",
                         name: "Panic",
-                        args: [code]
+                        args: [code],
                     };
                     reason = `Panic due to ${PanicReasons$1.get(code) || "UNKNOWN"}(${code})`;
                     message += `: ${reason}`;
@@ -9543,19 +10095,24 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             }
         }
         const transaction = {
-            to: (tx.to ? getAddress(tx.to) : null),
-            data: (tx.data || "0x")
+            to: tx.to ? getAddress(tx.to) : null,
+            data: tx.data || "0x",
         };
         if (tx.from) {
             transaction.from = getAddress(tx.from);
         }
         return makeError(message, "CALL_EXCEPTION", {
-            action, data, reason, transaction, invocation, revert
+            action,
+            data,
+            reason,
+            transaction,
+            invocation,
+            revert,
         });
     }
     /**
-      * About AbiCoder
-      */
+     * About AbiCoder
+     */
     class AbiCoder {
         #getCoder(param) {
             if (param.isArray()) {
@@ -9580,8 +10137,8 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             let match = param.type.match(paramTypeNumber);
             if (match) {
                 let size = parseInt(match[2] || "256");
-                assertArgument(size !== 0 && size <= 256 && (size % 8) === 0, "invalid " + match[1] + " bit length", "param", param);
-                return new NumberCoder(size / 8, (match[1] === "int"), param.name);
+                assertArgument(size !== 0 && size <= 256 && size % 8 === 0, "invalid " + match[1] + " bit length", "param", param);
+                return new NumberCoder(size / 8, match[1] === "int", param.name);
             }
             // bytes[0-9]+
             match = param.type.match(paramTypeBytes);
@@ -9611,7 +10168,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         encode(types, values) {
             assertArgumentCount(values.length, types.length, "types/values length mismatch");
             const coders = types.map((type) => this.#getCoder(ParamType.from(type)));
-            const coder = (new TupleCoder(coders, "_"));
+            const coder = new TupleCoder(coders, "_");
             const writer = new Writer();
             coder.encode(writer, values);
             return writer.data;
@@ -9702,7 +10259,11 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         constructor(fragment, topic, args) {
             const name = fragment.name, signature = fragment.format();
             defineProperties(this, {
-                fragment, name, signature, topic, args
+                fragment,
+                name,
+                signature,
+                topic,
+                args,
             });
         }
     }
@@ -9716,7 +10277,12 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         constructor(fragment, selector, args, value) {
             const name = fragment.name, signature = fragment.format();
             defineProperties(this, {
-                fragment, name, args, signature, selector, value
+                fragment,
+                name,
+                args,
+                signature,
+                selector,
+                value,
             });
         }
     }
@@ -9729,7 +10295,11 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         constructor(fragment, selector, args) {
             const name = fragment.name, signature = fragment.format();
             defineProperties(this, {
-                fragment, name, args, signature, selector
+                fragment,
+                name,
+                args,
+                signature,
+                selector,
             });
         }
     }
@@ -9763,7 +10333,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             inputs: ["string"],
             reason: (message) => {
                 return `reverted with reason string ${JSON.stringify(message)}`;
-            }
+            },
         },
         "0x4e487b71": {
             signature: "Panic(uint256)",
@@ -9775,8 +10345,8 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                     reason = PanicReasons[code.toString()];
                 }
                 return `reverted with panic code 0x${code.toString(16)} (${reason})`;
-            }
-        }
+            },
+        },
     };
     /**
      *  An Interface abstracts many of the low-level details for
@@ -9815,7 +10385,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          */
         constructor(fragments) {
             let abi = [];
-            if (typeof (fragments) === "string") {
+            if (typeof fragments === "string") {
                 abi = JSON.parse(fragments);
             }
             else {
@@ -9835,7 +10405,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 }
             }
             defineProperties(this, {
-                fragments: Object.freeze(frags)
+                fragments: Object.freeze(frags),
             });
             let fallback = null;
             let receive = false;
@@ -9850,14 +10420,17 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                             return;
                         }
                         //checkNames(fragment, "input", fragment.inputs);
-                        defineProperties(this, { deploy: fragment });
+                        defineProperties(this, {
+                            deploy: fragment,
+                        });
                         return;
                     case "fallback":
                         if (fragment.inputs.length === 0) {
                             receive = true;
                         }
                         else {
-                            assertArgument(!fallback || fragment.payable !== fallback.payable, "conflicting fallback fragments", `fragments[${index}]`, fragment);
+                            assertArgument(!fallback ||
+                                fragment.payable !== fallback.payable, "conflicting fallback fragments", `fragments[${index}]`, fragment);
                             fallback = fragment;
                             receive = fallback.payable;
                         }
@@ -9887,7 +10460,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             // If we do not have a constructor add a default
             if (!this.deploy) {
                 defineProperties(this, {
-                    deploy: ConstructorFragment.from("constructor()")
+                    deploy: ConstructorFragment.from("constructor()"),
                 });
             }
             defineProperties(this, { fallback, receive });
@@ -9898,7 +10471,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  removes parameter names and unneceesary spaces.
          */
         format(minimal) {
-            const format = (minimal ? "minimal" : "full");
+            const format = minimal ? "minimal" : "full";
             const abi = this.fragments.map((f) => f.format(format));
             return abi;
         }
@@ -9939,7 +10512,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                     }
                 }
                 if (values) {
-                    const lastValue = (values.length > 0) ? values[values.length - 1] : null;
+                    const lastValue = values.length > 0 ? values[values.length - 1] : null;
                     let valueLength = values.length;
                     let allowOptions = true;
                     if (Typed.isTyped(lastValue) && lastValue.type === "overrides") {
@@ -9950,7 +10523,8 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                     // may contain an overrides, so the match may have n or n - 1 parameters
                     for (let i = matching.length - 1; i >= 0; i--) {
                         const inputs = matching[i].inputs.length;
-                        if (inputs !== valueLength && (!allowOptions || inputs !== valueLength - 1)) {
+                        if (inputs !== valueLength &&
+                            (!allowOptions || inputs !== valueLength - 1)) {
                             matching.splice(i, 1);
                         }
                     }
@@ -9980,9 +10554,13 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 }
                 // We found a single matching signature with an overrides, but the
                 // last value is something that cannot possibly be an options
-                if (matching.length === 1 && values && values.length !== matching[0].inputs.length) {
+                if (matching.length === 1 &&
+                    values &&
+                    values.length !== matching[0].inputs.length) {
                     const lastArg = values[values.length - 1];
-                    if (lastArg == null || Array.isArray(lastArg) || typeof (lastArg) !== "object") {
+                    if (lastArg == null ||
+                        Array.isArray(lastArg) ||
+                        typeof lastArg !== "object") {
                         matching.splice(0, 1);
                     }
                 }
@@ -9990,7 +10568,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                     return null;
                 }
                 if (matching.length > 1 && forceUnique) {
-                    const matchStr = matching.map((m) => JSON.stringify(m.format())).join(", ");
+                    const matchStr = matching
+                        .map((m) => JSON.stringify(m.format()))
+                        .join(", ");
                     assertArgument(false, `ambiguous function description (i.e. matches ${matchStr})`, "key", key);
                 }
                 return matching[0];
@@ -10042,7 +10622,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             names.sort((a, b) => a.localeCompare(b));
             for (let i = 0; i < names.length; i++) {
                 const name = names[i];
-                callback((this.#functions.get(name)), i);
+                callback(this.#functions.get(name), i);
             }
         }
         // Find an event definition by any means necessary (unless it is ambiguous)
@@ -10092,7 +10672,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                     return null;
                 }
                 if (matching.length > 1 && forceUnique) {
-                    const matchStr = matching.map((m) => JSON.stringify(m.format())).join(", ");
+                    const matchStr = matching
+                        .map((m) => JSON.stringify(m.format()))
+                        .join(", ");
                     assertArgument(false, `ambiguous event description (i.e. matches ${matchStr})`, "key", key);
                 }
                 return matching[0];
@@ -10144,7 +10726,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             names.sort((a, b) => a.localeCompare(b));
             for (let i = 0; i < names.length; i++) {
                 const name = names[i];
-                callback((this.#events.get(name)), i);
+                callback(this.#events.get(name), i);
             }
         }
         /**
@@ -10188,7 +10770,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                     return null;
                 }
                 else if (matching.length > 1) {
-                    const matchStr = matching.map((m) => JSON.stringify(m.format())).join(", ");
+                    const matchStr = matching
+                        .map((m) => JSON.stringify(m.format()))
+                        .join(", ");
                     assertArgument(false, `ambiguous error description (i.e. ${matchStr})`, "name", key);
                 }
                 return matching[0];
@@ -10215,37 +10799,37 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             names.sort((a, b) => a.localeCompare(b));
             for (let i = 0; i < names.length; i++) {
                 const name = names[i];
-                callback((this.#errors.get(name)), i);
+                callback(this.#errors.get(name), i);
             }
         }
         // Get the 4-byte selector used by Solidity to identify a function
         /*
-    getSelector(fragment: ErrorFragment | FunctionFragment): string {
-        if (typeof(fragment) === "string") {
-            const matches: Array<Fragment> = [ ];
-
-            try { matches.push(this.getFunction(fragment)); } catch (error) { }
-            try { matches.push(this.getError(<string>fragment)); } catch (_) { }
-
-            if (matches.length === 0) {
-                logger.throwArgumentError("unknown fragment", "key", fragment);
-            } else if (matches.length > 1) {
-                logger.throwArgumentError("ambiguous fragment matches function and error", "key", fragment);
-            }
-
-            fragment = matches[0];
-        }
-
-        return dataSlice(id(fragment.format()), 0, 4);
-    }
-        */
+          getSelector(fragment: ErrorFragment | FunctionFragment): string {
+              if (typeof(fragment) === "string") {
+                  const matches: Array<Fragment> = [ ];
+      
+                  try { matches.push(this.getFunction(fragment)); } catch (error) { }
+                  try { matches.push(this.getError(<string>fragment)); } catch (_) { }
+      
+                  if (matches.length === 0) {
+                      logger.throwArgumentError("unknown fragment", "key", fragment);
+                  } else if (matches.length > 1) {
+                      logger.throwArgumentError("ambiguous fragment matches function and error", "key", fragment);
+                  }
+      
+                  fragment = matches[0];
+              }
+      
+              return dataSlice(id(fragment.format()), 0, 4);
+          }
+              */
         // Get the 32-byte topic hash used by Solidity to identify an event
         /*
-        getEventTopic(fragment: EventFragment): string {
-            //if (typeof(fragment) === "string") { fragment = this.getEvent(eventFragment); }
-            return id(fragment.format());
-        }
-        */
+          getEventTopic(fragment: EventFragment): string {
+              //if (typeof(fragment) === "string") { fragment = this.getEvent(eventFragment); }
+              return id(fragment.format());
+          }
+          */
         _decodeParams(params, data) {
             return this.#abiCoder.decode(params, data);
         }
@@ -10269,7 +10853,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  corresponding error.
          */
         decodeErrorResult(fragment, data) {
-            if (typeof (fragment) === "string") {
+            if (typeof fragment === "string") {
                 const f = this.getError(fragment);
                 assertArgument(f, "unknown error", "fragment", fragment);
                 fragment = f;
@@ -10286,14 +10870,14 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  a result from a Contract.
          */
         encodeErrorResult(fragment, values) {
-            if (typeof (fragment) === "string") {
+            if (typeof fragment === "string") {
                 const f = this.getError(fragment);
                 assertArgument(f, "unknown error", "fragment", fragment);
                 fragment = f;
             }
             return concat([
                 fragment.selector,
-                this._encodeParams(fragment.inputs, values || [])
+                this._encodeParams(fragment.inputs, values || []),
             ]);
         }
         /**
@@ -10305,7 +10889,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  instead, which will automatically detect the fragment.
          */
         decodeFunctionData(fragment, data) {
-            if (typeof (fragment) === "string") {
+            if (typeof fragment === "string") {
                 const f = this.getFunction(fragment);
                 assertArgument(f, "unknown function", "fragment", fragment);
                 fragment = f;
@@ -10319,14 +10903,14 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  the %%values%%.
          */
         encodeFunctionData(fragment, values) {
-            if (typeof (fragment) === "string") {
+            if (typeof fragment === "string") {
                 const f = this.getFunction(fragment);
                 assertArgument(f, "unknown function", "fragment", fragment);
                 fragment = f;
             }
             return concat([
                 fragment.selector,
-                this._encodeParams(fragment.inputs, values || [])
+                this._encodeParams(fragment.inputs, values || []),
             ]);
         }
         /**
@@ -10339,14 +10923,14 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  corresponding error.
          */
         decodeFunctionResult(fragment, data) {
-            if (typeof (fragment) === "string") {
+            if (typeof fragment === "string") {
                 const f = this.getFunction(fragment);
                 assertArgument(f, "unknown function", "fragment", fragment);
                 fragment = f;
             }
             let message = "invalid length for result data";
             const bytes = getBytesCopy(data);
-            if ((bytes.length % 32) === 0) {
+            if (bytes.length % 32 === 0) {
                 try {
                     return this.#abiCoder.decode(fragment.outputs, bytes);
                 }
@@ -10357,7 +10941,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             // Call returned data with no error, but the data is junk
             assert(false, message, "BAD_DATA", {
                 value: hexlify(bytes),
-                info: { method: fragment.name, signature: fragment.format() }
+                info: { method: fragment.name, signature: fragment.format() },
             });
         }
         makeError(_data, tx) {
@@ -10372,7 +10956,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                     try {
                         const args = this.#abiCoder.decode(ef.inputs, data.slice(4));
                         error.revert = {
-                            name: ef.name, signature: ef.format(), args
+                            name: ef.name,
+                            signature: ef.format(),
+                            args,
                         };
                         error.reason = error.revert.signature;
                         error.message = `execution reverted: ${error.reason}`;
@@ -10388,7 +10974,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 error.invocation = {
                     method: parsed.name,
                     signature: parsed.signature,
-                    args: parsed.args
+                    args: parsed.args,
                 };
             }
             return error;
@@ -10402,7 +10988,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  a result from a Contract.
          */
         encodeFunctionResult(fragment, values) {
-            if (typeof (fragment) === "string") {
+            if (typeof fragment === "string") {
                 const f = this.getFunction(fragment);
                 assertArgument(f, "unknown function", "fragment", fragment);
                 fragment = f;
@@ -10410,37 +10996,37 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             return hexlify(this.#abiCoder.encode(fragment.outputs, values || []));
         }
         /*
-            spelunk(inputs: Array<ParamType>, values: ReadonlyArray<any>, processfunc: (type: string, value: any) => Promise<any>): Promise<Array<any>> {
-                const promises: Array<Promise<>> = [ ];
-                const process = function(type: ParamType, value: any): any {
-                    if (type.baseType === "array") {
-                        return descend(type.child
-                    }
-                    if (type. === "address") {
-                    }
-                };
-        
-                const descend = function (inputs: Array<ParamType>, values: ReadonlyArray<any>) {
-                    if (inputs.length !== values.length) { throw new Error("length mismatch"); }
-                };
-        
-                const result: Array<any> = [ ];
-                values.forEach((value, index) => {
-                    if (value == null) {
-                        topics.push(null);
-                    } else if (param.baseType === "array" || param.baseType === "tuple") {
-                        logger.throwArgumentError("filtering with tuples or arrays not supported", ("contract." + param.name), value);
-                    } else if (Array.isArray(value)) {
-                        topics.push(value.map((value) => encodeTopic(param, value)));
-                    } else {
-                        topics.push(encodeTopic(param, value));
-                    }
-                });
-            }
-        */
+          spelunk(inputs: Array<ParamType>, values: ReadonlyArray<any>, processfunc: (type: string, value: any) => Promise<any>): Promise<Array<any>> {
+              const promises: Array<Promise<>> = [ ];
+              const process = function(type: ParamType, value: any): any {
+                  if (type.baseType === "array") {
+                      return descend(type.child
+                  }
+                  if (type. === "address") {
+                  }
+              };
+      
+              const descend = function (inputs: Array<ParamType>, values: ReadonlyArray<any>) {
+                  if (inputs.length !== values.length) { throw new Error("length mismatch"); }
+              };
+      
+              const result: Array<any> = [ ];
+              values.forEach((value, index) => {
+                  if (value == null) {
+                      topics.push(null);
+                  } else if (param.baseType === "array" || param.baseType === "tuple") {
+                      logger.throwArgumentError("filtering with tuples or arrays not supported", ("contract." + param.name), value);
+                  } else if (Array.isArray(value)) {
+                      topics.push(value.map((value) => encodeTopic(param, value)));
+                  } else {
+                      topics.push(encodeTopic(param, value));
+                  }
+              });
+          }
+      */
         // Create the filter for the event with search criteria (e.g. for xcb_filterLog)
         encodeFilterTopics(fragment, values) {
-            if (typeof (fragment) === "string") {
+            if (typeof fragment === "string") {
                 const f = this.getEvent(fragment);
                 assertArgument(f, "unknown event", "eventFragment", fragment);
                 fragment = f;
@@ -10458,8 +11044,8 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 else if (param.type === "bytes") {
                     return sha256(hexlify(value));
                 }
-                if (param.type === "bool" && typeof (value) === "boolean") {
-                    value = (value ? "0x01" : "0x00");
+                if (param.type === "bool" && typeof value === "boolean") {
+                    value = value ? "0x01" : "0x00";
                 }
                 if (param.type.match(/^u?int/)) {
                     value = toBeHex(value);
@@ -10474,14 +11060,14 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             values.forEach((value, index) => {
                 const param = fragment.inputs[index];
                 if (!param.indexed) {
-                    assertArgument(value == null, "cannot filter non-indexed parameters; must be null", ("contract." + param.name), value);
+                    assertArgument(value == null, "cannot filter non-indexed parameters; must be null", "contract." + param.name, value);
                     return;
                 }
                 if (value == null) {
                     topics.push(null);
                 }
                 else if (param.baseType === "array" || param.baseType === "tuple") {
-                    assertArgument(false, "filtering with tuples or arrays not supported", ("contract." + param.name), value);
+                    assertArgument(false, "filtering with tuples or arrays not supported", "contract." + param.name, value);
                 }
                 else if (Array.isArray(value)) {
                     topics.push(value.map((value) => encodeTopic(param, value)));
@@ -10497,7 +11083,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             return topics;
         }
         encodeEventLog(fragment, values) {
-            if (typeof (fragment) === "string") {
+            if (typeof fragment === "string") {
                 const f = this.getEvent(fragment);
                 assertArgument(f, "unknown event", "eventFragment", fragment);
                 fragment = f;
@@ -10533,12 +11119,12 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             });
             return {
                 data: this.#abiCoder.encode(dataTypes, dataValues),
-                topics: topics
+                topics: topics,
             };
         }
         // Decode a filter for the event and the search criteria
         decodeEventLog(fragment, data, topics) {
-            if (typeof (fragment) === "string") {
+            if (typeof fragment === "string") {
                 const f = this.getEvent(fragment);
                 assertArgument(f, "unknown event", "eventFragment", fragment);
                 fragment = f;
@@ -10553,7 +11139,10 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             const dynamic = [];
             fragment.inputs.forEach((param, index) => {
                 if (param.indexed) {
-                    if (param.type === "string" || param.type === "bytes" || param.baseType === "tuple" || param.baseType === "array") {
+                    if (param.type === "string" ||
+                        param.type === "bytes" ||
+                        param.baseType === "tuple" ||
+                        param.baseType === "array") {
                         indexed.push(ParamType.from({ type: "bytes32", name: param.name }));
                         dynamic.push(true);
                     }
@@ -10567,7 +11156,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                     dynamic.push(false);
                 }
             });
-            const resultIndexed = (topics != null) ? this.#abiCoder.decode(indexed, concat(topics)) : null;
+            const resultIndexed = topics != null ? this.#abiCoder.decode(indexed, concat(topics)) : null;
             const resultNonIndexed = this.#abiCoder.decode(nonIndexed, data, true);
             //const result: (Array<any> & { [ key: string ]: any }) = [ ];
             const values = [];
@@ -10612,7 +11201,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          */
         parseTransaction(tx) {
             const data = getBytes(tx.data, "tx.data");
-            const value = getBigInt((tx.value != null) ? tx.value : 0, "tx.value");
+            const value = getBigInt(tx.value != null ? tx.value : 0, "tx.value");
             const fragment = this.getFunction(hexlify(data.slice(0, 4)));
             if (!fragment) {
                 return null;
@@ -10666,11 +11255,11 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 return value;
             }
             // JSON
-            if (typeof (value) === "string") {
+            if (typeof value === "string") {
                 return new Interface(JSON.parse(value));
             }
             // Maybe an interface from an older version, or from a symlinked copy
-            if (typeof (value.format) === "function") {
+            if (typeof value.format === "function") {
                 return new Interface(value.format("json"));
             }
             // Array of fragments
@@ -10834,7 +11423,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          */
         constructor(block, provider) {
             this.#transactions = block.transactions.map((tx) => {
-                if (typeof (tx) !== "string") {
+                if (typeof tx !== "string") {
                     return new TransactionResponse(tx, provider);
                 }
                 return tx;
@@ -10851,7 +11440,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 energyUsed: block.energyUsed,
                 miner: block.miner,
                 extraData: block.extraData,
-                baseFeePerEnergy: getValue(block.baseFeePerEnergy)
+                baseFeePerEnergy: getValue(block.baseFeePerEnergy),
             });
         }
         /**
@@ -10859,7 +11448,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          */
         get transactions() {
             return this.#transactions.map((tx) => {
-                if (typeof (tx) === "string") {
+                if (typeof tx === "string") {
                     return tx;
                 }
                 return tx.hash;
@@ -10877,8 +11466,8 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 return [];
             }
             // Make sure we prefetched the transactions
-            assert(typeof (txs[0]) === "object", "transactions were not prefetched with block request", "UNSUPPORTED_OPERATION", {
-                operation: "transactionResponses()"
+            assert(typeof txs[0] === "object", "transactions were not prefetched with block request", "UNSUPPORTED_OPERATION", {
+                operation: "transactionResponses()",
             });
             return txs;
         }
@@ -10886,7 +11475,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  Returns a JSON-friendly value.
          */
         toJSON() {
-            const { baseFeePerEnergy, difficulty, extraData, energyLimit, energyUsed, hash, miner, nonce, number, parentHash, timestamp, transactions } = this;
+            const { baseFeePerEnergy, difficulty, extraData, energyLimit, energyUsed, hash, miner, nonce, number, parentHash, timestamp, transactions, } = this;
             return {
                 _type: "Block",
                 baseFeePerEnergy: toJson(baseFeePerEnergy),
@@ -10894,7 +11483,12 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 extraData,
                 energyLimit: toJson(energyLimit),
                 energyUsed: toJson(energyUsed),
-                hash, miner, nonce, number, parentHash, timestamp,
+                hash,
+                miner,
+                nonce,
+                number,
+                parentHash,
+                timestamp,
                 transactions,
             };
         }
@@ -10905,17 +11499,20 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 next: () => {
                     if (index < this.length) {
                         return {
-                            value: txs[index++], done: false
+                            value: txs[index++],
+                            done: false,
                         };
                     }
                     return { value: undefined, done: true };
-                }
+                },
             };
         }
         /**
          *  The number of transactions in this block.
          */
-        get length() { return this.#transactions.length; }
+        get length() {
+            return this.#transactions.length;
+        }
         /**
          *  The [[link-js-date]] this block was included at.
          */
@@ -10931,13 +11528,13 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         async getTransaction(indexOrHash) {
             // Find the internal value by its index or hash
             let tx = undefined;
-            if (typeof (indexOrHash) === "number") {
+            if (typeof indexOrHash === "number") {
                 tx = this.#transactions[indexOrHash];
             }
             else {
                 const hash = indexOrHash.toLowerCase();
                 for (const v of this.#transactions) {
-                    if (typeof (v) === "string") {
+                    if (typeof v === "string") {
                         if (v !== hash) {
                             continue;
                         }
@@ -10956,8 +11553,8 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             if (tx == null) {
                 throw new Error("no such tx");
             }
-            if (typeof (tx) === "string") {
-                return (await this.provider.getTransaction(tx));
+            if (typeof tx === "string") {
+                return await this.provider.getTransaction(tx);
             }
             else {
                 return tx;
@@ -10965,7 +11562,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         }
         getPrefetchedTransaction(indexOrHash) {
             const txs = this.prefetchedTransactions;
-            if (typeof (indexOrHash) === "number") {
+            if (typeof indexOrHash === "number") {
                 return txs[indexOrHash];
             }
             indexOrHash = indexOrHash.toLowerCase();
@@ -10982,7 +11579,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  If true, the block has been typed-gaurded that all mined
          *  properties are non-null.
          */
-        isMined() { return !!this.hash; }
+        isMined() {
+            return !!this.hash;
+        }
         /**
          *
          */
@@ -11025,11 +11624,18 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             });
         }
         toJSON() {
-            const { address, blockHash, blockNumber, data, index, removed, topics, transactionHash, transactionIndex } = this;
+            const { address, blockHash, blockNumber, data, index, removed, topics, transactionHash, transactionIndex, } = this;
             return {
                 _type: "log",
-                address, blockHash, blockNumber, data, index,
-                removed, topics, transactionHash, transactionIndex
+                address,
+                blockHash,
+                blockNumber,
+                data,
+                index,
+                removed,
+                topics,
+                transactionHash,
+                transactionIndex,
             };
         }
         async getBlock() {
@@ -11103,26 +11709,37 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 energyPrice: (tx.effectiveEnergyPrice || tx.energyPrice),
                 //byzantium: tx.byzantium,
                 status: tx.status,
-                root: tx.root
+                root: tx.root,
             });
         }
-        get logs() { return this.#logs; }
+        get logs() {
+            return this.#logs;
+        }
         toJSON() {
             const { to, from, contractAddress, hash, index, blockHash, blockNumber, logsBloom, logs, //byzantium,
-            status, root } = this;
+            status, root, } = this;
             return {
                 _type: "TransactionReceipt",
-                blockHash, blockNumber,
+                blockHash,
+                blockNumber,
                 //byzantium,
                 contractAddress,
                 cumulativeEnergyUsed: toJson(this.cumulativeEnergyUsed),
                 from,
                 energyPrice: toJson(this.energyPrice),
                 energyUsed: toJson(this.energyUsed),
-                hash, index, logs, logsBloom, root, status, to
+                hash,
+                index,
+                logs,
+                logsBloom,
+                root,
+                status,
+                to,
             };
         }
-        get length() { return this.logs.length; }
+        get length() {
+            return this.logs.length;
+        }
         [Symbol.iterator]() {
             let index = 0;
             return {
@@ -11131,7 +11748,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                         return { value: this.logs[index++], done: false };
                     }
                     return { value: undefined, done: true };
-                }
+                },
             };
         }
         get fee() {
@@ -11152,7 +11769,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             return tx;
         }
         async getResult() {
-            return (await this.provider.getTransactionResult(this.hash));
+            return await this.provider.getTransactionResult(this.hash);
         }
         async confirmations() {
             return (await this.provider.getBlockNumber()) - this.blockNumber + 1;
@@ -11273,8 +11890,8 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          */
         constructor(tx, provider) {
             this.provider = provider;
-            this.blockNumber = (tx.blockNumber != null) ? tx.blockNumber : null;
-            this.blockHash = (tx.blockHash != null) ? tx.blockHash : null;
+            this.blockNumber = tx.blockNumber != null ? tx.blockNumber : null;
+            this.blockHash = tx.blockHash != null ? tx.blockHash : null;
             this.hash = tx.hash;
             this.index = tx.index;
             this.from = tx.from;
@@ -11296,11 +11913,16 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             return {
                 _type: "TransactionReceipt",
                 networkId: toJson(this.networkId),
-                data, from,
+                data,
+                from,
                 energyLimit: toJson(this.energyLimit),
                 energyPrice: toJson(this.energyPrice),
                 hash,
-                nonce, signature, to, index, type,
+                nonce,
+                signature,
+                to,
+                index,
+                type,
                 value: toJson(this.value),
             };
         }
@@ -11344,11 +11966,11 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  wait until enough confirmations have completed.
          */
         async wait(_confirms, _timeout) {
-            const confirms = (_confirms == null) ? 1 : _confirms;
-            const timeout = (_timeout == null) ? 0 : _timeout;
+            const confirms = _confirms == null ? 1 : _confirms;
+            const timeout = _timeout == null ? 0 : _timeout;
             let startBlock = this.#startBlock;
             let nextScan = -1;
-            let stopScanning = (startBlock === -1) ? true : false;
+            let stopScanning = startBlock === -1 ? true : false;
             const checkReplacement = async () => {
                 // Get the current transaction count for this sender
                 if (stopScanning) {
@@ -11356,7 +11978,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 }
                 const { blockNumber, nonce } = await resolveProperties({
                     blockNumber: this.provider.getBlockNumber(),
-                    nonce: this.provider.getTransactionCount(this.from)
+                    nonce: this.provider.getTransactionCount(this.from),
                 });
                 // No transaction or our nonce has not been mined yet; but we
                 // can start scanning later when we do start
@@ -11410,23 +12032,27 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                                 return;
                             }
                             // We will retry this on the next block (this case could be optimized)
-                            if ((blockNumber - receipt.blockNumber + 1) < confirms) {
+                            if (blockNumber - receipt.blockNumber + 1 < confirms) {
                                 return;
                             }
                             // The reason we were replaced
                             let reason = "replaced";
-                            if (tx.data === this.data && tx.to === this.to && tx.value === this.value) {
+                            if (tx.data === this.data &&
+                                tx.to === this.to &&
+                                tx.value === this.value) {
                                 reason = "repriced";
                             }
-                            else if (tx.data === "0x" && tx.from === tx.to && tx.value === BN_0$2) {
+                            else if (tx.data === "0x" &&
+                                tx.from === tx.to &&
+                                tx.value === BN_0$2) {
                                 reason = "cancelled";
                             }
                             assert(false, "transaction was replaced", "TRANSACTION_REPLACED", {
-                                cancelled: (reason === "replaced" || reason === "cancelled"),
+                                cancelled: reason === "replaced" || reason === "cancelled",
                                 reason,
                                 replacement: tx.replaceableTransaction(startBlock),
                                 hash: tx.hash,
-                                receipt
+                                receipt,
                             });
                         }
                     }
@@ -11451,16 +12077,22 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             const waiter = new Promise((resolve, reject) => {
                 // List of things to cancel when we have a result (one way or the other)
                 const cancellers = [];
-                const cancel = () => { cancellers.forEach((c) => c()); };
+                const cancel = () => {
+                    cancellers.forEach((c) => c());
+                };
                 // On cancel, stop scanning for replacements
-                cancellers.push(() => { stopScanning = true; });
+                cancellers.push(() => {
+                    stopScanning = true;
+                });
                 // Set up any timeout requested
                 if (timeout > 0) {
                     const timer = setTimeout(() => {
                         cancel();
                         reject(makeError("wait for transaction timeout", "TIMEOUT"));
                     }, timeout);
-                    cancellers.push(() => { clearTimeout(timer); });
+                    cancellers.push(() => {
+                        clearTimeout(timer);
+                    });
                 }
                 const txListener = async (receipt) => {
                     // Done; return it!
@@ -11469,7 +12101,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                         resolve(receipt);
                     }
                 };
-                cancellers.push(() => { this.provider.off(this.hash, txListener); });
+                cancellers.push(() => {
+                    this.provider.off(this.hash, txListener);
+                });
                 this.provider.on(this.hash, txListener);
                 // We support replacement detection; start checking
                 if (startBlock >= 0) {
@@ -11491,7 +12125,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                             this.provider.once("block", replaceListener);
                         }
                     };
-                    cancellers.push(() => { this.provider.off("block", replaceListener); });
+                    cancellers.push(() => {
+                        this.provider.off("block", replaceListener);
+                    });
                     this.provider.once("block", replaceListener);
                 }
             });
@@ -11509,7 +12145,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  unmined transactions.
          */
         isMined() {
-            return (this.blockHash != null);
+            return this.blockHash != null;
         }
         /**
          *  Returns true if the transaction is a legacy (i.e. ``type == 0``)
@@ -11519,7 +12155,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  the ``null``-ness for hardfork-specific properties set correctly.
          */
         isLegacy() {
-            return (this.type === 0);
+            return this.type === 0;
         }
         /**
          *  Returns a filter which can be used to listen for orphan events
@@ -11564,15 +12200,18 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         return { orphan: "drop-transaction", tx };
     }
     function createRemovedLogFilter(log) {
-        return { orphan: "drop-log", log: {
+        return {
+            orphan: "drop-log",
+            log: {
                 transactionHash: log.transactionHash,
                 blockHash: log.blockHash,
                 blockNumber: log.blockNumber,
                 address: log.address,
                 data: log.data,
                 topics: Object.freeze(log.topics.slice()),
-                index: log.index
-            } };
+                index: log.index,
+            },
+        };
     }
 
     class EventLog extends Log {
@@ -11584,8 +12223,12 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             const args = iface.decodeEventLog(fragment, log.data, log.topics);
             defineProperties(this, { args, fragment, interface: iface });
         }
-        get eventName() { return this.fragment.name; }
-        get eventSignature() { return this.fragment.format(); }
+        get eventName() {
+            return this.fragment.name;
+        }
+        get eventSignature() {
+            return this.fragment.format();
+        }
     }
     class ContractTransactionReceipt extends TransactionReceipt {
         #iface;
@@ -11595,7 +12238,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         }
         get logs() {
             return super.logs.map((log) => {
-                const fragment = log.topics.length ? this.#iface.getEvent(log.topics[0]) : null;
+                const fragment = log.topics.length
+                    ? this.#iface.getEvent(log.topics[0])
+                    : null;
                 if (fragment) {
                     return new EventLog(log, this.#iface, fragment);
                 }
@@ -11651,16 +12296,16 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
 
     const BN_0$1 = BigInt(0);
     function canCall(value) {
-        return (value && typeof (value.call) === "function");
+        return value && typeof value.call === "function";
     }
     function canEstimate(value) {
-        return (value && typeof (value.estimateEnergy) === "function");
+        return value && typeof value.estimateEnergy === "function";
     }
     function canResolve(value) {
-        return (value && typeof (value.resolveName) === "function");
+        return value && typeof value.resolveName === "function";
     }
     function canSend(value) {
-        return (value && typeof (value.sendTransaction) === "function");
+        return value && typeof value.sendTransaction === "function";
     }
     class PreparedTopicFilter {
         #filter;
@@ -11701,10 +12346,10 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         if (value == null) {
             return null;
         }
-        if (typeof (value[feature]) === "function") {
+        if (typeof value[feature] === "function") {
             return value;
         }
-        if (value.provider && typeof (value.provider[feature]) === "function") {
+        if (value.provider && typeof value.provider[feature] === "function") {
             return value.provider;
         }
         return null;
@@ -11792,7 +12437,8 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             _contract: contract,
             estimateEnergy,
             populateTransaction,
-            send, staticCall
+            send,
+            staticCall,
         });
         return method;
     }
@@ -11800,7 +12446,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         const getFragment = function (...args) {
             const fragment = contract.interface.getFunction(key, args);
             assert(fragment, "no matching fragment in getFragment", "UNSUPPORTED_OPERATION", {
-                operation: "fragment"
+                operation: "fragment",
             });
             return fragment;
         };
@@ -11817,7 +12463,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             const resolvedArgs = await resolveArgs(contract.runner, fragment.inputs, args);
             return Object.assign({}, overrides, await resolveProperties({
                 to: contract.getAddress(),
-                data: contract.interface.encodeFunctionData(fragment, resolvedArgs)
+                data: contract.interface.encodeFunctionData(fragment, resolvedArgs),
             }));
         };
         const staticCall = async function (...args) {
@@ -11867,11 +12513,14 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         };
         defineProperties(method, {
             name: contract.interface.getFunctionName(key),
-            _contract: contract, _key: key,
+            _contract: contract,
+            _key: key,
             getFragment,
             estimateEnergy,
             populateTransaction,
-            send, staticCall, staticCallResult,
+            send,
+            staticCall,
+            staticCallResult,
         });
         // Only works on non-ambiguous keys (refined fragment is always non-ambiguous)
         Object.defineProperty(method, "fragment", {
@@ -11880,10 +12529,10 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             get: () => {
                 const fragment = contract.interface.getFunction(key);
                 assert(fragment, "no matching fragment in defineProperty", "UNSUPPORTED_OPERATION", {
-                    operation: "fragment"
+                    operation: "fragment",
                 });
                 return fragment;
-            }
+            },
         });
         return method;
     }
@@ -11891,7 +12540,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         const getFragment = function (...args) {
             const fragment = contract.interface.getEvent(key, args);
             assert(fragment, "no matching fragment in", "UNSUPPORTED_OPERATION", {
-                operation: "fragment"
+                operation: "fragment",
             });
             return fragment;
         };
@@ -11900,8 +12549,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         };
         defineProperties(method, {
             name: contract.interface.getEventName(key),
-            _contract: contract, _key: key,
-            getFragment
+            _contract: contract,
+            _key: key,
+            getFragment,
         });
         // Only works on non-ambiguous keys (refined fragment is always non-ambiguous)
         Object.defineProperty(method, "fragment", {
@@ -11910,10 +12560,10 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             get: () => {
                 const fragment = contract.interface.getEvent(key);
                 assert(fragment, "no matching fragment", "UNSUPPORTED_OPERATION", {
-                    operation: "fragment"
+                    operation: "fragment",
                 });
                 return fragment;
-            }
+            },
         });
         return method;
     }
@@ -11930,8 +12580,11 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         return internalValues.get(contract[internal]);
     }
     function isDeferred(value) {
-        return (value && typeof (value) === "object" && ("getTopicFilter" in value) &&
-            (typeof (value.getTopicFilter) === "function") && value.fragment);
+        return (value &&
+            typeof value === "object" &&
+            "getTopicFilter" in value &&
+            typeof value.getTopicFilter === "function" &&
+            value.fragment);
     }
     async function getSubInfo(contract, event) {
         let topics;
@@ -11961,7 +12614,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         else if (event === "*") {
             topics = [null];
         }
-        else if (typeof (event) === "string") {
+        else if (typeof event === "string") {
             if (isHexString(event, 32)) {
                 // Topic Hash
                 topics = [event];
@@ -12000,7 +12653,8 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             }
             return t.toLowerCase();
         });
-        const tag = topics.map((t) => {
+        const tag = topics
+            .map((t) => {
             if (t == null) {
                 return "null";
             }
@@ -12008,7 +12662,8 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 return t.join("|");
             }
             return t;
-        }).join("&");
+        })
+            .join("&");
         return { fragment, tag, topics };
     }
     async function hasSub(contract, event) {
@@ -12023,7 +12678,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         const { addr, subs } = getInternal(contract);
         let sub = subs.get(tag);
         if (!sub) {
-            const address = (addr ? addr : contract);
+            const address = addr ? addr : contract;
             const filter = { address, topics };
             const listener = (log) => {
                 let foundFragment = fragment;
@@ -12036,7 +12691,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 // If fragment is null, we do not deconstruct the args to emit
                 if (foundFragment) {
                     const _foundFragment = foundFragment;
-                    const args = fragment ? contract.interface.decodeEventLog(fragment, log.data, log.topics) : [];
+                    const args = fragment
+                        ? contract.interface.decodeEventLog(fragment, log.data, log.topics)
+                        : [];
                     emit(contract, event, args, (listener) => {
                         return new ContractEventPayload(contract, listener, event, _foundFragment, log);
                     });
@@ -12090,7 +12747,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             catch (error) { }
             return !once;
         });
-        return (count > 0);
+        return count > 0;
     }
     async function emit(contract, event, args, payloadFunc) {
         try {
@@ -12127,7 +12784,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             }
             let subs = new Map();
             // Resolve the target as the address
-            if (typeof (target) === "string") {
+            if (typeof target === "string") {
                 if (isHexString(target)) {
                     addr = target;
                     addrPromise = Promise.resolve(target);
@@ -12136,7 +12793,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                     const resolver = getRunner(runner, "resolveName");
                     if (!canResolve(resolver)) {
                         throw makeError("contract runner does not support name resolution", "UNSUPPORTED_OPERATION", {
-                            operation: "resolveName"
+                            operation: "resolveName",
                         });
                     }
                     addrPromise = resolver.resolveName(target).then((addr) => {
@@ -12178,12 +12835,12 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                     if (passProperties.indexOf(prop) >= 0) {
                         return Reflect.has(target, prop);
                     }
-                    return Reflect.has(target, prop) || this.interface.hasEvent(String(prop));
-                }
+                    return (Reflect.has(target, prop) || this.interface.hasEvent(String(prop)));
+                },
             });
             defineProperties(this, { filters });
             defineProperties(this, {
-                fallback: ((iface.receive || iface.fallback) ? (buildWrappedFallback(this)) : null)
+                fallback: iface.receive || iface.fallback ? buildWrappedFallback(this) : null,
             });
             // Return a Proxy that will respond to functions
             return new Proxy(this, {
@@ -12203,13 +12860,15 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                         return Reflect.has(target, prop);
                     }
                     return target.interface.hasFunction(String(prop));
-                }
+                },
             });
         }
         connect(runner) {
             return new BaseContract(this.target, this.interface, runner);
         }
-        async getAddress() { return await getInternal(this).addrPromise; }
+        async getAddress() {
+            return await getInternal(this).addrPromise;
+        }
         async getDeployedCode() {
             const provider = getProvider(this.runner);
             assert(provider, "runner does not support .provider", "UNSUPPORTED_OPERATION", { operation: "getDeployedCode" });
@@ -12254,14 +12913,14 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             return getInternal(this).deployTx;
         }
         getFunction(key) {
-            if (typeof (key) !== "string") {
+            if (typeof key !== "string") {
                 key = key.format();
             }
             const func = buildWrappedMethod(this, key);
             return func;
         }
         getEvent(key) {
-            if (typeof (key) !== "string") {
+            if (typeof key !== "string") {
                 key = key.format();
             }
             return buildWrappedEvent(this, key);
@@ -12278,7 +12937,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 toBlock = "latest";
             }
             const { addr, addrPromise } = getInternal(this);
-            const address = (addr ? addr : (await addrPromise));
+            const address = addr ? addr : await addrPromise;
             const { fragment, topics } = await getSubInfo(this, event);
             const filter = { address, topics, fromBlock, toBlock };
             const provider = getProvider(this.runner);
@@ -12350,7 +13009,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 return this;
             }
             if (listener) {
-                const index = sub.listeners.map(({ listener }) => listener).indexOf(listener);
+                const index = sub.listeners
+                    .map(({ listener }) => listener)
+                    .indexOf(listener);
                 if (index >= 0) {
                     sub.listeners.splice(index, 1);
                 }
@@ -12395,7 +13056,6 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             }
             return CustomContract;
         }
-        ;
         static from(target, abi, runner) {
             if (runner == null) {
                 runner = null;
@@ -12425,13 +13085,13 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             if (bytecode instanceof Uint8Array) {
                 bytecode = hexlify(getBytes(bytecode));
             }
-            else if (typeof (bytecode) === "string") {
+            else if (typeof bytecode === "string") {
                 bytecode = bytecode;
             }
             else if (isBytes(bytecode)) {
                 bytecode = hexlify(bytecode);
             }
-            else if (bytecode && typeof (bytecode.object) === "string") {
+            else if (bytecode && typeof bytecode.object === "string") {
                 // Allow the bytecode object from the Solidity compiler
                 bytecode = bytecode.object;
             }
@@ -12441,7 +13101,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             }
             defineProperties(this, {
                 // @ts-ignore
-                bytecode, interface: iface, runner: (runner || null)
+                bytecode,
+                interface: iface,
+                runner: runner || null,
             });
         }
         async getDeployTransaction(...args) {
@@ -12454,13 +13116,16 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 throw new Error("incorrect number of arguments to constructor");
             }
             const resolvedArgs = await resolveArgs(this.runner, fragment.inputs, args);
-            const data = concat([this.bytecode, this.interface.encodeDeploy(resolvedArgs)]);
+            const data = concat([
+                this.bytecode,
+                this.interface.encodeDeploy(resolvedArgs),
+            ]);
             return Object.assign({}, overrides, { data });
         }
         async deploy(...args) {
             const tx = await this.getDeployTransaction(...args);
-            assert(this.runner && typeof (this.runner.sendTransaction) === "function", "factory runner does not support sending transactions", "UNSUPPORTED_OPERATION", {
-                operation: "sendTransaction"
+            assert(this.runner && typeof this.runner.sendTransaction === "function", "factory runner does not support sending transactions", "UNSUPPORTED_OPERATION", {
+                operation: "sendTransaction",
             });
             const sentTx = await this.runner.sendTransaction(tx);
             const address = getCreateAddress(sentTx);
@@ -12471,7 +13136,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         }
         static fromSolidity(output, runner) {
             assertArgument(output != null, "bad compiler output", "output", output);
-            if (typeof (output) === "string") {
+            if (typeof output === "string") {
                 output = JSON.parse(output);
             }
             const abi = output.abi;
@@ -12491,26 +13156,26 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
      */
     const BN_0 = BigInt(0);
     function allowNull(format, nullValue) {
-        return (function (value) {
+        return function (value) {
             if (value == null) {
                 return nullValue;
             }
             return format(value);
-        });
+        };
     }
     function arrayOf(format) {
-        return ((array) => {
+        return (array) => {
             if (!Array.isArray(array)) {
                 throw new Error("not an array");
             }
             return array.map((i) => format(i));
-        });
+        };
     }
     // Requires an object which matches a fleet of other formatters
     // Any FormatFunc may return `undefined` to have the value omitted
     // from the result object. Calls preserve `this`.
     function object(format, altNames) {
-        return ((value) => {
+        return (value) => {
             const result = {};
             for (const key in format) {
                 let srcKey = key;
@@ -12529,12 +13194,12 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                     }
                 }
                 catch (error) {
-                    const message = (error instanceof Error) ? error.message : "not-an-error";
+                    const message = error instanceof Error ? error.message : "not-an-error";
                     assert(false, `invalid value for value.${key} (${message})`, "BAD_DATA", { value });
                 }
             }
             return result;
-        });
+        };
     }
     function formatBoolean(value) {
         switch (value) {
@@ -12566,7 +13231,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         transactionHash: formatHash,
         transactionIndex: getNumber,
     }, {
-        index: ["logIndex"]
+        index: ["logIndex"],
     });
     function formatLog(value) {
         return _formatLog(value);
@@ -12582,12 +13247,12 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         energyUsed: getBigInt,
         miner: allowNull(getAddress),
         extraData: formatData,
-        baseFeePerEnergy: allowNull(getBigInt)
+        baseFeePerEnergy: allowNull(getBigInt),
     });
     function formatBlock(value) {
         const result = _formatBlock(value);
         result.transactions = value.transactions.map((tx) => {
-            if (typeof (tx) === "string") {
+            if (typeof tx === "string") {
                 return tx;
             }
             return formatTransactionResponse(tx);
@@ -12604,7 +13269,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         index: getNumber,
         blockHash: formatHash,
     }, {
-        index: ["logIndex"]
+        index: ["logIndex"],
     });
     function formatReceiptLog(value) {
         return _formatReceiptLog(value);
@@ -12626,7 +13291,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         cumulativeEnergyUsed: getBigInt,
         effectiveEnergyPrice: allowNull(getBigInt),
         status: allowNull(getNumber),
-        type: allowNull(getNumber, 0)
+        type: allowNull(getNumber, 0),
     }, {
         effectiveEnergyPrice: ["energyPrice"],
         hash: ["transactionHash"],
@@ -12662,10 +13327,10 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             nonce: getNumber,
             data: formatData,
             creates: allowNull(getAddress, null),
-            networkId: allowNull(getBigInt, null)
+            networkId: allowNull(getBigInt, null),
         }, {
             data: ["input"],
-            energyLimit: ["energy"]
+            energyLimit: ["energy"],
         })(value);
         // If to and creates are empty, populate the creates from the value
         if (result.to == null && result.creates == null) {
@@ -12687,38 +13352,38 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         }
         // @TODO: check networkId
         /*
-        if (value.networkId != null) {
-            let networkId = value.networkId;
-
-            if (isHexString(networkId)) {
-                networkId = BigNumber.from(networkId).toNumber();
-            }
-
-            result.networkId = networkId;
-
-        } else {
-            let networkId = value.networkId;
-
-            // geth-etc returns networkId
-            if (networkId == null && result.v == null) {
-                networkId = value.networkId;
-            }
-
-            if (isHexString(networkId)) {
-                networkId = BigNumber.from(networkId).toNumber();
-            }
-
-            if (typeof(networkId) !== "number" && result.v != null) {
-                networkId = (result.v - 35) / 2;
-                if (networkId < 0) { networkId = 0; }
-                networkId = parseInt(networkId);
-            }
-
-            if (typeof(networkId) !== "number") { networkId = 0; }
-
-            result.networkId = networkId;
-        }
-        */
+          if (value.networkId != null) {
+              let networkId = value.networkId;
+      
+              if (isHexString(networkId)) {
+                  networkId = BigNumber.from(networkId).toNumber();
+              }
+      
+              result.networkId = networkId;
+      
+          } else {
+              let networkId = value.networkId;
+      
+              // geth-etc returns networkId
+              if (networkId == null && result.v == null) {
+                  networkId = value.networkId;
+              }
+      
+              if (isHexString(networkId)) {
+                  networkId = BigNumber.from(networkId).toNumber();
+              }
+      
+              if (typeof(networkId) !== "number" && result.v != null) {
+                  networkId = (result.v - 35) / 2;
+                  if (networkId < 0) { networkId = 0; }
+                  networkId = parseInt(networkId);
+              }
+      
+              if (typeof(networkId) !== "number") { networkId = 0; }
+      
+              result.networkId = networkId;
+          }
+          */
         // 0x0000... should actually be null
         if (result.blockHash && getBigInt(result.blockHash) === BN_0) {
             result.blockHash = null;
@@ -12747,14 +13412,14 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             if (effectiveBlock == null) {
                 effectiveBlock = 0;
             }
-            super(`org.corebc.network.plugins.EnergyCost#${(effectiveBlock || 0)}`);
+            super(`org.corebc.network.plugins.EnergyCost#${effectiveBlock || 0}`);
             const props = { effectiveBlock };
             function set(name, nullish) {
                 let value = (costs || {})[name];
                 if (value == null) {
                     value = nullish;
                 }
-                assertArgument(typeof (value) === "number", `invalud value for ${name}`, "costs", costs);
+                assertArgument(typeof value === "number", `invalud value for ${name}`, "costs", costs);
                 props[name] = value;
             }
             set("txBase", 21000);
@@ -12839,13 +13504,21 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  This is the canonical name, as networks migh have multiple
          *  names.
          */
-        get name() { return this.#name; }
-        set name(value) { this.#name = value; }
+        get name() {
+            return this.#name;
+        }
+        set name(value) {
+            this.#name = value;
+        }
         /**
          *  The network chain ID.
          */
-        get networkId() { return this.#networkId; }
-        set networkId(value) { this.#networkId = getBigInt(value, "networkId"); }
+        get networkId() {
+            return this.#networkId;
+        }
+        set networkId(value) {
+            this.#networkId = getBigInt(value, "networkId");
+        }
         /**
          *  Returns true if %%other%% matches this network. Any chain ID
          *  must match, and if no chain ID is present, the name must match.
@@ -12857,30 +13530,30 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             if (other == null) {
                 return false;
             }
-            if (typeof (other) === "string") {
+            if (typeof other === "string") {
                 try {
-                    return (this.networkId === getBigInt(other));
+                    return this.networkId === getBigInt(other);
                 }
                 catch (error) { }
-                return (this.name === other);
+                return this.name === other;
             }
-            if (typeof (other) === "number" || typeof (other) === "bigint") {
+            if (typeof other === "number" || typeof other === "bigint") {
                 try {
-                    return (this.networkId === getBigInt(other));
+                    return this.networkId === getBigInt(other);
                 }
                 catch (error) { }
                 return false;
             }
-            if (typeof (other) === "object") {
+            if (typeof other === "object") {
                 if (other.networkId != null) {
                     try {
-                        return (this.networkId === getBigInt(other.networkId));
+                        return this.networkId === getBigInt(other.networkId);
                     }
                     catch (error) { }
                     return false;
                 }
                 if (other.name != null) {
-                    return (this.name === other.name);
+                    return this.name === other.name;
                 }
                 return false;
             }
@@ -12909,14 +13582,14 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  a fragment.
          */
         getPlugin(name) {
-            return (this.#plugins.get(name)) || null;
+            return this.#plugins.get(name) || null;
         }
         /**
          *  Gets a list of all plugins that match %%name%%, with otr without
          *  a fragment.
          */
         getPlugins(basename) {
-            return (this.plugins.filter((p) => (p.name.split("#")[0] === basename)));
+            return (this.plugins.filter((p) => p.name.split("#")[0] === basename));
         }
         /**
          *  Create a copy of this Network.
@@ -12935,7 +13608,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  values.
          */
         computeIntrinsicEnergy(tx) {
-            const costs = this.getPlugin("org.corebc.plugins.network.EnergyCost") || (new EnergyCostPlugin());
+            const costs = this.getPlugin("org.corebc.plugins.network.EnergyCost") || new EnergyCostPlugin();
             let energy = costs.txBase;
             if (tx.to == null) {
                 energy += costs.txCreate;
@@ -12962,30 +13635,31 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 return Network.from("mainnet");
             }
             // Canonical name or chain ID
-            if (typeof (network) === "number") {
+            if (typeof network === "number") {
                 network = BigInt(network);
             }
-            if (typeof (network) === "string" || typeof (network) === "bigint") {
+            if (typeof network === "string" || typeof network === "bigint") {
                 const networkFunc = Networks.get(network);
                 if (networkFunc) {
                     return networkFunc();
                 }
-                if (typeof (network) === "bigint") {
+                if (typeof network === "bigint") {
                     return new Network("unknown", network);
                 }
                 assertArgument(false, "unknown network", "network", network);
             }
             // Clonable with network-like abilities
-            if (typeof (network.clone) === "function") {
+            if (typeof network.clone === "function") {
                 const clone = network.clone();
                 //if (typeof(network.name) !== "string" || typeof(network.networkId) !== "number") {
                 //}
                 return clone;
             }
             // Networkish
-            if (typeof (network) === "object") {
-                assertArgument(typeof (network.name) === "string" && typeof (network.networkId) === "number", "invalid network object name or networkId", "network", network);
-                const custom = new Network((network.name), (network.networkId));
+            if (typeof network === "object") {
+                assertArgument(typeof network.name === "string" &&
+                    typeof network.networkId === "number", "invalid network object name or networkId", "network", network);
+                const custom = new Network(network.name, network.networkId);
                 //if ((<any>network).layerOneConnection) {
                 //    custom.attachPlugin(new LayerOneConnectionPlugin((<any>network).layerOneConnection));
                 //}
@@ -12998,7 +13672,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  an instance of a Network representing that chain.
          */
         static register(nameOrnetworkId, networkFunc) {
-            if (typeof (nameOrnetworkId) === "number") {
+            if (typeof nameOrnetworkId === "number") {
                 nameOrnetworkId = BigInt(nameOrnetworkId);
             }
             const existing = Networks.get(nameOrnetworkId);
@@ -13064,8 +13738,12 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             this.#interval = 4000;
             this.#blockNumber = -2;
         }
-        get pollingInterval() { return this.#interval; }
-        set pollingInterval(value) { this.#interval = value; }
+        get pollingInterval() {
+            return this.#interval;
+        }
+        set pollingInterval(value) {
+            this.#interval = value;
+        }
         async #poll() {
             try {
                 const blockNumber = await this.#provider.getBlockNumber();
@@ -13155,8 +13833,12 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             this.#running = false;
             this.#provider.off("block", this.#poll);
         }
-        pause(dropWhilePaused) { this.stop(); }
-        resume() { this.start(); }
+        pause(dropWhilePaused) {
+            this.stop();
+        }
+        resume() {
+            this.start();
+        }
     }
     /**
      *  @TODO
@@ -13277,34 +13959,38 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
     //   of Signer/ENS name to address so we can sync respond to listenerCount.
     const MAX_CCIP_REDIRECTS = 10;
     function isPromise(value) {
-        return (value && typeof (value.then) === "function");
+        return value && typeof value.then === "function";
     }
     function getTag(prefix, value) {
-        return prefix + ":" + JSON.stringify(value, (k, v) => {
-            if (v == null) {
-                return "null";
-            }
-            if (typeof (v) === "bigint") {
-                return `bigint:${v.toString()}`;
-            }
-            if (typeof (v) === "string") {
-                return v.toLowerCase();
-            }
-            // Sort object keys
-            if (typeof (v) === "object" && !Array.isArray(v)) {
-                const keys = Object.keys(v);
-                keys.sort();
-                return keys.reduce((accum, key) => {
-                    accum[key] = v[key];
-                    return accum;
-                }, {});
-            }
-            return v;
-        });
+        return (prefix +
+            ":" +
+            JSON.stringify(value, (k, v) => {
+                if (v == null) {
+                    return "null";
+                }
+                if (typeof v === "bigint") {
+                    return `bigint:${v.toString()}`;
+                }
+                if (typeof v === "string") {
+                    return v.toLowerCase();
+                }
+                // Sort object keys
+                if (typeof v === "object" && !Array.isArray(v)) {
+                    const keys = Object.keys(v);
+                    keys.sort();
+                    return keys.reduce((accum, key) => {
+                        accum[key] = v[key];
+                        return accum;
+                    }, {});
+                }
+                return v;
+            }));
     }
     class UnmanagedSubscriber {
         name;
-        constructor(name) { defineProperties(this, { name }); }
+        constructor(name) {
+            defineProperties(this, { name });
+        }
         start() { }
         stop() { }
         pause(dropWhilePaused) { }
@@ -13314,7 +14000,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         return JSON.parse(JSON.stringify(value));
     }
     function concisify(items) {
-        items = Array.from((new Set(items)).values());
+        items = Array.from(new Set(items).values());
         items.sort();
         return items;
     }
@@ -13326,7 +14012,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         if (Array.isArray(_event)) {
             _event = { topics: _event };
         }
-        if (typeof (_event) === "string") {
+        if (typeof _event === "string") {
             switch (_event) {
                 case "block":
                 case "pending":
@@ -13344,12 +14030,16 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         if (_event.orphan) {
             const event = _event;
             // @TODO: Should lowercase and whatnot things here instead of copy...
-            return { type: "orphan", tag: getTag("orphan", event), filter: copy$1(event) };
+            return {
+                type: "orphan",
+                tag: getTag("orphan", event),
+                filter: copy$1(event),
+            };
         }
-        if ((_event.address || _event.topics)) {
+        if (_event.address || _event.topics) {
             const event = _event;
             const filter = {
-                topics: ((event.topics || []).map((t) => {
+                topics: (event.topics || []).map((t) => {
                     if (t == null) {
                         return null;
                     }
@@ -13357,7 +14047,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                         return concisify(t.map((t) => t.toLowerCase()));
                     }
                     return t.toLowerCase();
-                }))
+                }),
             };
             if (event.address) {
                 const addresses = [];
@@ -13387,7 +14077,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         }
         assertArgument(false, "unknown ProviderEvent", "event", _event);
     }
-    function getTime$1() { return (new Date()).getTime(); }
+    function getTime$1() {
+        return new Date().getTime();
+    }
     class AbstractProvider {
         #subs;
         #plugins;
@@ -13412,7 +14104,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 const network = Network.from(_network);
                 this.#anyNetwork = false;
                 this.#networkPromise = Promise.resolve(network);
-                setTimeout(() => { this.emit("network", network, null); }, 0);
+                setTimeout(() => {
+                    this.emit("network", network, null);
+                }, 0);
             }
             else {
                 this.#anyNetwork = false;
@@ -13427,7 +14121,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             this.#timers = new Map();
             this.#disableCcipRead = false;
         }
-        get provider() { return this; }
+        get provider() {
+            return this;
+        }
         get plugins() {
             return Array.from(this.#plugins.values());
         }
@@ -13439,10 +14135,14 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             return this;
         }
         getPlugin(name) {
-            return (this.#plugins.get(name)) || null;
+            return this.#plugins.get(name) || null;
         }
-        get disableCcipRead() { return this.#disableCcipRead; }
-        set disableCcipRead(value) { this.#disableCcipRead = !!value; }
+        get disableCcipRead() {
+            return this.#disableCcipRead;
+        }
+        set disableCcipRead(value) {
+            this.#disableCcipRead = !!value;
+        }
         // Shares multiple identical requests made during the same 250ms
         async #perform(req) {
             // Create a tag
@@ -13480,29 +14180,49 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 if (url.indexOf("{data}") === -1) {
                     request.body = { data, sender };
                 }
-                this.emit("debug", { action: "sendCcipReadFetchRequest", request, index: i, urls });
+                this.emit("debug", {
+                    action: "sendCcipReadFetchRequest",
+                    request,
+                    index: i,
+                    urls,
+                });
                 let errorMessage = "unknown error";
                 const resp = await request.send();
                 try {
                     const result = resp.bodyJson;
                     if (result.data) {
-                        this.emit("debug", { action: "receiveCcipReadFetchResult", request, result });
+                        this.emit("debug", {
+                            action: "receiveCcipReadFetchResult",
+                            request,
+                            result,
+                        });
                         return result.data;
                     }
                     if (result.message) {
                         errorMessage = result.message;
                     }
-                    this.emit("debug", { action: "receiveCcipReadFetchError", request, result });
+                    this.emit("debug", {
+                        action: "receiveCcipReadFetchError",
+                        request,
+                        result,
+                    });
                 }
                 catch (error) { }
                 // 4xx indicates the result is not present; stop
-                assert(resp.statusCode < 400 || resp.statusCode >= 500, `response not found during CCIP fetch: ${errorMessage}`, "OFFCHAIN_FAULT", { reason: "404_MISSING_RESOURCE", transaction: tx, info: { url, errorMessage } });
+                assert(resp.statusCode < 400 || resp.statusCode >= 500, `response not found during CCIP fetch: ${errorMessage}`, "OFFCHAIN_FAULT", {
+                    reason: "404_MISSING_RESOURCE",
+                    transaction: tx,
+                    info: { url, errorMessage },
+                });
                 // 5xx indicates server issue; try the next url
                 errorMessages.push(errorMessage);
             }
-            assert(false, `error encountered during CCIP fetch: ${errorMessages.map((m) => JSON.stringify(m)).join(", ")}`, "OFFCHAIN_FAULT", {
+            assert(false, `error encountered during CCIP fetch: ${errorMessages
+            .map((m) => JSON.stringify(m))
+            .join(", ")}`, "OFFCHAIN_FAULT", {
                 reason: "500_SERVER_ERROR",
-                transaction: tx, info: { urls, errorMessages }
+                transaction: tx,
+                info: { urls, errorMessages },
             });
         }
         _wrapBlock(value, network) {
@@ -13519,7 +14239,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         }
         _detectNetwork() {
             assert(false, "sub-classes must implement this", "UNSUPPORTED_OPERATION", {
-                operation: "_detectNetwork"
+                operation: "_detectNetwork",
             });
         }
         // Sub-classes should override this and handle PerformActionRequest requests, calling
@@ -13527,7 +14247,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         async _perform(req) {
             assert(false, `unsupported method: ${req.method}`, "UNSUPPORTED_OPERATION", {
                 operation: req.method,
-                info: req
+                info: req,
             });
         }
         // State
@@ -13560,10 +14280,10 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 }
                 return toQuantity(blockTag);
             }
-            if (typeof (blockTag) === "bigint") {
+            if (typeof blockTag === "bigint") {
                 blockTag = getNumber(blockTag, "blockTag");
             }
-            if (typeof (blockTag) === "number") {
+            if (typeof blockTag === "number") {
                 if (blockTag >= 0) {
                     return toQuantity(blockTag);
                 }
@@ -13585,11 +14305,12 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 }
                 return t.toLowerCase();
             });
-            const blockHash = ("blockHash" in filter) ? filter.blockHash : undefined;
+            const blockHash = "blockHash" in filter ? filter.blockHash : undefined;
             const resolve = (_address, fromBlock, toBlock) => {
                 let address = undefined;
                 switch (_address.length) {
-                    case 0: break;
+                    case 0:
+                        break;
                     case 1:
                         address = _address[0];
                         break;
@@ -13640,9 +14361,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             if ("toBlock" in filter) {
                 toBlock = this._getBlockTag(filter.toBlock);
             }
-            if (address.filter((a) => (typeof (a) !== "string")).length ||
-                (fromBlock != null && typeof (fromBlock) !== "string") ||
-                (toBlock != null && typeof (toBlock) !== "string")) {
+            if (address.filter((a) => typeof a !== "string").length ||
+                (fromBlock != null && typeof fromBlock !== "string") ||
+                (toBlock != null && typeof toBlock !== "string")) {
                 return Promise.all([Promise.all(address), fromBlock, toBlock]).then((result) => {
                     return resolve(result[0], result[1], result[2]);
                 });
@@ -13658,7 +14379,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 }
                 const addr = resolveAddress(request[key]);
                 if (isPromise(addr)) {
-                    promises.push((async function () { request[key] = await addr; })());
+                    promises.push((async function () {
+                        request[key] = await addr;
+                    })());
                 }
                 else {
                     request[key] = addr;
@@ -13667,7 +14390,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             if (request.blockTag != null) {
                 const blockTag = this._getBlockTag(request.blockTag);
                 if (isPromise(blockTag)) {
-                    promises.push((async function () { request.blockTag = await blockTag; })());
+                    promises.push((async function () {
+                        request.blockTag = await blockTag;
+                    })());
                 }
                 else {
                     request.blockTag = blockTag;
@@ -13701,7 +14426,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             const networkPromise = this.#networkPromise;
             const [expected, actual] = await Promise.all([
                 networkPromise,
-                this._detectNetwork() // The actual connected network
+                this._detectNetwork(), // The actual connected network
             ]);
             if (expected.networkId !== actual.networkId) {
                 if (this.#anyNetwork) {
@@ -13715,7 +14440,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 else {
                     // Otherwise, we do not allow changes to the underlying network
                     assert(false, `network changed: ${expected.networkId} => ${actual.networkId} `, "NETWORK_ERROR", {
-                        event: "changed"
+                        event: "changed",
                     });
                 }
             }
@@ -13724,28 +14449,28 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         async getEnergyPrice() {
             const { energyPrice } = await resolveProperties({
                 block: this.getBlock("latest"),
-                energyPrice: ((async () => {
+                energyPrice: (async () => {
                     try {
                         const energyPrice = await this.#perform({ method: "getEnergyPrice" });
                         return getBigInt(energyPrice, "%response");
                     }
                     catch (error) { }
                     return null;
-                })())
+                })(),
             });
             return new FeeData(energyPrice);
         }
         async getFeeData() {
             const { energyPrice } = await resolveProperties({
                 block: this.getBlock("latest"),
-                energyPrice: ((async () => {
+                energyPrice: (async () => {
                     try {
                         const energyPrice = await this.#perform({ method: "getEnergyPrice" });
                         return getBigInt(energyPrice, "%response");
                     }
                     catch (error) { }
                     return null;
-                })())
+                })(),
             });
             return new FeeData(energyPrice);
         }
@@ -13755,13 +14480,14 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 tx = await tx;
             }
             return getBigInt(await this.#perform({
-                method: "estimateEnergy", transaction: tx
+                method: "estimateEnergy",
+                transaction: tx,
             }), "%response");
         }
         async #call(tx, blockTag, attempt) {
             assert(attempt < MAX_CCIP_REDIRECTS, "CCIP read exceeded maximum redirections", "OFFCHAIN_FAULT", {
                 reason: "TOO_MANY_REDIRECTS",
-                transaction: Object.assign({}, tx, { blockTag, enableCcipRead: true })
+                transaction: Object.assign({}, tx, { blockTag, enableCcipRead: true }),
             });
             // This came in as a PerformActionTransaction, so to/from are safe; we can cast
             const transaction = copyRequest(tx);
@@ -13770,7 +14496,13 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             }
             catch (error) {
                 // CCIP Read OffchainLookup
-                if (!this.disableCcipRead && isCallException(error) && error.data && attempt >= 0 && blockTag === "latest" && transaction.to != null && dataSlice(error.data, 0, 4) === "0x556f1830") {
+                if (!this.disableCcipRead &&
+                    isCallException(error) &&
+                    error.data &&
+                    attempt >= 0 &&
+                    blockTag === "latest" &&
+                    transaction.to != null &&
+                    dataSlice(error.data, 0, 4) === "0x556f1830") {
                     const data = error.data;
                     const txSender = await resolveAddress(transaction.to);
                     // Parse the CCIP Read Arguments
@@ -13780,7 +14512,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                     }
                     catch (error) {
                         assert(false, error.message, "OFFCHAIN_FAULT", {
-                            reason: "BAD_DATA", transaction, info: { data }
+                            reason: "BAD_DATA",
+                            transaction,
+                            info: { data },
                         });
                     }
                     // Check the sender of the OffchainLookup matches the transaction
@@ -13793,25 +14527,38 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                         revert: {
                             signature: "OffchainLookup(address,string[],bytes,bytes4,bytes)",
                             name: "OffchainLookup",
-                            args: ccipArgs.errorArgs
-                        }
+                            args: ccipArgs.errorArgs,
+                        },
                     });
                     const ccipResult = await this.ccipReadFetch(transaction, ccipArgs.calldata, ccipArgs.urls);
                     assert(ccipResult != null, "CCIP Read failed to fetch data", "OFFCHAIN_FAULT", {
-                        reason: "FETCH_FAILED", transaction, info: { data: error.data, errorArgs: ccipArgs.errorArgs }
+                        reason: "FETCH_FAILED",
+                        transaction,
+                        info: { data: error.data, errorArgs: ccipArgs.errorArgs },
                     });
                     const tx = {
                         to: txSender,
-                        data: concat([ccipArgs.selector, encodeBytes([ccipResult, ccipArgs.extraData])])
+                        data: concat([
+                            ccipArgs.selector,
+                            encodeBytes([ccipResult, ccipArgs.extraData]),
+                        ]),
                     };
                     this.emit("debug", { action: "sendCcipReadCall", transaction: tx });
                     try {
                         const result = await this.#call(tx, blockTag, attempt + 1);
-                        this.emit("debug", { action: "receiveCcipReadCallResult", transaction: Object.assign({}, tx), result });
+                        this.emit("debug", {
+                            action: "receiveCcipReadCallResult",
+                            transaction: Object.assign({}, tx),
+                            result,
+                        });
                         return result;
                     }
                     catch (error) {
-                        this.emit("debug", { action: "receiveCcipReadCallError", transaction: Object.assign({}, tx), error });
+                        this.emit("debug", {
+                            action: "receiveCcipReadCallError",
+                            transaction: Object.assign({}, tx),
+                            error,
+                        });
                         throw error;
                     }
                 }
@@ -13821,14 +14568,14 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         async #checkNetwork(promise) {
             const { value } = await resolveProperties({
                 network: this.getNetwork(),
-                value: promise
+                value: promise,
             });
             return value;
         }
         async call(_tx) {
             const { tx, blockTag } = await resolveProperties({
                 tx: this._getTransactionRequest(_tx),
-                blockTag: this._getBlockTag(_tx.blockTag)
+                blockTag: this._getBlockTag(_tx.blockTag),
             });
             return await this.#checkNetwork(this.#call(tx, blockTag, _tx.enableCcipRead ? 0 : -1));
         }
@@ -13836,7 +14583,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         async #getAccountValue(request, _address, _blockTag) {
             let address = this._getAddress(_address);
             let blockTag = this._getBlockTag(_blockTag);
-            if (typeof (address) !== "string" || typeof (blockTag) !== "string") {
+            if (typeof address !== "string" || typeof blockTag !== "string") {
                 [address, blockTag] = await Promise.all([address, blockTag]);
             }
             return await this.#checkNetwork(this.#perform(Object.assign(request, { address, blockTag })));
@@ -13860,9 +14607,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 blockNumber: this.getBlockNumber(),
                 hash: this._perform({
                     method: "broadcastTransaction",
-                    signedTransaction: signedTx
+                    signedTransaction: signedTx,
                 }),
-                network: this.getNetwork()
+                network: this.getNetwork(),
             });
             const tx = Transaction.from(signedTx);
             if (tx.hash !== hash) {
@@ -13874,22 +14621,26 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             // @TODO: Add CustomBlockPlugin check
             if (isHexString(block, 32)) {
                 return await this.#perform({
-                    method: "getBlock", blockHash: block, includeTransactions
+                    method: "getBlock",
+                    blockHash: block,
+                    includeTransactions,
                 });
             }
             let blockTag = this._getBlockTag(block);
-            if (typeof (blockTag) !== "string") {
+            if (typeof blockTag !== "string") {
                 blockTag = await blockTag;
             }
             return await this.#perform({
-                method: "getBlock", blockTag, includeTransactions
+                method: "getBlock",
+                blockTag,
+                includeTransactions,
             });
         }
         // Queries
         async getBlock(block, prefetchTxs) {
             const { network, params } = await resolveProperties({
                 network: this.getNetwork(),
-                params: this.#getBlock(block, !!prefetchTxs)
+                params: this.#getBlock(block, !!prefetchTxs),
             });
             if (params == null) {
                 return null;
@@ -13899,7 +14650,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         async getTransaction(hash) {
             const { network, params } = await resolveProperties({
                 network: this.getNetwork(),
-                params: this.#perform({ method: "getTransaction", hash })
+                params: this.#perform({ method: "getTransaction", hash }),
             });
             if (params == null) {
                 return null;
@@ -13909,7 +14660,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         async getTransactionReceipt(hash) {
             const { network, params } = await resolveProperties({
                 network: this.getNetwork(),
-                params: this.#perform({ method: "getTransactionReceipt", hash })
+                params: this.#perform({ method: "getTransactionReceipt", hash }),
             });
             if (params == null) {
                 return null;
@@ -13928,7 +14679,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         async getTransactionResult(hash) {
             const { result } = await resolveProperties({
                 network: this.getNetwork(),
-                result: this.#perform({ method: "getTransactionResult", hash })
+                result: this.#perform({ method: "getTransactionResult", hash }),
             });
             if (result == null) {
                 return null;
@@ -13943,24 +14694,24 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             }
             const { network, params } = await resolveProperties({
                 network: this.getNetwork(),
-                params: this.#perform({ method: "getLogs", filter })
+                params: this.#perform({ method: "getLogs", filter }),
             });
             return params.map((p) => this._wrapLog(p, network));
         }
         // ENS
         _getProvider(networkId) {
             assert(false, "provider cannot connect to target network", "UNSUPPORTED_OPERATION", {
-                operation: "_getProvider()"
+                operation: "_getProvider()",
             });
         }
         async waitForTransaction(hash, _confirms, timeout) {
-            const confirms = (_confirms != null) ? _confirms : 1;
+            const confirms = _confirms != null ? _confirms : 1;
             if (confirms === 0) {
                 return this.getTransactionReceipt(hash);
             }
             return new Promise(async (resolve, reject) => {
                 let timer = null;
-                const listener = (async (blockNumber) => {
+                const listener = async (blockNumber) => {
                     try {
                         const receipt = await this.getTransactionReceipt(hash);
                         if (receipt != null) {
@@ -13979,7 +14730,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                         console.log("EEE", error);
                     }
                     this.once("block", listener);
-                });
+                };
                 if (timeout != null) {
                     timer = setTimeout(() => {
                         if (timer == null) {
@@ -13995,7 +14746,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         }
         async waitForBlock(blockTag) {
             assert(false, "not implemented yet", "NOT_IMPLEMENTED", {
-                operation: "waitForBlock"
+                operation: "waitForBlock",
             });
         }
         _clearTimeout(timerId) {
@@ -14071,7 +14822,10 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             let sub = await getSubscription(event);
             // This is a log that is removing an existing log; we actually want
             // to emit an orphan event for the removed log
-            if (sub.type === "event" && emitArgs && emitArgs.length > 0 && emitArgs[0].removed === true) {
+            if (sub.type === "event" &&
+                emitArgs &&
+                emitArgs.length > 0 &&
+                emitArgs[0].removed === true) {
                 sub = await getSubscription({ orphan: "drop-log", log: emitArgs[0] });
             }
             return this.#subs.get(sub.tag) || null;
@@ -14085,7 +14839,14 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 const subscriber = this._getSubscriber(subscription);
                 const addressableMap = new WeakMap();
                 const nameMap = new Map();
-                sub = { subscriber, tag, addressableMap, nameMap, started: false, listeners: [] };
+                sub = {
+                    subscriber,
+                    tag,
+                    addressableMap,
+                    nameMap,
+                    started: false,
+                    listeners: [],
+                };
                 this.#subs.set(tag, sub);
             }
             return sub;
@@ -14123,7 +14884,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             }
             const count = sub.listeners.length;
             sub.listeners = sub.listeners.filter(({ listener, once }) => {
-                const payload = new EventPayload(this, (once ? null : listener), event);
+                const payload = new EventPayload(this, once ? null : listener, event);
                 try {
                     listener.call(this, ...args, payload);
                 }
@@ -14136,7 +14897,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 }
                 this.#subs.delete(sub.tag);
             }
-            return (count > 0);
+            return count > 0;
         }
         async listenerCount(event) {
             if (event) {
@@ -14172,7 +14933,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 return this;
             }
             if (listener) {
-                const index = sub.listeners.map(({ listener }) => listener).indexOf(listener);
+                const index = sub.listeners
+                    .map(({ listener }) => listener)
+                    .indexOf(listener);
                 if (index >= 0) {
                     sub.listeners.splice(index, 1);
                 }
@@ -14221,7 +14984,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 this._clearTimeout(timerId);
             }
         }
-        get paused() { return (this.#pausedState != null); }
+        get paused() {
+            return this.#pausedState != null;
+        }
         set paused(pause) {
             if (!!pause === this.paused) {
                 return;
@@ -14240,7 +15005,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                     return;
                 }
                 assert(false, "cannot change pause type; resume first", "UNSUPPORTED_OPERATION", {
-                    operation: "pause"
+                    operation: "pause",
                 });
             }
             this._forEachSubscriber((s) => s.pause(dropWhilePaused));
@@ -14305,7 +15070,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         return padded;
     }
     function bytesPad(value) {
-        if ((value.length % 32) === 0) {
+        if (value.length % 32 === 0) {
             return value;
         }
         const result = new Uint8Array(Math.ceil(value.length / 32) * 32);
@@ -14336,14 +15101,19 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
     const zeros = "0x0000000000000000000000000000000000000000000000000000000000000000";
     function parseOffchainLookup(data) {
         const result = {
-            sender: "", urls: [], calldata: "", selector: "", extraData: "", errorArgs: []
+            sender: "",
+            urls: [],
+            calldata: "",
+            selector: "",
+            extraData: "",
+            errorArgs: [],
         };
         assert(dataLength(data) >= 5 * 32, "insufficient OffchainLookup data", "OFFCHAIN_FAULT", {
-            reason: "insufficient OffchainLookup data"
+            reason: "insufficient OffchainLookup data",
         });
         const sender = dataSlice(data, 0, 32);
         assert(dataSlice(sender, 0, 12) === dataSlice(zeros, 0, 12), "corrupt OffchainLookup sender", "OFFCHAIN_FAULT", {
-            reason: "corrupt OffchainLookup sender"
+            reason: "corrupt OffchainLookup sender",
         });
         result.sender = dataSlice(sender, 12);
         // Read the URLs from the response
@@ -14363,7 +15133,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         }
         catch (error) {
             assert(false, "corrupt OffchainLookup urls", "OFFCHAIN_FAULT", {
-                reason: "corrupt OffchainLookup urls"
+                reason: "corrupt OffchainLookup urls",
             });
         }
         // Get the CCIP calldata to forward
@@ -14376,12 +15146,12 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         }
         catch (error) {
             assert(false, "corrupt OffchainLookup calldata", "OFFCHAIN_FAULT", {
-                reason: "corrupt OffchainLookup calldata"
+                reason: "corrupt OffchainLookup calldata",
             });
         }
         // Get the callbackSelector (bytes4)
         assert(dataSlice(data, 100, 128) === dataSlice(zeros, 0, 28), "corrupt OffchainLookup callbaackSelector", "OFFCHAIN_FAULT", {
-            reason: "corrupt OffchainLookup callbaackSelector"
+            reason: "corrupt OffchainLookup callbaackSelector",
         });
         result.selector = dataSlice(data, 96, 100);
         // Get the extra data to send back to the contract as context
@@ -14394,10 +15164,12 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         }
         catch (error) {
             assert(false, "corrupt OffchainLookup extraData", "OFFCHAIN_FAULT", {
-                reason: "corrupt OffchainLookup extraData"
+                reason: "corrupt OffchainLookup extraData",
             });
         }
-        result.errorArgs = "sender,urls,calldata,selector,extraData".split(/,/).map((k) => result[k]);
+        result.errorArgs = "sender,urls,calldata,selector,extraData"
+            .split(/,/)
+            .map((k) => result[k]);
         return result;
     }
 
@@ -14419,10 +15191,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         }
         if (pop.from != null) {
             const from = pop.from;
-            pop.from = Promise.all([
-                signer.getAddress(),
-                resolveAddress(from)
-            ]).then(([address, from]) => {
+            pop.from = Promise.all([signer.getAddress(), resolveAddress(from)]).then(([address, from]) => {
                 assertArgument(address.toLowerCase() === from.toLowerCase(), "transaction from mismatch", "tx.from", from);
                 return address;
             });
@@ -14435,7 +15204,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
     class AbstractSigner {
         provider;
         constructor(provider) {
-            defineProperties(this, { provider: (provider || null) });
+            defineProperties(this, { provider: provider || null });
         }
         async getNonce(blockTag) {
             return checkProvider(this, "getTransactionCount").getTransactionCount(await this.getAddress(), blockTag);
@@ -14454,7 +15223,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 pop.energyLimit = await this.estimateEnergy(pop);
             }
             // Populate the chain ID
-            const network = await (this.provider).getNetwork();
+            const network = await this.provider.getNetwork();
             if (pop.networkId != null) {
                 const networkId = getBigInt(pop.networkId);
                 assertArgument(networkId === network.networkId, "transaction networkId mismatch", "tx.networkId", tx.networkId);
@@ -14475,7 +15244,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             else {
                 // getFeeData has failed us.
                 assert(false, "failed to get consistent fee data", "UNSUPPORTED_OPERATION", {
-                    operation: "signer.getFeeData"
+                    operation: "signer.getFeeData",
                 });
             }
             //@TOOD: Don't await all over the place; save them up for
@@ -14505,12 +15274,16 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             super(provider);
             defineProperties(this, { address });
         }
-        async getAddress() { return this.address; }
+        async getAddress() {
+            return this.address;
+        }
         connect(provider) {
             return new VoidSigner(this.address, provider);
         }
         #throwUnsupported(suffix, operation) {
-            assert(false, `VoidSigner cannot sign ${suffix}`, "UNSUPPORTED_OPERATION", { operation });
+            assert(false, `VoidSigner cannot sign ${suffix}`, "UNSUPPORTED_OPERATION", {
+                operation,
+            });
         }
         async signTransaction(tx) {
             this.#throwUnsupported("transactions", "signTransaction");
@@ -14606,7 +15379,8 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                     filterId = await this.#filterIdPromise;
                 }
                 catch (error) {
-                    if (!isError(error, "UNSUPPORTED_OPERATION") || error.operation !== "xcb_newFilter") {
+                    if (!isError(error, "UNSUPPORTED_OPERATION") ||
+                        error.operation !== "xcb_newFilter") {
                         throw error;
                     }
                 }
@@ -14627,7 +15401,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 if (this.#hault) {
                     return;
                 }
-                const result = await this.#provider.send("xcb_getFilterChanges", [filterId]);
+                const result = await this.#provider.send("xcb_getFilterChanges", [
+                    filterId,
+                ]);
                 await this._emitResults(this.#provider, result);
             }
             catch (error) {
@@ -14666,7 +15442,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             }
             this.#provider.off("block", this.#poller);
         }
-        resume() { this.start(); }
+        resume() {
+            this.start();
+        }
     }
     /**
      *  A **FilterIdSubscriber** for receiving contract events.
@@ -14718,26 +15496,28 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
     const Primitive = "bigint,boolean,function,number,string,symbol".split(/,/g);
     //const Methods = "getAddress,then".split(/,/g);
     function deepCopy(value) {
-        if (value == null || Primitive.indexOf(typeof (value)) >= 0) {
+        if (value == null || Primitive.indexOf(typeof value) >= 0) {
             return value;
         }
         // Keep any Addressable
-        if (typeof (value.getAddress) === "function") {
+        if (typeof value.getAddress === "function") {
             return value;
         }
         if (Array.isArray(value)) {
-            return (value.map(deepCopy));
+            return value.map(deepCopy);
         }
-        if (typeof (value) === "object") {
+        if (typeof value === "object") {
             return Object.keys(value).reduce((accum, key) => {
                 accum[key] = value[key];
                 return accum;
             }, {});
         }
-        throw new Error(`should not happen: ${value} (${typeof (value)})`);
+        throw new Error(`should not happen: ${value} (${typeof value})`);
     }
     function stall$3(duration) {
-        return new Promise((resolve) => { setTimeout(resolve, duration); });
+        return new Promise((resolve) => {
+            setTimeout(resolve, duration);
+        });
     }
     function getLowerCase(value) {
         if (value) {
@@ -14746,14 +15526,14 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         return value;
     }
     function isPollable(value) {
-        return (value && typeof (value.pollingInterval) === "number");
+        return value && typeof value.pollingInterval === "number";
     }
     const defaultOptions = {
         polling: false,
         staticNetwork: null,
         batchStallTime: 10,
-        batchMaxSize: (1 << 20),
-        batchMaxCount: 100 // 100 requests
+        batchMaxSize: 1 << 20,
+        batchMaxCount: 100, // 100 requests
     };
     // @TODO: Unchecked Signers
     class JsonRpcSigner extends AbstractSigner {
@@ -14765,7 +15545,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         }
         connect(provider) {
             assert(false, "cannot reconnect JsonRpcSigner", "UNSUPPORTED_OPERATION", {
-                operation: "signer.connect"
+                operation: "signer.connect",
             });
         }
         async getAddress() {
@@ -14797,7 +15577,10 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             // we look it up for them.
             if (tx.energyLimit == null) {
                 promises.push((async () => {
-                    tx.energyLimit = await this.provider.estimateEnergy({ ...tx, from: this.address });
+                    tx.energyLimit = await this.provider.estimateEnergy({
+                        ...tx,
+                        from: this.address,
+                    });
                 })());
             }
             // The address may be an ENS name or Addressable
@@ -14822,7 +15605,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             // Unfortunately, JSON-RPC only provides and opaque transaction hash
             // for a response, and we need the actual transaction, so we poll
             // for it; it should show up very quickly
-            return await (new Promise((resolve, reject) => {
+            return await new Promise((resolve, reject) => {
                 const timeouts = [1000, 100];
                 const checkTx = async () => {
                     // Try getting the transaction
@@ -14832,10 +15615,12 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                         return;
                     }
                     // Wait another 4 seconds
-                    this.provider._setTimeout(() => { checkTx(); }, timeouts.pop() || 4000);
+                    this.provider._setTimeout(() => {
+                        checkTx();
+                    }, timeouts.pop() || 4000);
                 };
                 checkTx();
-            }));
+            });
         }
         async signTransaction(_tx) {
             const tx = deepCopy(_tx);
@@ -14852,9 +15637,10 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             return await this.provider.send("xcb_signTransaction", [hexTx]);
         }
         async signMessage(_message) {
-            const message = ((typeof (_message) === "string") ? toUtf8Bytes(_message) : _message);
+            const message = typeof _message === "string" ? toUtf8Bytes(_message) : _message;
             return await this.provider.send("personal_sign", [
-                hexlify(message), this.address.toLowerCase()
+                hexlify(message),
+                this.address.toLowerCase(),
             ]);
         }
         async signTypedData(domain, types, _value) {
@@ -14867,18 +15653,21 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             });
             return await this.provider.send("xcb_signTypedData_v4", [
                 this.address.toLowerCase(),
-                JSON.stringify(TypedDataEncoder.getPayload(populated.domain, types, populated.value))
+                JSON.stringify(TypedDataEncoder.getPayload(populated.domain, types, populated.value)),
             ]);
         }
         async unlock(password) {
             return this.provider.send("personal_unlockAccount", [
-                this.address.toLowerCase(), password, null
+                this.address.toLowerCase(),
+                password,
+                null,
             ]);
         }
         async _legacySignMessage(_message) {
-            const message = ((typeof (_message) === "string") ? toUtf8Bytes(_message) : _message);
+            const message = typeof _message === "string" ? toUtf8Bytes(_message) : _message;
             return await this.provider.send("xcb_sign", [
-                this.address.toLowerCase(), hexlify(message)
+                this.address.toLowerCase(),
+                hexlify(message),
             ]);
         }
     }
@@ -14906,28 +15695,30 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 return;
             }
             // If we aren't using batching, no hard in sending it immeidately
-            const stallTime = (this._getOption("batchMaxCount") === 1) ? 0 : this._getOption("batchStallTime");
+            const stallTime = this._getOption("batchMaxCount") === 1
+                ? 0
+                : this._getOption("batchStallTime");
             this.#drainTimer = setTimeout(() => {
                 this.#drainTimer = null;
                 const payloads = this.#payloads;
                 this.#payloads = [];
                 while (payloads.length) {
                     // Create payload batches that satisfy our batch constraints
-                    const batch = [(payloads.shift())];
+                    const batch = [payloads.shift()];
                     while (payloads.length) {
                         if (batch.length === this.#options.batchMaxCount) {
                             break;
                         }
-                        batch.push((payloads.shift()));
+                        batch.push(payloads.shift());
                         const bytes = JSON.stringify(batch.map((p) => p.payload));
                         if (bytes.length > this.#options.batchMaxSize) {
-                            payloads.unshift((batch.pop()));
+                            payloads.unshift(batch.pop());
                             break;
                         }
                     }
                     // Process the result to each payload
                     (async () => {
-                        const payload = ((batch.length === 1) ? batch[0].payload : batch.map((p) => p.payload));
+                        const payload = batch.length === 1 ? batch[0].payload : batch.map((p) => p.payload);
                         this.emit("debug", { action: "sendRpcPayload", payload });
                         try {
                             // console.log({payload})
@@ -14937,10 +15728,13 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                             // Process results in batch order
                             for (const { resolve, reject, payload } of batch) {
                                 // Find the matching result
-                                const resp = result.filter((r) => (r.id === payload.id))[0];
+                                const resp = result.filter((r) => r.id === payload.id)[0];
                                 // No result; the node failed us in unexpected ways
                                 if (resp == null) {
-                                    return reject(makeError("no response from server", "BAD_DATA", { value: result, info: { payload } }));
+                                    return reject(makeError("no response from server", "BAD_DATA", {
+                                        value: result,
+                                        info: { payload },
+                                    }));
                                 }
                                 // The response is an error
                                 if ("error" in resp) {
@@ -14999,12 +15793,12 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             return this.#network;
         }
         /*
-         {
-            assert(false, "sub-classes must override _send", "UNSUPPORTED_OPERATION", {
-                operation: "jsonRpcApiProvider._send"
-            });
-        }
-        */
+           {
+              assert(false, "sub-classes must override _send", "UNSUPPORTED_OPERATION", {
+                  operation: "jsonRpcApiProvider._send"
+              });
+          }
+          */
         /**
          *  Resolves to the non-normalized value by performing %%req%%.
          *
@@ -15036,7 +15830,10 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             }
             // We are not ready yet; use the primitive _send
             const payload = {
-                id: this.#nextId++, method: "xcb_networkId", params: [], jsonrpc: "2.0"
+                id: this.#nextId++,
+                method: "xcb_networkId",
+                params: [],
+                jsonrpc: "2.0",
             };
             this.emit("debug", { action: "sendRpcPayload", payload });
             let result;
@@ -15119,7 +15916,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         /**
          *  Returns true only if the [[_start]] has been called.
          */
-        get ready() { return this.#notReady == null; }
+        get ready() {
+            return this.#notReady == null;
+        }
         /**
          *  Returns %%tx%% as a normalized JSON-RPC transaction request,
          *  which has all values hexlified and any numeric values converted
@@ -15128,7 +15927,14 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         getRpcTransaction(tx) {
             const result = {};
             // JSON-RPC now requires numeric values to be "quantity" values
-            ["networkId", "energyLimit", "energyPrice", "type", "nonce", "value"].forEach((key) => {
+            [
+                "networkId",
+                "energyLimit",
+                "energyPrice",
+                "type",
+                "nonce",
+                "value",
+            ].forEach((key) => {
                 if (tx[key] == null) {
                     return;
                 }
@@ -15162,66 +15968,66 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 case "getBalance": {
                     return {
                         method: "xcb_getBalance",
-                        args: [getLowerCase(req.address), req.blockTag]
+                        args: [getLowerCase(req.address), req.blockTag],
                     };
                 }
                 case "getTransactionCount":
                     return {
                         method: "xcb_getTransactionCount",
-                        args: [getLowerCase(req.address), req.blockTag]
+                        args: [getLowerCase(req.address), req.blockTag],
                     };
                 case "getCode":
                     return {
                         method: "xcb_getCode",
-                        args: [getLowerCase(req.address), req.blockTag]
+                        args: [getLowerCase(req.address), req.blockTag],
                     };
                 case "getStorage":
                     return {
                         method: "xcb_getStorageAt",
                         args: [
                             getLowerCase(req.address),
-                            ("0x" + req.position.toString(16)),
-                            req.blockTag
-                        ]
+                            "0x" + req.position.toString(16),
+                            req.blockTag,
+                        ],
                     };
                 case "broadcastTransaction":
                     return {
                         method: "xcb_sendRawTransaction",
-                        args: [req.signedTransaction]
+                        args: [req.signedTransaction],
                     };
                 case "getBlock":
                     if ("blockTag" in req) {
                         return {
                             method: "xcb_getBlockByNumber",
-                            args: [req.blockTag, !!req.includeTransactions]
+                            args: [req.blockTag, !!req.includeTransactions],
                         };
                     }
                     else if ("blockHash" in req) {
                         return {
                             method: "xcb_getBlockByHash",
-                            args: [req.blockHash, !!req.includeTransactions]
+                            args: [req.blockHash, !!req.includeTransactions],
                         };
                     }
                     break;
                 case "getTransaction":
                     return {
                         method: "xcb_getTransactionByHash",
-                        args: [req.hash]
+                        args: [req.hash],
                     };
                 case "getTransactionReceipt":
                     return {
                         method: "xcb_getTransactionReceipt",
-                        args: [req.hash]
+                        args: [req.hash],
                     };
                 case "call":
                     return {
                         method: "xcb_call",
-                        args: [this.getRpcTransaction(req.transaction), req.blockTag]
+                        args: [this.getRpcTransaction(req.transaction), req.blockTag],
                     };
                 case "estimateEnergy": {
                     return {
                         method: "xcb_estimateEnergy",
-                        args: [this.getRpcTransaction(req.transaction)]
+                        args: [this.getRpcTransaction(req.transaction)],
                     };
                 }
                 case "getLogs":
@@ -15250,21 +16056,22 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 const msg = error.message;
                 if (!msg.match(/revert/i) && msg.match(/insufficient funds/i)) {
                     return makeError("insufficient funds", "INSUFFICIENT_FUNDS", {
-                        transaction: (payload.params[0]),
-                        info: { payload, error }
+                        transaction: payload.params[0],
+                        info: { payload, error },
                     });
                 }
             }
             if (method === "xcb_call" || method === "xcb_estimateEnergy") {
                 const result = spelunkData(error);
-                const e = AbiCoder.getBuiltinCallException((method === "xcb_call") ? "call" : "estimateEnergy", (payload.params[0]), (result ? result.data : null));
+                const e = AbiCoder.getBuiltinCallException(method === "xcb_call" ? "call" : "estimateEnergy", payload.params[0], result ? result.data : null);
                 e.info = { error, payload };
                 return e;
             }
             // Only estimateEnergy and call can return arbitrary contract-defined text, so now we
             // we can process text safely.
             const message = JSON.stringify(spelunkMessage(error));
-            if (typeof (error.message) === "string" && error.message.match(/user denied|corebc-user-denied/i)) {
+            if (typeof error.message === "string" &&
+                error.message.match(/user denied|corebc-user-denied/i)) {
                 const actionMap = {
                     xcb_sign: "signMessage",
                     personal_sign: "signMessage",
@@ -15275,34 +16082,45 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                     wallet_requestAccounts: "requestAccess",
                 };
                 return makeError(`user rejected action`, "ACTION_REJECTED", {
-                    action: (actionMap[method] || "unknown"),
+                    action: actionMap[method] || "unknown",
                     reason: "rejected",
-                    info: { payload, error }
+                    info: { payload, error },
                 });
             }
-            if (method === "xcb_sendRawTransaction" || method === "xcb_sendTransaction") {
-                const transaction = (payload.params[0]);
+            if (method === "xcb_sendRawTransaction" ||
+                method === "xcb_sendTransaction") {
+                const transaction = payload.params[0];
                 if (message.match(/insufficient funds|base fee exceeds energy limit/i)) {
                     return makeError("insufficient funds for intrinsic transaction cost", "INSUFFICIENT_FUNDS", {
-                        transaction, info: { error }
+                        transaction,
+                        info: { error },
                     });
                 }
                 if (message.match(/nonce/i) && message.match(/too low/i)) {
-                    return makeError("nonce has already been used", "NONCE_EXPIRED", { transaction, info: { error } });
+                    return makeError("nonce has already been used", "NONCE_EXPIRED", {
+                        transaction,
+                        info: { error },
+                    });
                 }
                 // "replacement transaction underpriced"
-                if (message.match(/replacement transaction/i) && message.match(/underpriced/i)) {
-                    return makeError("replacement fee too low", "REPLACEMENT_UNDERPRICED", { transaction, info: { error } });
+                if (message.match(/replacement transaction/i) &&
+                    message.match(/underpriced/i)) {
+                    return makeError("replacement fee too low", "REPLACEMENT_UNDERPRICED", {
+                        transaction,
+                        info: { error },
+                    });
                 }
                 if (message.match(/only replay-protected/i)) {
                     return makeError("legacy pre-eip-155 transactions not supported", "UNSUPPORTED_OPERATION", {
-                        operation: method, info: { transaction, info: { error } }
+                        operation: method,
+                        info: { transaction, info: { error } },
                     });
                 }
             }
             if (message.match(/the method .* does not exist/i)) {
                 return makeError("unsupported operation", "UNSUPPORTED_OPERATION", {
-                    operation: payload.method, info: { error }
+                    operation: payload.method,
+                    info: { error },
                 });
             }
             return makeError("could not coalesce error", "UNKNOWN_ERROR", { error });
@@ -15325,8 +16143,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             const id = this.#nextId++;
             const promise = new Promise((resolve, reject) => {
                 this.#payloads.push({
-                    resolve, reject,
-                    payload: { method, params, id, jsonrpc: "2.0" }
+                    resolve,
+                    reject,
+                    payload: { method, params, id, jsonrpc: "2.0" },
                 });
             });
             // If there is not a pending drainTimer, set one
@@ -15351,8 +16170,8 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             }
             const accountsPromise = this.send("xcb_accounts", []);
             // Account index
-            if (typeof (address) === "number") {
-                const accounts = (await accountsPromise);
+            if (typeof address === "number") {
+                const accounts = await accountsPromise;
                 if (address >= accounts.length) {
                     throw new Error("no such account");
                 }
@@ -15360,7 +16179,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             }
             const { accounts } = await resolveProperties({
                 network: this.getNetwork(),
-                accounts: accountsPromise
+                accounts: accountsPromise,
             });
             // Account address
             address = getAddress(address);
@@ -15392,7 +16211,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         /**
          *  The polling interval (default: 4000 ms)
          */
-        get pollingInterval() { return this.#pollingInterval; }
+        get pollingInterval() {
+            return this.#pollingInterval;
+        }
         set pollingInterval(value) {
             if (!Number.isInteger(value) || value < 0) {
                 throw new Error("invalid interval");
@@ -15417,10 +16238,10 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         #connect;
         constructor(url, network, options) {
             if (url == null) {
-                url = "http:/\/localhost:8545";
+                url = "http://localhost:8545";
             }
             super(network, options);
-            if (typeof (url) === "string") {
+            if (typeof url === "string") {
                 this.#connect = new FetchRequest(url);
             }
             else {
@@ -15456,11 +16277,13 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             return null;
         }
         // These *are* the droids we're looking for.
-        if (typeof (value.message) === "string" && value.message.match("reverted") && isHexString(value.data)) {
+        if (typeof value.message === "string" &&
+            value.message.match("reverted") &&
+            isHexString(value.data)) {
             return { message: value.message, data: value.data };
         }
         // Spelunk further...
-        if (typeof (value) === "object") {
+        if (typeof value === "object") {
             for (const key in value) {
                 const result = spelunkData(value[key]);
                 if (result) {
@@ -15470,7 +16293,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             return null;
         }
         // Might be a JSON string we can further descend...
-        if (typeof (value) === "string") {
+        if (typeof value === "string") {
             try {
                 return spelunkData(JSON.parse(value));
             }
@@ -15483,17 +16306,17 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             return;
         }
         // These *are* the droids we're looking for.
-        if (typeof (value.message) === "string") {
+        if (typeof value.message === "string") {
             result.push(value.message);
         }
         // Spelunk further...
-        if (typeof (value) === "object") {
+        if (typeof value === "object") {
             for (const key in value) {
                 _spelunkMessage(value[key], result);
             }
         }
         // Might be a JSON string we can further descend...
-        if (typeof (value) === "string") {
+        if (typeof value === "string") {
             try {
                 return _spelunkMessage(JSON.parse(value), result);
             }
@@ -15594,14 +16417,16 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         }
         getRpcError(payload, error) {
             if (payload.method === "xcb_sendRawTransaction") {
-                if (error && error.error && error.error.message === "INTERNAL_ERROR: could not replace existing tx") {
+                if (error &&
+                    error.error &&
+                    error.error.message === "INTERNAL_ERROR: could not replace existing tx") {
                     error.error.message = "replacement transaction underpriced";
                 }
             }
             return super.getRpcError(payload, error);
         }
         isCommunityResource() {
-            return (this.apiKey === defaultApiKey$1);
+            return this.apiKey === defaultApiKey$1;
         }
     }
 
@@ -15671,7 +16496,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             if (req.method === "getTransactionResult") {
                 const { trace, tx } = await resolveProperties({
                     trace: this.send("trace_transaction", [req.hash]),
-                    tx: this.getTransaction(req.hash)
+                    tx: this.getTransaction(req.hash),
                 });
                 if (trace == null || tx == null) {
                     return null;
@@ -15680,7 +16505,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 let error = false;
                 try {
                     data = trace[0].result.output;
-                    error = (trace[0].error === "Reverted");
+                    error = trace[0].error === "Reverted";
                 }
                 catch (error) { }
                 if (data) {
@@ -15690,16 +16515,18 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                         reason: null,
                         transaction: tx,
                         invocation: null,
-                        revert: null // @TODO
+                        revert: null, // @TODO
                     });
                     return data;
                 }
-                assert(false, "could not parse trace result", "BAD_DATA", { value: trace });
+                assert(false, "could not parse trace result", "BAD_DATA", {
+                    value: trace,
+                });
             }
             return await super._perform(req);
         }
         isCommunityResource() {
-            return (this.apiKey === defaultApiKey);
+            return this.apiKey === defaultApiKey;
         }
         static getRequest(network, apiKey) {
             if (apiKey == null) {
@@ -15732,21 +16559,21 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             }
             const network = Network.from(_network);
             assertArgument(network.name === "mainnet", "unsupported network", "network", _network);
-            super("https:/\/cloudflare-eth.com/", network, { staticNetwork: network });
+            super("https://cloudflare-eth.com/", network, { staticNetwork: network });
         }
     }
 
     function getGlobal() {
-        if (typeof self !== 'undefined') {
+        if (typeof self !== "undefined") {
             return self;
         }
-        if (typeof window !== 'undefined') {
+        if (typeof window !== "undefined") {
             return window;
         }
-        if (typeof global !== 'undefined') {
+        if (typeof global !== "undefined") {
             return global;
         }
-        throw new Error('unable to locate global object');
+        throw new Error("unable to locate global object");
     }
     const _WebSocket = getGlobal().WebSocket;
 
@@ -15763,7 +16590,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
     class SocketSubscriber {
         #provider;
         #filter;
-        get filter() { return JSON.parse(this.#filter); }
+        get filter() {
+            return JSON.parse(this.#filter);
+        }
         #filterId;
         #paused;
         #emitPromise;
@@ -15775,13 +16604,15 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             this.#emitPromise = null;
         }
         start() {
-            this.#filterId = this.#provider.send("xcb_subscribe", this.filter).then((filterId) => {
+            this.#filterId = this.#provider
+                .send("xcb_subscribe", this.filter)
+                .then((filterId) => {
                 this.#provider._register(filterId, this);
                 return filterId;
             });
         }
         stop() {
-            (this.#filterId).then((filterId) => {
+            this.#filterId.then((filterId) => {
                 this.#provider.send("xcb_unsubscribe", [filterId]);
             });
             this.#filterId = null;
@@ -15838,7 +16669,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
     }
     class SocketEventSubscriber extends SocketSubscriber {
         #logFilter;
-        get logFilter() { return JSON.parse(this.#logFilter); }
+        get logFilter() {
+            return JSON.parse(this.#logFilter);
+        }
         constructor(provider, filter) {
             super(provider, ["logs", filter]);
             this.#logFilter = JSON.stringify(filter);
@@ -15866,13 +16699,13 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         }
         // This value is only valid after _start has been called
         /*
-        get _network(): Network {
-            if (this.#network == null) {
-                throw new Error("this shouldn't happen");
-            }
-            return this.#network.clone();
-        }
-        */
+          get _network(): Network {
+              if (this.#network == null) {
+                  throw new Error("this shouldn't happen");
+              }
+              return this.#network.clone();
+          }
+          */
         _getSubscriber(sub) {
             switch (sub.type) {
                 case "close":
@@ -15918,18 +16751,18 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         }
         // Sub-classes must call this once they are connected
         /*
-        async _start(): Promise<void> {
-            if (this.#ready) { return; }
-
-            for (const { payload } of this.#callbacks.values()) {
-                await this._write(JSON.stringify(payload));
-            }
-
-            this.#ready = (async function() {
-                await super._start();
-            })();
-        }
-        */
+          async _start(): Promise<void> {
+              if (this.#ready) { return; }
+      
+              for (const { payload } of this.#callbacks.values()) {
+                  await this._write(JSON.stringify(payload));
+              }
+      
+              this.#ready = (async function() {
+                  await super._start();
+              })();
+          }
+          */
         // Sub-classes must call this for each message
         async _processMessage(message) {
             const result = (JSON.parse(message));
@@ -15938,7 +16771,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 if (callback == null) {
                     this.emit("error", makeError("received result for unknown id", "UNKNOWN_ERROR", {
                         reasonCode: "UNKNOWN_ID",
-                        result
+                        result,
                     }));
                     return;
                 }
@@ -15977,11 +16810,13 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         }
         constructor(url, network) {
             super(network);
-            if (typeof (url) === "string") {
-                this.#connect = () => { return new _WebSocket(url); };
+            if (typeof url === "string") {
+                this.#connect = () => {
+                    return new _WebSocket(url);
+                };
                 this.#websocket = this.#connect();
             }
-            else if (typeof (url) === "function") {
+            else if (typeof url === "function") {
                 this.#connect = url;
                 this.#websocket = url();
             }
@@ -16003,20 +16838,20 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 this._processMessage(message.data);
             };
             /*
-                    this.websocket.onclose = (event) => {
-                        // @TODO: What event.code should we reconnect on?
-                        const reconnect = false;
-                        if (reconnect) {
-                            this.pause(true);
-                            if (this.#connect) {
-                                this.#websocket = this.#connect();
-                                this.#websocket.onopen = ...
-                                // @TODO: this requires the super class to rebroadcast; move it there
-                            }
-                            this._reconnect();
+                this.websocket.onclose = (event) => {
+                    // @TODO: What event.code should we reconnect on?
+                    const reconnect = false;
+                    if (reconnect) {
+                        this.pause(true);
+                        if (this.#connect) {
+                            this.#websocket = this.#connect();
+                            this.#websocket.onopen = ...
+                            // @TODO: this requires the super class to rebroadcast; move it there
                         }
-                    };
-            */
+                        this._reconnect();
+                    }
+                };
+        */
         }
         async _write(message) {
             this.websocket.send(message);
@@ -16104,11 +16939,11 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             super(url, network);
             defineProperties(this, {
                 projectId: provider.projectId,
-                projectSecret: provider.projectSecret
+                projectSecret: provider.projectSecret,
             });
         }
         isCommunityResource() {
-            return (this.projectId === defaultProjectId);
+            return this.projectId === defaultProjectId;
         }
     }
     /**
@@ -16158,7 +16993,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             return super._getProvider(networkId);
         }
         isCommunityResource() {
-            return (this.projectId === defaultProjectId);
+            return this.projectId === defaultProjectId;
         }
         /**
          *  Creates a new **InfuraWebSocketProvider**.
@@ -16266,7 +17101,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             return super._getProvider(networkId);
         }
         isCommunityResource() {
-            return (this.token === defaultToken);
+            return this.token === defaultToken;
         }
         /**
          *  Returns a new request prepared for %%network%% and the
@@ -16305,12 +17140,16 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         }
     }
     function stall$2(duration) {
-        return new Promise((resolve) => { setTimeout(resolve, duration); });
+        return new Promise((resolve) => {
+            setTimeout(resolve, duration);
+        });
     }
-    function getTime() { return (new Date()).getTime(); }
+    function getTime() {
+        return new Date().getTime();
+    }
     function stringify(value) {
         return JSON.stringify(value, (key, value) => {
-            if (typeof (value) === "bigint") {
+            if (typeof value === "bigint") {
                 return { type: "bigint", value: value.toString() };
             }
             return value;
@@ -16318,9 +17157,17 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
     }
     const defaultConfig = { stallTimeout: 400, priority: 1, weight: 1 };
     const defaultState = {
-        blockNumber: -2, requests: 0, lateResponses: 0, errorResponses: 0,
-        outOfSync: -1, unsupportedEvents: 0, rollingDuration: 0, score: 0,
-        _network: null, _updateNumber: null, _totalTime: 0
+        blockNumber: -2,
+        requests: 0,
+        lateResponses: 0,
+        errorResponses: 0,
+        outOfSync: -1,
+        unsupportedEvents: 0,
+        rollingDuration: 0,
+        score: 0,
+        _network: null,
+        _updateNumber: null,
+        _totalTime: 0,
     };
     async function waitForSync(config, blockNumber) {
         while (config.blockNumber < 0 || config.blockNumber < blockNumber) {
@@ -16342,12 +17189,12 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             return "null";
         }
         if (Array.isArray(value)) {
-            return "[" + (value.map(_normalize)).join(",") + "]";
+            return "[" + value.map(_normalize).join(",") + "]";
         }
-        if (typeof (value) === "object" && typeof (value.toJSON) === "function") {
+        if (typeof value === "object" && typeof value.toJSON === "function") {
             return _normalize(value.toJSON());
         }
-        switch (typeof (value)) {
+        switch (typeof value) {
             case "boolean":
             case "symbol":
                 return value.toString();
@@ -16359,7 +17206,11 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             case "object": {
                 const keys = Object.keys(value);
                 keys.sort();
-                return "{" + keys.map((k) => `${JSON.stringify(k)}:${_normalize(value[k])}`).join(",") + "}";
+                return ("{" +
+                    keys
+                        .map((k) => `${JSON.stringify(k)}:${_normalize(value[k])}`)
+                        .join(",") +
+                    "}");
             }
         }
         console.log("Could not serialize", value);
@@ -16421,7 +17272,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             return undefined;
         }
         // Get the sorted values
-        values.sort((a, b) => ((a < b) ? -1 : (b > a) ? 1 : 0));
+        values.sort((a, b) => (a < b ? -1 : b > a ? 1 : 0));
         const mid = Math.floor(values.length / 2);
         // Odd-length; take the middle value
         if (values.length % 2) {
@@ -16467,7 +17318,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             // Use this result, if this result meets quorum and has either:
             // - a better weight
             // - or equal weight, but the result is larger
-            if (weight >= quorum && (weight > bestWeight || (bestResult != null && weight === bestWeight && result > bestResult))) {
+            if (weight >= quorum &&
+                (weight > bestWeight ||
+                    (bestResult != null && weight === bestWeight && result > bestResult))) {
                 bestWeight = weight;
                 bestResult = result;
             }
@@ -16500,7 +17353,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             this.quorum = 2; //Math.ceil(providers.length /  2);
             this.eventQuorum = 1;
             this.eventWorkers = 1;
-            assertArgument(this.quorum <= this.#configs.reduce((a, c) => (a + c.weight), 0), "quorum exceed provider wieght", "quorum", this.quorum);
+            assertArgument(this.quorum <= this.#configs.reduce((a, c) => a + c.weight, 0), "quorum exceed provider wieght", "quorum", this.quorum);
         }
         get providerConfigs() {
             return this.#configs.map((c) => {
@@ -16533,7 +17386,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 case "getBalance":
                     return await provider.getBalance(req.address, req.blockTag);
                 case "getBlock": {
-                    const block = ("blockHash" in req) ? req.blockHash : req.blockTag;
+                    const block = "blockHash" in req ? req.blockHash : req.blockTag;
                     return await provider.getBlock(block, req.includeTransactions);
                 }
                 case "getBlockNumber":
@@ -16566,7 +17419,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             // Shuffle the states, sorted by priority
             const allConfigs = this.#configs.slice();
             shuffle(allConfigs);
-            allConfigs.sort((a, b) => (b.priority - a.priority));
+            allConfigs.sort((a, b) => b.priority - a.priority);
             for (const config of allConfigs) {
                 if (configs.indexOf(config) === -1) {
                     return config;
@@ -16583,8 +17436,11 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             }
             // Create a new runner
             const runner = {
-                config, result: null, didBump: false,
-                perform: null, staller: null
+                config,
+                result: null,
+                didBump: false,
+                perform: null,
+                staller: null,
             };
             const now = getTime();
             // Start performing this operation
@@ -16598,7 +17454,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                     config.errorResponses++;
                     runner.result = { error };
                 }
-                const dt = (getTime() - now);
+                const dt = getTime() - now;
                 config._totalTime += dt;
                 config.rollingDuration = 0.95 * config.rollingDuration + 0.05 * dt;
                 runner.perform = null;
@@ -16630,13 +17486,13 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                     // Check all the networks match
                     let networkId = null;
                     for (const config of this.#configs) {
-                        const network = (config._network);
+                        const network = config._network;
                         if (networkId == null) {
                             networkId = network.networkId;
                         }
                         else if (network.networkId !== networkId) {
                             assert(false, "cannot mix providers on different networks", "UNSUPPORTED_OPERATION", {
-                                operation: "new FallbackProvider"
+                                operation: "new FallbackProvider",
                             });
                         }
                     }
@@ -16654,7 +17510,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 }
             }
             // Are there enough results to event meet quorum?
-            if (results.reduce((a, r) => (a + r.weight), 0) < this.quorum) {
+            if (results.reduce((a, r) => a + r.weight, 0) < this.quorum) {
                 return undefined;
             }
             switch (req.method) {
@@ -16664,7 +17520,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                         this.#height = Math.ceil(getNumber(getMedian(this.quorum, this.#configs.map((c) => ({
                             value: c.blockNumber,
                             tag: getNumber(c.blockNumber).toString(),
-                            weight: c.weight
+                            weight: c.weight,
                         })))));
                     }
                     // Find the mode across all the providers, allowing for
@@ -16702,7 +17558,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                     return getAnyResult(this.quorum, results);
             }
             assert(false, "unsupported method", "UNSUPPORTED_OPERATION", {
-                operation: `_perform(${stringify(req.method)})`
+                operation: `_perform(${stringify(req.method)})`,
             });
         }
         async #waitForQuorum(running, req) {
@@ -16747,7 +17603,10 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             // All providers have returned, and we have no result
             assert(interesting.length > 0, "quorum not met", "SERVER_ERROR", {
                 request: "%sub-requests",
-                info: { request: req, results: Array.from(running).map((r) => stringify(r.result)) }
+                info: {
+                    request: req,
+                    results: Array.from(running).map((r) => stringify(r.result)),
+                },
             });
             // Wait for someone to either complete its perform or stall out
             await Promise.race(interesting);
@@ -16772,7 +17631,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 const result = getAnyResult(this.quorum, results);
                 assert(result !== undefined, "problem multi-broadcasting", "SERVER_ERROR", {
                     request: "%sub-requests",
-                    info: { request: req, results: results.map(stringify) }
+                    info: { request: req, results: results.map(stringify) },
                 });
                 if (result instanceof Error) {
                     throw result;
@@ -16804,17 +17663,19 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
     }
 
     function isWebSocketLike(value) {
-        return (value && typeof (value.send) === "function" &&
-            typeof (value.close) === "function");
+        return (value &&
+            typeof value.send === "function" &&
+            typeof value.close === "function");
     }
     function getDefaultProvider(network, options) {
         if (options == null) {
             options = {};
         }
-        if (typeof (network) === "string" && network.match(/^https?:/)) {
+        if (typeof network === "string" && network.match(/^https?:/)) {
             return new JsonRpcProvider(network);
         }
-        if (typeof (network) === "string" && network.match(/^wss?:/) || isWebSocketLike(network)) {
+        if ((typeof network === "string" && network.match(/^wss?:/)) ||
+            isWebSocketLike(network)) {
             return new WebSocketProvider(network);
         }
         const providers = [];
@@ -16846,7 +17707,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             try {
                 let projectId = options.infura;
                 let projectSecret = undefined;
-                if (typeof (projectId) === "object") {
+                if (typeof projectId === "object") {
                     projectSecret = projectId.projectSecret;
                     projectId = projectId.projectId;
                 }
@@ -16857,20 +17718,20 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             }
         }
         /*
-            if (options.pocket !== "-") {
-                try {
-                    let appId = options.pocket;
-                    let secretKey: undefined | string = undefined;
-                    let loadBalancer: undefined | boolean = undefined;
-                    if (typeof(appId) === "object") {
-                        loadBalancer = !!appId.loadBalancer;
-                        secretKey = appId.secretKey;
-                        appId = appId.appId;
-                    }
-                    providers.push(new PocketProvider(network, appId, secretKey, loadBalancer));
-                } catch (error) { console.log(error); }
-            }
-        */
+          if (options.pocket !== "-") {
+              try {
+                  let appId = options.pocket;
+                  let secretKey: undefined | string = undefined;
+                  let loadBalancer: undefined | boolean = undefined;
+                  if (typeof(appId) === "object") {
+                      loadBalancer = !!appId.loadBalancer;
+                      secretKey = appId.secretKey;
+                      appId = appId.appId;
+                  }
+                  providers.push(new PocketProvider(network, appId, secretKey, loadBalancer));
+              } catch (error) { console.log(error); }
+          }
+      */
         if (options.quicknode !== "-") {
             try {
                 let token = options.quicknode;
@@ -16881,7 +17742,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             }
         }
         assert(providers.length, "unsupported default network", "UNSUPPORTED_OPERATION", {
-            operation: "getDefaultProvider"
+            operation: "getDefaultProvider",
         });
         if (providers.length === 1) {
             return providers[0];
@@ -16975,10 +17836,12 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 return [{ id: payload.id, result }];
             }
             catch (e) {
-                return [{
+                return [
+                    {
                         id: payload.id,
-                        error: { code: e.code, data: e.data, message: e.message }
-                    }];
+                        error: { code: e.code, data: e.data, message: e.message },
+                    },
+                ];
             }
         }
         getRpcError(payload, error) {
@@ -17000,11 +17863,11 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 address = 0;
             }
             const accounts = await this.send("xcb_accounts", []);
-            if (typeof (address) === "number") {
-                return (accounts.length > address);
+            if (typeof address === "number") {
+                return accounts.length > address;
             }
             address = address.toLowerCase();
-            return accounts.filter((a) => (a.toLowerCase() === address)).length !== 0;
+            return (accounts.filter((a) => a.toLowerCase() === address).length !== 0);
         }
         async getSigner(address) {
             if (address == null) {
@@ -17091,7 +17954,10 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             const options = { staticNetwork: network };
             const request = PocketProvider.getRequest(network, applicationId, applicationSecret);
             super(request, network, options);
-            defineProperties(this, { applicationId, applicationSecret });
+            defineProperties(this, {
+                applicationId,
+                applicationSecret,
+            });
         }
         _getProvider(networkId) {
             try {
@@ -17122,7 +17988,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             return request;
         }
         isCommunityResource() {
-            return (this.applicationId === defaultApplicationId);
+            return this.applicationId === defaultApplicationId;
         }
     }
 
@@ -17153,10 +18019,10 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  If %%provider%% is not specified, only offline methods can
          *  be used.
          */
-        constructor({ signingKey, prefix, provider }) {
+        constructor({ signingKey, prefix, provider, }) {
             super(provider);
             this.prefix = prefix;
-            assertArgument(signingKey && typeof (signingKey.sign) === "function", "invalid signingKey key", "signingKey", "[ REDACTED ]");
+            assertArgument(signingKey && typeof signingKey.sign === "function", "invalid signingKey key", "signingKey", "[ REDACTED ]");
             this.#signingKey = signingKey;
             const address = computeAddress(this.#signingKey, prefix);
             defineProperties(this, { address });
@@ -17166,15 +18032,23 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         /**
          *  The [[SigningKey]] used for signing payloads.
          */
-        get signingKey() { return this.#signingKey; }
+        get signingKey() {
+            return this.#signingKey;
+        }
         /**
          *  The private key for this wallet.
          */
-        get privateKey() { return this.signingKey.privateKey; }
-        async getAddress() { return this.address; }
+        get privateKey() {
+            return this.signingKey.privateKey;
+        }
+        async getAddress() {
+            return this.address;
+        }
         connect(provider) {
             return new BaseWallet({
-                signingKey: this.#signingKey, prefix: this.prefix, provider
+                signingKey: this.#signingKey,
+                prefix: this.prefix,
+                provider,
             });
         }
         async signTransaction(tx) {
@@ -17190,7 +18064,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 tx.from = from;
             }
             if (tx.from != null) {
-                assertArgument(getAddress((tx.from)) === this.address, "transaction from address mismatch", "tx.from", tx.from);
+                assertArgument(getAddress(tx.from) === this.address, "transaction from address mismatch", "tx.from", tx.from);
                 delete tx.from;
             }
             // Build the transaction
@@ -17219,11 +18093,11 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 //        need a provider
                 assert(this.provider != null, "cannot resolve ENS names without a provider", "UNSUPPORTED_OPERATION", {
                     operation: "resolveName",
-                    info: { name }
+                    info: { name },
                 });
                 const address = getAddress(name);
                 assert(address != null, "unconfigured ENS name", "UNCONFIGURED_NAME", {
-                    value: name
+                    value: name,
                 });
                 return address;
             });
@@ -17365,7 +18239,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             this.#checksum = checksum;
             this.#words = null;
         }
-        get _data() { return this.#data; }
+        get _data() {
+            return this.#data;
+        }
         _decodeWords() {
             return decodeOwl(this.#data);
         }
@@ -17411,7 +18287,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *
          *  @_ignore:
          */
-        constructor() { super("en", words, checksum); }
+        constructor() {
+            super("en", words, checksum);
+        }
         /**
          *  Returns a singleton instance of a ``LangEn``, creating it
          *  if this is the first time being called.
@@ -17426,7 +18304,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
 
     // Returns a byte with the MSB bits set
     function getUpperMask(bits) {
-        return ((1 << bits) - 1) << (8 - bits) & 0xff;
+        return (((1 << bits) - 1) << (8 - bits)) & 0xff;
     }
     // Returns a byte with the LSB bits set
     function getLowerMask(bits) {
@@ -17438,20 +18316,20 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             wordlist = LangEn.wordlist();
         }
         const words = wordlist.split(mnemonic);
-        assertArgument((words.length % 3) === 0 && words.length >= 12 && words.length <= 24, "invalid mnemonic length", "mnemonic", "[ REDACTED ]");
-        const entropy = new Uint8Array(Math.ceil(11 * words.length / 8));
+        assertArgument(words.length % 3 === 0 && words.length >= 12 && words.length <= 24, "invalid mnemonic length", "mnemonic", "[ REDACTED ]");
+        const entropy = new Uint8Array(Math.ceil((11 * words.length) / 8));
         let offset = 0;
         for (let i = 0; i < words.length; i++) {
             let index = wordlist.getWordIndex(words[i].normalize("NFKD"));
             assertArgument(index >= 0, `invalid mnemonic word at index ${i}`, "mnemonic", "[ REDACTED ]");
             for (let bit = 0; bit < 11; bit++) {
                 if (index & (1 << (10 - bit))) {
-                    entropy[offset >> 3] |= (1 << (7 - (offset % 8)));
+                    entropy[offset >> 3] |= 1 << (7 - (offset % 8));
                 }
                 offset++;
             }
         }
-        const entropyBits = 32 * words.length / 3;
+        const entropyBits = (32 * words.length) / 3;
         const checksumBits = words.length / 3;
         const checksumMask = getUpperMask(checksumBits);
         const checksum = getBytes(legacySha256(entropy.slice(0, entropyBits / 8)))[0] & checksumMask;
@@ -17459,7 +18337,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         return hexlify(entropy.slice(0, entropyBits / 8));
     }
     function entropyToMnemonic(entropy, wordlist) {
-        assertArgument((entropy.length % 4) === 0 && entropy.length >= 16 && entropy.length <= 32, "invalid entropy size", "entropy", "[ REDACTED ]");
+        assertArgument(entropy.length % 4 === 0 && entropy.length >= 16 && entropy.length <= 32, "invalid entropy size", "entropy", "[ REDACTED ]");
         if (wordlist == null) {
             wordlist = LangEn.wordlist();
         }
@@ -17483,10 +18361,11 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         }
         // Compute the checksum bits
         const checksumBits = entropy.length / 4;
-        const checksum = parseInt(legacySha256(entropy).substring(2, 4), 16) & getUpperMask(checksumBits);
+        const checksum = parseInt(legacySha256(entropy).substring(2, 4), 16) &
+            getUpperMask(checksumBits);
         // Shift the checksum into the word indices
         indices[indices.length - 1] <<= checksumBits;
-        indices[indices.length - 1] |= (checksum >> (8 - checksumBits));
+        indices[indices.length - 1] |= checksum >> (8 - checksumBits);
         return wordlist.join(indices.map((index) => wordlist.getWord(index)));
     }
     const _guard$1 = {};
@@ -17539,7 +18418,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  The default %%password%% is the empty string and the default
          *  wordlist is the [English wordlists](LangEn).
          */
-        static fromPhrase({ phrase, password, wordlist }) {
+        static fromPhrase({ phrase, password, wordlist, }) {
             // Normalize the case and space; throws if invalid
             const entropy = mnemonicToEntropy(phrase, wordlist);
             phrase = entropyToMnemonic(getBytes(entropy), wordlist);
@@ -17585,380 +18464,11 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         }
     }
 
-    /*! MIT License. Copyright 2015-2022 Richard Moore <me@ricmoo.com>. See LICENSE.txt. */
-    var __classPrivateFieldGet$2 = (__$G && __$G.__classPrivateFieldGet) || function (receiver, state, kind, f) {
-        if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
-        if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
-        return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
-    };
-    var __classPrivateFieldSet$2 = (__$G && __$G.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
-        if (kind === "m") throw new TypeError("Private method is not writable");
-        if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
-        if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
-        return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
-    };
-    var _AES_key, _AES_Kd, _AES_Ke;
-    // Number of rounds by keysize
-    const numberOfRounds = { 16: 10, 24: 12, 32: 14 };
-    // Round constant words
-    const rcon = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36, 0x6c, 0xd8, 0xab, 0x4d, 0x9a, 0x2f, 0x5e, 0xbc, 0x63, 0xc6, 0x97, 0x35, 0x6a, 0xd4, 0xb3, 0x7d, 0xfa, 0xef, 0xc5, 0x91];
-    // S-box and Inverse S-box (S is for Substitution)
-    const S = [0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76, 0xca, 0x82, 0xc9, 0x7d, 0xfa, 0x59, 0x47, 0xf0, 0xad, 0xd4, 0xa2, 0xaf, 0x9c, 0xa4, 0x72, 0xc0, 0xb7, 0xfd, 0x93, 0x26, 0x36, 0x3f, 0xf7, 0xcc, 0x34, 0xa5, 0xe5, 0xf1, 0x71, 0xd8, 0x31, 0x15, 0x04, 0xc7, 0x23, 0xc3, 0x18, 0x96, 0x05, 0x9a, 0x07, 0x12, 0x80, 0xe2, 0xeb, 0x27, 0xb2, 0x75, 0x09, 0x83, 0x2c, 0x1a, 0x1b, 0x6e, 0x5a, 0xa0, 0x52, 0x3b, 0xd6, 0xb3, 0x29, 0xe3, 0x2f, 0x84, 0x53, 0xd1, 0x00, 0xed, 0x20, 0xfc, 0xb1, 0x5b, 0x6a, 0xcb, 0xbe, 0x39, 0x4a, 0x4c, 0x58, 0xcf, 0xd0, 0xef, 0xaa, 0xfb, 0x43, 0x4d, 0x33, 0x85, 0x45, 0xf9, 0x02, 0x7f, 0x50, 0x3c, 0x9f, 0xa8, 0x51, 0xa3, 0x40, 0x8f, 0x92, 0x9d, 0x38, 0xf5, 0xbc, 0xb6, 0xda, 0x21, 0x10, 0xff, 0xf3, 0xd2, 0xcd, 0x0c, 0x13, 0xec, 0x5f, 0x97, 0x44, 0x17, 0xc4, 0xa7, 0x7e, 0x3d, 0x64, 0x5d, 0x19, 0x73, 0x60, 0x81, 0x4f, 0xdc, 0x22, 0x2a, 0x90, 0x88, 0x46, 0xee, 0xb8, 0x14, 0xde, 0x5e, 0x0b, 0xdb, 0xe0, 0x32, 0x3a, 0x0a, 0x49, 0x06, 0x24, 0x5c, 0xc2, 0xd3, 0xac, 0x62, 0x91, 0x95, 0xe4, 0x79, 0xe7, 0xc8, 0x37, 0x6d, 0x8d, 0xd5, 0x4e, 0xa9, 0x6c, 0x56, 0xf4, 0xea, 0x65, 0x7a, 0xae, 0x08, 0xba, 0x78, 0x25, 0x2e, 0x1c, 0xa6, 0xb4, 0xc6, 0xe8, 0xdd, 0x74, 0x1f, 0x4b, 0xbd, 0x8b, 0x8a, 0x70, 0x3e, 0xb5, 0x66, 0x48, 0x03, 0xf6, 0x0e, 0x61, 0x35, 0x57, 0xb9, 0x86, 0xc1, 0x1d, 0x9e, 0xe1, 0xf8, 0x98, 0x11, 0x69, 0xd9, 0x8e, 0x94, 0x9b, 0x1e, 0x87, 0xe9, 0xce, 0x55, 0x28, 0xdf, 0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16];
-    const Si = [0x52, 0x09, 0x6a, 0xd5, 0x30, 0x36, 0xa5, 0x38, 0xbf, 0x40, 0xa3, 0x9e, 0x81, 0xf3, 0xd7, 0xfb, 0x7c, 0xe3, 0x39, 0x82, 0x9b, 0x2f, 0xff, 0x87, 0x34, 0x8e, 0x43, 0x44, 0xc4, 0xde, 0xe9, 0xcb, 0x54, 0x7b, 0x94, 0x32, 0xa6, 0xc2, 0x23, 0x3d, 0xee, 0x4c, 0x95, 0x0b, 0x42, 0xfa, 0xc3, 0x4e, 0x08, 0x2e, 0xa1, 0x66, 0x28, 0xd9, 0x24, 0xb2, 0x76, 0x5b, 0xa2, 0x49, 0x6d, 0x8b, 0xd1, 0x25, 0x72, 0xf8, 0xf6, 0x64, 0x86, 0x68, 0x98, 0x16, 0xd4, 0xa4, 0x5c, 0xcc, 0x5d, 0x65, 0xb6, 0x92, 0x6c, 0x70, 0x48, 0x50, 0xfd, 0xed, 0xb9, 0xda, 0x5e, 0x15, 0x46, 0x57, 0xa7, 0x8d, 0x9d, 0x84, 0x90, 0xd8, 0xab, 0x00, 0x8c, 0xbc, 0xd3, 0x0a, 0xf7, 0xe4, 0x58, 0x05, 0xb8, 0xb3, 0x45, 0x06, 0xd0, 0x2c, 0x1e, 0x8f, 0xca, 0x3f, 0x0f, 0x02, 0xc1, 0xaf, 0xbd, 0x03, 0x01, 0x13, 0x8a, 0x6b, 0x3a, 0x91, 0x11, 0x41, 0x4f, 0x67, 0xdc, 0xea, 0x97, 0xf2, 0xcf, 0xce, 0xf0, 0xb4, 0xe6, 0x73, 0x96, 0xac, 0x74, 0x22, 0xe7, 0xad, 0x35, 0x85, 0xe2, 0xf9, 0x37, 0xe8, 0x1c, 0x75, 0xdf, 0x6e, 0x47, 0xf1, 0x1a, 0x71, 0x1d, 0x29, 0xc5, 0x89, 0x6f, 0xb7, 0x62, 0x0e, 0xaa, 0x18, 0xbe, 0x1b, 0xfc, 0x56, 0x3e, 0x4b, 0xc6, 0xd2, 0x79, 0x20, 0x9a, 0xdb, 0xc0, 0xfe, 0x78, 0xcd, 0x5a, 0xf4, 0x1f, 0xdd, 0xa8, 0x33, 0x88, 0x07, 0xc7, 0x31, 0xb1, 0x12, 0x10, 0x59, 0x27, 0x80, 0xec, 0x5f, 0x60, 0x51, 0x7f, 0xa9, 0x19, 0xb5, 0x4a, 0x0d, 0x2d, 0xe5, 0x7a, 0x9f, 0x93, 0xc9, 0x9c, 0xef, 0xa0, 0xe0, 0x3b, 0x4d, 0xae, 0x2a, 0xf5, 0xb0, 0xc8, 0xeb, 0xbb, 0x3c, 0x83, 0x53, 0x99, 0x61, 0x17, 0x2b, 0x04, 0x7e, 0xba, 0x77, 0xd6, 0x26, 0xe1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0c, 0x7d];
-    // Transformations for encryption
-    const T1 = [0xc66363a5, 0xf87c7c84, 0xee777799, 0xf67b7b8d, 0xfff2f20d, 0xd66b6bbd, 0xde6f6fb1, 0x91c5c554, 0x60303050, 0x02010103, 0xce6767a9, 0x562b2b7d, 0xe7fefe19, 0xb5d7d762, 0x4dababe6, 0xec76769a, 0x8fcaca45, 0x1f82829d, 0x89c9c940, 0xfa7d7d87, 0xeffafa15, 0xb25959eb, 0x8e4747c9, 0xfbf0f00b, 0x41adadec, 0xb3d4d467, 0x5fa2a2fd, 0x45afafea, 0x239c9cbf, 0x53a4a4f7, 0xe4727296, 0x9bc0c05b, 0x75b7b7c2, 0xe1fdfd1c, 0x3d9393ae, 0x4c26266a, 0x6c36365a, 0x7e3f3f41, 0xf5f7f702, 0x83cccc4f, 0x6834345c, 0x51a5a5f4, 0xd1e5e534, 0xf9f1f108, 0xe2717193, 0xabd8d873, 0x62313153, 0x2a15153f, 0x0804040c, 0x95c7c752, 0x46232365, 0x9dc3c35e, 0x30181828, 0x379696a1, 0x0a05050f, 0x2f9a9ab5, 0x0e070709, 0x24121236, 0x1b80809b, 0xdfe2e23d, 0xcdebeb26, 0x4e272769, 0x7fb2b2cd, 0xea75759f, 0x1209091b, 0x1d83839e, 0x582c2c74, 0x341a1a2e, 0x361b1b2d, 0xdc6e6eb2, 0xb45a5aee, 0x5ba0a0fb, 0xa45252f6, 0x763b3b4d, 0xb7d6d661, 0x7db3b3ce, 0x5229297b, 0xdde3e33e, 0x5e2f2f71, 0x13848497, 0xa65353f5, 0xb9d1d168, 0x00000000, 0xc1eded2c, 0x40202060, 0xe3fcfc1f, 0x79b1b1c8, 0xb65b5bed, 0xd46a6abe, 0x8dcbcb46, 0x67bebed9, 0x7239394b, 0x944a4ade, 0x984c4cd4, 0xb05858e8, 0x85cfcf4a, 0xbbd0d06b, 0xc5efef2a, 0x4faaaae5, 0xedfbfb16, 0x864343c5, 0x9a4d4dd7, 0x66333355, 0x11858594, 0x8a4545cf, 0xe9f9f910, 0x04020206, 0xfe7f7f81, 0xa05050f0, 0x783c3c44, 0x259f9fba, 0x4ba8a8e3, 0xa25151f3, 0x5da3a3fe, 0x804040c0, 0x058f8f8a, 0x3f9292ad, 0x219d9dbc, 0x70383848, 0xf1f5f504, 0x63bcbcdf, 0x77b6b6c1, 0xafdada75, 0x42212163, 0x20101030, 0xe5ffff1a, 0xfdf3f30e, 0xbfd2d26d, 0x81cdcd4c, 0x180c0c14, 0x26131335, 0xc3ecec2f, 0xbe5f5fe1, 0x359797a2, 0x884444cc, 0x2e171739, 0x93c4c457, 0x55a7a7f2, 0xfc7e7e82, 0x7a3d3d47, 0xc86464ac, 0xba5d5de7, 0x3219192b, 0xe6737395, 0xc06060a0, 0x19818198, 0x9e4f4fd1, 0xa3dcdc7f, 0x44222266, 0x542a2a7e, 0x3b9090ab, 0x0b888883, 0x8c4646ca, 0xc7eeee29, 0x6bb8b8d3, 0x2814143c, 0xa7dede79, 0xbc5e5ee2, 0x160b0b1d, 0xaddbdb76, 0xdbe0e03b, 0x64323256, 0x743a3a4e, 0x140a0a1e, 0x924949db, 0x0c06060a, 0x4824246c, 0xb85c5ce4, 0x9fc2c25d, 0xbdd3d36e, 0x43acacef, 0xc46262a6, 0x399191a8, 0x319595a4, 0xd3e4e437, 0xf279798b, 0xd5e7e732, 0x8bc8c843, 0x6e373759, 0xda6d6db7, 0x018d8d8c, 0xb1d5d564, 0x9c4e4ed2, 0x49a9a9e0, 0xd86c6cb4, 0xac5656fa, 0xf3f4f407, 0xcfeaea25, 0xca6565af, 0xf47a7a8e, 0x47aeaee9, 0x10080818, 0x6fbabad5, 0xf0787888, 0x4a25256f, 0x5c2e2e72, 0x381c1c24, 0x57a6a6f1, 0x73b4b4c7, 0x97c6c651, 0xcbe8e823, 0xa1dddd7c, 0xe874749c, 0x3e1f1f21, 0x964b4bdd, 0x61bdbddc, 0x0d8b8b86, 0x0f8a8a85, 0xe0707090, 0x7c3e3e42, 0x71b5b5c4, 0xcc6666aa, 0x904848d8, 0x06030305, 0xf7f6f601, 0x1c0e0e12, 0xc26161a3, 0x6a35355f, 0xae5757f9, 0x69b9b9d0, 0x17868691, 0x99c1c158, 0x3a1d1d27, 0x279e9eb9, 0xd9e1e138, 0xebf8f813, 0x2b9898b3, 0x22111133, 0xd26969bb, 0xa9d9d970, 0x078e8e89, 0x339494a7, 0x2d9b9bb6, 0x3c1e1e22, 0x15878792, 0xc9e9e920, 0x87cece49, 0xaa5555ff, 0x50282878, 0xa5dfdf7a, 0x038c8c8f, 0x59a1a1f8, 0x09898980, 0x1a0d0d17, 0x65bfbfda, 0xd7e6e631, 0x844242c6, 0xd06868b8, 0x824141c3, 0x299999b0, 0x5a2d2d77, 0x1e0f0f11, 0x7bb0b0cb, 0xa85454fc, 0x6dbbbbd6, 0x2c16163a];
-    const T2 = [0xa5c66363, 0x84f87c7c, 0x99ee7777, 0x8df67b7b, 0x0dfff2f2, 0xbdd66b6b, 0xb1de6f6f, 0x5491c5c5, 0x50603030, 0x03020101, 0xa9ce6767, 0x7d562b2b, 0x19e7fefe, 0x62b5d7d7, 0xe64dabab, 0x9aec7676, 0x458fcaca, 0x9d1f8282, 0x4089c9c9, 0x87fa7d7d, 0x15effafa, 0xebb25959, 0xc98e4747, 0x0bfbf0f0, 0xec41adad, 0x67b3d4d4, 0xfd5fa2a2, 0xea45afaf, 0xbf239c9c, 0xf753a4a4, 0x96e47272, 0x5b9bc0c0, 0xc275b7b7, 0x1ce1fdfd, 0xae3d9393, 0x6a4c2626, 0x5a6c3636, 0x417e3f3f, 0x02f5f7f7, 0x4f83cccc, 0x5c683434, 0xf451a5a5, 0x34d1e5e5, 0x08f9f1f1, 0x93e27171, 0x73abd8d8, 0x53623131, 0x3f2a1515, 0x0c080404, 0x5295c7c7, 0x65462323, 0x5e9dc3c3, 0x28301818, 0xa1379696, 0x0f0a0505, 0xb52f9a9a, 0x090e0707, 0x36241212, 0x9b1b8080, 0x3ddfe2e2, 0x26cdebeb, 0x694e2727, 0xcd7fb2b2, 0x9fea7575, 0x1b120909, 0x9e1d8383, 0x74582c2c, 0x2e341a1a, 0x2d361b1b, 0xb2dc6e6e, 0xeeb45a5a, 0xfb5ba0a0, 0xf6a45252, 0x4d763b3b, 0x61b7d6d6, 0xce7db3b3, 0x7b522929, 0x3edde3e3, 0x715e2f2f, 0x97138484, 0xf5a65353, 0x68b9d1d1, 0x00000000, 0x2cc1eded, 0x60402020, 0x1fe3fcfc, 0xc879b1b1, 0xedb65b5b, 0xbed46a6a, 0x468dcbcb, 0xd967bebe, 0x4b723939, 0xde944a4a, 0xd4984c4c, 0xe8b05858, 0x4a85cfcf, 0x6bbbd0d0, 0x2ac5efef, 0xe54faaaa, 0x16edfbfb, 0xc5864343, 0xd79a4d4d, 0x55663333, 0x94118585, 0xcf8a4545, 0x10e9f9f9, 0x06040202, 0x81fe7f7f, 0xf0a05050, 0x44783c3c, 0xba259f9f, 0xe34ba8a8, 0xf3a25151, 0xfe5da3a3, 0xc0804040, 0x8a058f8f, 0xad3f9292, 0xbc219d9d, 0x48703838, 0x04f1f5f5, 0xdf63bcbc, 0xc177b6b6, 0x75afdada, 0x63422121, 0x30201010, 0x1ae5ffff, 0x0efdf3f3, 0x6dbfd2d2, 0x4c81cdcd, 0x14180c0c, 0x35261313, 0x2fc3ecec, 0xe1be5f5f, 0xa2359797, 0xcc884444, 0x392e1717, 0x5793c4c4, 0xf255a7a7, 0x82fc7e7e, 0x477a3d3d, 0xacc86464, 0xe7ba5d5d, 0x2b321919, 0x95e67373, 0xa0c06060, 0x98198181, 0xd19e4f4f, 0x7fa3dcdc, 0x66442222, 0x7e542a2a, 0xab3b9090, 0x830b8888, 0xca8c4646, 0x29c7eeee, 0xd36bb8b8, 0x3c281414, 0x79a7dede, 0xe2bc5e5e, 0x1d160b0b, 0x76addbdb, 0x3bdbe0e0, 0x56643232, 0x4e743a3a, 0x1e140a0a, 0xdb924949, 0x0a0c0606, 0x6c482424, 0xe4b85c5c, 0x5d9fc2c2, 0x6ebdd3d3, 0xef43acac, 0xa6c46262, 0xa8399191, 0xa4319595, 0x37d3e4e4, 0x8bf27979, 0x32d5e7e7, 0x438bc8c8, 0x596e3737, 0xb7da6d6d, 0x8c018d8d, 0x64b1d5d5, 0xd29c4e4e, 0xe049a9a9, 0xb4d86c6c, 0xfaac5656, 0x07f3f4f4, 0x25cfeaea, 0xafca6565, 0x8ef47a7a, 0xe947aeae, 0x18100808, 0xd56fbaba, 0x88f07878, 0x6f4a2525, 0x725c2e2e, 0x24381c1c, 0xf157a6a6, 0xc773b4b4, 0x5197c6c6, 0x23cbe8e8, 0x7ca1dddd, 0x9ce87474, 0x213e1f1f, 0xdd964b4b, 0xdc61bdbd, 0x860d8b8b, 0x850f8a8a, 0x90e07070, 0x427c3e3e, 0xc471b5b5, 0xaacc6666, 0xd8904848, 0x05060303, 0x01f7f6f6, 0x121c0e0e, 0xa3c26161, 0x5f6a3535, 0xf9ae5757, 0xd069b9b9, 0x91178686, 0x5899c1c1, 0x273a1d1d, 0xb9279e9e, 0x38d9e1e1, 0x13ebf8f8, 0xb32b9898, 0x33221111, 0xbbd26969, 0x70a9d9d9, 0x89078e8e, 0xa7339494, 0xb62d9b9b, 0x223c1e1e, 0x92158787, 0x20c9e9e9, 0x4987cece, 0xffaa5555, 0x78502828, 0x7aa5dfdf, 0x8f038c8c, 0xf859a1a1, 0x80098989, 0x171a0d0d, 0xda65bfbf, 0x31d7e6e6, 0xc6844242, 0xb8d06868, 0xc3824141, 0xb0299999, 0x775a2d2d, 0x111e0f0f, 0xcb7bb0b0, 0xfca85454, 0xd66dbbbb, 0x3a2c1616];
-    const T3 = [0x63a5c663, 0x7c84f87c, 0x7799ee77, 0x7b8df67b, 0xf20dfff2, 0x6bbdd66b, 0x6fb1de6f, 0xc55491c5, 0x30506030, 0x01030201, 0x67a9ce67, 0x2b7d562b, 0xfe19e7fe, 0xd762b5d7, 0xabe64dab, 0x769aec76, 0xca458fca, 0x829d1f82, 0xc94089c9, 0x7d87fa7d, 0xfa15effa, 0x59ebb259, 0x47c98e47, 0xf00bfbf0, 0xadec41ad, 0xd467b3d4, 0xa2fd5fa2, 0xafea45af, 0x9cbf239c, 0xa4f753a4, 0x7296e472, 0xc05b9bc0, 0xb7c275b7, 0xfd1ce1fd, 0x93ae3d93, 0x266a4c26, 0x365a6c36, 0x3f417e3f, 0xf702f5f7, 0xcc4f83cc, 0x345c6834, 0xa5f451a5, 0xe534d1e5, 0xf108f9f1, 0x7193e271, 0xd873abd8, 0x31536231, 0x153f2a15, 0x040c0804, 0xc75295c7, 0x23654623, 0xc35e9dc3, 0x18283018, 0x96a13796, 0x050f0a05, 0x9ab52f9a, 0x07090e07, 0x12362412, 0x809b1b80, 0xe23ddfe2, 0xeb26cdeb, 0x27694e27, 0xb2cd7fb2, 0x759fea75, 0x091b1209, 0x839e1d83, 0x2c74582c, 0x1a2e341a, 0x1b2d361b, 0x6eb2dc6e, 0x5aeeb45a, 0xa0fb5ba0, 0x52f6a452, 0x3b4d763b, 0xd661b7d6, 0xb3ce7db3, 0x297b5229, 0xe33edde3, 0x2f715e2f, 0x84971384, 0x53f5a653, 0xd168b9d1, 0x00000000, 0xed2cc1ed, 0x20604020, 0xfc1fe3fc, 0xb1c879b1, 0x5bedb65b, 0x6abed46a, 0xcb468dcb, 0xbed967be, 0x394b7239, 0x4ade944a, 0x4cd4984c, 0x58e8b058, 0xcf4a85cf, 0xd06bbbd0, 0xef2ac5ef, 0xaae54faa, 0xfb16edfb, 0x43c58643, 0x4dd79a4d, 0x33556633, 0x85941185, 0x45cf8a45, 0xf910e9f9, 0x02060402, 0x7f81fe7f, 0x50f0a050, 0x3c44783c, 0x9fba259f, 0xa8e34ba8, 0x51f3a251, 0xa3fe5da3, 0x40c08040, 0x8f8a058f, 0x92ad3f92, 0x9dbc219d, 0x38487038, 0xf504f1f5, 0xbcdf63bc, 0xb6c177b6, 0xda75afda, 0x21634221, 0x10302010, 0xff1ae5ff, 0xf30efdf3, 0xd26dbfd2, 0xcd4c81cd, 0x0c14180c, 0x13352613, 0xec2fc3ec, 0x5fe1be5f, 0x97a23597, 0x44cc8844, 0x17392e17, 0xc45793c4, 0xa7f255a7, 0x7e82fc7e, 0x3d477a3d, 0x64acc864, 0x5de7ba5d, 0x192b3219, 0x7395e673, 0x60a0c060, 0x81981981, 0x4fd19e4f, 0xdc7fa3dc, 0x22664422, 0x2a7e542a, 0x90ab3b90, 0x88830b88, 0x46ca8c46, 0xee29c7ee, 0xb8d36bb8, 0x143c2814, 0xde79a7de, 0x5ee2bc5e, 0x0b1d160b, 0xdb76addb, 0xe03bdbe0, 0x32566432, 0x3a4e743a, 0x0a1e140a, 0x49db9249, 0x060a0c06, 0x246c4824, 0x5ce4b85c, 0xc25d9fc2, 0xd36ebdd3, 0xacef43ac, 0x62a6c462, 0x91a83991, 0x95a43195, 0xe437d3e4, 0x798bf279, 0xe732d5e7, 0xc8438bc8, 0x37596e37, 0x6db7da6d, 0x8d8c018d, 0xd564b1d5, 0x4ed29c4e, 0xa9e049a9, 0x6cb4d86c, 0x56faac56, 0xf407f3f4, 0xea25cfea, 0x65afca65, 0x7a8ef47a, 0xaee947ae, 0x08181008, 0xbad56fba, 0x7888f078, 0x256f4a25, 0x2e725c2e, 0x1c24381c, 0xa6f157a6, 0xb4c773b4, 0xc65197c6, 0xe823cbe8, 0xdd7ca1dd, 0x749ce874, 0x1f213e1f, 0x4bdd964b, 0xbddc61bd, 0x8b860d8b, 0x8a850f8a, 0x7090e070, 0x3e427c3e, 0xb5c471b5, 0x66aacc66, 0x48d89048, 0x03050603, 0xf601f7f6, 0x0e121c0e, 0x61a3c261, 0x355f6a35, 0x57f9ae57, 0xb9d069b9, 0x86911786, 0xc15899c1, 0x1d273a1d, 0x9eb9279e, 0xe138d9e1, 0xf813ebf8, 0x98b32b98, 0x11332211, 0x69bbd269, 0xd970a9d9, 0x8e89078e, 0x94a73394, 0x9bb62d9b, 0x1e223c1e, 0x87921587, 0xe920c9e9, 0xce4987ce, 0x55ffaa55, 0x28785028, 0xdf7aa5df, 0x8c8f038c, 0xa1f859a1, 0x89800989, 0x0d171a0d, 0xbfda65bf, 0xe631d7e6, 0x42c68442, 0x68b8d068, 0x41c38241, 0x99b02999, 0x2d775a2d, 0x0f111e0f, 0xb0cb7bb0, 0x54fca854, 0xbbd66dbb, 0x163a2c16];
-    const T4 = [0x6363a5c6, 0x7c7c84f8, 0x777799ee, 0x7b7b8df6, 0xf2f20dff, 0x6b6bbdd6, 0x6f6fb1de, 0xc5c55491, 0x30305060, 0x01010302, 0x6767a9ce, 0x2b2b7d56, 0xfefe19e7, 0xd7d762b5, 0xababe64d, 0x76769aec, 0xcaca458f, 0x82829d1f, 0xc9c94089, 0x7d7d87fa, 0xfafa15ef, 0x5959ebb2, 0x4747c98e, 0xf0f00bfb, 0xadadec41, 0xd4d467b3, 0xa2a2fd5f, 0xafafea45, 0x9c9cbf23, 0xa4a4f753, 0x727296e4, 0xc0c05b9b, 0xb7b7c275, 0xfdfd1ce1, 0x9393ae3d, 0x26266a4c, 0x36365a6c, 0x3f3f417e, 0xf7f702f5, 0xcccc4f83, 0x34345c68, 0xa5a5f451, 0xe5e534d1, 0xf1f108f9, 0x717193e2, 0xd8d873ab, 0x31315362, 0x15153f2a, 0x04040c08, 0xc7c75295, 0x23236546, 0xc3c35e9d, 0x18182830, 0x9696a137, 0x05050f0a, 0x9a9ab52f, 0x0707090e, 0x12123624, 0x80809b1b, 0xe2e23ddf, 0xebeb26cd, 0x2727694e, 0xb2b2cd7f, 0x75759fea, 0x09091b12, 0x83839e1d, 0x2c2c7458, 0x1a1a2e34, 0x1b1b2d36, 0x6e6eb2dc, 0x5a5aeeb4, 0xa0a0fb5b, 0x5252f6a4, 0x3b3b4d76, 0xd6d661b7, 0xb3b3ce7d, 0x29297b52, 0xe3e33edd, 0x2f2f715e, 0x84849713, 0x5353f5a6, 0xd1d168b9, 0x00000000, 0xeded2cc1, 0x20206040, 0xfcfc1fe3, 0xb1b1c879, 0x5b5bedb6, 0x6a6abed4, 0xcbcb468d, 0xbebed967, 0x39394b72, 0x4a4ade94, 0x4c4cd498, 0x5858e8b0, 0xcfcf4a85, 0xd0d06bbb, 0xefef2ac5, 0xaaaae54f, 0xfbfb16ed, 0x4343c586, 0x4d4dd79a, 0x33335566, 0x85859411, 0x4545cf8a, 0xf9f910e9, 0x02020604, 0x7f7f81fe, 0x5050f0a0, 0x3c3c4478, 0x9f9fba25, 0xa8a8e34b, 0x5151f3a2, 0xa3a3fe5d, 0x4040c080, 0x8f8f8a05, 0x9292ad3f, 0x9d9dbc21, 0x38384870, 0xf5f504f1, 0xbcbcdf63, 0xb6b6c177, 0xdada75af, 0x21216342, 0x10103020, 0xffff1ae5, 0xf3f30efd, 0xd2d26dbf, 0xcdcd4c81, 0x0c0c1418, 0x13133526, 0xecec2fc3, 0x5f5fe1be, 0x9797a235, 0x4444cc88, 0x1717392e, 0xc4c45793, 0xa7a7f255, 0x7e7e82fc, 0x3d3d477a, 0x6464acc8, 0x5d5de7ba, 0x19192b32, 0x737395e6, 0x6060a0c0, 0x81819819, 0x4f4fd19e, 0xdcdc7fa3, 0x22226644, 0x2a2a7e54, 0x9090ab3b, 0x8888830b, 0x4646ca8c, 0xeeee29c7, 0xb8b8d36b, 0x14143c28, 0xdede79a7, 0x5e5ee2bc, 0x0b0b1d16, 0xdbdb76ad, 0xe0e03bdb, 0x32325664, 0x3a3a4e74, 0x0a0a1e14, 0x4949db92, 0x06060a0c, 0x24246c48, 0x5c5ce4b8, 0xc2c25d9f, 0xd3d36ebd, 0xacacef43, 0x6262a6c4, 0x9191a839, 0x9595a431, 0xe4e437d3, 0x79798bf2, 0xe7e732d5, 0xc8c8438b, 0x3737596e, 0x6d6db7da, 0x8d8d8c01, 0xd5d564b1, 0x4e4ed29c, 0xa9a9e049, 0x6c6cb4d8, 0x5656faac, 0xf4f407f3, 0xeaea25cf, 0x6565afca, 0x7a7a8ef4, 0xaeaee947, 0x08081810, 0xbabad56f, 0x787888f0, 0x25256f4a, 0x2e2e725c, 0x1c1c2438, 0xa6a6f157, 0xb4b4c773, 0xc6c65197, 0xe8e823cb, 0xdddd7ca1, 0x74749ce8, 0x1f1f213e, 0x4b4bdd96, 0xbdbddc61, 0x8b8b860d, 0x8a8a850f, 0x707090e0, 0x3e3e427c, 0xb5b5c471, 0x6666aacc, 0x4848d890, 0x03030506, 0xf6f601f7, 0x0e0e121c, 0x6161a3c2, 0x35355f6a, 0x5757f9ae, 0xb9b9d069, 0x86869117, 0xc1c15899, 0x1d1d273a, 0x9e9eb927, 0xe1e138d9, 0xf8f813eb, 0x9898b32b, 0x11113322, 0x6969bbd2, 0xd9d970a9, 0x8e8e8907, 0x9494a733, 0x9b9bb62d, 0x1e1e223c, 0x87879215, 0xe9e920c9, 0xcece4987, 0x5555ffaa, 0x28287850, 0xdfdf7aa5, 0x8c8c8f03, 0xa1a1f859, 0x89898009, 0x0d0d171a, 0xbfbfda65, 0xe6e631d7, 0x4242c684, 0x6868b8d0, 0x4141c382, 0x9999b029, 0x2d2d775a, 0x0f0f111e, 0xb0b0cb7b, 0x5454fca8, 0xbbbbd66d, 0x16163a2c];
-    // Transformations for decryption
-    const T5 = [0x51f4a750, 0x7e416553, 0x1a17a4c3, 0x3a275e96, 0x3bab6bcb, 0x1f9d45f1, 0xacfa58ab, 0x4be30393, 0x2030fa55, 0xad766df6, 0x88cc7691, 0xf5024c25, 0x4fe5d7fc, 0xc52acbd7, 0x26354480, 0xb562a38f, 0xdeb15a49, 0x25ba1b67, 0x45ea0e98, 0x5dfec0e1, 0xc32f7502, 0x814cf012, 0x8d4697a3, 0x6bd3f9c6, 0x038f5fe7, 0x15929c95, 0xbf6d7aeb, 0x955259da, 0xd4be832d, 0x587421d3, 0x49e06929, 0x8ec9c844, 0x75c2896a, 0xf48e7978, 0x99583e6b, 0x27b971dd, 0xbee14fb6, 0xf088ad17, 0xc920ac66, 0x7dce3ab4, 0x63df4a18, 0xe51a3182, 0x97513360, 0x62537f45, 0xb16477e0, 0xbb6bae84, 0xfe81a01c, 0xf9082b94, 0x70486858, 0x8f45fd19, 0x94de6c87, 0x527bf8b7, 0xab73d323, 0x724b02e2, 0xe31f8f57, 0x6655ab2a, 0xb2eb2807, 0x2fb5c203, 0x86c57b9a, 0xd33708a5, 0x302887f2, 0x23bfa5b2, 0x02036aba, 0xed16825c, 0x8acf1c2b, 0xa779b492, 0xf307f2f0, 0x4e69e2a1, 0x65daf4cd, 0x0605bed5, 0xd134621f, 0xc4a6fe8a, 0x342e539d, 0xa2f355a0, 0x058ae132, 0xa4f6eb75, 0x0b83ec39, 0x4060efaa, 0x5e719f06, 0xbd6e1051, 0x3e218af9, 0x96dd063d, 0xdd3e05ae, 0x4de6bd46, 0x91548db5, 0x71c45d05, 0x0406d46f, 0x605015ff, 0x1998fb24, 0xd6bde997, 0x894043cc, 0x67d99e77, 0xb0e842bd, 0x07898b88, 0xe7195b38, 0x79c8eedb, 0xa17c0a47, 0x7c420fe9, 0xf8841ec9, 0x00000000, 0x09808683, 0x322bed48, 0x1e1170ac, 0x6c5a724e, 0xfd0efffb, 0x0f853856, 0x3daed51e, 0x362d3927, 0x0a0fd964, 0x685ca621, 0x9b5b54d1, 0x24362e3a, 0x0c0a67b1, 0x9357e70f, 0xb4ee96d2, 0x1b9b919e, 0x80c0c54f, 0x61dc20a2, 0x5a774b69, 0x1c121a16, 0xe293ba0a, 0xc0a02ae5, 0x3c22e043, 0x121b171d, 0x0e090d0b, 0xf28bc7ad, 0x2db6a8b9, 0x141ea9c8, 0x57f11985, 0xaf75074c, 0xee99ddbb, 0xa37f60fd, 0xf701269f, 0x5c72f5bc, 0x44663bc5, 0x5bfb7e34, 0x8b432976, 0xcb23c6dc, 0xb6edfc68, 0xb8e4f163, 0xd731dcca, 0x42638510, 0x13972240, 0x84c61120, 0x854a247d, 0xd2bb3df8, 0xaef93211, 0xc729a16d, 0x1d9e2f4b, 0xdcb230f3, 0x0d8652ec, 0x77c1e3d0, 0x2bb3166c, 0xa970b999, 0x119448fa, 0x47e96422, 0xa8fc8cc4, 0xa0f03f1a, 0x567d2cd8, 0x223390ef, 0x87494ec7, 0xd938d1c1, 0x8ccaa2fe, 0x98d40b36, 0xa6f581cf, 0xa57ade28, 0xdab78e26, 0x3fadbfa4, 0x2c3a9de4, 0x5078920d, 0x6a5fcc9b, 0x547e4662, 0xf68d13c2, 0x90d8b8e8, 0x2e39f75e, 0x82c3aff5, 0x9f5d80be, 0x69d0937c, 0x6fd52da9, 0xcf2512b3, 0xc8ac993b, 0x10187da7, 0xe89c636e, 0xdb3bbb7b, 0xcd267809, 0x6e5918f4, 0xec9ab701, 0x834f9aa8, 0xe6956e65, 0xaaffe67e, 0x21bccf08, 0xef15e8e6, 0xbae79bd9, 0x4a6f36ce, 0xea9f09d4, 0x29b07cd6, 0x31a4b2af, 0x2a3f2331, 0xc6a59430, 0x35a266c0, 0x744ebc37, 0xfc82caa6, 0xe090d0b0, 0x33a7d815, 0xf104984a, 0x41ecdaf7, 0x7fcd500e, 0x1791f62f, 0x764dd68d, 0x43efb04d, 0xccaa4d54, 0xe49604df, 0x9ed1b5e3, 0x4c6a881b, 0xc12c1fb8, 0x4665517f, 0x9d5eea04, 0x018c355d, 0xfa877473, 0xfb0b412e, 0xb3671d5a, 0x92dbd252, 0xe9105633, 0x6dd64713, 0x9ad7618c, 0x37a10c7a, 0x59f8148e, 0xeb133c89, 0xcea927ee, 0xb761c935, 0xe11ce5ed, 0x7a47b13c, 0x9cd2df59, 0x55f2733f, 0x1814ce79, 0x73c737bf, 0x53f7cdea, 0x5ffdaa5b, 0xdf3d6f14, 0x7844db86, 0xcaaff381, 0xb968c43e, 0x3824342c, 0xc2a3405f, 0x161dc372, 0xbce2250c, 0x283c498b, 0xff0d9541, 0x39a80171, 0x080cb3de, 0xd8b4e49c, 0x6456c190, 0x7bcb8461, 0xd532b670, 0x486c5c74, 0xd0b85742];
-    const T6 = [0x5051f4a7, 0x537e4165, 0xc31a17a4, 0x963a275e, 0xcb3bab6b, 0xf11f9d45, 0xabacfa58, 0x934be303, 0x552030fa, 0xf6ad766d, 0x9188cc76, 0x25f5024c, 0xfc4fe5d7, 0xd7c52acb, 0x80263544, 0x8fb562a3, 0x49deb15a, 0x6725ba1b, 0x9845ea0e, 0xe15dfec0, 0x02c32f75, 0x12814cf0, 0xa38d4697, 0xc66bd3f9, 0xe7038f5f, 0x9515929c, 0xebbf6d7a, 0xda955259, 0x2dd4be83, 0xd3587421, 0x2949e069, 0x448ec9c8, 0x6a75c289, 0x78f48e79, 0x6b99583e, 0xdd27b971, 0xb6bee14f, 0x17f088ad, 0x66c920ac, 0xb47dce3a, 0x1863df4a, 0x82e51a31, 0x60975133, 0x4562537f, 0xe0b16477, 0x84bb6bae, 0x1cfe81a0, 0x94f9082b, 0x58704868, 0x198f45fd, 0x8794de6c, 0xb7527bf8, 0x23ab73d3, 0xe2724b02, 0x57e31f8f, 0x2a6655ab, 0x07b2eb28, 0x032fb5c2, 0x9a86c57b, 0xa5d33708, 0xf2302887, 0xb223bfa5, 0xba02036a, 0x5ced1682, 0x2b8acf1c, 0x92a779b4, 0xf0f307f2, 0xa14e69e2, 0xcd65daf4, 0xd50605be, 0x1fd13462, 0x8ac4a6fe, 0x9d342e53, 0xa0a2f355, 0x32058ae1, 0x75a4f6eb, 0x390b83ec, 0xaa4060ef, 0x065e719f, 0x51bd6e10, 0xf93e218a, 0x3d96dd06, 0xaedd3e05, 0x464de6bd, 0xb591548d, 0x0571c45d, 0x6f0406d4, 0xff605015, 0x241998fb, 0x97d6bde9, 0xcc894043, 0x7767d99e, 0xbdb0e842, 0x8807898b, 0x38e7195b, 0xdb79c8ee, 0x47a17c0a, 0xe97c420f, 0xc9f8841e, 0x00000000, 0x83098086, 0x48322bed, 0xac1e1170, 0x4e6c5a72, 0xfbfd0eff, 0x560f8538, 0x1e3daed5, 0x27362d39, 0x640a0fd9, 0x21685ca6, 0xd19b5b54, 0x3a24362e, 0xb10c0a67, 0x0f9357e7, 0xd2b4ee96, 0x9e1b9b91, 0x4f80c0c5, 0xa261dc20, 0x695a774b, 0x161c121a, 0x0ae293ba, 0xe5c0a02a, 0x433c22e0, 0x1d121b17, 0x0b0e090d, 0xadf28bc7, 0xb92db6a8, 0xc8141ea9, 0x8557f119, 0x4caf7507, 0xbbee99dd, 0xfda37f60, 0x9ff70126, 0xbc5c72f5, 0xc544663b, 0x345bfb7e, 0x768b4329, 0xdccb23c6, 0x68b6edfc, 0x63b8e4f1, 0xcad731dc, 0x10426385, 0x40139722, 0x2084c611, 0x7d854a24, 0xf8d2bb3d, 0x11aef932, 0x6dc729a1, 0x4b1d9e2f, 0xf3dcb230, 0xec0d8652, 0xd077c1e3, 0x6c2bb316, 0x99a970b9, 0xfa119448, 0x2247e964, 0xc4a8fc8c, 0x1aa0f03f, 0xd8567d2c, 0xef223390, 0xc787494e, 0xc1d938d1, 0xfe8ccaa2, 0x3698d40b, 0xcfa6f581, 0x28a57ade, 0x26dab78e, 0xa43fadbf, 0xe42c3a9d, 0x0d507892, 0x9b6a5fcc, 0x62547e46, 0xc2f68d13, 0xe890d8b8, 0x5e2e39f7, 0xf582c3af, 0xbe9f5d80, 0x7c69d093, 0xa96fd52d, 0xb3cf2512, 0x3bc8ac99, 0xa710187d, 0x6ee89c63, 0x7bdb3bbb, 0x09cd2678, 0xf46e5918, 0x01ec9ab7, 0xa8834f9a, 0x65e6956e, 0x7eaaffe6, 0x0821bccf, 0xe6ef15e8, 0xd9bae79b, 0xce4a6f36, 0xd4ea9f09, 0xd629b07c, 0xaf31a4b2, 0x312a3f23, 0x30c6a594, 0xc035a266, 0x37744ebc, 0xa6fc82ca, 0xb0e090d0, 0x1533a7d8, 0x4af10498, 0xf741ecda, 0x0e7fcd50, 0x2f1791f6, 0x8d764dd6, 0x4d43efb0, 0x54ccaa4d, 0xdfe49604, 0xe39ed1b5, 0x1b4c6a88, 0xb8c12c1f, 0x7f466551, 0x049d5eea, 0x5d018c35, 0x73fa8774, 0x2efb0b41, 0x5ab3671d, 0x5292dbd2, 0x33e91056, 0x136dd647, 0x8c9ad761, 0x7a37a10c, 0x8e59f814, 0x89eb133c, 0xeecea927, 0x35b761c9, 0xede11ce5, 0x3c7a47b1, 0x599cd2df, 0x3f55f273, 0x791814ce, 0xbf73c737, 0xea53f7cd, 0x5b5ffdaa, 0x14df3d6f, 0x867844db, 0x81caaff3, 0x3eb968c4, 0x2c382434, 0x5fc2a340, 0x72161dc3, 0x0cbce225, 0x8b283c49, 0x41ff0d95, 0x7139a801, 0xde080cb3, 0x9cd8b4e4, 0x906456c1, 0x617bcb84, 0x70d532b6, 0x74486c5c, 0x42d0b857];
-    const T7 = [0xa75051f4, 0x65537e41, 0xa4c31a17, 0x5e963a27, 0x6bcb3bab, 0x45f11f9d, 0x58abacfa, 0x03934be3, 0xfa552030, 0x6df6ad76, 0x769188cc, 0x4c25f502, 0xd7fc4fe5, 0xcbd7c52a, 0x44802635, 0xa38fb562, 0x5a49deb1, 0x1b6725ba, 0x0e9845ea, 0xc0e15dfe, 0x7502c32f, 0xf012814c, 0x97a38d46, 0xf9c66bd3, 0x5fe7038f, 0x9c951592, 0x7aebbf6d, 0x59da9552, 0x832dd4be, 0x21d35874, 0x692949e0, 0xc8448ec9, 0x896a75c2, 0x7978f48e, 0x3e6b9958, 0x71dd27b9, 0x4fb6bee1, 0xad17f088, 0xac66c920, 0x3ab47dce, 0x4a1863df, 0x3182e51a, 0x33609751, 0x7f456253, 0x77e0b164, 0xae84bb6b, 0xa01cfe81, 0x2b94f908, 0x68587048, 0xfd198f45, 0x6c8794de, 0xf8b7527b, 0xd323ab73, 0x02e2724b, 0x8f57e31f, 0xab2a6655, 0x2807b2eb, 0xc2032fb5, 0x7b9a86c5, 0x08a5d337, 0x87f23028, 0xa5b223bf, 0x6aba0203, 0x825ced16, 0x1c2b8acf, 0xb492a779, 0xf2f0f307, 0xe2a14e69, 0xf4cd65da, 0xbed50605, 0x621fd134, 0xfe8ac4a6, 0x539d342e, 0x55a0a2f3, 0xe132058a, 0xeb75a4f6, 0xec390b83, 0xefaa4060, 0x9f065e71, 0x1051bd6e, 0x8af93e21, 0x063d96dd, 0x05aedd3e, 0xbd464de6, 0x8db59154, 0x5d0571c4, 0xd46f0406, 0x15ff6050, 0xfb241998, 0xe997d6bd, 0x43cc8940, 0x9e7767d9, 0x42bdb0e8, 0x8b880789, 0x5b38e719, 0xeedb79c8, 0x0a47a17c, 0x0fe97c42, 0x1ec9f884, 0x00000000, 0x86830980, 0xed48322b, 0x70ac1e11, 0x724e6c5a, 0xfffbfd0e, 0x38560f85, 0xd51e3dae, 0x3927362d, 0xd9640a0f, 0xa621685c, 0x54d19b5b, 0x2e3a2436, 0x67b10c0a, 0xe70f9357, 0x96d2b4ee, 0x919e1b9b, 0xc54f80c0, 0x20a261dc, 0x4b695a77, 0x1a161c12, 0xba0ae293, 0x2ae5c0a0, 0xe0433c22, 0x171d121b, 0x0d0b0e09, 0xc7adf28b, 0xa8b92db6, 0xa9c8141e, 0x198557f1, 0x074caf75, 0xddbbee99, 0x60fda37f, 0x269ff701, 0xf5bc5c72, 0x3bc54466, 0x7e345bfb, 0x29768b43, 0xc6dccb23, 0xfc68b6ed, 0xf163b8e4, 0xdccad731, 0x85104263, 0x22401397, 0x112084c6, 0x247d854a, 0x3df8d2bb, 0x3211aef9, 0xa16dc729, 0x2f4b1d9e, 0x30f3dcb2, 0x52ec0d86, 0xe3d077c1, 0x166c2bb3, 0xb999a970, 0x48fa1194, 0x642247e9, 0x8cc4a8fc, 0x3f1aa0f0, 0x2cd8567d, 0x90ef2233, 0x4ec78749, 0xd1c1d938, 0xa2fe8cca, 0x0b3698d4, 0x81cfa6f5, 0xde28a57a, 0x8e26dab7, 0xbfa43fad, 0x9de42c3a, 0x920d5078, 0xcc9b6a5f, 0x4662547e, 0x13c2f68d, 0xb8e890d8, 0xf75e2e39, 0xaff582c3, 0x80be9f5d, 0x937c69d0, 0x2da96fd5, 0x12b3cf25, 0x993bc8ac, 0x7da71018, 0x636ee89c, 0xbb7bdb3b, 0x7809cd26, 0x18f46e59, 0xb701ec9a, 0x9aa8834f, 0x6e65e695, 0xe67eaaff, 0xcf0821bc, 0xe8e6ef15, 0x9bd9bae7, 0x36ce4a6f, 0x09d4ea9f, 0x7cd629b0, 0xb2af31a4, 0x23312a3f, 0x9430c6a5, 0x66c035a2, 0xbc37744e, 0xcaa6fc82, 0xd0b0e090, 0xd81533a7, 0x984af104, 0xdaf741ec, 0x500e7fcd, 0xf62f1791, 0xd68d764d, 0xb04d43ef, 0x4d54ccaa, 0x04dfe496, 0xb5e39ed1, 0x881b4c6a, 0x1fb8c12c, 0x517f4665, 0xea049d5e, 0x355d018c, 0x7473fa87, 0x412efb0b, 0x1d5ab367, 0xd25292db, 0x5633e910, 0x47136dd6, 0x618c9ad7, 0x0c7a37a1, 0x148e59f8, 0x3c89eb13, 0x27eecea9, 0xc935b761, 0xe5ede11c, 0xb13c7a47, 0xdf599cd2, 0x733f55f2, 0xce791814, 0x37bf73c7, 0xcdea53f7, 0xaa5b5ffd, 0x6f14df3d, 0xdb867844, 0xf381caaf, 0xc43eb968, 0x342c3824, 0x405fc2a3, 0xc372161d, 0x250cbce2, 0x498b283c, 0x9541ff0d, 0x017139a8, 0xb3de080c, 0xe49cd8b4, 0xc1906456, 0x84617bcb, 0xb670d532, 0x5c74486c, 0x5742d0b8];
-    const T8 = [0xf4a75051, 0x4165537e, 0x17a4c31a, 0x275e963a, 0xab6bcb3b, 0x9d45f11f, 0xfa58abac, 0xe303934b, 0x30fa5520, 0x766df6ad, 0xcc769188, 0x024c25f5, 0xe5d7fc4f, 0x2acbd7c5, 0x35448026, 0x62a38fb5, 0xb15a49de, 0xba1b6725, 0xea0e9845, 0xfec0e15d, 0x2f7502c3, 0x4cf01281, 0x4697a38d, 0xd3f9c66b, 0x8f5fe703, 0x929c9515, 0x6d7aebbf, 0x5259da95, 0xbe832dd4, 0x7421d358, 0xe0692949, 0xc9c8448e, 0xc2896a75, 0x8e7978f4, 0x583e6b99, 0xb971dd27, 0xe14fb6be, 0x88ad17f0, 0x20ac66c9, 0xce3ab47d, 0xdf4a1863, 0x1a3182e5, 0x51336097, 0x537f4562, 0x6477e0b1, 0x6bae84bb, 0x81a01cfe, 0x082b94f9, 0x48685870, 0x45fd198f, 0xde6c8794, 0x7bf8b752, 0x73d323ab, 0x4b02e272, 0x1f8f57e3, 0x55ab2a66, 0xeb2807b2, 0xb5c2032f, 0xc57b9a86, 0x3708a5d3, 0x2887f230, 0xbfa5b223, 0x036aba02, 0x16825ced, 0xcf1c2b8a, 0x79b492a7, 0x07f2f0f3, 0x69e2a14e, 0xdaf4cd65, 0x05bed506, 0x34621fd1, 0xa6fe8ac4, 0x2e539d34, 0xf355a0a2, 0x8ae13205, 0xf6eb75a4, 0x83ec390b, 0x60efaa40, 0x719f065e, 0x6e1051bd, 0x218af93e, 0xdd063d96, 0x3e05aedd, 0xe6bd464d, 0x548db591, 0xc45d0571, 0x06d46f04, 0x5015ff60, 0x98fb2419, 0xbde997d6, 0x4043cc89, 0xd99e7767, 0xe842bdb0, 0x898b8807, 0x195b38e7, 0xc8eedb79, 0x7c0a47a1, 0x420fe97c, 0x841ec9f8, 0x00000000, 0x80868309, 0x2bed4832, 0x1170ac1e, 0x5a724e6c, 0x0efffbfd, 0x8538560f, 0xaed51e3d, 0x2d392736, 0x0fd9640a, 0x5ca62168, 0x5b54d19b, 0x362e3a24, 0x0a67b10c, 0x57e70f93, 0xee96d2b4, 0x9b919e1b, 0xc0c54f80, 0xdc20a261, 0x774b695a, 0x121a161c, 0x93ba0ae2, 0xa02ae5c0, 0x22e0433c, 0x1b171d12, 0x090d0b0e, 0x8bc7adf2, 0xb6a8b92d, 0x1ea9c814, 0xf1198557, 0x75074caf, 0x99ddbbee, 0x7f60fda3, 0x01269ff7, 0x72f5bc5c, 0x663bc544, 0xfb7e345b, 0x4329768b, 0x23c6dccb, 0xedfc68b6, 0xe4f163b8, 0x31dccad7, 0x63851042, 0x97224013, 0xc6112084, 0x4a247d85, 0xbb3df8d2, 0xf93211ae, 0x29a16dc7, 0x9e2f4b1d, 0xb230f3dc, 0x8652ec0d, 0xc1e3d077, 0xb3166c2b, 0x70b999a9, 0x9448fa11, 0xe9642247, 0xfc8cc4a8, 0xf03f1aa0, 0x7d2cd856, 0x3390ef22, 0x494ec787, 0x38d1c1d9, 0xcaa2fe8c, 0xd40b3698, 0xf581cfa6, 0x7ade28a5, 0xb78e26da, 0xadbfa43f, 0x3a9de42c, 0x78920d50, 0x5fcc9b6a, 0x7e466254, 0x8d13c2f6, 0xd8b8e890, 0x39f75e2e, 0xc3aff582, 0x5d80be9f, 0xd0937c69, 0xd52da96f, 0x2512b3cf, 0xac993bc8, 0x187da710, 0x9c636ee8, 0x3bbb7bdb, 0x267809cd, 0x5918f46e, 0x9ab701ec, 0x4f9aa883, 0x956e65e6, 0xffe67eaa, 0xbccf0821, 0x15e8e6ef, 0xe79bd9ba, 0x6f36ce4a, 0x9f09d4ea, 0xb07cd629, 0xa4b2af31, 0x3f23312a, 0xa59430c6, 0xa266c035, 0x4ebc3774, 0x82caa6fc, 0x90d0b0e0, 0xa7d81533, 0x04984af1, 0xecdaf741, 0xcd500e7f, 0x91f62f17, 0x4dd68d76, 0xefb04d43, 0xaa4d54cc, 0x9604dfe4, 0xd1b5e39e, 0x6a881b4c, 0x2c1fb8c1, 0x65517f46, 0x5eea049d, 0x8c355d01, 0x877473fa, 0x0b412efb, 0x671d5ab3, 0xdbd25292, 0x105633e9, 0xd647136d, 0xd7618c9a, 0xa10c7a37, 0xf8148e59, 0x133c89eb, 0xa927eece, 0x61c935b7, 0x1ce5ede1, 0x47b13c7a, 0xd2df599c, 0xf2733f55, 0x14ce7918, 0xc737bf73, 0xf7cdea53, 0xfdaa5b5f, 0x3d6f14df, 0x44db8678, 0xaff381ca, 0x68c43eb9, 0x24342c38, 0xa3405fc2, 0x1dc37216, 0xe2250cbc, 0x3c498b28, 0x0d9541ff, 0xa8017139, 0x0cb3de08, 0xb4e49cd8, 0x56c19064, 0xcb84617b, 0x32b670d5, 0x6c5c7448, 0xb85742d0];
-    // Transformations for decryption key expansion
-    const U1 = [0x00000000, 0x0e090d0b, 0x1c121a16, 0x121b171d, 0x3824342c, 0x362d3927, 0x24362e3a, 0x2a3f2331, 0x70486858, 0x7e416553, 0x6c5a724e, 0x62537f45, 0x486c5c74, 0x4665517f, 0x547e4662, 0x5a774b69, 0xe090d0b0, 0xee99ddbb, 0xfc82caa6, 0xf28bc7ad, 0xd8b4e49c, 0xd6bde997, 0xc4a6fe8a, 0xcaaff381, 0x90d8b8e8, 0x9ed1b5e3, 0x8ccaa2fe, 0x82c3aff5, 0xa8fc8cc4, 0xa6f581cf, 0xb4ee96d2, 0xbae79bd9, 0xdb3bbb7b, 0xd532b670, 0xc729a16d, 0xc920ac66, 0xe31f8f57, 0xed16825c, 0xff0d9541, 0xf104984a, 0xab73d323, 0xa57ade28, 0xb761c935, 0xb968c43e, 0x9357e70f, 0x9d5eea04, 0x8f45fd19, 0x814cf012, 0x3bab6bcb, 0x35a266c0, 0x27b971dd, 0x29b07cd6, 0x038f5fe7, 0x0d8652ec, 0x1f9d45f1, 0x119448fa, 0x4be30393, 0x45ea0e98, 0x57f11985, 0x59f8148e, 0x73c737bf, 0x7dce3ab4, 0x6fd52da9, 0x61dc20a2, 0xad766df6, 0xa37f60fd, 0xb16477e0, 0xbf6d7aeb, 0x955259da, 0x9b5b54d1, 0x894043cc, 0x87494ec7, 0xdd3e05ae, 0xd33708a5, 0xc12c1fb8, 0xcf2512b3, 0xe51a3182, 0xeb133c89, 0xf9082b94, 0xf701269f, 0x4de6bd46, 0x43efb04d, 0x51f4a750, 0x5ffdaa5b, 0x75c2896a, 0x7bcb8461, 0x69d0937c, 0x67d99e77, 0x3daed51e, 0x33a7d815, 0x21bccf08, 0x2fb5c203, 0x058ae132, 0x0b83ec39, 0x1998fb24, 0x1791f62f, 0x764dd68d, 0x7844db86, 0x6a5fcc9b, 0x6456c190, 0x4e69e2a1, 0x4060efaa, 0x527bf8b7, 0x5c72f5bc, 0x0605bed5, 0x080cb3de, 0x1a17a4c3, 0x141ea9c8, 0x3e218af9, 0x302887f2, 0x223390ef, 0x2c3a9de4, 0x96dd063d, 0x98d40b36, 0x8acf1c2b, 0x84c61120, 0xaef93211, 0xa0f03f1a, 0xb2eb2807, 0xbce2250c, 0xe6956e65, 0xe89c636e, 0xfa877473, 0xf48e7978, 0xdeb15a49, 0xd0b85742, 0xc2a3405f, 0xccaa4d54, 0x41ecdaf7, 0x4fe5d7fc, 0x5dfec0e1, 0x53f7cdea, 0x79c8eedb, 0x77c1e3d0, 0x65daf4cd, 0x6bd3f9c6, 0x31a4b2af, 0x3fadbfa4, 0x2db6a8b9, 0x23bfa5b2, 0x09808683, 0x07898b88, 0x15929c95, 0x1b9b919e, 0xa17c0a47, 0xaf75074c, 0xbd6e1051, 0xb3671d5a, 0x99583e6b, 0x97513360, 0x854a247d, 0x8b432976, 0xd134621f, 0xdf3d6f14, 0xcd267809, 0xc32f7502, 0xe9105633, 0xe7195b38, 0xf5024c25, 0xfb0b412e, 0x9ad7618c, 0x94de6c87, 0x86c57b9a, 0x88cc7691, 0xa2f355a0, 0xacfa58ab, 0xbee14fb6, 0xb0e842bd, 0xea9f09d4, 0xe49604df, 0xf68d13c2, 0xf8841ec9, 0xd2bb3df8, 0xdcb230f3, 0xcea927ee, 0xc0a02ae5, 0x7a47b13c, 0x744ebc37, 0x6655ab2a, 0x685ca621, 0x42638510, 0x4c6a881b, 0x5e719f06, 0x5078920d, 0x0a0fd964, 0x0406d46f, 0x161dc372, 0x1814ce79, 0x322bed48, 0x3c22e043, 0x2e39f75e, 0x2030fa55, 0xec9ab701, 0xe293ba0a, 0xf088ad17, 0xfe81a01c, 0xd4be832d, 0xdab78e26, 0xc8ac993b, 0xc6a59430, 0x9cd2df59, 0x92dbd252, 0x80c0c54f, 0x8ec9c844, 0xa4f6eb75, 0xaaffe67e, 0xb8e4f163, 0xb6edfc68, 0x0c0a67b1, 0x02036aba, 0x10187da7, 0x1e1170ac, 0x342e539d, 0x3a275e96, 0x283c498b, 0x26354480, 0x7c420fe9, 0x724b02e2, 0x605015ff, 0x6e5918f4, 0x44663bc5, 0x4a6f36ce, 0x587421d3, 0x567d2cd8, 0x37a10c7a, 0x39a80171, 0x2bb3166c, 0x25ba1b67, 0x0f853856, 0x018c355d, 0x13972240, 0x1d9e2f4b, 0x47e96422, 0x49e06929, 0x5bfb7e34, 0x55f2733f, 0x7fcd500e, 0x71c45d05, 0x63df4a18, 0x6dd64713, 0xd731dcca, 0xd938d1c1, 0xcb23c6dc, 0xc52acbd7, 0xef15e8e6, 0xe11ce5ed, 0xf307f2f0, 0xfd0efffb, 0xa779b492, 0xa970b999, 0xbb6bae84, 0xb562a38f, 0x9f5d80be, 0x91548db5, 0x834f9aa8, 0x8d4697a3];
-    const U2 = [0x00000000, 0x0b0e090d, 0x161c121a, 0x1d121b17, 0x2c382434, 0x27362d39, 0x3a24362e, 0x312a3f23, 0x58704868, 0x537e4165, 0x4e6c5a72, 0x4562537f, 0x74486c5c, 0x7f466551, 0x62547e46, 0x695a774b, 0xb0e090d0, 0xbbee99dd, 0xa6fc82ca, 0xadf28bc7, 0x9cd8b4e4, 0x97d6bde9, 0x8ac4a6fe, 0x81caaff3, 0xe890d8b8, 0xe39ed1b5, 0xfe8ccaa2, 0xf582c3af, 0xc4a8fc8c, 0xcfa6f581, 0xd2b4ee96, 0xd9bae79b, 0x7bdb3bbb, 0x70d532b6, 0x6dc729a1, 0x66c920ac, 0x57e31f8f, 0x5ced1682, 0x41ff0d95, 0x4af10498, 0x23ab73d3, 0x28a57ade, 0x35b761c9, 0x3eb968c4, 0x0f9357e7, 0x049d5eea, 0x198f45fd, 0x12814cf0, 0xcb3bab6b, 0xc035a266, 0xdd27b971, 0xd629b07c, 0xe7038f5f, 0xec0d8652, 0xf11f9d45, 0xfa119448, 0x934be303, 0x9845ea0e, 0x8557f119, 0x8e59f814, 0xbf73c737, 0xb47dce3a, 0xa96fd52d, 0xa261dc20, 0xf6ad766d, 0xfda37f60, 0xe0b16477, 0xebbf6d7a, 0xda955259, 0xd19b5b54, 0xcc894043, 0xc787494e, 0xaedd3e05, 0xa5d33708, 0xb8c12c1f, 0xb3cf2512, 0x82e51a31, 0x89eb133c, 0x94f9082b, 0x9ff70126, 0x464de6bd, 0x4d43efb0, 0x5051f4a7, 0x5b5ffdaa, 0x6a75c289, 0x617bcb84, 0x7c69d093, 0x7767d99e, 0x1e3daed5, 0x1533a7d8, 0x0821bccf, 0x032fb5c2, 0x32058ae1, 0x390b83ec, 0x241998fb, 0x2f1791f6, 0x8d764dd6, 0x867844db, 0x9b6a5fcc, 0x906456c1, 0xa14e69e2, 0xaa4060ef, 0xb7527bf8, 0xbc5c72f5, 0xd50605be, 0xde080cb3, 0xc31a17a4, 0xc8141ea9, 0xf93e218a, 0xf2302887, 0xef223390, 0xe42c3a9d, 0x3d96dd06, 0x3698d40b, 0x2b8acf1c, 0x2084c611, 0x11aef932, 0x1aa0f03f, 0x07b2eb28, 0x0cbce225, 0x65e6956e, 0x6ee89c63, 0x73fa8774, 0x78f48e79, 0x49deb15a, 0x42d0b857, 0x5fc2a340, 0x54ccaa4d, 0xf741ecda, 0xfc4fe5d7, 0xe15dfec0, 0xea53f7cd, 0xdb79c8ee, 0xd077c1e3, 0xcd65daf4, 0xc66bd3f9, 0xaf31a4b2, 0xa43fadbf, 0xb92db6a8, 0xb223bfa5, 0x83098086, 0x8807898b, 0x9515929c, 0x9e1b9b91, 0x47a17c0a, 0x4caf7507, 0x51bd6e10, 0x5ab3671d, 0x6b99583e, 0x60975133, 0x7d854a24, 0x768b4329, 0x1fd13462, 0x14df3d6f, 0x09cd2678, 0x02c32f75, 0x33e91056, 0x38e7195b, 0x25f5024c, 0x2efb0b41, 0x8c9ad761, 0x8794de6c, 0x9a86c57b, 0x9188cc76, 0xa0a2f355, 0xabacfa58, 0xb6bee14f, 0xbdb0e842, 0xd4ea9f09, 0xdfe49604, 0xc2f68d13, 0xc9f8841e, 0xf8d2bb3d, 0xf3dcb230, 0xeecea927, 0xe5c0a02a, 0x3c7a47b1, 0x37744ebc, 0x2a6655ab, 0x21685ca6, 0x10426385, 0x1b4c6a88, 0x065e719f, 0x0d507892, 0x640a0fd9, 0x6f0406d4, 0x72161dc3, 0x791814ce, 0x48322bed, 0x433c22e0, 0x5e2e39f7, 0x552030fa, 0x01ec9ab7, 0x0ae293ba, 0x17f088ad, 0x1cfe81a0, 0x2dd4be83, 0x26dab78e, 0x3bc8ac99, 0x30c6a594, 0x599cd2df, 0x5292dbd2, 0x4f80c0c5, 0x448ec9c8, 0x75a4f6eb, 0x7eaaffe6, 0x63b8e4f1, 0x68b6edfc, 0xb10c0a67, 0xba02036a, 0xa710187d, 0xac1e1170, 0x9d342e53, 0x963a275e, 0x8b283c49, 0x80263544, 0xe97c420f, 0xe2724b02, 0xff605015, 0xf46e5918, 0xc544663b, 0xce4a6f36, 0xd3587421, 0xd8567d2c, 0x7a37a10c, 0x7139a801, 0x6c2bb316, 0x6725ba1b, 0x560f8538, 0x5d018c35, 0x40139722, 0x4b1d9e2f, 0x2247e964, 0x2949e069, 0x345bfb7e, 0x3f55f273, 0x0e7fcd50, 0x0571c45d, 0x1863df4a, 0x136dd647, 0xcad731dc, 0xc1d938d1, 0xdccb23c6, 0xd7c52acb, 0xe6ef15e8, 0xede11ce5, 0xf0f307f2, 0xfbfd0eff, 0x92a779b4, 0x99a970b9, 0x84bb6bae, 0x8fb562a3, 0xbe9f5d80, 0xb591548d, 0xa8834f9a, 0xa38d4697];
-    const U3 = [0x00000000, 0x0d0b0e09, 0x1a161c12, 0x171d121b, 0x342c3824, 0x3927362d, 0x2e3a2436, 0x23312a3f, 0x68587048, 0x65537e41, 0x724e6c5a, 0x7f456253, 0x5c74486c, 0x517f4665, 0x4662547e, 0x4b695a77, 0xd0b0e090, 0xddbbee99, 0xcaa6fc82, 0xc7adf28b, 0xe49cd8b4, 0xe997d6bd, 0xfe8ac4a6, 0xf381caaf, 0xb8e890d8, 0xb5e39ed1, 0xa2fe8cca, 0xaff582c3, 0x8cc4a8fc, 0x81cfa6f5, 0x96d2b4ee, 0x9bd9bae7, 0xbb7bdb3b, 0xb670d532, 0xa16dc729, 0xac66c920, 0x8f57e31f, 0x825ced16, 0x9541ff0d, 0x984af104, 0xd323ab73, 0xde28a57a, 0xc935b761, 0xc43eb968, 0xe70f9357, 0xea049d5e, 0xfd198f45, 0xf012814c, 0x6bcb3bab, 0x66c035a2, 0x71dd27b9, 0x7cd629b0, 0x5fe7038f, 0x52ec0d86, 0x45f11f9d, 0x48fa1194, 0x03934be3, 0x0e9845ea, 0x198557f1, 0x148e59f8, 0x37bf73c7, 0x3ab47dce, 0x2da96fd5, 0x20a261dc, 0x6df6ad76, 0x60fda37f, 0x77e0b164, 0x7aebbf6d, 0x59da9552, 0x54d19b5b, 0x43cc8940, 0x4ec78749, 0x05aedd3e, 0x08a5d337, 0x1fb8c12c, 0x12b3cf25, 0x3182e51a, 0x3c89eb13, 0x2b94f908, 0x269ff701, 0xbd464de6, 0xb04d43ef, 0xa75051f4, 0xaa5b5ffd, 0x896a75c2, 0x84617bcb, 0x937c69d0, 0x9e7767d9, 0xd51e3dae, 0xd81533a7, 0xcf0821bc, 0xc2032fb5, 0xe132058a, 0xec390b83, 0xfb241998, 0xf62f1791, 0xd68d764d, 0xdb867844, 0xcc9b6a5f, 0xc1906456, 0xe2a14e69, 0xefaa4060, 0xf8b7527b, 0xf5bc5c72, 0xbed50605, 0xb3de080c, 0xa4c31a17, 0xa9c8141e, 0x8af93e21, 0x87f23028, 0x90ef2233, 0x9de42c3a, 0x063d96dd, 0x0b3698d4, 0x1c2b8acf, 0x112084c6, 0x3211aef9, 0x3f1aa0f0, 0x2807b2eb, 0x250cbce2, 0x6e65e695, 0x636ee89c, 0x7473fa87, 0x7978f48e, 0x5a49deb1, 0x5742d0b8, 0x405fc2a3, 0x4d54ccaa, 0xdaf741ec, 0xd7fc4fe5, 0xc0e15dfe, 0xcdea53f7, 0xeedb79c8, 0xe3d077c1, 0xf4cd65da, 0xf9c66bd3, 0xb2af31a4, 0xbfa43fad, 0xa8b92db6, 0xa5b223bf, 0x86830980, 0x8b880789, 0x9c951592, 0x919e1b9b, 0x0a47a17c, 0x074caf75, 0x1051bd6e, 0x1d5ab367, 0x3e6b9958, 0x33609751, 0x247d854a, 0x29768b43, 0x621fd134, 0x6f14df3d, 0x7809cd26, 0x7502c32f, 0x5633e910, 0x5b38e719, 0x4c25f502, 0x412efb0b, 0x618c9ad7, 0x6c8794de, 0x7b9a86c5, 0x769188cc, 0x55a0a2f3, 0x58abacfa, 0x4fb6bee1, 0x42bdb0e8, 0x09d4ea9f, 0x04dfe496, 0x13c2f68d, 0x1ec9f884, 0x3df8d2bb, 0x30f3dcb2, 0x27eecea9, 0x2ae5c0a0, 0xb13c7a47, 0xbc37744e, 0xab2a6655, 0xa621685c, 0x85104263, 0x881b4c6a, 0x9f065e71, 0x920d5078, 0xd9640a0f, 0xd46f0406, 0xc372161d, 0xce791814, 0xed48322b, 0xe0433c22, 0xf75e2e39, 0xfa552030, 0xb701ec9a, 0xba0ae293, 0xad17f088, 0xa01cfe81, 0x832dd4be, 0x8e26dab7, 0x993bc8ac, 0x9430c6a5, 0xdf599cd2, 0xd25292db, 0xc54f80c0, 0xc8448ec9, 0xeb75a4f6, 0xe67eaaff, 0xf163b8e4, 0xfc68b6ed, 0x67b10c0a, 0x6aba0203, 0x7da71018, 0x70ac1e11, 0x539d342e, 0x5e963a27, 0x498b283c, 0x44802635, 0x0fe97c42, 0x02e2724b, 0x15ff6050, 0x18f46e59, 0x3bc54466, 0x36ce4a6f, 0x21d35874, 0x2cd8567d, 0x0c7a37a1, 0x017139a8, 0x166c2bb3, 0x1b6725ba, 0x38560f85, 0x355d018c, 0x22401397, 0x2f4b1d9e, 0x642247e9, 0x692949e0, 0x7e345bfb, 0x733f55f2, 0x500e7fcd, 0x5d0571c4, 0x4a1863df, 0x47136dd6, 0xdccad731, 0xd1c1d938, 0xc6dccb23, 0xcbd7c52a, 0xe8e6ef15, 0xe5ede11c, 0xf2f0f307, 0xfffbfd0e, 0xb492a779, 0xb999a970, 0xae84bb6b, 0xa38fb562, 0x80be9f5d, 0x8db59154, 0x9aa8834f, 0x97a38d46];
-    const U4 = [0x00000000, 0x090d0b0e, 0x121a161c, 0x1b171d12, 0x24342c38, 0x2d392736, 0x362e3a24, 0x3f23312a, 0x48685870, 0x4165537e, 0x5a724e6c, 0x537f4562, 0x6c5c7448, 0x65517f46, 0x7e466254, 0x774b695a, 0x90d0b0e0, 0x99ddbbee, 0x82caa6fc, 0x8bc7adf2, 0xb4e49cd8, 0xbde997d6, 0xa6fe8ac4, 0xaff381ca, 0xd8b8e890, 0xd1b5e39e, 0xcaa2fe8c, 0xc3aff582, 0xfc8cc4a8, 0xf581cfa6, 0xee96d2b4, 0xe79bd9ba, 0x3bbb7bdb, 0x32b670d5, 0x29a16dc7, 0x20ac66c9, 0x1f8f57e3, 0x16825ced, 0x0d9541ff, 0x04984af1, 0x73d323ab, 0x7ade28a5, 0x61c935b7, 0x68c43eb9, 0x57e70f93, 0x5eea049d, 0x45fd198f, 0x4cf01281, 0xab6bcb3b, 0xa266c035, 0xb971dd27, 0xb07cd629, 0x8f5fe703, 0x8652ec0d, 0x9d45f11f, 0x9448fa11, 0xe303934b, 0xea0e9845, 0xf1198557, 0xf8148e59, 0xc737bf73, 0xce3ab47d, 0xd52da96f, 0xdc20a261, 0x766df6ad, 0x7f60fda3, 0x6477e0b1, 0x6d7aebbf, 0x5259da95, 0x5b54d19b, 0x4043cc89, 0x494ec787, 0x3e05aedd, 0x3708a5d3, 0x2c1fb8c1, 0x2512b3cf, 0x1a3182e5, 0x133c89eb, 0x082b94f9, 0x01269ff7, 0xe6bd464d, 0xefb04d43, 0xf4a75051, 0xfdaa5b5f, 0xc2896a75, 0xcb84617b, 0xd0937c69, 0xd99e7767, 0xaed51e3d, 0xa7d81533, 0xbccf0821, 0xb5c2032f, 0x8ae13205, 0x83ec390b, 0x98fb2419, 0x91f62f17, 0x4dd68d76, 0x44db8678, 0x5fcc9b6a, 0x56c19064, 0x69e2a14e, 0x60efaa40, 0x7bf8b752, 0x72f5bc5c, 0x05bed506, 0x0cb3de08, 0x17a4c31a, 0x1ea9c814, 0x218af93e, 0x2887f230, 0x3390ef22, 0x3a9de42c, 0xdd063d96, 0xd40b3698, 0xcf1c2b8a, 0xc6112084, 0xf93211ae, 0xf03f1aa0, 0xeb2807b2, 0xe2250cbc, 0x956e65e6, 0x9c636ee8, 0x877473fa, 0x8e7978f4, 0xb15a49de, 0xb85742d0, 0xa3405fc2, 0xaa4d54cc, 0xecdaf741, 0xe5d7fc4f, 0xfec0e15d, 0xf7cdea53, 0xc8eedb79, 0xc1e3d077, 0xdaf4cd65, 0xd3f9c66b, 0xa4b2af31, 0xadbfa43f, 0xb6a8b92d, 0xbfa5b223, 0x80868309, 0x898b8807, 0x929c9515, 0x9b919e1b, 0x7c0a47a1, 0x75074caf, 0x6e1051bd, 0x671d5ab3, 0x583e6b99, 0x51336097, 0x4a247d85, 0x4329768b, 0x34621fd1, 0x3d6f14df, 0x267809cd, 0x2f7502c3, 0x105633e9, 0x195b38e7, 0x024c25f5, 0x0b412efb, 0xd7618c9a, 0xde6c8794, 0xc57b9a86, 0xcc769188, 0xf355a0a2, 0xfa58abac, 0xe14fb6be, 0xe842bdb0, 0x9f09d4ea, 0x9604dfe4, 0x8d13c2f6, 0x841ec9f8, 0xbb3df8d2, 0xb230f3dc, 0xa927eece, 0xa02ae5c0, 0x47b13c7a, 0x4ebc3774, 0x55ab2a66, 0x5ca62168, 0x63851042, 0x6a881b4c, 0x719f065e, 0x78920d50, 0x0fd9640a, 0x06d46f04, 0x1dc37216, 0x14ce7918, 0x2bed4832, 0x22e0433c, 0x39f75e2e, 0x30fa5520, 0x9ab701ec, 0x93ba0ae2, 0x88ad17f0, 0x81a01cfe, 0xbe832dd4, 0xb78e26da, 0xac993bc8, 0xa59430c6, 0xd2df599c, 0xdbd25292, 0xc0c54f80, 0xc9c8448e, 0xf6eb75a4, 0xffe67eaa, 0xe4f163b8, 0xedfc68b6, 0x0a67b10c, 0x036aba02, 0x187da710, 0x1170ac1e, 0x2e539d34, 0x275e963a, 0x3c498b28, 0x35448026, 0x420fe97c, 0x4b02e272, 0x5015ff60, 0x5918f46e, 0x663bc544, 0x6f36ce4a, 0x7421d358, 0x7d2cd856, 0xa10c7a37, 0xa8017139, 0xb3166c2b, 0xba1b6725, 0x8538560f, 0x8c355d01, 0x97224013, 0x9e2f4b1d, 0xe9642247, 0xe0692949, 0xfb7e345b, 0xf2733f55, 0xcd500e7f, 0xc45d0571, 0xdf4a1863, 0xd647136d, 0x31dccad7, 0x38d1c1d9, 0x23c6dccb, 0x2acbd7c5, 0x15e8e6ef, 0x1ce5ede1, 0x07f2f0f3, 0x0efffbfd, 0x79b492a7, 0x70b999a9, 0x6bae84bb, 0x62a38fb5, 0x5d80be9f, 0x548db591, 0x4f9aa883, 0x4697a38d];
-    function convertToInt32(bytes) {
-        const result = [];
-        for (let i = 0; i < bytes.length; i += 4) {
-            result.push((bytes[i] << 24) | (bytes[i + 1] << 16) | (bytes[i + 2] << 8) | bytes[i + 3]);
-        }
-        return result;
-    }
-    class AES {
-        get key() { return __classPrivateFieldGet$2(this, _AES_key, "f").slice(); }
-        constructor(key) {
-            _AES_key.set(this, void 0);
-            _AES_Kd.set(this, void 0);
-            _AES_Ke.set(this, void 0);
-            if (!(this instanceof AES)) {
-                throw Error('AES must be instanitated with `new`');
-            }
-            __classPrivateFieldSet$2(this, _AES_key, new Uint8Array(key), "f");
-            const rounds = numberOfRounds[this.key.length];
-            if (rounds == null) {
-                throw new TypeError('invalid key size (must be 16, 24 or 32 bytes)');
-            }
-            // encryption round keys
-            __classPrivateFieldSet$2(this, _AES_Ke, [], "f");
-            // decryption round keys
-            __classPrivateFieldSet$2(this, _AES_Kd, [], "f");
-            for (let i = 0; i <= rounds; i++) {
-                __classPrivateFieldGet$2(this, _AES_Ke, "f").push([0, 0, 0, 0]);
-                __classPrivateFieldGet$2(this, _AES_Kd, "f").push([0, 0, 0, 0]);
-            }
-            const roundKeyCount = (rounds + 1) * 4;
-            const KC = this.key.length / 4;
-            // convert the key into ints
-            const tk = convertToInt32(this.key);
-            // copy values into round key arrays
-            let index;
-            for (let i = 0; i < KC; i++) {
-                index = i >> 2;
-                __classPrivateFieldGet$2(this, _AES_Ke, "f")[index][i % 4] = tk[i];
-                __classPrivateFieldGet$2(this, _AES_Kd, "f")[rounds - index][i % 4] = tk[i];
-            }
-            // key expansion (fips-197 section 5.2)
-            let rconpointer = 0;
-            let t = KC, tt;
-            while (t < roundKeyCount) {
-                tt = tk[KC - 1];
-                tk[0] ^= ((S[(tt >> 16) & 0xFF] << 24) ^
-                    (S[(tt >> 8) & 0xFF] << 16) ^
-                    (S[tt & 0xFF] << 8) ^
-                    S[(tt >> 24) & 0xFF] ^
-                    (rcon[rconpointer] << 24));
-                rconpointer += 1;
-                // key expansion (for non-256 bit)
-                if (KC != 8) {
-                    for (let i = 1; i < KC; i++) {
-                        tk[i] ^= tk[i - 1];
-                    }
-                    // key expansion for 256-bit keys is "slightly different" (fips-197)
-                }
-                else {
-                    for (let i = 1; i < (KC / 2); i++) {
-                        tk[i] ^= tk[i - 1];
-                    }
-                    tt = tk[(KC / 2) - 1];
-                    tk[KC / 2] ^= (S[tt & 0xFF] ^
-                        (S[(tt >> 8) & 0xFF] << 8) ^
-                        (S[(tt >> 16) & 0xFF] << 16) ^
-                        (S[(tt >> 24) & 0xFF] << 24));
-                    for (let i = (KC / 2) + 1; i < KC; i++) {
-                        tk[i] ^= tk[i - 1];
-                    }
-                }
-                // copy values into round key arrays
-                let i = 0, r, c;
-                while (i < KC && t < roundKeyCount) {
-                    r = t >> 2;
-                    c = t % 4;
-                    __classPrivateFieldGet$2(this, _AES_Ke, "f")[r][c] = tk[i];
-                    __classPrivateFieldGet$2(this, _AES_Kd, "f")[rounds - r][c] = tk[i++];
-                    t++;
-                }
-            }
-            // inverse-cipher-ify the decryption round key (fips-197 section 5.3)
-            for (let r = 1; r < rounds; r++) {
-                for (let c = 0; c < 4; c++) {
-                    tt = __classPrivateFieldGet$2(this, _AES_Kd, "f")[r][c];
-                    __classPrivateFieldGet$2(this, _AES_Kd, "f")[r][c] = (U1[(tt >> 24) & 0xFF] ^
-                        U2[(tt >> 16) & 0xFF] ^
-                        U3[(tt >> 8) & 0xFF] ^
-                        U4[tt & 0xFF]);
-                }
-            }
-        }
-        encrypt(plaintext) {
-            if (plaintext.length != 16) {
-                throw new TypeError('invalid plaintext size (must be 16 bytes)');
-            }
-            const rounds = __classPrivateFieldGet$2(this, _AES_Ke, "f").length - 1;
-            const a = [0, 0, 0, 0];
-            // convert plaintext to (ints ^ key)
-            let t = convertToInt32(plaintext);
-            for (let i = 0; i < 4; i++) {
-                t[i] ^= __classPrivateFieldGet$2(this, _AES_Ke, "f")[0][i];
-            }
-            // apply round transforms
-            for (let r = 1; r < rounds; r++) {
-                for (let i = 0; i < 4; i++) {
-                    a[i] = (T1[(t[i] >> 24) & 0xff] ^
-                        T2[(t[(i + 1) % 4] >> 16) & 0xff] ^
-                        T3[(t[(i + 2) % 4] >> 8) & 0xff] ^
-                        T4[t[(i + 3) % 4] & 0xff] ^
-                        __classPrivateFieldGet$2(this, _AES_Ke, "f")[r][i]);
-                }
-                t = a.slice();
-            }
-            // the last round is special
-            const result = new Uint8Array(16);
-            let tt = 0;
-            for (let i = 0; i < 4; i++) {
-                tt = __classPrivateFieldGet$2(this, _AES_Ke, "f")[rounds][i];
-                result[4 * i] = (S[(t[i] >> 24) & 0xff] ^ (tt >> 24)) & 0xff;
-                result[4 * i + 1] = (S[(t[(i + 1) % 4] >> 16) & 0xff] ^ (tt >> 16)) & 0xff;
-                result[4 * i + 2] = (S[(t[(i + 2) % 4] >> 8) & 0xff] ^ (tt >> 8)) & 0xff;
-                result[4 * i + 3] = (S[t[(i + 3) % 4] & 0xff] ^ tt) & 0xff;
-            }
-            return result;
-        }
-        decrypt(ciphertext) {
-            if (ciphertext.length != 16) {
-                throw new TypeError('invalid ciphertext size (must be 16 bytes)');
-            }
-            const rounds = __classPrivateFieldGet$2(this, _AES_Kd, "f").length - 1;
-            const a = [0, 0, 0, 0];
-            // convert plaintext to (ints ^ key)
-            let t = convertToInt32(ciphertext);
-            for (let i = 0; i < 4; i++) {
-                t[i] ^= __classPrivateFieldGet$2(this, _AES_Kd, "f")[0][i];
-            }
-            // apply round transforms
-            for (let r = 1; r < rounds; r++) {
-                for (let i = 0; i < 4; i++) {
-                    a[i] = (T5[(t[i] >> 24) & 0xff] ^
-                        T6[(t[(i + 3) % 4] >> 16) & 0xff] ^
-                        T7[(t[(i + 2) % 4] >> 8) & 0xff] ^
-                        T8[t[(i + 1) % 4] & 0xff] ^
-                        __classPrivateFieldGet$2(this, _AES_Kd, "f")[r][i]);
-                }
-                t = a.slice();
-            }
-            // the last round is special
-            const result = new Uint8Array(16);
-            let tt = 0;
-            for (let i = 0; i < 4; i++) {
-                tt = __classPrivateFieldGet$2(this, _AES_Kd, "f")[rounds][i];
-                result[4 * i] = (Si[(t[i] >> 24) & 0xff] ^ (tt >> 24)) & 0xff;
-                result[4 * i + 1] = (Si[(t[(i + 3) % 4] >> 16) & 0xff] ^ (tt >> 16)) & 0xff;
-                result[4 * i + 2] = (Si[(t[(i + 2) % 4] >> 8) & 0xff] ^ (tt >> 8)) & 0xff;
-                result[4 * i + 3] = (Si[t[(i + 1) % 4] & 0xff] ^ tt) & 0xff;
-            }
-            return result;
-        }
-    }
-    _AES_key = new WeakMap(), _AES_Kd = new WeakMap(), _AES_Ke = new WeakMap();
-
-    class ModeOfOperation {
-        constructor(name, key, cls) {
-            if (cls && !(this instanceof cls)) {
-                throw new Error(`${name} must be instantiated with "new"`);
-            }
-            Object.defineProperties(this, {
-                aes: { enumerable: true, value: new AES(key) },
-                name: { enumerable: true, value: name }
-            });
-        }
-    }
-
-    // Cipher Block Chaining
-    var __classPrivateFieldSet$1 = (__$G && __$G.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
-        if (kind === "m") throw new TypeError("Private method is not writable");
-        if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
-        if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
-        return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
-    };
-    var __classPrivateFieldGet$1 = (__$G && __$G.__classPrivateFieldGet) || function (receiver, state, kind, f) {
-        if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
-        if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
-        return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
-    };
-    var _CBC_iv, _CBC_lastBlock;
-    class CBC extends ModeOfOperation {
-        constructor(key, iv) {
-            super("ECC", key, CBC);
-            _CBC_iv.set(this, void 0);
-            _CBC_lastBlock.set(this, void 0);
-            if (iv) {
-                if (iv.length % 16) {
-                    throw new TypeError("invalid iv size (must be 16 bytes)");
-                }
-                __classPrivateFieldSet$1(this, _CBC_iv, new Uint8Array(iv), "f");
-            }
-            else {
-                __classPrivateFieldSet$1(this, _CBC_iv, new Uint8Array(16), "f");
-            }
-            __classPrivateFieldSet$1(this, _CBC_lastBlock, this.iv, "f");
-        }
-        get iv() { return new Uint8Array(__classPrivateFieldGet$1(this, _CBC_iv, "f")); }
-        encrypt(plaintext) {
-            if (plaintext.length % 16) {
-                throw new TypeError("invalid plaintext size (must be multiple of 16 bytes)");
-            }
-            const ciphertext = new Uint8Array(plaintext.length);
-            for (let i = 0; i < plaintext.length; i += 16) {
-                for (let j = 0; j < 16; j++) {
-                    __classPrivateFieldGet$1(this, _CBC_lastBlock, "f")[j] ^= plaintext[i + j];
-                }
-                __classPrivateFieldSet$1(this, _CBC_lastBlock, this.aes.encrypt(__classPrivateFieldGet$1(this, _CBC_lastBlock, "f")), "f");
-                ciphertext.set(__classPrivateFieldGet$1(this, _CBC_lastBlock, "f"), i);
-            }
-            return ciphertext;
-        }
-        decrypt(ciphertext) {
-            if (ciphertext.length % 16) {
-                throw new TypeError("invalid ciphertext size (must be multiple of 16 bytes)");
-            }
-            const plaintext = new Uint8Array(ciphertext.length);
-            for (let i = 0; i < ciphertext.length; i += 16) {
-                const block = this.aes.decrypt(ciphertext.subarray(i, i + 16));
-                for (let j = 0; j < 16; j++) {
-                    plaintext[i + j] = block[j] ^ __classPrivateFieldGet$1(this, _CBC_lastBlock, "f")[j];
-                    __classPrivateFieldGet$1(this, _CBC_lastBlock, "f")[j] = ciphertext[i + j];
-                }
-            }
-            return plaintext;
-        }
-    }
-    _CBC_iv = new WeakMap(), _CBC_lastBlock = new WeakMap();
-
-    // Counter Mode
-    var __classPrivateFieldSet = (__$G && __$G.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
-        if (kind === "m") throw new TypeError("Private method is not writable");
-        if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
-        if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
-        return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
-    };
-    var __classPrivateFieldGet = (__$G && __$G.__classPrivateFieldGet) || function (receiver, state, kind, f) {
-        if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
-        if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
-        return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
-    };
-    var _CTR_remaining, _CTR_remainingIndex, _CTR_counter;
-    class CTR extends ModeOfOperation {
-        constructor(key, initialValue) {
-            super("CTR", key, CTR);
-            // Remaining bytes for the one-time pad
-            _CTR_remaining.set(this, void 0);
-            _CTR_remainingIndex.set(this, void 0);
-            // The current counter
-            _CTR_counter.set(this, void 0);
-            __classPrivateFieldSet(this, _CTR_counter, new Uint8Array(16), "f");
-            __classPrivateFieldGet(this, _CTR_counter, "f").fill(0);
-            __classPrivateFieldSet(this, _CTR_remaining, __classPrivateFieldGet(this, _CTR_counter, "f"), "f"); // This will be discarded immediately
-            __classPrivateFieldSet(this, _CTR_remainingIndex, 16, "f");
-            if (initialValue == null) {
-                initialValue = 1;
-            }
-            if (typeof (initialValue) === "number") {
-                this.setCounterValue(initialValue);
-            }
-            else {
-                this.setCounterBytes(initialValue);
-            }
-        }
-        get counter() { return new Uint8Array(__classPrivateFieldGet(this, _CTR_counter, "f")); }
-        setCounterValue(value) {
-            if (!Number.isInteger(value) || value < 0 || value > Number.MAX_SAFE_INTEGER) {
-                throw new TypeError("invalid counter initial integer value");
-            }
-            for (let index = 15; index >= 0; --index) {
-                __classPrivateFieldGet(this, _CTR_counter, "f")[index] = value % 256;
-                value = Math.floor(value / 256);
-            }
-        }
-        setCounterBytes(value) {
-            if (value.length !== 16) {
-                throw new TypeError("invalid counter initial Uint8Array value length");
-            }
-            __classPrivateFieldGet(this, _CTR_counter, "f").set(value);
-        }
-        increment() {
-            for (let i = 15; i >= 0; i--) {
-                if (__classPrivateFieldGet(this, _CTR_counter, "f")[i] === 255) {
-                    __classPrivateFieldGet(this, _CTR_counter, "f")[i] = 0;
-                }
-                else {
-                    __classPrivateFieldGet(this, _CTR_counter, "f")[i]++;
-                    break;
-                }
-            }
-        }
-        encrypt(plaintext) {
-            var _a, _b;
-            const crypttext = new Uint8Array(plaintext);
-            for (let i = 0; i < crypttext.length; i++) {
-                if (__classPrivateFieldGet(this, _CTR_remainingIndex, "f") === 16) {
-                    __classPrivateFieldSet(this, _CTR_remaining, this.aes.encrypt(__classPrivateFieldGet(this, _CTR_counter, "f")), "f");
-                    __classPrivateFieldSet(this, _CTR_remainingIndex, 0, "f");
-                    this.increment();
-                }
-                crypttext[i] ^= __classPrivateFieldGet(this, _CTR_remaining, "f")[__classPrivateFieldSet(this, _CTR_remainingIndex, (_b = __classPrivateFieldGet(this, _CTR_remainingIndex, "f"), _a = _b++, _b), "f"), _a];
-            }
-            return crypttext;
-        }
-        decrypt(ciphertext) {
-            return this.encrypt(ciphertext);
-        }
-    }
-    _CTR_remaining = new WeakMap(), _CTR_remainingIndex = new WeakMap(), _CTR_counter = new WeakMap();
-
-    function pkcs7Strip(data) {
-        if (data.length < 16) {
-            throw new TypeError('PKCS#7 invalid length');
-        }
-        const padder = data[data.length - 1];
-        if (padder > 16) {
-            throw new TypeError('PKCS#7 padding byte out of range');
-        }
-        const length = data.length - padder;
-        for (let i = 0; i < padder; i++) {
-            if (data[length + i] !== padder) {
-                throw new TypeError('PKCS#7 invalid padding byte');
-            }
-        }
-        return new Uint8Array(data.subarray(0, length));
-    }
-
     /**
      *  @_ignore
      */
     function looseArrayify(hexString) {
-        if (typeof (hexString) === "string" && !hexString.startsWith("0x")) {
+        if (typeof hexString === "string" && !hexString.startsWith("0x")) {
             hexString = "0x" + hexString;
         }
         return getBytesCopy(hexString);
@@ -17966,12 +18476,12 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
     function zpad(value, length) {
         value = String(value);
         while (value.length < length) {
-            value = '0' + value;
+            value = "0" + value;
         }
         return value;
     }
     function getPassword(password) {
-        if (typeof (password) === 'string') {
+        if (typeof password === "string") {
             return toUtf8Bytes(password, "NFKC");
         }
         return getBytesCopy(password);
@@ -17981,9 +18491,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         assertArgument(match != null, "invalid path", "path", _path);
         const path = match[1];
         const type = match[3];
-        const reqd = (match[4] === "!");
+        const reqd = match[4] === "!";
         let cur = object;
-        for (const comp of path.toLowerCase().split('.')) {
+        for (const comp of path.toLowerCase().split(".")) {
             // Search for a child object with a case-insensitive matching key
             if (Array.isArray(cur)) {
                 if (!comp.match(/^[0-9]+$/)) {
@@ -17991,7 +18501,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 }
                 cur = cur[parseInt(comp)];
             }
-            else if (typeof (cur) === "object") {
+            else if (typeof cur === "object") {
                 let found = null;
                 for (const key in cur) {
                     if (key.toLowerCase() === comp) {
@@ -18011,7 +18521,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         assertArgument(!reqd || cur != null, "missing required value", "path", path);
         if (type && cur != null) {
             if (type === "int") {
-                if (typeof (cur) === "string" && cur.match(/^-?[0-9]+$/)) {
+                if (typeof cur === "string" && cur.match(/^-?[0-9]+$/)) {
                     return parseInt(cur);
                 }
                 else if (Number.isSafeInteger(cur)) {
@@ -18019,19 +18529,19 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 }
             }
             if (type === "number") {
-                if (typeof (cur) === "string" && cur.match(/^-?[0-9.]*$/)) {
+                if (typeof cur === "string" && cur.match(/^-?[0-9.]*$/)) {
                     return parseFloat(cur);
                 }
             }
             if (type === "data") {
-                if (typeof (cur) === "string") {
+                if (typeof cur === "string") {
                     return looseArrayify(cur);
                 }
             }
             if (type === "array" && Array.isArray(cur)) {
                 return cur;
             }
-            if (type === typeof (cur)) {
+            if (type === typeof cur) {
                 return cur;
             }
             assertArgument(false, `wrong type found for ${type} `, "path", path);
@@ -18105,6 +18615,8 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
      *
      *  @_subsection: api/wallet:JSON Wallets  [json-wallets]
      */
+    // @ts-ignore
+    const { CTR } = pkg;
     const defaultPath$1 = "m/44'/60'/0'/0/0";
     /**
      *  Returns true if %%json%% is a valid JSON Keystore Wallet.
@@ -18112,7 +18624,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
     function isKeystoreJson(json) {
         try {
             const data = JSON.parse(json);
-            const version = ((data.version != null) ? parseInt(data.version) : 0);
+            const version = data.version != null ? parseInt(data.version) : 0;
             if (version === 3) {
                 return true;
             }
@@ -18128,7 +18640,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             return hexlify(aesCtr.decrypt(ciphertext));
         }
         assert(false, "unsupported cipher", "UNSUPPORTED_OPERATION", {
-            operation: "decrypt"
+            operation: "decrypt",
         });
     }
     function getAccount(data, _key) {
@@ -18158,16 +18670,16 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             const mnemonicIv = spelunk(data, "x-corebc.mnemonicCounter:data!");
             const mnemonicAesCtr = new CTR(mnemonicKey, mnemonicIv);
             account.mnemonic = {
-                path: (spelunk(data, "x-corebc.path:string") || defaultPath$1),
-                locale: (spelunk(data, "x-corebc.locale:string") || "en"),
-                entropy: hexlify(getBytes(mnemonicAesCtr.decrypt(mnemonicCiphertext)))
+                path: spelunk(data, "x-corebc.path:string") || defaultPath$1,
+                locale: spelunk(data, "x-corebc.locale:string") || "en",
+                entropy: hexlify(getBytes(mnemonicAesCtr.decrypt(mnemonicCiphertext))),
             };
         }
         return account;
     }
     function getDecryptKdfParams(data) {
         const kdf = spelunk(data, "crypto.kdf:string");
-        if (kdf && typeof (kdf) === "string") {
+        if (kdf && typeof kdf === "string") {
             if (kdf.toLowerCase() === "scrypt") {
                 const salt = spelunk(data, "crypto.kdfparams.salt:data!");
                 const N = spelunk(data, "crypto.kdfparams.n:int!");
@@ -18214,13 +18726,19 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             const key = pbkdf2(password, salt, count, dkLen, algorithm);
             return getAccount(data, key);
         }
-        assert(params.name === "scrypt", "cannot be reached", "UNKNOWN_ERROR", { params });
+        assert(params.name === "scrypt", "cannot be reached", "UNKNOWN_ERROR", {
+            params,
+        });
         const { salt, N, r, p, dkLen } = params;
         const key = scryptSync(password, salt, N, r, p, dkLen);
         return getAccount(data, key);
     }
     function stall$1(duration) {
-        return new Promise((resolve) => { setTimeout(() => { resolve(); }, duration); });
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                resolve();
+            }, duration);
+        });
     }
     /**
      *  Resolves to the decrypted JSON Keystore Wallet %%json%% using the
@@ -18250,16 +18768,20 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             }
             return getAccount(data, key);
         }
-        assert(params.name === "scrypt", "cannot be reached", "UNKNOWN_ERROR", { params });
+        assert(params.name === "scrypt", "cannot be reached", "UNKNOWN_ERROR", {
+            params,
+        });
         const { salt, N, r, p, dkLen } = params;
         const key = await scrypt(password, salt, N, r, p, dkLen, progress);
         return getAccount(data, key);
     }
     function getEncryptKdfParams(options) {
         // Check/generate the salt
-        const salt = (options.salt != null) ? getBytes(options.salt, "options.salt") : randomBytes(32);
+        const salt = options.salt != null
+            ? getBytes(options.salt, "options.salt")
+            : randomBytes(32);
         // Override the scrypt password-based key derivation function parameters
-        let N = (1 << 17), r = 8, p = 1;
+        let N = 1 << 17, r = 8, p = 1;
         if (options.scrypt) {
             if (options.scrypt.N) {
                 N = options.scrypt.N;
@@ -18271,18 +18793,23 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 p = options.scrypt.p;
             }
         }
-        assertArgument(typeof (N) === "number" && N > 0 && Number.isSafeInteger(N) && (BigInt(N) & BigInt(N - 1)) === BigInt(0), "invalid scrypt N parameter", "options.N", N);
-        assertArgument(typeof (r) === "number" && r > 0 && Number.isSafeInteger(r), "invalid scrypt r parameter", "options.r", r);
-        assertArgument(typeof (p) === "number" && p > 0 && Number.isSafeInteger(p), "invalid scrypt p parameter", "options.p", p);
+        assertArgument(typeof N === "number" &&
+            N > 0 &&
+            Number.isSafeInteger(N) &&
+            (BigInt(N) & BigInt(N - 1)) === BigInt(0), "invalid scrypt N parameter", "options.N", N);
+        assertArgument(typeof r === "number" && r > 0 && Number.isSafeInteger(r), "invalid scrypt r parameter", "options.r", r);
+        assertArgument(typeof p === "number" && p > 0 && Number.isSafeInteger(p), "invalid scrypt p parameter", "options.p", p);
         return { name: "scrypt", dkLen: 32, salt, N, r, p };
     }
     function _encryptKeystore(key, kdf, account, options) {
         const privateKey = getBytes(account.privateKey, "privateKey");
         // Override initialization vector
-        const iv = (options.iv != null) ? getBytes(options.iv, "options.iv") : randomBytes(16);
+        const iv = options.iv != null ? getBytes(options.iv, "options.iv") : randomBytes(16);
         assertArgument(iv.length === 16, "invalid options.iv length", "options.iv", options.iv);
         // Override the uuid
-        const uuidRandom = (options.uuid != null) ? getBytes(options.uuid, "options.uuid") : randomBytes(16);
+        const uuidRandom = options.uuid != null
+            ? getBytes(options.uuid, "options.uuid")
+            : randomBytes(16);
         assertArgument(uuidRandom.length === 16, "invalid options.uuid length", "options.uuid", options.iv);
         // This will be used to encrypt the wallet (as per Web3 secret storage)
         // - 32 bytes   As normal for the Web3 secret storage (derivedKey, macPrefix)
@@ -18310,14 +18837,14 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                     n: kdf.N,
                     dklen: 32,
                     p: kdf.p,
-                    r: kdf.r
+                    r: kdf.r,
                 },
-                mac: mac.substring(2)
-            }
+                mac: mac.substring(2),
+            },
         };
         // If we have a mnemonic, encrypt it into the JSON wallet
         if (account.mnemonic) {
-            const client = (options.client != null) ? options.client : `corebc/${version}`;
+            const client = options.client != null ? options.client : `corebc/${version}`;
             const path = account.mnemonic.path || defaultPath$1;
             const locale = account.mnemonic.locale || "en";
             const mnemonicKey = key.slice(32, 64);
@@ -18326,18 +18853,27 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             const mnemonicAesCtr = new CTR(mnemonicKey, mnemonicIv);
             const mnemonicCiphertext = getBytes(mnemonicAesCtr.encrypt(entropy));
             const now = new Date();
-            const timestamp = (now.getUTCFullYear() + "-" +
-                zpad(now.getUTCMonth() + 1, 2) + "-" +
-                zpad(now.getUTCDate(), 2) + "T" +
-                zpad(now.getUTCHours(), 2) + "-" +
-                zpad(now.getUTCMinutes(), 2) + "-" +
-                zpad(now.getUTCSeconds(), 2) + ".0Z");
-            const gethFilename = ("UTC--" + timestamp + "--" + data.address);
+            const timestamp = now.getUTCFullYear() +
+                "-" +
+                zpad(now.getUTCMonth() + 1, 2) +
+                "-" +
+                zpad(now.getUTCDate(), 2) +
+                "T" +
+                zpad(now.getUTCHours(), 2) +
+                "-" +
+                zpad(now.getUTCMinutes(), 2) +
+                "-" +
+                zpad(now.getUTCSeconds(), 2) +
+                ".0Z";
+            const gethFilename = "UTC--" + timestamp + "--" + data.address;
             data["x-corebc"] = {
-                client, gethFilename, path, locale,
+                client,
+                gethFilename,
+                path,
+                locale,
                 mnemonicCounter: hexlify(mnemonicIv).substring(2),
                 mnemonicCiphertext: hexlify(mnemonicCiphertext).substring(2),
-                version: "0.1"
+                version: "0.1",
             };
         }
         return JSON.stringify(data);
@@ -18491,9 +19027,11 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         /**
          *  @private
          */
-        constructor({ guard, seed, signingKey, parentFingerprint, path, index, depth, mnemonic, provider, prefix }) {
+        constructor({ guard, seed, signingKey, parentFingerprint, path, index, depth, mnemonic, provider, prefix, }) {
             super({
-                signingKey, prefix, provider
+                signingKey,
+                prefix,
+                provider,
             });
             assertPrivate(guard, _guard, "HDNodeWallet");
             defineProperties(this, { publicKey: signingKey.publicKey });
@@ -18501,8 +19039,11 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             this.#seed = seed;
             const fingerprint = dataSlice(ripemd160(sha256(this.publicKey)), 0, 4);
             defineProperties(this, {
-                parentFingerprint, fingerprint,
-                path, index, depth
+                parentFingerprint,
+                fingerprint,
+                path,
+                index,
+                depth,
             });
             defineProperties(this, { mnemonic });
         }
@@ -18517,17 +19058,20 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 seed: this.#seed,
                 mnemonic: this.mnemonic,
                 provider,
-                prefix: this.prefix
+                prefix: this.prefix,
             });
         }
         #account() {
-            const account = { address: this.address, privateKey: this.privateKey };
+            const account = {
+                address: this.address,
+                privateKey: this.privateKey,
+            };
             const m = this.mnemonic;
             if (this.path && m && m.wordlist.locale === "en" && m.password === "") {
                 account.mnemonic = {
                     path: this.path,
                     locale: "en",
-                    entropy: m.entropy
+                    entropy: m.entropy,
                 };
             }
             return account;
@@ -18540,7 +19084,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  updates as the encryption process progreses.
          */
         async encrypt(password, progressCallback) {
-            return await encryptKeystoreJson(this.#account(), password, { progressCallback });
+            return await encryptKeystoreJson(this.#account(), password, {
+                progressCallback,
+            });
         }
         /**
          *  Returns a [JSON Keystore Wallet](json-wallets) encryped with
@@ -18559,7 +19105,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  Returns true if this wallet has a path, providing a Type Guard
          *  that the path is non-null.
          */
-        hasPath() { return (this.path != null); }
+        hasPath() {
+            return this.path != null;
+        }
         /**
          *  Return the child for %%index%%.
          */
@@ -18584,7 +19132,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 depth: this.depth + 1,
                 mnemonic: this.mnemonic,
                 provider: this.provider,
-                prefix: this.prefix
+                prefix: this.prefix,
             });
         }
         /**
@@ -18593,7 +19141,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         derivePath(path) {
             return derivePath(this, path);
         }
-        static #fromSeed({ _seed, mnemonic, prefix, path }) {
+        static #fromSeed({ _seed, mnemonic, prefix, path, }) {
             const extendetPrivateKey = Ed448Goldilock.HDWalletGenerateKeyFromSeed(_seed, 0);
             const signingKey = new SigningKey(extendetPrivateKey);
             // console.log({ privateKey, thisKey: signingKey.privateKey,len:tmp.privateKey.length })
@@ -18607,7 +19155,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 depth: 0,
                 mnemonic,
                 provider: null,
-                prefix
+                prefix,
             });
         }
         /**
@@ -18627,7 +19175,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             return HDNodeWallet.#fromSeed({
                 _seed: mnemonic.computeSeed(),
                 mnemonic,
-                prefix
+                prefix,
             }).derivePath(path);
         }
         /**
@@ -18640,7 +19188,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             return HDNodeWallet.#fromSeed({
                 _seed: mnemonic.computeSeed(),
                 mnemonic,
-                prefix
+                prefix,
             }).derivePath(path);
         }
         static mnemonicToSeed(mnemonic, password) {
@@ -18650,7 +19198,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         /**
          *  Creates an HD Node from a mnemonic %%phrase%%.
          */
-        static fromPhrase({ phrase, prefix, password, path, wordlist }) {
+        static fromPhrase({ phrase, prefix, password, path, wordlist, }) {
             if (!password) {
                 password = "";
             }
@@ -18665,18 +19213,18 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             return HDNodeWallet.#fromSeed({
                 _seed,
                 mnemonic,
-                prefix
+                prefix,
             }).derivePath(path);
         }
         /**
          *  Creates an HD Node from a %%seed%%.
          */
-        static fromSeed({ seed, prefix, path }) {
+        static fromSeed({ seed, prefix, path, }) {
             return HDNodeWallet.#fromSeed({
                 _seed: seed,
                 mnemonic: null,
                 path: path || defaultPath,
-                prefix
+                prefix,
             });
         }
     }
@@ -18731,21 +19279,23 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         return t.goldilock;
     }
     const generateSeed = (mnemonic, password) => {
-        const goldilockSaltPrefix = 'mnemonicforthegoldilockkey';
-        const aesSaltPrefix = 'mnemonicfortheAESkey';
+        const goldilockSaltPrefix = "mnemonicforthegoldilockkey";
+        const aesSaltPrefix = "mnemonicfortheAESkey";
         const goldilockSalt = utf8.encode(goldilockSaltPrefix + password);
         const aesSalt = utf8.encode(aesSaltPrefix + password);
-        const goldilockKey = pbkdf2Sync(Buffer.from(mnemonic), goldilockSalt, 2048, 64, 'sha512');
-        const aesKeySeed = pbkdf2Sync(Buffer.from(mnemonic), aesSalt, 2048, 64, 'sha512');
+        const goldilockKey = pbkdf2Sync(Buffer.from(mnemonic), goldilockSalt, 2048, 64, "sha512");
+        const aesKeySeed = pbkdf2Sync(Buffer.from(mnemonic), aesSalt, 2048, 64, "sha512");
         return {
-            aes: aesKeySeed.toString('hex'),
-            goldilock: goldilockKey.toString('hex')
+            aes: aesKeySeed.toString("hex"),
+            goldilock: goldilockKey.toString("hex"),
         };
     };
 
     /**
      *  @_subsection: api/wallet:JSON Wallets  [json-wallets]
      */
+    // @ts-ignore
+    const { CBC, pkcs7Strip } = pkg;
     /**
      *  Returns true if %%json%% is a valid JSON Crowdsale wallet.
      */
@@ -18776,7 +19326,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         const address = getAddress(spelunk(data, "ethaddr:string!"));
         // Encrypted Seed
         const encseed = looseArrayify(spelunk(data, "encseed:string!"));
-        assertArgument(encseed && (encseed.length % 16) === 0, "invalid encseed", "json", json);
+        assertArgument(encseed && encseed.length % 16 === 0, "invalid encseed", "json", json);
         const key = getBytes(pbkdf2(password, password, 2000, 32, "sha256")).slice(0, 16);
         const iv = encseed.slice(0, 16);
         const encryptedSeed = encseed.slice(16);
@@ -18792,7 +19342,11 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
     }
 
     function stall(duration) {
-        return new Promise((resolve) => { setTimeout(() => { resolve(); }, duration); });
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                resolve();
+            }, duration);
+        });
     }
     /**
      *  A **Wallet** manages a single private key which is used to sign
@@ -18809,18 +19363,22 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  Create a new wallet for the %%privateKey%% or %%signingKey%%, optionally connected
          *  to %%provider%%.
          */
-        constructor({ key, prefix, provider }) {
-            if (typeof (key) === "string" && !key.startsWith("0x")) {
+        constructor({ key, prefix, provider, }) {
+            if (typeof key === "string" && !key.startsWith("0x")) {
                 key = "0x" + key;
             }
-            let signingKey = (typeof (key) === "string") ? new SigningKey(key) : key;
+            let signingKey = typeof key === "string" ? new SigningKey(key) : key;
             super({
-                signingKey, prefix, provider
+                signingKey,
+                prefix,
+                provider,
             });
         }
         connect(provider) {
             return new Wallet({
-                key: this.signingKey, prefix: this.prefix, provider
+                key: this.signingKey,
+                prefix: this.prefix,
+                provider,
             });
         }
         /**
@@ -18852,16 +19410,20 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             assertArgument(account, "invalid JSON wallet", "json", "[ REDACTED ]");
             const address = account.address;
             const prefix = extractPrefix(address);
-            if ("mnemonic" in account && account.mnemonic && account.mnemonic.locale === "en") {
+            if ("mnemonic" in account &&
+                account.mnemonic &&
+                account.mnemonic.locale === "en") {
                 const mnemonic = Mnemonic.fromEntropy(account.mnemonic.entropy);
                 const wallet = HDNodeWallet.fromMnemonic(mnemonic, prefix, account.mnemonic.path);
-                if (wallet.address === account.address && wallet.privateKey === account.privateKey) {
+                if (wallet.address === account.address &&
+                    wallet.privateKey === account.privateKey) {
                     return wallet;
                 }
                 console.log("WARNING: JSON mismatch address/privateKey != mnemonic; fallback onto private key");
             }
             const wallet = new Wallet({
-                key: account.privateKey, prefix
+                key: account.privateKey,
+                prefix,
             });
             assertArgument(wallet.address === account.address, "address/privateKey mismatch", "json", "[ REDACTED ]");
             return wallet;
@@ -18927,22 +19489,22 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         /**
          *  Creates a [[HDNodeWallet]] for %%phrase%%.
          */
-        static fromPhrase({ phrase, prefix, provider, password }) {
+        static fromPhrase({ phrase, prefix, provider, password, }) {
             const wallet = HDNodeWallet.fromPhrase({
                 phrase,
                 prefix,
-                password
+                password,
             });
             if (provider) {
                 return wallet.connect(provider);
             }
             return wallet;
         }
-        static fromSeed({ seed, prefix, provider, path }) {
+        static fromSeed({ seed, prefix, provider, path, }) {
             const wallet = HDNodeWallet.fromSeed({
                 seed,
                 prefix,
-                path: path || defaultPath
+                path: path || defaultPath,
             });
             if (provider) {
                 return wallet.connect(provider);
@@ -18961,12 +19523,12 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         let accum = 0, bits = 0, flood = 0;
         for (let i = 0; i < data.length; i++) {
             // Accumulate 6 bits of data
-            accum = ((accum << 6) | Base64.indexOf(data[i]));
+            accum = (accum << 6) | Base64.indexOf(data[i]);
             bits += 6;
             // While we have enough for a word...
             while (bits >= width) {
                 // ...read the word
-                const value = (accum >> (bits - width));
+                const value = accum >> (bits - width);
                 accum &= (1 << (bits - width)) - 1;
                 bits -= width;
                 // A value of 0 indicates we exceeded maxValue, it
@@ -19026,7 +19588,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             super(locale, data, checksum);
             this.#accent = accent;
         }
-        get _accent() { return this.#accent; }
+        get _accent() {
+            return this.#accent;
+        }
         _decodeWords() {
             return decodeOwlA(this._data, this._accent);
         }

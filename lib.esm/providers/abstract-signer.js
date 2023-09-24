@@ -5,7 +5,7 @@
  */
 import { getAddress, resolveAddress } from "../address/index.js";
 import { Transaction } from "../transaction/index.js";
-import { defineProperties, getBigInt, resolveProperties, assert, assertArgument } from "../utils/index.js";
+import { defineProperties, getBigInt, resolveProperties, assert, assertArgument, } from "../utils/index.js";
 import { copyRequest } from "./provider.js";
 function checkProvider(signer, operation) {
     if (signer.provider) {
@@ -20,10 +20,7 @@ async function populate(signer, tx) {
     }
     if (pop.from != null) {
         const from = pop.from;
-        pop.from = Promise.all([
-            signer.getAddress(),
-            resolveAddress(from)
-        ]).then(([address, from]) => {
+        pop.from = Promise.all([signer.getAddress(), resolveAddress(from)]).then(([address, from]) => {
             assertArgument(address.toLowerCase() === from.toLowerCase(), "transaction from mismatch", "tx.from", from);
             return address;
         });
@@ -36,7 +33,7 @@ async function populate(signer, tx) {
 export class AbstractSigner {
     provider;
     constructor(provider) {
-        defineProperties(this, { provider: (provider || null) });
+        defineProperties(this, { provider: provider || null });
     }
     async getNonce(blockTag) {
         return checkProvider(this, "getTransactionCount").getTransactionCount(await this.getAddress(), blockTag);
@@ -55,7 +52,7 @@ export class AbstractSigner {
             pop.energyLimit = await this.estimateEnergy(pop);
         }
         // Populate the chain ID
-        const network = await (this.provider).getNetwork();
+        const network = await this.provider.getNetwork();
         if (pop.networkId != null) {
             const networkId = getBigInt(pop.networkId);
             assertArgument(networkId === network.networkId, "transaction networkId mismatch", "tx.networkId", tx.networkId);
@@ -76,7 +73,7 @@ export class AbstractSigner {
         else {
             // getFeeData has failed us.
             assert(false, "failed to get consistent fee data", "UNSUPPORTED_OPERATION", {
-                operation: "signer.getFeeData"
+                operation: "signer.getFeeData",
             });
         }
         //@TOOD: Don't await all over the place; save them up for
@@ -106,12 +103,16 @@ export class VoidSigner extends AbstractSigner {
         super(provider);
         defineProperties(this, { address });
     }
-    async getAddress() { return this.address; }
+    async getAddress() {
+        return this.address;
+    }
     connect(provider) {
         return new VoidSigner(this.address, provider);
     }
     #throwUnsupported(suffix, operation) {
-        assert(false, `VoidSigner cannot sign ${suffix}`, "UNSUPPORTED_OPERATION", { operation });
+        assert(false, `VoidSigner cannot sign ${suffix}`, "UNSUPPORTED_OPERATION", {
+            operation,
+        });
     }
     async signTransaction(tx) {
         this.#throwUnsupported("transactions", "signTransaction");

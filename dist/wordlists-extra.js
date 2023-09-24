@@ -337,7 +337,14 @@ const keccak_256 = /* @__PURE__ */ gen(0x01, 136, 256 / 8);
 
 let _permanentCensorErrors = false;
 let _censorErrors = false;
-const LogLevels = { debug: 1, "default": 2, info: 2, warning: 3, error: 4, off: 5 };
+const LogLevels = {
+    debug: 1,
+    default: 2,
+    info: 2,
+    warning: 3,
+    error: 4,
+    off: 5,
+};
 let _logLevel = LogLevels["default"];
 let _globalLogger = null;
 function _checkNormalize() {
@@ -349,7 +356,6 @@ function _checkNormalize() {
                 if ("test".normalize(form) !== "test") {
                     throw new Error("bad normalize");
                 }
-                ;
             }
             catch (error) {
                 missing.push(form);
@@ -358,7 +364,8 @@ function _checkNormalize() {
         if (missing.length) {
             throw new Error("missing " + missing.join(", "));
         }
-        if (String.fromCharCode(0xe9).normalize("NFD") !== String.fromCharCode(0x65, 0x0301)) {
+        if (String.fromCharCode(0xe9).normalize("NFD") !==
+            String.fromCharCode(0x65, 0x0301)) {
             throw new Error("broken implementation");
         }
     }
@@ -452,14 +459,14 @@ var ErrorCode;
 })(ErrorCode || (ErrorCode = {}));
 const HEX = "0123456789abcdef";
 class Logger {
-    version = '0.0.1';
+    version = "0.0.1";
     static errors = ErrorCode;
     static levels = LogLevel;
     constructor(version) {
         Object.defineProperty(this, "version", {
             enumerable: true,
             value: version,
-            writable: false
+            writable: false,
         });
     }
     _log(logLevel, args) {
@@ -533,7 +540,7 @@ class Logger {
     throwArgumentError(message, name, value) {
         return this.throwError(message, Logger.errors.INVALID_ARGUMENT, {
             argument: name,
-            value: value
+            value: value,
         });
     }
     assert(condition, message, code, params) {
@@ -551,12 +558,13 @@ class Logger {
     checkNormalize(message) {
         if (_normalizeError) {
             this.throwError("platform missing String.prototype.normalize", Logger.errors.UNSUPPORTED_OPERATION, {
-                operation: "String.prototype.normalize", form: _normalizeError
+                operation: "String.prototype.normalize",
+                form: _normalizeError,
             });
         }
     }
     checkSafeUint53(value, message) {
-        if (typeof (value) !== "number") {
+        if (typeof value !== "number") {
             return;
         }
         if (message == null) {
@@ -566,14 +574,14 @@ class Logger {
             this.throwError(message, Logger.errors.NUMERIC_FAULT, {
                 operation: "checkSafeInteger",
                 fault: "out-of-safe-range",
-                value: value
+                value: value,
             });
         }
         if (value % 1) {
             this.throwError(message, Logger.errors.NUMERIC_FAULT, {
                 operation: "checkSafeInteger",
                 fault: "non-integer",
-                value: value
+                value: value,
             });
         }
     }
@@ -587,39 +595,45 @@ class Logger {
         if (count < expectedCount) {
             this.throwError("missing argument" + message, Logger.errors.MISSING_ARGUMENT, {
                 count: count,
-                expectedCount: expectedCount
+                expectedCount: expectedCount,
             });
         }
         if (count > expectedCount) {
             this.throwError("too many arguments" + message, Logger.errors.UNEXPECTED_ARGUMENT, {
                 count: count,
-                expectedCount: expectedCount
+                expectedCount: expectedCount,
             });
         }
     }
     checkNew(target, kind) {
         if (target === Object || target == null) {
-            this.throwError("missing new", Logger.errors.MISSING_NEW, { name: kind.name });
+            this.throwError("missing new", Logger.errors.MISSING_NEW, {
+                name: kind.name,
+            });
         }
     }
     checkAbstract(target, kind) {
         if (target === kind) {
-            this.throwError("cannot instantiate abstract class " + JSON.stringify(kind.name) + " directly; use a sub-class", Logger.errors.UNSUPPORTED_OPERATION, { name: target.name, operation: "new" });
+            this.throwError("cannot instantiate abstract class " +
+                JSON.stringify(kind.name) +
+                " directly; use a sub-class", Logger.errors.UNSUPPORTED_OPERATION, { name: target.name, operation: "new" });
         }
         else if (target === Object || target == null) {
-            this.throwError("missing new", Logger.errors.MISSING_NEW, { name: kind.name });
+            this.throwError("missing new", Logger.errors.MISSING_NEW, {
+                name: kind.name,
+            });
         }
     }
     static globalLogger() {
         if (!_globalLogger) {
-            _globalLogger = new Logger('logger/0.0.1');
+            _globalLogger = new Logger("logger/0.0.1");
         }
         return _globalLogger;
     }
     static setCensorship(censorship, permanent) {
         if (!censorship && permanent) {
             this.globalLogger().throwError("cannot permanently disable censorship", Logger.errors.UNSUPPORTED_OPERATION, {
-                operation: "setCensorship"
+                operation: "setCensorship",
             });
         }
         if (_permanentCensorErrors) {
@@ -627,7 +641,7 @@ class Logger {
                 return;
             }
             this.globalLogger().throwError("error censorship permanent", Logger.errors.UNSUPPORTED_OPERATION, {
-                operation: "setCensorship"
+                operation: "setCensorship",
             });
         }
         _censorErrors = !!censorship;
@@ -653,7 +667,7 @@ class Logger {
 const version = "6.4.0";
 
 function checkType(value, type, name) {
-    const types = type.split("|").map(t => t.trim());
+    const types = type.split("|").map((t) => t.trim());
     for (let i = 0; i < types.length; i++) {
         switch (type) {
             case "any":
@@ -662,7 +676,7 @@ function checkType(value, type, name) {
             case "boolean":
             case "number":
             case "string":
-                if (typeof (value) === type) {
+                if (typeof value === type) {
                     return;
                 }
         }
@@ -681,11 +695,15 @@ function checkType(value, type, name) {
 function defineProperties(target, values, types) {
     for (let key in values) {
         let value = values[key];
-        const type = (types ? types[key] : null);
+        const type = types ? types[key] : null;
         if (type) {
             checkType(value, type, key);
         }
-        Object.defineProperty(target, key, { enumerable: true, value, writable: false });
+        Object.defineProperty(target, key, {
+            enumerable: true,
+            value,
+            writable: false,
+        });
     }
 }
 
@@ -699,7 +717,7 @@ function stringify(value) {
         return "null";
     }
     if (Array.isArray(value)) {
-        return "[ " + (value.map(stringify)).join(", ") + " ]";
+        return "[ " + value.map(stringify).join(", ") + " ]";
     }
     if (value instanceof Uint8Array) {
         const HEX = "0123456789abcdef";
@@ -710,23 +728,25 @@ function stringify(value) {
         }
         return result;
     }
-    if (typeof (value) === "object" && typeof (value.toJSON) === "function") {
+    if (typeof value === "object" && typeof value.toJSON === "function") {
         return stringify(value.toJSON());
     }
-    switch (typeof (value)) {
+    switch (typeof value) {
         case "boolean":
         case "symbol":
             return value.toString();
         case "bigint":
             return BigInt(value).toString();
         case "number":
-            return (value).toString();
+            return value.toString();
         case "string":
             return JSON.stringify(value);
         case "object": {
             const keys = Object.keys(value);
             keys.sort();
-            return "{ " + keys.map((k) => `${stringify(k)}: ${stringify(value[k])}`).join(", ") + " }";
+            return ("{ " +
+                keys.map((k) => `${stringify(k)}: ${stringify(value[k])}`).join(", ") +
+                " }");
         }
     }
     return `[ COULD NOT SERIALIZE ]`;
@@ -749,7 +769,7 @@ function makeError(message, code, info) {
                 throw new Error(`value will overwrite populated values: ${stringify(info)}`);
             }
             for (const key in info) {
-                const value = (info[key]);
+                const value = info[key];
                 //                try {
                 details.push(key + "=" + stringify(value));
                 //                } catch (error: any) {
@@ -810,7 +830,6 @@ const _normalizeForms = ["NFD", "NFC", "NFKD", "NFKC"].reduce((accum, form) => {
         if ("test".normalize(form) !== "test") {
             throw new Error("bad");
         }
-        ;
         /* c8 ignore stop */
         if (form === "NFD") {
             const check = String.fromCharCode(0xe9).normalize("NFD");
@@ -831,7 +850,8 @@ const _normalizeForms = ["NFD", "NFC", "NFKD", "NFKC"].reduce((accum, form) => {
  */
 function assertNormalize(form) {
     assert(_normalizeForms.indexOf(form) >= 0, "platform missing String.prototype.normalize", "UNSUPPORTED_OPERATION", {
-        operation: "String.prototype.normalize", info: { form }
+        operation: "String.prototype.normalize",
+        info: { form },
     });
 }
 
@@ -841,12 +861,12 @@ function assertNormalize(form) {
  *
  *  @_subsection api/utils:Data Helpers  [about-data]
  */
-const logger = new Logger('utils/data/0.0.1');
+const logger = new Logger("utils/data/0.0.1");
 function isHexable(value) {
-    return !!(value.toHexString);
+    return !!value.toHexString;
 }
 function isInteger(value) {
-    return (typeof (value) === "number" && value == value && (value % 1) === 0);
+    return typeof value === "number" && value == value && value % 1 === 0;
 }
 function isBytes(value) {
     if (value == null) {
@@ -855,7 +875,7 @@ function isBytes(value) {
     if (value.constructor === Uint8Array) {
         return true;
     }
-    if (typeof (value) === "string") {
+    if (typeof value === "string") {
         return false;
     }
     if (!isInteger(value.length) || value.length < 0) {
@@ -876,7 +896,7 @@ function _getBytes(value, name, copy) {
         }
         return value;
     }
-    if (typeof (value) === "string" && value.match(/^0x([0-9a-f][0-9a-f])*$/i)) {
+    if (typeof value === "string" && value.match(/^0x([0-9a-f][0-9a-f])*$/i)) {
         const result = new Uint8Array((value.length - 2) / 2);
         let offset = 2;
         for (let i = 0; i < result.length; i++) {
@@ -905,13 +925,13 @@ function getBytes(value, name) {
  *  bytes of data (e.g. ``0x1234`` is 2 bytes).
  */
 function isHexString(value, length) {
-    if (typeof (value) !== "string" || !value.match(/^0x[0-9A-Fa-f]*$/)) {
+    if (typeof value !== "string" || !value.match(/^0x[0-9A-Fa-f]*$/)) {
         return false;
     }
-    if (typeof (length) === "number" && value.length !== 2 + 2 * length) {
+    if (typeof length === "number" && value.length !== 2 + 2 * length) {
         return false;
     }
-    if (length === true && (value.length % 2) !== 0) {
+    if (length === true && value.length % 2 !== 0) {
         return false;
     }
     return true;
@@ -924,14 +944,17 @@ function hexlify(value, options) {
     if (!options) {
         options = {};
     }
-    if (typeof value === 'string') {
-        if (value.includes(',') && value.startsWith('0x')) {
-            const v = value.replace('0x', '').split(',').map((item) => Number(item));
+    if (typeof value === "string") {
+        if (value.includes(",") && value.startsWith("0x")) {
+            const v = value
+                .replace("0x", "")
+                .split(",")
+                .map((item) => Number(item));
             // @ts-ignore
             value = new Uint8Array(v);
         }
     }
-    if (typeof (value) === "number") {
+    if (typeof value === "number") {
         logger.checkSafeUint53(value, "invalid hexlify value");
         let hex = "";
         while (value) {
@@ -946,14 +969,16 @@ function hexlify(value, options) {
         }
         return "0x00";
     }
-    if (typeof (value) === "bigint") {
+    if (typeof value === "bigint") {
         value = value.toString(16);
         if (value.length % 2) {
-            return ("0x0" + value);
+            return "0x0" + value;
         }
         return "0x" + value;
     }
-    if (options.allowMissingPrefix && typeof (value) === "string" && value.substring(0, 2) !== "0x") {
+    if (options.allowMissingPrefix &&
+        typeof value === "string" &&
+        value.substring(0, 2) !== "0x") {
         value = "0x" + value;
     }
     if (isHexable(value)) {
@@ -987,7 +1012,7 @@ function arrayify(value, options) {
     if (!options) {
         options = {};
     }
-    if (typeof (value) === "number") {
+    if (typeof value === "number") {
         logger.checkSafeUint53(value, "invalid arrayify value");
         const result = [];
         while (value) {
@@ -1000,7 +1025,9 @@ function arrayify(value, options) {
         }
         return addSlice(new Uint8Array(result));
     }
-    if (options.allowMissingPrefix && typeof (value) === "string" && value.substring(0, 2) !== "0x") {
+    if (options.allowMissingPrefix &&
+        typeof value === "string" &&
+        value.substring(0, 2) !== "0x") {
         value = "0x" + value;
     }
     if (isHexable(value)) {
@@ -1077,7 +1104,7 @@ function ignoreFunc(reason, offset, bytes, output, badCodepoint) {
 function replaceFunc(reason, offset, bytes, output, badCodepoint) {
     // Overlong representations are otherwise "valid" code points; just non-deistingtished
     if (reason === "OVERLONG") {
-        assertArgument(typeof (badCodepoint) === "number", "invalid bad code point for replacement", "badCodepoint", badCodepoint);
+        assertArgument(typeof badCodepoint === "number", "invalid bad code point for replacement", "badCodepoint", badCodepoint);
         output.push(badCodepoint);
         return 0;
     }
@@ -1104,7 +1131,7 @@ function replaceFunc(reason, offset, bytes, output, badCodepoint) {
 const Utf8ErrorFuncs = Object.freeze({
     error: errorFunc,
     ignore: ignoreFunc,
-    replace: replaceFunc
+    replace: replaceFunc,
 });
 // http://stackoverflow.com/questions/13356493/decode-utf-8-with-javascript#13691499
 function getUtf8CodePoints(_bytes, onError) {
@@ -1214,7 +1241,7 @@ function toUtf8Bytes(str, form) {
         else if ((c & 0xfc00) == 0xd800) {
             i++;
             const c2 = str.charCodeAt(i);
-            assertArgument(i < str.length && ((c2 & 0xfc00) === 0xdc00), "invalid surrogate pair", "str", str);
+            assertArgument(i < str.length && (c2 & 0xfc00) === 0xdc00, "invalid surrogate pair", "str", str);
             // Surrogate Pair
             const pair = 0x10000 + ((c & 0x03ff) << 10) + (c2 & 0x03ff);
             result.push((pair >> 18) | 0xf0);
@@ -1232,13 +1259,15 @@ function toUtf8Bytes(str, form) {
 }
 //export
 function _toUtf8String(codePoints) {
-    return codePoints.map((codePoint) => {
+    return codePoints
+        .map((codePoint) => {
         if (codePoint <= 0xffff) {
             return String.fromCharCode(codePoint);
         }
         codePoint -= 0x10000;
-        return String.fromCharCode((((codePoint >> 10) & 0x3ff) + 0xd800), ((codePoint & 0x3ff) + 0xdc00));
-    }).join("");
+        return String.fromCharCode(((codePoint >> 10) & 0x3ff) + 0xd800, (codePoint & 0x3ff) + 0xdc00);
+    })
+        .join("");
 }
 /**
  *  Returns the string represented by the UTF-8 data %%bytes%%.
@@ -1288,7 +1317,9 @@ function keccak256(_data) {
     return hexlify(__keccak256(data));
 }
 keccak256._ = _keccak256;
-keccak256.lock = function () { locked = true; };
+keccak256.lock = function () {
+    locked = true;
+};
 keccak256.register = function (func) {
     if (locked) {
         throw new TypeError("keccak256 is locked");
@@ -1675,31 +1706,38 @@ const sha512 = /* @__PURE__ */ wrapConstructor(() => new SHA512());
 
 /* Browser Crypto Shims */
 function getGlobal() {
-    if (typeof self !== 'undefined') {
+    if (typeof self !== "undefined") {
         return self;
     }
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
         return window;
     }
-    if (typeof global !== 'undefined') {
+    if (typeof global !== "undefined") {
         return global;
     }
-    throw new Error('unable to locate global object');
+    throw new Error("unable to locate global object");
 }
 const anyGlobal = getGlobal();
 anyGlobal.crypto || anyGlobal.msCrypto;
 function createHash(algo) {
     switch (algo) {
-        case "sha256": return sha256$1.create();
-        case "sha512": return sha512.create();
-        case "sha3-256": return sha3_256.create();
-        case "sha3-512": return sha3_512.create();
+        case "sha256":
+            return sha256$1.create();
+        case "sha512":
+            return sha512.create();
+        case "sha3-256":
+            return sha3_256.create();
+        case "sha3-512":
+            return sha3_512.create();
     }
     assertArgument(false, "invalid hashing algorithm name", "algorithm", algo);
 }
 
 const _sha256 = function (data) {
-    let v = "0x" + createHash("sha3-256").update(Buffer.from(arrayify(data))).digest("hex");
+    let v = "0x" +
+        createHash("sha3-256")
+            .update(Buffer.from(arrayify(data)))
+            .digest("hex");
     return v;
 };
 let locked256 = false;
@@ -1726,16 +1764,20 @@ var SupportedAlgorithm;
     SupportedAlgorithm["sha512"] = "sha512";
 })(SupportedAlgorithm || (SupportedAlgorithm = {}));
 function sha256(data) {
-    let createdHash = createHash("sha3-256").update(Buffer.from(arrayify(data))).digest("hex");
+    let createdHash = createHash("sha3-256")
+        .update(Buffer.from(arrayify(data)))
+        .digest("hex");
     const v = "0x" + createdHash;
-    if (typeof createdHash !== 'string') {
+    if (typeof createdHash !== "string") {
         createdHash = hexlify(createdHash);
         return createdHash;
     }
     return v;
 }
 sha256._ = _sha256;
-sha256.lock = function () { locked256 = true; };
+sha256.lock = function () {
+    locked256 = true;
+};
 sha256.register = function (func) {
     if (locked256) {
         throw new Error("sha256 is locked");
@@ -1807,12 +1849,12 @@ function decodeBits(width, data) {
     let accum = 0, bits = 0, flood = 0;
     for (let i = 0; i < data.length; i++) {
         // Accumulate 6 bits of data
-        accum = ((accum << 6) | Base64.indexOf(data[i]));
+        accum = (accum << 6) | Base64.indexOf(data[i]);
         bits += 6;
         // While we have enough for a word...
         while (bits >= width) {
             // ...read the word
-            const value = (accum >> (bits - width));
+            const value = accum >> (bits - width);
             accum &= (1 << (bits - width)) - 1;
             bits -= width;
             // A value of 0 indicates we exceeded maxValue, it
@@ -1926,7 +1968,9 @@ class WordlistOwlA extends WordlistOwl {
         super(locale, data, checksum);
         this.#accent = accent;
     }
-    get _accent() { return this.#accent; }
+    get _accent() {
+        return this.#accent;
+    }
     _decodeWords() {
         return decodeOwlA(this._data, this._accent);
     }
@@ -1975,7 +2019,9 @@ class WordlistOwl extends Wordlist {
         this.#checksum = checksum;
         this.#words = null;
     }
-    get _data() { return this.#data; }
+    get _data() {
+        return this.#data;
+    }
     _decodeWords() {
         return decodeOwl(this.#data);
     }
@@ -2021,7 +2067,9 @@ class LangCz extends WordlistOwl {
      *
      *  @_ignore:
      */
-    constructor() { super("cz", words$4, checksum$4); }
+    constructor() {
+        super("cz", words$4, checksum$4);
+    }
     /**
      *  Returns a singleton instance of a ``LangCz``, creating it
      *  if this is the first time being called.
@@ -2052,7 +2100,9 @@ class LangEs extends WordlistOwlA {
      *
      *  @_ignore:
      */
-    constructor() { super("es", words$3, accents$1, checksum$3); }
+    constructor() {
+        super("es", words$3, accents$1, checksum$3);
+    }
     /**
      *  Returns a singleton instance of a ``LangEs``, creating it
      *  if this is the first time being called.
@@ -2083,7 +2133,9 @@ class LangFr extends WordlistOwlA {
      *
      *  @_ignore:
      */
-    constructor() { super("fr", words$2, accents, checksum$2); }
+    constructor() {
+        super("fr", words$2, accents, checksum$2);
+    }
     /**
      *  Returns a singleton instance of a ``LangFr``, creating it
      *  if this is the first time being called.
@@ -2110,7 +2162,7 @@ const data$2 = [
     // 9-kana words
     "QJEJNNJDQJEJIBSFQJEJxegBQJEJfHEPSJBmXEJFSJCDEJqXLXNJFQqXIcQsFNJFIFEJqXUJgFsJXIJBUJEJfHNFvJxEqXNJnXUJFQqD",
     // 10-kana words
-    "IJBEJqXZJ"
+    "IJBEJqXZJ",
 ];
 // Maps each character into its kana value (the index)
 const mapping = "~~AzB~X~a~KN~Q~D~S~C~G~E~Y~p~L~I~O~eH~g~V~hxyumi~~U~~Z~~v~~s~~dkoblPjfnqwMcRTr~W~~~F~~~~~Jt";
@@ -2174,7 +2226,7 @@ function loadWords$2() {
             for (let i = 0; i < length; i++) {
                 const k = mapping.indexOf(d[offset + i]);
                 word.push(227);
-                word.push((k & 0x40) ? 130 : 129);
+                word.push(k & 0x40 ? 130 : 129);
                 word.push((k & 0x3f) + 128);
             }
             wordlist.push(toString(word));
@@ -2197,7 +2249,8 @@ function loadWords$2() {
     /* istanbul ignore if */
     const checksum = id(wordlist.join("\n") + "\n");
     /* c8 ignore start */
-    if (checksum !== "0xcb36b09e6baa935787fd762ce65e80b0c6a8dabdfbc3a7f86ac0e2c4fd111600") {
+    if (checksum !==
+        "0xcb36b09e6baa935787fd762ce65e80b0c6a8dabdfbc3a7f86ac0e2c4fd111600") {
         throw new Error("BIP39 Wordlist for ja (Japanese) FAILED");
     }
     /* c8 ignore stop */
@@ -2219,7 +2272,9 @@ class LangJa extends Wordlist {
      *
      *  @_ignore:
      */
-    constructor() { super("ja"); }
+    constructor() {
+        super("ja");
+    }
     getWord(index) {
         const words = loadWords$2();
         assertArgument(index >= 0 && index < words.length, `invalid word index: ${index}`, "index", index);
@@ -2255,7 +2310,7 @@ const data$1 = [
     "AT3JgJX8AT8FZoSnAT8JgFV8AT8LhrDbAZ8JT8DbAb8GgLhrAb8SkLnvAe8MT8SnAlMYJXLVAl3GYDTvAl3LfLnvBUDTvLl3CTOn3HTrCT3DUGgrCU8MT8AbCbFTrJUoCgrDb8MTDTLV8JX8DTLnLXQlDT8LZrSnDUQb8FZ8DUST4JnvDb8ScOUoDj6GbJl4GTLfCYMlGToAXvFnGboAXvLnGgAcrJn3GgvFnSToGnLf8JnvGn#HTDToHTLnFXJlHTvATFToHTvHTDToHTvMTAgoHT3STClvHT4AlFl6HT8HTDToHUoDgJTrHUoScMX3HbRZrMXoHboJg8LTHgDb8JTrHgMToLf8HgvLnLnoHnHn3HT4Hn6MgvAnJTJU8ScvJT3AaQT8JT8HTrAnJXrRg8AnJbAloMXoJbrATFToJbvMnoSnJgDb6GgvJgDb8MXoJgSX3JU8JguATFToJlPYLnQlJlQkDnLbJlQlFYJlJl8Lf8OTJnCTFnLbJnLTHXMnJnLXGXCnJnoFfRg3JnrMYRg3Jn3HgFl3KT8Dg8LnLTRlFnPTLTvPbLbvLVoSbrCZLXMY6HT3LXNU7DlrLXNXDTATLX8DX8LnLZDb8JU8LZMnoLhrLZSToJU8LZrLaLnrLZvJn3SnLZ8LhrSnLaJnoMT8LbFlrHTvLbrFTLnrLbvATLlvLb6OTFn3LcLnJZOlLeAT6Mn4LeJT3ObrLg6LXFlrLhrJg8LnLhvDlPX4LhvLfLnvLj6JTFT3LnFbrMXoLnQluCTvLnrQXCY6LnvLfLnvLnvMgLnvLnvSeLf8MTMbrJn3MT3JgST3MT8AnATrMT8LULnrMUMToCZrMUScvLf8MXoDT8SnMX6ATFToMX8AXMT8MX8FkMT8MX8HTrDUMX8ScoSnMYJT6CTvMgAcrMXoMg8SToAfMlvAXLg3MnFl3AnvOT3AnFl3OUoATHT8OU3RnLXrOXrOXrSnObPbvFn6Og8HgrSnOg8OX8DbPTvAgoJgPU3RYLnrPXrDnJZrPb8CTGgvPlrLTDlvPlvFUJnoQUvFXrQlQeMnoAl3QlrQlrSnRTFTrJUoSTDlLiLXSTFg6HT3STJgoMn4STrFTJTrSTrLZFl3ST4FnMXoSUrDlHUoScvHTvSnSfLkvMXo",
     "AUoAcrMXoAZ8HboAg8AbOg6ATFgAg8AloMXoAl3AT8JTrAl8MX8MXoCT3SToJU8Cl8Db8MXoDT8HgrATrDboOT8MXoGTOTrATMnGT8LhrAZ8GnvFnGnQXHToGgvAcrHTvAXvLl3HbrAZoMXoHgBlFXLg3HgMnFXrSnHgrSb8JUoHn6HT8LgvITvATrJUoJUoLZrRnvJU8HT8Jb8JXvFX8QT8JXvLToJTrJYrQnGnQXJgrJnoATrJnoJU8ScvJnvMnvMXoLTCTLgrJXLTJlRTvQlLbRnJlQYvLbrMb8LnvLbvFn3RnoLdCVSTGZrLeSTvGXCnLg3MnoLn3MToLlrETvMT8SToAl3MbrDU6GTvMb8LX4LhrPlrLXGXCnSToLf8Rg3STrDb8LTrSTvLTHXMnSb3RYLnMnSgOg6ATFg",
     "HUDlGnrQXrJTrHgLnrAcJYMb8DULc8LTvFgGnCk3Mg8JbAnLX4QYvFYHnMXrRUoJnGnvFnRlvFTJlQnoSTrBXHXrLYSUJgLfoMT8Se8DTrHbDb",
-    "AbDl8SToJU8An3RbAb8ST8DUSTrGnrAgoLbFU6Db8LTrMg8AaHT8Jb8ObDl8SToJU8Pb3RlvFYoJl"
+    "AbDl8SToJU8An3RbAb8ST8DUSTrGnrAgoLbFU6Db8LTrMg8AaHT8Jb8ObDl8SToJU8Pb3RlvFYoJl",
 ];
 const codes$1 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
 function getHangul(code) {
@@ -2288,7 +2343,8 @@ function loadWords$1() {
     /* istanbul ignore if */
     const checksum = id(wordlist.join("\n") + "\n");
     /* c8 ignore start */
-    if (checksum !== "0xf9eddeace9c5d3da9c93cf7d3cd38f6a13ed3affb933259ae865714e8a3ae71a") {
+    if (checksum !==
+        "0xf9eddeace9c5d3da9c93cf7d3cd38f6a13ed3affb933259ae865714e8a3ae71a") {
         throw new Error("BIP39 Wordlist for ko (Korean) FAILED");
     }
     /* c8 ignore stop */
@@ -2350,7 +2406,9 @@ class LangIt extends WordlistOwl {
      *
      *  @_ignore:
      */
-    constructor() { super("it", words$1, checksum$1); }
+    constructor() {
+        super("it", words$1, checksum$1);
+    }
     /**
      *  Returns a singleton instance of a ``LangIt``, creating it
      *  if this is the first time being called.
@@ -2380,7 +2438,9 @@ class LangPt extends WordlistOwl {
      *
      *  @_ignore:
      */
-    constructor() { super("pt", words, checksum); }
+    constructor() {
+        super("pt", words, checksum);
+    }
     /**
      *  Returns a singleton instance of a ``LangPt``, creating it
      *  if this is the first time being called.
@@ -2397,11 +2457,11 @@ const data = "}aE#4A=Yv&co#4N#6G=cJ&SM#66|/Z#4t&kn~46#4K~4q%b9=IR#7l,mB#7W_X2*dl
 const deltaData = "FAZDC6BALcLZCA+GBARCW8wNCcDDZ8LVFBOqqDUiou+M42TFAyERXFb7EjhP+vmBFpFrUpfDV2F7eB+eCltCHJFWLFCED+pWTojEIHFXc3aFn4F68zqjEuKidS1QBVPDEhE7NA4mhMF7oThD49ot3FgtzHFCK0acW1x8DH1EmLoIlrWFBLE+y5+NA3Cx65wJHTaEZVaK1mWAmPGxgYCdxwOjTDIt/faOEhTl1vqNsKtJCOhJWuio2g07KLZEQsFBUpNtwEByBgxFslFheFbiEPvi61msDvApxCzB6rBCzox7joYA5UdDc+Cb4FSgIabpXFAj3bjkmFAxCZE+mD/SFf/0ELecYCt3nLoxC6WEZf2tKDB4oZvrEmqFkKk7BwILA7gtYBpsTq//D4jD0F0wEB9pyQ1BD5Ba0oYHDI+sbDFhvrHXdDHfgFEIJLi5r8qercNFBgFLC4bo5ERJtamWBDFy73KCEb6M8VpmEt330ygCTK58EIIFkYgF84gtGA9Uyh3m68iVrFbWFbcbqiCYHZ9J1jeRPbL8yswhMiDbhEhdNoSwFbZrLT740ABEqgCkO8J1BLd1VhKKR4sD1yUo0z+FF59Mvg71CFbyEhbHSFBKEIKyoQNgQppq9T0KAqePu0ZFGrXOHdKJqkoTFhYvpDNyuuznrN84thJbsCoO6Cu6Xlvntvy0QYuAExQEYtTUBf3CoCqwgGFZ4u1HJFzDVwEy3cjcpV4QvsPaBC3rCGyCF23o4K3pp2gberGgFEJEHo4nHICtyKH2ZqyxhN05KBBJIQlKh/Oujv/DH32VrlqFdIFC7Fz9Ct4kaqFME0UETLprnN9kfy+kFmtQBB0+5CFu0N9Ij8l/VvJDh2oq3hT6EzjTHKFN7ZjZwoTsAZ4Exsko6Fpa6WC+sduz8jyrLpegTv2h1EBeYpLpm2czQW0KoCcS0bCVXCmuWJDBjN1nQNLdF58SFJ0h7i3pC3oEOKy/FjBklL70XvBEEIWp2yZ04xObzAWDDJG7f+DbqBEA7LyiR95j7MDVdDViz2RE5vWlBMv5e4+VfhP3aXNPhvLSynb9O2x4uFBV+3jqu6d5pCG28/sETByvmu/+IJ0L3wb4rj9DNOLBF6XPIODr4L19U9RRofAG6Nxydi8Bki8BhGJbBAJKzbJxkZSlF9Q2Cu8oKqggB9hBArwLLqEBWEtFowy8XK8bEyw9snT+BeyFk1ZCSrdmgfEwFePTgCjELBEnIbjaDDPJm36rG9pztcEzT8dGk23SBhXBB1H4z+OWze0ooFzz8pDBYFvp9j9tvFByf9y4EFdVnz026CGR5qMr7fxMHN8UUdlyJAzlTBDRC28k+L4FB8078ljyD91tUj1ocnTs8vdEf7znbzm+GIjEZnoZE5rnLL700Xc7yHfz05nWxy03vBB9YGHYOWxgMQGBCR24CVYNE1hpfKxN0zKnfJDmmMgMmBWqNbjfSyFCBWSCGCgR8yFXiHyEj+VtD1FB3FpC1zI0kFbzifiKTLm9yq5zFmur+q8FHqjoOBWsBPiDbnCC2ErunV6cJ6TygXFYHYp7MKN9RUlSIS8/xBAGYLzeqUnBF4QbsTuUkUqGs6CaiDWKWjQK9EJkjpkTmNCPYXL";
 const _wordlist = {
     zh_cn: null,
-    zh_tw: null
+    zh_tw: null,
 };
 const Checks = {
     zh_cn: "0x17bcc4d8547e5a7135e365d1ab443aaae95e76d8230c2782c67305d4f21497a1",
-    zh_tw: "0x51e720e90c7b87bec1d70eb6e74a21a449bd3ec9c020b01d3a40ed991b60ce5d"
+    zh_tw: "0x51e720e90c7b87bec1d70eb6e74a21a449bd3ec9c020b01d3a40ed991b60ce5d",
 };
 const codes = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 const style = "~!@#$%^&*_-=[]{}|;:,.()<>?";
@@ -2421,7 +2481,8 @@ function loadWords(locale) {
         if (locale === "zh_tw") {
             const common = s % 4;
             for (let i = common; i < 3; i++) {
-                bytes[i] = codes.indexOf(deltaData[deltaOffset++]) + ((i == 0) ? 228 : 128);
+                bytes[i] =
+                    codes.indexOf(deltaData[deltaOffset++]) + (i == 0 ? 228 : 128);
             }
         }
         wordlist.push(toUtf8String(new Uint8Array(bytes)));
@@ -2454,7 +2515,9 @@ class LangZh extends Wordlist {
      *
      *  @_ignore:
      */
-    constructor(dialect) { super("zh_" + dialect); }
+    constructor(dialect) {
+        super("zh_" + dialect);
+    }
     getWord(index) {
         const words = loadWords(this.locale);
         assertArgument(index >= 0 && index < words.length, `invalid word index: ${index}`, "index", index);

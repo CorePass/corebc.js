@@ -6,7 +6,7 @@ function accessSetify(addr, storageKeys) {
         storageKeys: storageKeys.map((storageKey, index) => {
             assertArgument(isHexString(storageKey, 32), "invalid slot", `storageKeys[${index}]`, storageKey);
             return storageKey.toLowerCase();
-        })
+        }),
     };
 }
 /**
@@ -19,11 +19,11 @@ export function accessListify(value) {
                 assertArgument(set.length === 2, "invalid slot set", `value[${index}]`, set);
                 return accessSetify(set[0], set[1]);
             }
-            assertArgument(set != null && typeof (set) === "object", "invalid address-slot set", "value", value);
+            assertArgument(set != null && typeof set === "object", "invalid address-slot set", "value", value);
             return accessSetify(set.address, set.storageKeys);
         });
     }
-    assertArgument(value != null && typeof (value) === "object", "invalid access list", "value", value);
+    assertArgument(value != null && typeof value === "object", "invalid access list", "value", value);
     const result = Object.keys(value).map((addr) => {
         const storageKeys = value[addr].reduce((accum, storageKey) => {
             accum[storageKey] = true;
@@ -31,7 +31,7 @@ export function accessListify(value) {
         }, {});
         return accessSetify(addr, Object.keys(storageKeys).sort());
     });
-    result.sort((a, b) => (a.address.localeCompare(b.address)));
+    result.sort((a, b) => a.address.localeCompare(b.address));
     return result;
 }
 //# sourceMappingURL=accesslist.js.map

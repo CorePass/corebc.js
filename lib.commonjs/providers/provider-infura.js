@@ -80,11 +80,11 @@ class InfuraWebSocketProvider extends provider_websocket_js_1.WebSocketProvider 
         super(url, network);
         (0, index_js_1.defineProperties)(this, {
             projectId: provider.projectId,
-            projectSecret: provider.projectSecret
+            projectSecret: provider.projectSecret,
         });
     }
     isCommunityResource() {
-        return (this.projectId === defaultProjectId);
+        return this.projectId === defaultProjectId;
     }
 }
 exports.InfuraWebSocketProvider = InfuraWebSocketProvider;
@@ -135,7 +135,7 @@ class InfuraProvider extends provider_jsonrpc_js_1.JsonRpcProvider {
         return super._getProvider(networkId);
     }
     isCommunityResource() {
-        return (this.projectId === defaultProjectId);
+        return this.projectId === defaultProjectId;
     }
     /**
      *  Creates a new **InfuraWebSocketProvider**.

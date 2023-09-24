@@ -86,9 +86,9 @@ export declare class FetchRequest implements Iterable<[key: string, value: strin
     /**
      *  Returns true if the request has a body.
      */
-    hasBody(): this is (FetchRequest & {
+    hasBody(): this is FetchRequest & {
         body: Uint8Array;
-    });
+    };
     /**
      *  The HTTP method to use when requesting the URI. If no method
      *  has been explicitly set, then ``GET`` is used if the body is
@@ -308,9 +308,9 @@ export declare class FetchResponse implements Iterable<[key: string, value: stri
     /**
      *  Returns true of the response has a body.
      */
-    hasBody(): this is (FetchResponse & {
+    hasBody(): this is FetchResponse & {
         body: Uint8Array;
-    });
+    };
     /**
      *  The request made for this response.
      */

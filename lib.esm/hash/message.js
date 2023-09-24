@@ -29,13 +29,13 @@ import { sha256 } from "../crypto/index.js";
  *
  */
 export function hashMessage(message) {
-    if (typeof (message) === "string") {
+    if (typeof message === "string") {
         message = toUtf8Bytes(message);
     }
     return sha256(concat([
         toUtf8Bytes(MessagePrefix),
         toUtf8Bytes(String(message.length)),
-        message
+        message,
     ]));
 }
 /**
