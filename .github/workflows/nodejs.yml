@@ -14,13 +14,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [ 22, 23, 24 ]
+        node-version: [ 16.x, 18.x, 20.x ]
 
     steps:
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+          registry-url: 'https://registry.npmjs.org'
 
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -45,9 +46,10 @@ jobs:
         module: [ 'esm', 'umd' ]
 
     steps:
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v3
         with:
-          node-version: 24
+          node-version: latest
+          registry-url: 'https://registry.npmjs.org'
 
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -71,10 +73,11 @@ jobs:
       fail-fast: false
 
     steps:
-      - name: Use Node.js 24
-        uses: actions/setup-node@v1
+      - name: Use Node.js latest
+        uses: actions/setup-node@v3
         with:
-          node-version: 24
+          node-version: latest
+          registry-url: 'https://registry.npmjs.org'
 
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -98,9 +101,10 @@ jobs:
     continue-on-error: true
 
     steps:
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v3
         with:
-          node-version: 24
+          node-version: latest
+          registry-url: 'https://registry.npmjs.org'
 
       - name: Checkout repository
         uses: actions/checkout@v2
