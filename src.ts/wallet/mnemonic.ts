@@ -11,7 +11,7 @@ import { LangEn } from "../wordlists/lang-en.js";
 import type { BytesLike } from "../utils/index.js";
 import type { Wordlist } from "../wordlists/index.js";
 import { legacySha256 } from "../crypto/sha3.js";
-import { mnemonicToSeed } from "./hdwallet.js";
+import { mnemonicToSeed } from "./mnemonicToSeed.js";
 
 // Returns a byte with the MSB bits set
 function getUpperMask(bits: number): number {

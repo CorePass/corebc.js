@@ -12,7 +12,7 @@
 //   migrate the listener to the static event. We also need to maintain a map
 //   of Signer/ENS name to address so we can sync respond to listenerCount.
 
-import { resolveAddress } from "../address/index.js";
+import { resolveAddress } from "../address/checks.js";
 import { Transaction } from "../transaction/index.js";
 import {
   concat,

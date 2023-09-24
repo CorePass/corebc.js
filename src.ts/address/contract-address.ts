@@ -8,7 +8,7 @@ import {
 import { getAddress } from "./index.js";
 
 import type { BigNumberish, BytesLike } from "../utils/index.js";
-import { sha256 } from "../index.js";
+import { sha256 } from "../crypto/sha3.js";
 import { hexDataLength, hexDataSlice } from "../utils/data.js";
 import { Logger } from "../logger/logger.js";
 import { removeHexPrefix } from "../transaction/address.js";
