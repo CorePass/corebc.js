@@ -24,16 +24,14 @@ export {
   Typed,
 } from "./abi/index.js";
 
+export { getAddress, networkIdToPrefix } from "./address/index.js";
+
 export {
-  getAddress,
-  networkIdToPrefix,
-} from "./address/index.js";
+  getCreate2Address,
+  getCreateAddress,
+} from "./address/contract-address.js";
 
-export {getCreate2Address,getCreateAddress} from "./address/contract-address.js";
-
-export {  isAddressable,
-  isAddress,
-  resolveAddress,} from "./address/checks.js";
+export { isAddressable, isAddress, resolveAddress } from "./address/checks.js";
 
 export {
   ZeroAddress,

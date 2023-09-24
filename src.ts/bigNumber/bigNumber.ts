@@ -10,7 +10,13 @@
 
 import _BN from "bn.js";
 import { Logger } from "../logger/logger.js";
-import { Bytes, Hexable, isBytes, hexlify, isHexString } from "../utils/data.js";
+import {
+  Bytes,
+  Hexable,
+  isBytes,
+  hexlify,
+  isHexString,
+} from "../utils/data.js";
 import BN = _BN.BN;
 
 const logger = new Logger("bigNumber/0.0.1");

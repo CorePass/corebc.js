@@ -528,4 +528,3 @@ export function getIndexedAccountPath(_index: Numeric): string {
   );
   return `m/44'/60'/0'/0/${index}`;
 }
-
