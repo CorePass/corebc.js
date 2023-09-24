@@ -1,4 +1,7 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.encryptKeystoreJson = exports.encryptKeystoreJsonSync = exports.decryptKeystoreJson = exports.decryptKeystoreJsonSync = exports.isKeystoreJson = void 0;
+const tslib_1 = require("tslib");
 /**
  *  The JSON Wallet formats allow a simple way to store the private
  *  keys needed in Core along with related information and allows
@@ -9,9 +12,9 @@
  *
  *  @_subsection: api/wallet:JSON Wallets  [json-wallets]
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.encryptKeystoreJson = exports.encryptKeystoreJsonSync = exports.decryptKeystoreJson = exports.decryptKeystoreJsonSync = exports.isKeystoreJson = void 0;
-const aes_js_1 = require("aes-js");
+// @ts-ignore
+const aes_js_1 = tslib_1.__importDefault(require("aes-js"));
+const { CTR } = aes_js_1.default;
 const index_js_1 = require("../address/index.js");
 const index_js_2 = require("../crypto/index.js");
 const index_js_3 = require("../utils/index.js");
@@ -38,7 +41,7 @@ function decrypt(data, key, ciphertext) {
     const cipher = (0, utils_js_1.spelunk)(data, "crypto.cipher:string");
     if (cipher === "aes-128-ctr") {
         const iv = (0, utils_js_1.spelunk)(data, "crypto.cipherparams.iv:data!");
-        const aesCtr = new aes_js_1.CTR(key, iv);
+        const aesCtr = new CTR(key, iv);
         return (0, index_js_3.hexlify)(aesCtr.decrypt(ciphertext));
     }
     (0, index_js_3.assert)(false, "unsupported cipher", "UNSUPPORTED_OPERATION", {
@@ -70,7 +73,7 @@ function getAccount(data, _key) {
         const mnemonicKey = key.slice(32, 64);
         const mnemonicCiphertext = (0, utils_js_1.spelunk)(data, "x-corebc.mnemonicCiphertext:data!");
         const mnemonicIv = (0, utils_js_1.spelunk)(data, "x-corebc.mnemonicCounter:data!");
-        const mnemonicAesCtr = new aes_js_1.CTR(mnemonicKey, mnemonicIv);
+        const mnemonicAesCtr = new CTR(mnemonicKey, mnemonicIv);
         account.mnemonic = {
             path: (0, utils_js_1.spelunk)(data, "x-corebc.path:string") || defaultPath,
             locale: (0, utils_js_1.spelunk)(data, "x-corebc.locale:string") || "en",
@@ -221,7 +224,7 @@ function _encryptKeystore(key, kdf, account, options) {
     const derivedKey = key.slice(0, 16);
     const macPrefix = key.slice(16, 32);
     // Encrypt the private key
-    const aesCtr = new aes_js_1.CTR(derivedKey, iv);
+    const aesCtr = new CTR(derivedKey, iv);
     const ciphertext = (0, index_js_3.getBytes)(aesCtr.encrypt(privateKey));
     // Compute the message authentication code, used to check the password
     const mac = (0, index_js_2.sha256)((0, index_js_3.concat)([macPrefix, ciphertext]));
@@ -254,7 +257,7 @@ function _encryptKeystore(key, kdf, account, options) {
         const mnemonicKey = key.slice(32, 64);
         const entropy = (0, index_js_3.getBytes)(account.mnemonic.entropy, "account.mnemonic.entropy");
         const mnemonicIv = (0, index_js_2.randomBytes)(16);
-        const mnemonicAesCtr = new aes_js_1.CTR(mnemonicKey, mnemonicIv);
+        const mnemonicAesCtr = new CTR(mnemonicKey, mnemonicIv);
         const mnemonicCiphertext = (0, index_js_3.getBytes)(mnemonicAesCtr.encrypt(entropy));
         const now = new Date();
         const timestamp = now.getUTCFullYear() +

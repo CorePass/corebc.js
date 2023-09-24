@@ -1,10 +1,13 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.decryptCrowdsaleJson = exports.isCrowdsaleJson = void 0;
+const tslib_1 = require("tslib");
 /**
  *  @_subsection: api/wallet:JSON Wallets  [json-wallets]
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.decryptCrowdsaleJson = exports.isCrowdsaleJson = void 0;
-const aes_js_1 = require("aes-js");
+// @ts-ignore
+const aes_js_1 = tslib_1.__importDefault(require("aes-js"));
+const { CBC, pkcs7Strip } = aes_js_1.default;
 const index_js_1 = require("../address/index.js");
 const index_js_2 = require("../crypto/index.js");
 const index_js_3 = require("../hash/index.js");
@@ -46,8 +49,8 @@ function decryptCrowdsaleJson(json, _password) {
     const iv = encseed.slice(0, 16);
     const encryptedSeed = encseed.slice(16);
     // Decrypt the seed
-    const aesCbc = new aes_js_1.CBC(key, iv);
-    const seed = (0, aes_js_1.pkcs7Strip)((0, index_js_4.getBytes)(aesCbc.decrypt(encryptedSeed)));
+    const aesCbc = new CBC(key, iv);
+    const seed = pkcs7Strip((0, index_js_4.getBytes)(aesCbc.decrypt(encryptedSeed)));
     // This wallet format is weird... Convert the binary encoded hex to a string.
     let seedHex = "";
     for (let i = 0; i < seed.length; i++) {

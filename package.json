@@ -105,7 +105,7 @@
     "_dist-stats": "gzip -k9f -S '.gz' ./dist/corebc.min.js && gzip -k9f -S '.gz' ./dist/corebc.umd.min.js && gzip -k9f -S '.gz' ./dist/wordlists-extra.min.js && du -hs ./dist/*.gz && echo '' && du -hs ./dist/*.js",
     "auto-build": "npm run build -- -w",
     "build": "tsc --project tsconfig.esm.json",
-    "build-all": "npm run build && npm run build-commonjs && npm run build-types",
+    "build-all": "npm run build && npm run build-commonjs && npm run build-dist && npm run build-types",
     "build-clean": "npm run clean && npm run build && node lib.esm/_admin/update-version.js && node lib.esm/_admin/update-changelog.js && npm run build-all && npm run _build-dist && npm run _dist-stats",
     "build-commonjs": "tsc --project tsconfig.commonjs.json",
     "build-dist": "npm run build && npm run _build-dist && npm run _dist-stats",

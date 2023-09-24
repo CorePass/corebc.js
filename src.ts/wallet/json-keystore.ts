@@ -8,8 +8,9 @@
  *
  *  @_subsection: api/wallet:JSON Wallets  [json-wallets]
  */
-
-import { CTR } from "aes-js";
+// @ts-ignore
+import pkg from "aes-js";
+const { CTR } = pkg;
 
 import { getAddress } from "../address/index.js";
 import {

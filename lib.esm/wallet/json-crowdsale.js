@@ -1,7 +1,9 @@
 /**
  *  @_subsection: api/wallet:JSON Wallets  [json-wallets]
  */
-import { CBC, pkcs7Strip } from "aes-js";
+// @ts-ignore
+import pkg from 'aes-js';
+const { CBC, pkcs7Strip } = pkg;
 import { getAddress } from "../address/index.js";
 import { pbkdf2 } from "../crypto/index.js";
 import { id } from "../hash/index.js";
