@@ -1,7 +1,7 @@
 import { defineProperties, getBytes, hexlify, assertNormalize, assertPrivate, assertArgument, } from "../utils/index.js";
 import { LangEn } from "../wordlists/lang-en.js";
 import { legacySha256 } from "../crypto/sha3.js";
-import { mnemonicToSeed } from "./hdwallet.js";
+import { mnemonicToSeed } from "./mnemonicToSeed.js";
 // Returns a byte with the MSB bits set
 function getUpperMask(bits) {
     return (((1 << bits) - 1) << (8 - bits)) & 0xff;

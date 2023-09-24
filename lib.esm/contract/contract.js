@@ -1,5 +1,5 @@
 import { Indexed, Interface, Typed } from "../abi/index.js";
-import { resolveAddress } from "../address/index.js";
+import { resolveAddress } from "../address/checks.js";
 import { copyRequest, Log, } from "../providers/provider.js";
 import { defineProperties, isCallException, isHexString, resolveProperties, makeError, assert, assertArgument, } from "../utils/index.js";
 import { ContractEventPayload, ContractUnknownEventPayload, ContractTransactionResponse, EventLog, } from "./wrappers.js";

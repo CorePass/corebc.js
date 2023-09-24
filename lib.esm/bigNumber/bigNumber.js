@@ -7,9 +7,8 @@
  *
  */
 import _BN from "bn.js";
-import { hexlify, isHexString } from "../index.js";
 import { Logger } from "../logger/logger.js";
-import { isBytes } from "../utils/data.js";
+import { isBytes, hexlify, isHexString } from "../utils/data.js";
 var BN = _BN.BN;
 const logger = new Logger("bigNumber/0.0.1");
 const _constructorGuard = {};

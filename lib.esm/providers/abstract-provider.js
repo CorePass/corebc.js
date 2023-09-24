@@ -10,7 +10,7 @@
 //   need time to resolve the address. Upon resolving the address, we need to
 //   migrate the listener to the static event. We also need to maintain a map
 //   of Signer/ENS name to address so we can sync respond to listenerCount.
-import { resolveAddress } from "../address/index.js";
+import { resolveAddress } from "../address/checks.js";
 import { Transaction } from "../transaction/index.js";
 import { concat, dataLength, dataSlice, hexlify, isHexString, getBigInt, getBytes, getNumber, isCallException, makeError, assert, assertArgument, FetchRequest, toBeArray, toQuantity, defineProperties, EventPayload, resolveProperties, toUtf8String, } from "../utils/index.js";
 import { formatBlock, formatLog, formatTransactionReceipt, formatTransactionResponse, } from "./format.js";

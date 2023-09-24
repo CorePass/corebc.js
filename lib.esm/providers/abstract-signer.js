@@ -3,7 +3,8 @@
  *
  *  @_section: api/providers/abstract-signer: Subclassing Signer [abstract-signer]
  */
-import { getAddress, resolveAddress } from "../address/index.js";
+import { resolveAddress } from "../address/checks.js";
+import { getAddress } from "../address/index.js";
 import { Transaction } from "../transaction/index.js";
 import { defineProperties, getBigInt, resolveProperties, assert, assertArgument, } from "../utils/index.js";
 import { copyRequest } from "./provider.js";

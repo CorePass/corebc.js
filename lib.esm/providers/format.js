@@ -1,7 +1,8 @@
 /**
  *  @_ignore
  */
-import { getAddress, getCreateAddress } from "../address/index.js";
+import { getAddress } from "../address/index.js";
+import { getCreateAddress } from "../address/contract-address.js";
 import { accessListify } from "../transaction/index.js";
 import { getBigInt, getNumber, hexlify, isHexString, zeroPadValue, assert, assertArgument, } from "../utils/index.js";
 const BN_0 = BigInt(0);

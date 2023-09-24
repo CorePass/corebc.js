@@ -1,5 +1,5 @@
 import { keccak256 } from "../crypto/keccak.js";
-import { sha256 } from "../corebc.js";
+import { sha256 } from "../crypto/sha3.js";
 import { toUtf8Bytes } from "../utils/index.js";
 /**
  *  A simple hashing function which operates on UTF-8 strings to

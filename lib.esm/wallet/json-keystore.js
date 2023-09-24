@@ -9,7 +9,7 @@
  *  @_subsection: api/wallet:JSON Wallets  [json-wallets]
  */
 // @ts-ignore
-import pkg from 'aes-js';
+import pkg from "aes-js";
 const { CTR } = pkg;
 import { getAddress } from "../address/index.js";
 import { pbkdf2, randomBytes, scrypt, scryptSync, sha256, } from "../crypto/index.js";

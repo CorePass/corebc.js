@@ -1,5 +1,5 @@
 import { Interface } from "../abi/index.js";
-import { getCreateAddress } from "../address/index.js";
+import { getCreateAddress } from "../address/contract-address.js";
 import { concat, defineProperties, getBytes, hexlify, assert, assertArgument, } from "../utils/index.js";
 import { BaseContract, copyOverrides, resolveArgs } from "./contract.js";
 import { isBytes } from "../utils/data.js";

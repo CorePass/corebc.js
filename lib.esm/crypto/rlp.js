@@ -1,7 +1,6 @@
 "use strict";
-import { hexlify, isBytesLike } from "../index.js";
 import { Logger } from "../logger/logger.js";
-import { arrayify } from "../utils/data.js";
+import { arrayify, hexlify, isBytesLike } from "../utils/data.js";
 const logger = new Logger("rlp/0.0.1");
 function arrayifyInteger(value) {
     const result = [];

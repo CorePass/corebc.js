@@ -41,7 +41,7 @@ import type {
 } from "../utils/index.js";
 
 import type { JsonFragment } from "./fragments.js";
-import { sha256 } from "../index.js";
+import { sha256 } from "../crypto/sha3.js";
 
 export { checkResultErrors, Result };
 

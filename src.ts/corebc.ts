@@ -26,13 +26,14 @@ export {
 
 export {
   getAddress,
-  getCreateAddress,
-  getCreate2Address,
-  isAddressable,
-  isAddress,
-  resolveAddress,
   networkIdToPrefix,
 } from "./address/index.js";
+
+export {getCreate2Address,getCreateAddress} from "./address/contract-address.js";
+
+export {  isAddressable,
+  isAddress,
+  resolveAddress,} from "./address/checks.js";
 
 export {
   ZeroAddress,

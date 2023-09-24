@@ -195,6 +195,4 @@ function getContractAddress(transaction) {
     return "0x" + prefix + checksum + removeHexPrefix(val);
 }
 export { getAddress, getIcapAddress, calculateCheckSum, networkIdToPrefix, getContractAddress, };
-export { getCreateAddress, getCreate2Address } from "./contract-address.js";
-export { isAddressable, isAddress, resolveAddress } from "./checks.js";
 //# sourceMappingURL=index.js.map

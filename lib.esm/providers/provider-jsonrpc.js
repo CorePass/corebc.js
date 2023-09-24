@@ -6,7 +6,7 @@
 // @TODO:
 // - Add the batching API
 import { AbiCoder } from "../abi/index.js";
-import { getAddress, resolveAddress } from "../address/index.js";
+import { getAddress } from "../address/index.js";
 import { TypedDataEncoder } from "../hash/index.js";
 import { defineProperties, getBigInt, hexlify, isHexString, toQuantity, toUtf8Bytes, makeError, assert, assertArgument, FetchRequest, resolveProperties, } from "../utils/index.js";
 import { AbstractProvider, UnmanagedSubscriber } from "./abstract-provider.js";
@@ -14,6 +14,7 @@ import { AbstractSigner } from "./abstract-signer.js";
 import { Network } from "./network.js";
 import { FilterIdEventSubscriber, FilterIdPendingSubscriber, } from "./subscriber-filterid.js";
 import { PollingEventSubscriber } from "./subscriber-polling.js";
+import { resolveAddress } from "../address/checks.js";
 const Primitive = "bigint,boolean,function,number,string,symbol".split(/,/g);
 //const Methods = "getAddress,then".split(/,/g);
 function deepCopy(value) {

@@ -1,8 +1,7 @@
 "use strict";
 
-import { BytesLike, hexlify, isBytesLike } from "../index.js";
 import { Logger } from "../logger/logger.js";
-import { arrayify } from "../utils/data.js";
+import { arrayify ,BytesLike, hexlify, isBytesLike} from "../utils/data.js";
 
 const logger = new Logger("rlp/0.0.1");
 

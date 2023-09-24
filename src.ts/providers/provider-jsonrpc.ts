@@ -8,7 +8,8 @@
 // - Add the batching API
 
 import { AbiCoder } from "../abi/index.js";
-import { getAddress, resolveAddress } from "../address/index.js";
+import { getAddress } from "../address/index.js";
+
 import { TypedDataEncoder } from "../hash/index.js";
 import {
   defineProperties,
@@ -48,6 +49,7 @@ import type {
   TransactionResponse,
 } from "./provider.js";
 import type { Signer } from "./signer.js";
+import { resolveAddress } from "../address/checks.js";
 
 type Timer = ReturnType<typeof setTimeout>;
 

@@ -9,7 +9,7 @@ import { AbiCoder } from "./abi-coder.js";
 import { checkResultErrors, Result } from "./coders/abstract-coder.js";
 import { ConstructorFragment, ErrorFragment, EventFragment, Fragment, FunctionFragment, ParamType, } from "./fragments.js";
 import { Typed } from "./typed.js";
-import { sha256 } from "../index.js";
+import { sha256 } from "../crypto/sha3.js";
 export { checkResultErrors, Result };
 export class LogDescription {
     fragment;
