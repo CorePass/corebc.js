@@ -31,3 +31,6 @@ jobs:
 
       - name: Build CommonJS and ESM (from TypeScript)
         run: npm run build-all
+
+      - name: Run written tests
+        run: npm run test
