@@ -1,6 +1,6 @@
 {
   "name": "corebc",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "author": "CorePass",
   "description": "A complete and compact CoreBC library, for Dapps, wallets and any other tools.",
   "browser": {
@@ -121,7 +121,7 @@
     "test-commonjs": "mocha  ./lib.commonjs/_tests/test-*.js",
     "test-coverage": "c8 -o output -r lcov -r text mocha --no-colo ./lib.esm/_tests/test-*.js | tee output/summary.txt",
     "test-esm": "mocha  ./lib.esm/_tests/test-*.js"
-    },
+  },
   "sideEffects": false,
   "type": "module",
   "types": "./types/index.d.ts"
