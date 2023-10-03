@@ -19191,7 +19191,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             if (wordlist == null) {
                 wordlist = LangEn.wordlist();
             }
-            const mnemonic = Mnemonic.fromEntropy(randomBytes(16), password, wordlist);
+            const mnemonic = Mnemonic.fromEntropy(randomBytes(32), password, wordlist);
             return HDNodeWallet.#fromSeed({
                 _seed: mnemonic.computeSeed(),
                 mnemonic,

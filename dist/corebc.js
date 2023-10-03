@@ -19194,7 +19194,7 @@ class HDNodeWallet extends BaseWallet {
         if (wordlist == null) {
             wordlist = LangEn.wordlist();
         }
-        const mnemonic = Mnemonic.fromEntropy(randomBytes(16), password, wordlist);
+        const mnemonic = Mnemonic.fromEntropy(randomBytes(32), password, wordlist);
         return HDNodeWallet.#fromSeed({
             _seed: mnemonic.computeSeed(),
             mnemonic,

@@ -5,6 +5,7 @@ import {
   SigningKey,
   BaseWallet,
   verifyMessage,
+  isAddressable,
 } from "../corebc.js";
 import assert from "assert";
 import { networkIdToPrefix } from "../address/index.js";
@@ -45,6 +46,7 @@ const baseWallet = new BaseWallet({
   prefix: networkIdToPrefix(3),
   provider,
 });
+const randomWallet = Wallet.createRandom(networkIdToPrefix(3), provider);
 const transaction = Transaction.from({
   to: "0xce276773ac97d16855a3c8faa45399136b56d4194860",
   value: 200n,
@@ -53,6 +55,23 @@ const transaction = Transaction.from({
   energyPrice: 10n,
   networkId: 4,
 });
+
+describe("Test wallet creation", function () {
+  it("can generate a random wallet", function () {
+    assert.equal(
+      randomWallet.mnemonic?.phrase.split(" ").length,
+      24,
+      "mismatch in phrase length"
+    );
+
+    assert.equal(
+      isAddressable(randomWallet),
+      true,
+      "random wallet is not addressable"
+    );
+  });
+});
+
 describe("Test getting data from blockchain and calling smart contract", function () {
   it("can currectly sign a transaction", async function () {
     this.timeout(TIMEOUT_PERIOD);
@@ -67,7 +86,7 @@ describe("Test getting data from blockchain and calling smart contract", functio
     assert.equal(
       address,
       baseWalletAddress,
-      "get address from signed message failed",
+      "get address from signed message failed"
     );
   });
   it("can get feeData ", async function () {
@@ -76,54 +95,54 @@ describe("Test getting data from blockchain and calling smart contract", functio
     assert.equal(
       feeData.energyPrice,
       1000000000n,
-      "mismatch in expected energy price",
+      "mismatch in expected energy price"
     );
   });
   it("can generate wallet", function () {
     assert.equal(
       mnemonicWallet.address.length,
       46,
-      "mismatch in address length",
+      "mismatch in address length"
     );
     assert.equal(
       mnemonicWallet.publicKey,
       testPublicKey,
-      "mismatch in public key",
+      "mismatch in public key"
     );
     assert.equal(
       mnemonicWallet.address,
       testAddress,
-      "mismatch in seed length",
+      "mismatch in seed length"
     );
     assert.equal(
       seedWallet.address.length,
       46,
-      "mismatch in address length for seed wallet",
+      "mismatch in address length for seed wallet"
     );
     assert.equal(
       seedWallet.publicKey,
       testPublicKey,
-      "mismatch in public key for seed wallet",
+      "mismatch in public key for seed wallet"
     );
     assert.equal(
       seedWallet.address,
       testAddress,
-      "mismatch in seed length for seed wallet",
+      "mismatch in seed length for seed wallet"
     );
     assert.equal(
       wallet.address.length,
       46,
-      "mismatch in address length for wallet",
+      "mismatch in address length for wallet"
     );
     assert.equal(
       wallet.publicKey,
       testPublicKey,
-      "mismatch in public key for wallet",
+      "mismatch in public key for wallet"
     );
     assert.equal(
       wallet.address,
       testAddress,
-      "mismatch in seed length for wallet",
+      "mismatch in seed length for wallet"
     );
   });
 });

@@ -85,7 +85,7 @@ function derivePath<T extends HDNodeLike<T>>(node: T, path: string): T {
     components.length > 0 && (components[0] === "m" || node.depth > 0),
     "invalid path",
     "path",
-    path,
+    path
   );
 
   if (components[0] === "m") {
@@ -102,7 +102,7 @@ function derivePath<T extends HDNodeLike<T>>(node: T, path: string): T {
         index < HardenedBit,
         "invalid path index",
         `path[${i}]`,
-        component,
+        component
       );
       result = result.deriveChild(HardenedBit + index);
     } else if (component.match(/^[0-9]+$/)) {
@@ -111,7 +111,7 @@ function derivePath<T extends HDNodeLike<T>>(node: T, path: string): T {
         index < HardenedBit,
         "invalid path index",
         `path[${i}]`,
-        component,
+        component
       );
       result = result.deriveChild(index);
     } else {
@@ -270,7 +270,7 @@ export class HDNodeWallet extends BaseWallet {
    */
   async encrypt(
     password: Uint8Array | string,
-    progressCallback?: ProgressCallback,
+    progressCallback?: ProgressCallback
   ): Promise<string> {
     return await encryptKeystoreJson(this.#account(), password, {
       progressCallback,
@@ -305,7 +305,7 @@ export class HDNodeWallet extends BaseWallet {
   deriveChild(_index: number): HDNodeWallet {
     const newPrivateKey = Ed448Goldilock.HDWalletGenerateKeyFromSeed(
       this.#seed,
-      Number(_index),
+      Number(_index)
     );
     const newSigningKey = new SigningKey(newPrivateKey);
 
@@ -352,7 +352,7 @@ export class HDNodeWallet extends BaseWallet {
   }): HDNodeWallet {
     const extendetPrivateKey = Ed448Goldilock.HDWalletGenerateKeyFromSeed(
       _seed,
-      0,
+      0
     );
     const signingKey = new SigningKey(extendetPrivateKey);
     // console.log({ privateKey, thisKey: signingKey.privateKey,len:tmp.privateKey.length })
@@ -377,7 +377,7 @@ export class HDNodeWallet extends BaseWallet {
     prefix: string,
     password?: string,
     path?: string,
-    wordlist?: Wordlist,
+    wordlist?: Wordlist
   ): HDNodeWallet {
     if (password == null) {
       password = "";
@@ -388,7 +388,7 @@ export class HDNodeWallet extends BaseWallet {
     if (wordlist == null) {
       wordlist = LangEn.wordlist();
     }
-    const mnemonic = Mnemonic.fromEntropy(randomBytes(16), password, wordlist);
+    const mnemonic = Mnemonic.fromEntropy(randomBytes(32), password, wordlist);
     return HDNodeWallet.#fromSeed({
       _seed: mnemonic.computeSeed(),
       mnemonic,
@@ -402,7 +402,7 @@ export class HDNodeWallet extends BaseWallet {
   static fromMnemonic(
     mnemonic: Mnemonic,
     prefix: string,
-    path?: string,
+    path?: string
   ): HDNodeWallet {
     if (!path) {
       path = defaultPath;
@@ -504,7 +504,7 @@ export function getAccountPath(_index: Numeric): string {
     index >= 0 && index < HardenedBit,
     "invalid account index",
     "index",
-    index,
+    index
   );
   return `m/44'/60'/${index}'/0/0`;
 }
@@ -524,7 +524,7 @@ export function getIndexedAccountPath(_index: Numeric): string {
     index >= 0 && index < HardenedBit,
     "invalid account index",
     "index",
-    index,
+    index
   );
   return `m/44'/60'/0'/0/${index}`;
 }

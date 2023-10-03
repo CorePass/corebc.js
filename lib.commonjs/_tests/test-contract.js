@@ -33,6 +33,7 @@ const baseWallet = new corebc_js_1.BaseWallet({
     prefix: (0, index_js_1.networkIdToPrefix)(3),
     provider,
 });
+const randomWallet = corebc_js_1.Wallet.createRandom((0, index_js_1.networkIdToPrefix)(3), provider);
 const transaction = corebc_js_1.Transaction.from({
     to: "0xce276773ac97d16855a3c8faa45399136b56d4194860",
     value: 200n,
@@ -40,6 +41,12 @@ const transaction = corebc_js_1.Transaction.from({
     energyLimit: 999999n,
     energyPrice: 10n,
     networkId: 4,
+});
+describe("Test wallet creation", function () {
+    it("can generate a random wallet", function () {
+        assert_1.default.equal(randomWallet.mnemonic?.phrase.split(" ").length, 24, "mismatch in phrase length");
+        assert_1.default.equal((0, corebc_js_1.isAddressable)(randomWallet), true, "random wallet is not addressable");
+    });
 });
 describe("Test getting data from blockchain and calling smart contract", function () {
     it("can currectly sign a transaction", async function () {

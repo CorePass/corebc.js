@@ -1,4 +1,4 @@
-import { getDefaultProvider, Wallet, Transaction, SigningKey, BaseWallet, verifyMessage, } from "../corebc.js";
+import { getDefaultProvider, Wallet, Transaction, SigningKey, BaseWallet, verifyMessage, isAddressable, } from "../corebc.js";
 import assert from "assert";
 import { networkIdToPrefix } from "../address/index.js";
 const TIMEOUT_PERIOD = 120000;
@@ -30,6 +30,7 @@ const baseWallet = new BaseWallet({
     prefix: networkIdToPrefix(3),
     provider,
 });
+const randomWallet = Wallet.createRandom(networkIdToPrefix(3), provider);
 const transaction = Transaction.from({
     to: "0xce276773ac97d16855a3c8faa45399136b56d4194860",
     value: 200n,
@@ -37,6 +38,12 @@ const transaction = Transaction.from({
     energyLimit: 999999n,
     energyPrice: 10n,
     networkId: 4,
+});
+describe("Test wallet creation", function () {
+    it("can generate a random wallet", function () {
+        assert.equal(randomWallet.mnemonic?.phrase.split(" ").length, 24, "mismatch in phrase length");
+        assert.equal(isAddressable(randomWallet), true, "random wallet is not addressable");
+    });
 });
 describe("Test getting data from blockchain and calling smart contract", function () {
     it("can currectly sign a transaction", async function () {
