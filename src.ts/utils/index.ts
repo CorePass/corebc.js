@@ -22,6 +22,8 @@ export {
   stripZerosLeft,
   zeroPadValue,
   zeroPadBytes,
+  arrayify,
+  hexConcat,
 } from "./data.js";
 
 export {

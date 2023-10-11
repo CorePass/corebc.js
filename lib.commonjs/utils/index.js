@@ -7,8 +7,8 @@
  *  @_section api/utils:Utilities  [about-utils]
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.toUtf8String = exports.toUtf8CodePoints = exports.toUtf8Bytes = exports.parseUnits = exports.formatUnits = exports.parseXCB = exports.formatXCB = exports.encodeRlp = exports.decodeRlp = exports.defineProperties = exports.resolveProperties = exports.toQuantity = exports.toBeArray = exports.toBeHex = exports.toNumber = exports.toBigInt = exports.getUint = exports.getNumber = exports.getBigInt = exports.mask = exports.toTwos = exports.fromTwos = exports.FixedNumber = exports.FetchCancelSignal = exports.FetchResponse = exports.FetchRequest = exports.EventPayload = exports.makeError = exports.assertNormalize = exports.assertPrivate = exports.assertArgumentCount = exports.assertArgument = exports.assert = exports.isError = exports.isCallException = exports.zeroPadBytes = exports.zeroPadValue = exports.stripZerosLeft = exports.dataSlice = exports.dataLength = exports.concat = exports.hexlify = exports.isBytesLike = exports.isHexString = exports.getBytesCopy = exports.getBytes = exports.encodeBase64 = exports.decodeBase64 = exports.encodeBase58 = exports.decodeBase58 = void 0;
-exports.uuidV4 = exports.Utf8ErrorFuncs = void 0;
+exports.toUtf8Bytes = exports.parseUnits = exports.formatUnits = exports.parseXCB = exports.formatXCB = exports.encodeRlp = exports.decodeRlp = exports.defineProperties = exports.resolveProperties = exports.toQuantity = exports.toBeArray = exports.toBeHex = exports.toNumber = exports.toBigInt = exports.getUint = exports.getNumber = exports.getBigInt = exports.mask = exports.toTwos = exports.fromTwos = exports.FixedNumber = exports.FetchCancelSignal = exports.FetchResponse = exports.FetchRequest = exports.EventPayload = exports.makeError = exports.assertNormalize = exports.assertPrivate = exports.assertArgumentCount = exports.assertArgument = exports.assert = exports.isError = exports.isCallException = exports.hexConcat = exports.arrayify = exports.zeroPadBytes = exports.zeroPadValue = exports.stripZerosLeft = exports.dataSlice = exports.dataLength = exports.concat = exports.hexlify = exports.isBytesLike = exports.isHexString = exports.getBytesCopy = exports.getBytes = exports.encodeBase64 = exports.decodeBase64 = exports.encodeBase58 = exports.decodeBase58 = void 0;
+exports.uuidV4 = exports.Utf8ErrorFuncs = exports.toUtf8String = exports.toUtf8CodePoints = void 0;
 var base58_js_1 = require("./base58.js");
 Object.defineProperty(exports, "decodeBase58", { enumerable: true, get: function () { return base58_js_1.decodeBase58; } });
 Object.defineProperty(exports, "encodeBase58", { enumerable: true, get: function () { return base58_js_1.encodeBase58; } });
@@ -27,6 +27,8 @@ Object.defineProperty(exports, "dataSlice", { enumerable: true, get: function ()
 Object.defineProperty(exports, "stripZerosLeft", { enumerable: true, get: function () { return data_js_1.stripZerosLeft; } });
 Object.defineProperty(exports, "zeroPadValue", { enumerable: true, get: function () { return data_js_1.zeroPadValue; } });
 Object.defineProperty(exports, "zeroPadBytes", { enumerable: true, get: function () { return data_js_1.zeroPadBytes; } });
+Object.defineProperty(exports, "arrayify", { enumerable: true, get: function () { return data_js_1.arrayify; } });
+Object.defineProperty(exports, "hexConcat", { enumerable: true, get: function () { return data_js_1.hexConcat; } });
 var errors_js_1 = require("./errors.js");
 Object.defineProperty(exports, "isCallException", { enumerable: true, get: function () { return errors_js_1.isCallException; } });
 Object.defineProperty(exports, "isError", { enumerable: true, get: function () { return errors_js_1.isError; } });

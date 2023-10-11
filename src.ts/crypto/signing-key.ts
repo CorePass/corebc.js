@@ -43,7 +43,7 @@ export class SigningKey {
       dataLength("0x" + privateKey) === 57,
       "invalid private key",
       "privateKey",
-      "[REDACTED]",
+      "[REDACTED]"
     );
     this.#privateKey = hexlify("0x" + privateKey);
   }
@@ -85,7 +85,7 @@ export class SigningKey {
       dataLength(digest) === 32,
       "invalid digest length",
       "digest",
-      digest,
+      digest
     );
     const keyBuffer = new Uint8Array(arrayify(key));
     if (keyBuffer.length !== 57) {
@@ -102,7 +102,10 @@ export class SigningKey {
       prefix[55] |= 0x80;
       prefix[56] = 0;
       const scalar = prefix.slice(0, 56);
-      const sig = ed448.signWithScalar(digestBuffer, scalar, prefix);
+      const bufferDigest = Buffer.from(digestBuffer);
+      const bufferPrfx = Buffer.from(prefix);
+      const bufferScalar = Buffer.from(scalar);
+      const sig = ed448.signWithScalar(bufferDigest, bufferScalar, bufferPrfx);
       const hexlified = hexlify(sig);
       return hexConcat([hexlified, this.publicKey]);
     }
@@ -138,8 +141,8 @@ export class SigningKey {
     return hexlify(
       secp256k1.getSharedSecret(
         getBytesCopy(this.#privateKey),
-        getBytes(pubKey),
-      ),
+        getBytes(pubKey)
+      )
     );
   }
 
@@ -209,7 +212,7 @@ export class SigningKey {
       dataLength(digest) === 32,
       "invalid digest length",
       "digest",
-      digest,
+      digest
     );
     const digestBuffer = Buffer.from(arrayify(digest));
     const sigBuffer = Buffer.from(arrayify(signature));
@@ -237,10 +240,10 @@ export class SigningKey {
    */
   static addPoints(p0: BytesLike, p1: BytesLike, compressed?: boolean): string {
     const pub0 = secp256k1.ProjectivePoint.fromHex(
-      SigningKey.computePublicKey(p0).substring(2),
+      SigningKey.computePublicKey(p0).substring(2)
     );
     const pub1 = secp256k1.ProjectivePoint.fromHex(
-      SigningKey.computePublicKey(p1).substring(2),
+      SigningKey.computePublicKey(p1).substring(2)
     );
     return "0x" + pub0.add(pub1).toHex(!!compressed);
   }

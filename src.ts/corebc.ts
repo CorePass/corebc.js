@@ -181,6 +181,8 @@ export {
   decodeRlp,
   encodeRlp,
   uuidV4,
+  arrayify,
+  hexConcat,
 } from "./utils/index.js";
 
 export {

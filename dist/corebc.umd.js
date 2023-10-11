@@ -5881,7 +5881,10 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 prefix[55] |= 0x80;
                 prefix[56] = 0;
                 const scalar = prefix.slice(0, 56);
-                const sig = ed448.signWithScalar(digestBuffer, scalar, prefix);
+                const bufferDigest = buffer.Buffer.from(digestBuffer);
+                const bufferPrfx = buffer.Buffer.from(prefix);
+                const bufferScalar = buffer.Buffer.from(scalar);
+                const sig = ed448.signWithScalar(bufferDigest, bufferScalar, bufferPrfx);
                 const hexlified = hexlify(sig);
                 return hexConcat([hexlified, this.publicKey]);
             }
@@ -19691,6 +19694,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         ZeroAddress: ZeroAddress,
         ZeroHash: ZeroHash,
         accessListify: accessListify,
+        arrayify: arrayify,
         assert: assert,
         assertArgument: assertArgument,
         assertArgumentCount: assertArgumentCount,
@@ -19733,6 +19737,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         getNumber: getNumber,
         getUint: getUint,
         hashMessage: hashMessage,
+        hexConcat: hexConcat,
         hexlify: hexlify,
         id: id,
         isAddress: isAddress,
@@ -19875,6 +19880,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
     exports.ZeroAddress = ZeroAddress;
     exports.ZeroHash = ZeroHash;
     exports.accessListify = accessListify;
+    exports.arrayify = arrayify;
     exports.assert = assert;
     exports.assertArgument = assertArgument;
     exports.assertArgumentCount = assertArgumentCount;
@@ -19918,6 +19924,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
     exports.getNumber = getNumber;
     exports.getUint = getUint;
     exports.hashMessage = hashMessage;
+    exports.hexConcat = hexConcat;
     exports.hexlify = hexlify;
     exports.id = id;
     exports.isAddress = isAddress;

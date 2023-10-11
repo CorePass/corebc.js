@@ -74,7 +74,10 @@ class SigningKey {
             prefix[55] |= 0x80;
             prefix[56] = 0;
             const scalar = prefix.slice(0, 56);
-            const sig = crypto_js_1.ed448.signWithScalar(digestBuffer, scalar, prefix);
+            const bufferDigest = buffer_1.Buffer.from(digestBuffer);
+            const bufferPrfx = buffer_1.Buffer.from(prefix);
+            const bufferScalar = buffer_1.Buffer.from(scalar);
+            const sig = crypto_js_1.ed448.signWithScalar(bufferDigest, bufferScalar, bufferPrfx);
             const hexlified = (0, index_js_1.hexlify)(sig);
             return (0, data_js_1.hexConcat)([hexlified, this.publicKey]);
         }

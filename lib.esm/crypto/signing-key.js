@@ -70,7 +70,10 @@ export class SigningKey {
             prefix[55] |= 0x80;
             prefix[56] = 0;
             const scalar = prefix.slice(0, 56);
-            const sig = ed448.signWithScalar(digestBuffer, scalar, prefix);
+            const bufferDigest = Buffer.from(digestBuffer);
+            const bufferPrfx = Buffer.from(prefix);
+            const bufferScalar = Buffer.from(scalar);
+            const sig = ed448.signWithScalar(bufferDigest, bufferScalar, bufferPrfx);
             const hexlified = hexlify(sig);
             return hexConcat([hexlified, this.publicKey]);
         }
