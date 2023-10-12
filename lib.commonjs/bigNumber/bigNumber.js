@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports._base16To36 = exports._base36To16 = exports.BigNumber = exports.isBigNumberish = void 0;
-const tslib_1 = require("tslib");
 /**
  *  BigNumber
  *
@@ -9,10 +8,9 @@ const tslib_1 = require("tslib");
  *  because it is used by elliptic, so it is required regardless.
  *
  */
-const bn_js_1 = tslib_1.__importDefault(require("bn.js"));
+const bn_js_1 = require("bn.js");
 const logger_js_1 = require("../logger/logger.js");
 const data_js_1 = require("../utils/data.js");
-var BN = bn_js_1.default.BN;
 const logger = new logger_js_1.Logger("bigNumber/0.0.1");
 const _constructorGuard = {};
 const MAX_SAFE = 0x1fffffffffffff;
@@ -196,7 +194,7 @@ class BigNumber {
                 return new BigNumber(_constructorGuard, toHex(value));
             }
             if (value.match(/^-?[0-9]+$/)) {
-                return new BigNumber(_constructorGuard, toHex(new BN(value)));
+                return new BigNumber(_constructorGuard, toHex(new bn_js_1.BN(value)));
             }
             return logger.throwArgumentError("invalid BigNumber string", "value", value);
         }
@@ -296,9 +294,9 @@ function toBigNumber(value) {
 function toBN(value) {
     const hex = BigNumber.from(value).toHexString();
     if (hex[0] === "-") {
-        return new BN("-" + hex.substring(3), 16);
+        return new bn_js_1.BN("-" + hex.substring(3), 16);
     }
-    return new BN(hex.substring(2), 16);
+    return new bn_js_1.BN(hex.substring(2), 16);
 }
 function throwFault(fault, operation, value) {
     const params = { fault: fault, operation: operation };
@@ -309,12 +307,12 @@ function throwFault(fault, operation, value) {
 }
 // value should have no prefix
 function _base36To16(value) {
-    return new BN(value, 36).toString(16);
+    return new bn_js_1.BN(value, 36).toString(16);
 }
 exports._base36To16 = _base36To16;
 // value should have no prefix
 function _base16To36(value) {
-    return new BN(value, 16).toString(36);
+    return new bn_js_1.BN(value, 16).toString(36);
 }
 exports._base16To36 = _base16To36;
 //# sourceMappingURL=bigNumber.js.map

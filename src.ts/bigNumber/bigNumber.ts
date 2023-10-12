@@ -8,7 +8,7 @@
  *
  */
 
-import _BN from "bn.js";
+import { BN } from "bn.js";
 import { Logger } from "../logger/logger.js";
 import {
   Bytes,
@@ -17,7 +17,6 @@ import {
   hexlify,
   isHexString,
 } from "../utils/data.js";
-import BN = _BN.BN;
 
 const logger = new Logger("bigNumber/0.0.1");
 
@@ -55,7 +54,7 @@ export class BigNumber implements Hexable {
         Logger.errors.UNSUPPORTED_OPERATION,
         {
           operation: "new (BigNumber)",
-        },
+        }
       );
     }
 
@@ -209,7 +208,7 @@ export class BigNumber implements Hexable {
       Logger.errors.UNSUPPORTED_OPERATION,
       {
         value: this.toString(),
-      },
+      }
     );
   }
 
@@ -220,20 +219,20 @@ export class BigNumber implements Hexable {
         if (!_warnedToStringRadix) {
           _warnedToStringRadix = true;
           logger.warn(
-            "BigNumber.toString does not accept any parameters; base-10 is assumed",
+            "BigNumber.toString does not accept any parameters; base-10 is assumed"
           );
         }
       } else if (arguments[0] === 16) {
         logger.throwError(
           "BigNumber.toString does not accept any parameters; use bigNumber.toHexString()",
           Logger.errors.UNEXPECTED_ARGUMENT,
-          {},
+          {}
         );
       } else {
         logger.throwError(
           "BigNumber.toString does not accept parameters",
           Logger.errors.UNEXPECTED_ARGUMENT,
-          {},
+          {}
         );
       }
     }
@@ -265,7 +264,7 @@ export class BigNumber implements Hexable {
       return logger.throwArgumentError(
         "invalid BigNumber string",
         "value",
-        value,
+        value
       );
     }
 

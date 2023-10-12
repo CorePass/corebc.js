@@ -2,8 +2,8 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
 (function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('buffer'), require('bcrypto/lib/ed448-browser.js'), require('bn.js'), require('bcrypto/lib/pbkdf2-browser.js'), require('bcrypto/lib/sha3-512.js'), require('utf8'), require('aes-js')) :
     typeof define === 'function' && define.amd ? define(['exports', 'buffer', 'bcrypto/lib/ed448-browser.js', 'bn.js', 'bcrypto/lib/pbkdf2-browser.js', 'bcrypto/lib/sha3-512.js', 'utf8', 'aes-js'], factory) :
-    (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.corebc = {}, global.buffer, global.ed448, global._BN, global.pbkdf2$2, global.SHA3_512, global.utf8, global.pkg));
-})(this, (function (exports, buffer, ed448, _BN, pbkdf2$2, SHA3_512, utf8, pkg) { 'use strict';
+    (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.corebc = {}, global.buffer, global.ed448, global.bn_js, global.pbkdf2$2, global.SHA3_512, global.utf8, global.pkg));
+})(this, (function (exports, buffer, ed448, bn_js, pbkdf2$2, SHA3_512, utf8, pkg) { 'use strict';
 
     /* Do NOT modify this file; see /src.ts/_admin/update-version.ts */
     /**
@@ -982,7 +982,6 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         return result;
     }
 
-    var BN = _BN.BN;
     const logger$5 = new Logger("bigNumber/0.0.1");
     const _constructorGuard = {};
     const MAX_SAFE = 0x1fffffffffffff;
@@ -1156,7 +1155,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                     return new BigNumber(_constructorGuard, toHex(value));
                 }
                 if (value.match(/^-?[0-9]+$/)) {
-                    return new BigNumber(_constructorGuard, toHex(new BN(value)));
+                    return new BigNumber(_constructorGuard, toHex(new bn_js.BN(value)));
                 }
                 return logger$5.throwArgumentError("invalid BigNumber string", "value", value);
             }
@@ -1255,9 +1254,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
     function toBN(value) {
         const hex = BigNumber.from(value).toHexString();
         if (hex[0] === "-") {
-            return new BN("-" + hex.substring(3), 16);
+            return new bn_js.BN("-" + hex.substring(3), 16);
         }
-        return new BN(hex.substring(2), 16);
+        return new bn_js.BN(hex.substring(2), 16);
     }
     function throwFault(fault, operation, value) {
         const params = { fault: fault, operation: operation };
