@@ -3,7 +3,7 @@ import ed448 from "./browser-ed448.js";
 // @ts-ignore
 import pbkdf2 from "./pbkdf2-browser.js";
 // @ts-ignore
-import * as SHA3_512 from "bcrypto/lib/sha3-512.js";
+import SHA3_512 from "bcrypto/lib/sha3-512.js";
 export class Ed448Goldilock {
     static _channel = ed448;
     static generatePrivateKey() {

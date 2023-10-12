@@ -22,10 +22,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         return Object.freeze(n);
     }
 
-    var ed448__namespace = /*#__PURE__*/_interopNamespaceDefault(ed448);
     var _BN__namespace = /*#__PURE__*/_interopNamespaceDefault(_BN);
-    var pbkdf2__namespace = /*#__PURE__*/_interopNamespaceDefault(pbkdf2$2);
-    var SHA3_512__namespace = /*#__PURE__*/_interopNamespaceDefault(SHA3_512);
 
     /* Do NOT modify this file; see /src.ts/_admin/update-version.ts */
     /**
@@ -4569,9 +4566,9 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
 
     // @ts-ignore
     class Ed448Goldilock {
-        static _channel = ed448__namespace;
+        static _channel = ed448;
         static generatePrivateKey() {
-            var privateKey = ed448__namespace.privateKeyGenerate();
+            var privateKey = ed448.privateKeyGenerate();
             privateKey[56] &= 0x7f;
             return privateKey;
         }
@@ -4617,7 +4614,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         static SHA512Hash(password, salt) {
             var p1 = Buffer.from(password, "hex");
             var s1 = Buffer.from(salt, "hex");
-            return Buffer.from(pbkdf2__namespace.derive(SHA3_512__namespace, p1, s1, 2048, 57)).toString("hex");
+            return Buffer.from(pbkdf2$2.derive(SHA3_512, p1, s1, 2048, 57)).toString("hex");
         }
         static concatenateAndHex(prefix, key, index, salt) {
             var ind = Buffer.alloc(4);
@@ -5906,11 +5903,11 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 const bufferDigest = buffer.Buffer.from(digestBuffer);
                 const bufferPrfx = buffer.Buffer.from(prefix);
                 const bufferScalar = buffer.Buffer.from(scalar);
-                const sig = ed448__namespace.signWithScalar(bufferDigest, bufferScalar, bufferPrfx);
+                const sig = ed448.signWithScalar(bufferDigest, bufferScalar, bufferPrfx);
                 const hexlified = hexlify(sig);
                 return hexConcat([hexlified, this.publicKey]);
             }
-            const sig = ed448__namespace.sign(buffer.Buffer.from(digestBuffer), buffer.Buffer.from(keyBuffer));
+            const sig = ed448.sign(buffer.Buffer.from(digestBuffer), buffer.Buffer.from(keyBuffer));
             const hexlified = hexlify(sig);
             return hexConcat([hexlified, this.publicKey]);
         }
@@ -5974,10 +5971,10 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
                 const scalar = bytes.slice(0, 56);
                 scalar[0] &= 0xfc;
                 scalar[55] |= 0x80;
-                const pub = ed448__namespace.publicKeyFromScalar(scalar);
+                const pub = ed448.publicKeyFromScalar(scalar);
                 return hexlify(pub);
             }
-            const pub = ed448__namespace.publicKeyCreate(bytes);
+            const pub = ed448.publicKeyCreate(bytes);
             return hexlify(pub);
         }
         /**
@@ -6007,7 +6004,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
             }
             const sig = sigBuffer.slice(0, 114);
             const pub = sigBuffer.slice(114);
-            if (ed448__namespace.verify(digestBuffer, sig, pub)) {
+            if (ed448.verify(digestBuffer, sig, pub)) {
                 return hexlify(pub);
             }
             logger$2.throwArgumentError("invalid signature", "signature", signature);
