@@ -25,6 +25,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
     var ed448__namespace = /*#__PURE__*/_interopNamespaceDefault(ed448);
     var _BN__namespace = /*#__PURE__*/_interopNamespaceDefault(_BN);
     var pbkdf2__namespace = /*#__PURE__*/_interopNamespaceDefault(pbkdf2$2);
+    var SHA3_512__namespace = /*#__PURE__*/_interopNamespaceDefault(SHA3_512);
 
     /* Do NOT modify this file; see /src.ts/_admin/update-version.ts */
     /**
@@ -4616,7 +4617,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         static SHA512Hash(password, salt) {
             var p1 = Buffer.from(password, "hex");
             var s1 = Buffer.from(salt, "hex");
-            return Buffer.from(pbkdf2__namespace.derive(SHA3_512, p1, s1, 2048, 57)).toString("hex");
+            return Buffer.from(pbkdf2__namespace.derive(SHA3_512__namespace, p1, s1, 2048, 57)).toString("hex");
         }
         static concatenateAndHex(prefix, key, index, salt) {
             var ind = Buffer.alloc(4);

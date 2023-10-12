@@ -7,7 +7,7 @@ const browser_ed448_js_1 = tslib_1.__importDefault(require("./browser-ed448.js")
 // @ts-ignore
 const pbkdf2_browser_js_1 = tslib_1.__importDefault(require("./pbkdf2-browser.js"));
 // @ts-ignore
-const sha3_512_js_1 = tslib_1.__importDefault(require("bcrypto/lib/sha3-512.js"));
+const SHA3_512 = tslib_1.__importStar(require("bcrypto/lib/sha3-512.js"));
 class Ed448Goldilock {
     static _channel = browser_ed448_js_1.default;
     static generatePrivateKey() {
@@ -57,7 +57,7 @@ class Ed448Goldilock {
     static SHA512Hash(password, salt) {
         var p1 = Buffer.from(password, "hex");
         var s1 = Buffer.from(salt, "hex");
-        return Buffer.from(pbkdf2_browser_js_1.default.derive(sha3_512_js_1.default, p1, s1, 2048, 57)).toString("hex");
+        return Buffer.from(pbkdf2_browser_js_1.default.derive(SHA3_512, p1, s1, 2048, 57)).toString("hex");
     }
     static concatenateAndHex(prefix, key, index, salt) {
         var ind = Buffer.alloc(4);

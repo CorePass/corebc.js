@@ -3,7 +3,7 @@ import ed448 from "./browser-ed448.js";
 // @ts-ignore
 import pbkdf2 from "./pbkdf2-browser.js";
 // @ts-ignore
-import SHA3_512 from "bcrypto/lib/sha3-512.js";
+import * as SHA3_512 from "bcrypto/lib/sha3-512.js";
 
 export class Ed448Goldilock {
   static _channel = ed448;
@@ -40,7 +40,7 @@ export class Ed448Goldilock {
       var signedMessage = this._channel.signWithScalar(
         msgToSign,
         scalar,
-        prefix,
+        prefix
       );
       return Buffer.from(signedMessage).toString("hex");
     } else {
@@ -51,7 +51,7 @@ export class Ed448Goldilock {
 
   static signWithPrivateKeyNConcatPubkey(
     privateKey: string,
-    msg: string,
+    msg: string
   ): string {
     var signedMessage = Ed448Goldilock.signWithPrivateKey(privateKey, msg);
     var publicKey = Ed448Goldilock.getPublicKeyFromPrivateKey(privateKey);
@@ -61,7 +61,7 @@ export class Ed448Goldilock {
   static verifySignature(
     msgHash: string,
     signedMsg: string,
-    pubKey: string,
+    pubKey: string
   ): boolean {
     return this._channel.verify(msgHash, signedMsg, pubKey);
   }
@@ -70,7 +70,7 @@ export class Ed448Goldilock {
     var p1 = Buffer.from(password, "hex");
     var s1 = Buffer.from(salt, "hex");
     return Buffer.from(pbkdf2.derive(SHA3_512, p1, s1, 2048, 57)).toString(
-      "hex",
+      "hex"
     );
   }
 
@@ -78,7 +78,7 @@ export class Ed448Goldilock {
     prefix: number,
     key: string,
     index: number,
-    salt: string,
+    salt: string
   ): string {
     var ind = Buffer.alloc(4);
     var p = Buffer.alloc(1);
@@ -109,11 +109,11 @@ export class Ed448Goldilock {
   static seedToExtendedPrivate(seed: string): string {
     var s1 = Ed448Goldilock.SHA512Hash(
       seed,
-      "6d6e656d6f6e6963666f72746865636861696e",
+      "6d6e656d6f6e6963666f72746865636861696e"
     );
     var s2 = Ed448Goldilock.SHA512Hash(
       seed,
-      "6d6e656d6f6e6963666f727468656b6579",
+      "6d6e656d6f6e6963666f727468656b6579"
     );
     var b = Buffer.from(s2, "hex");
     b[56] |= 0x80;

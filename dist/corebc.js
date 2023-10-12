@@ -4,7 +4,7 @@ export { Buffer } from 'buffer';
 import * as ed448 from 'bcrypto/lib/ed448-browser.js';
 import * as _BN from 'bn.js';
 import * as pbkdf2$2 from 'bcrypto/lib/pbkdf2-browser.js';
-import SHA3_512 from 'bcrypto/lib/sha3-512.js';
+import * as SHA3_512 from 'bcrypto/lib/sha3-512.js';
 import utf8 from 'utf8';
 import pkg from 'aes-js';
 
