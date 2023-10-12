@@ -239,10 +239,10 @@ export class SigningKey {
    *  addresses from parent public keys and chain codes.
    */
   static addPoints(p0: BytesLike, p1: BytesLike, compressed?: boolean): string {
-    const pub0 = secp256k1.ProjectivePoint.fromHex(
+    const pub0 = secp256k1.Point.fromHex(
       SigningKey.computePublicKey(p0).substring(2)
     );
-    const pub1 = secp256k1.ProjectivePoint.fromHex(
+    const pub1 = secp256k1.Point.fromHex(
       SigningKey.computePublicKey(p1).substring(2)
     );
     return "0x" + pub0.add(pub1).toHex(!!compressed);
