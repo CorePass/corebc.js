@@ -20,7 +20,7 @@ const generateSeed = (mnemonic: string, password?: string) => {
     goldilockSalt,
     2048,
     64,
-    "sha512",
+    "sha512"
   );
 
   const aesKeySeed = pbkdf2Sync(
@@ -28,7 +28,7 @@ const generateSeed = (mnemonic: string, password?: string) => {
     aesSalt,
     2048,
     64,
-    "sha512",
+    "sha512"
   );
 
   return {
