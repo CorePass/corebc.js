@@ -1,1 +1,1 @@
-{"version":3,"file":"browser-ed448.js","sourceRoot":"","sources":["../../src.ts/crypto/browser-ed448.ts"],"names":[],"mappings":"AAAA,YAAY,CAAC;;;AAEb,aAAa;AACb,4FAAiD;AACjD,kBAAe,0BAAK,CAAC"}
+{"version":3,"file":"browser-ed448.js","sourceRoot":"","sources":["../../src.ts/crypto/browser-ed448.ts"],"names":[],"mappings":"AAAA,YAAY,CAAC;;;AAEb,aAAa;AACb,4EAAsD;AACtD,kBAAe,KAAK,CAAC"}
