@@ -2,7 +2,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
 import { Buffer as Buffer$1 } from 'buffer';
 export { Buffer } from 'buffer';
 import ed448 from 'bcrypto/lib/ed448-browser.js';
-import { BN } from 'bn.js';
+import * as _BN from 'bn.js';
 import pbkdf2$2 from 'bcrypto/lib/pbkdf2-browser.js';
 import SHA3_512 from 'bcrypto/lib/sha3-512.js';
 import utf8 from 'utf8';
@@ -985,6 +985,7 @@ function hexConcat(items) {
     return result;
 }
 
+var BN = _BN.BN;
 const logger$5 = new Logger("bigNumber/0.0.1");
 const _constructorGuard = {};
 const MAX_SAFE = 0x1fffffffffffff;

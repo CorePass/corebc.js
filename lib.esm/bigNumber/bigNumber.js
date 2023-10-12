@@ -6,9 +6,10 @@
  *  because it is used by elliptic, so it is required regardless.
  *
  */
-import { BN } from "bn.js";
+import * as _BN from "bn.js";
 import { Logger } from "../logger/logger.js";
 import { isBytes, hexlify, isHexString, } from "../utils/data.js";
+var BN = _BN.BN;
 const logger = new Logger("bigNumber/0.0.1");
 const _constructorGuard = {};
 const MAX_SAFE = 0x1fffffffffffff;

@@ -8,7 +8,7 @@
  *
  */
 
-import { BN } from "bn.js";
+import * as _BN from "bn.js";
 import { Logger } from "../logger/logger.js";
 import {
   Bytes,
@@ -17,6 +17,7 @@ import {
   hexlify,
   isHexString,
 } from "../utils/data.js";
+import BN = _BN.BN;
 
 const logger = new Logger("bigNumber/0.0.1");
 
