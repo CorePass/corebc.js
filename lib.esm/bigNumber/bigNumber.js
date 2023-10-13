@@ -6,7 +6,7 @@
  *  because it is used by elliptic, so it is required regardless.
  *
  */
-import * as _BN from "bn.js";
+import _BN from "bn.js";
 import { Logger } from "../logger/logger.js";
 import { isBytes, hexlify, isHexString, } from "../utils/data.js";
 var BN = _BN.BN;

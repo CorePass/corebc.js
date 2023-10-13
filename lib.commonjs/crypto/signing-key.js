@@ -26,8 +26,12 @@ class SigningKey {
      *  Creates a new **SigningKey** for %%privateKey%%.
      */
     constructor(privateKey) {
-        (0, index_js_1.assertArgument)((0, index_js_1.dataLength)("0x" + privateKey) === 57, "invalid private key", "privateKey", "[REDACTED]");
-        this.#privateKey = (0, index_js_1.hexlify)("0x" + privateKey);
+        let tmp = privateKey;
+        if (typeof tmp === "string" && tmp.startsWith("0x")) {
+            tmp = tmp.replace("0x", "");
+        }
+        (0, index_js_1.assertArgument)((0, index_js_1.dataLength)("0x" + tmp) === 57, "invalid private key", "privateKey", "[REDACTED]");
+        this.#privateKey = (0, index_js_1.hexlify)("0x" + tmp);
     }
     /**
      *  The private key.

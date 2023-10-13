@@ -2,7 +2,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
 import { Buffer as Buffer$1 } from 'buffer';
 export { Buffer } from 'buffer';
 import ed448 from 'bcrypto/lib/ed448-browser.js';
-import * as _BN from 'bn.js';
+import _BN from 'bn.js';
 import pbkdf2$2 from 'bcrypto/lib/pbkdf2-browser.js';
 import SHA3_512 from 'bcrypto/lib/sha3-512.js';
 import utf8 from 'utf8';
@@ -5836,8 +5836,12 @@ class SigningKey {
      *  Creates a new **SigningKey** for %%privateKey%%.
      */
     constructor(privateKey) {
-        assertArgument(dataLength("0x" + privateKey) === 57, "invalid private key", "privateKey", "[REDACTED]");
-        this.#privateKey = hexlify("0x" + privateKey);
+        let tmp = privateKey;
+        if (typeof tmp === "string" && tmp.startsWith("0x")) {
+            tmp = tmp.replace("0x", "");
+        }
+        assertArgument(dataLength("0x" + tmp) === 57, "invalid private key", "privateKey", "[REDACTED]");
+        this.#privateKey = hexlify("0x" + tmp);
     }
     /**
      *  The private key.

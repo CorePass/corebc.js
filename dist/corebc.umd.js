@@ -5,25 +5,6 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
     (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.corebc = {}, global.buffer, global.ed448, global._BN, global.pbkdf2$2, global.SHA3_512, global.utf8, global.pkg));
 })(this, (function (exports, buffer, ed448, _BN, pbkdf2$2, SHA3_512, utf8, pkg) { 'use strict';
 
-    function _interopNamespaceDefault(e) {
-        var n = Object.create(null);
-        if (e) {
-            Object.keys(e).forEach(function (k) {
-                if (k !== 'default') {
-                    var d = Object.getOwnPropertyDescriptor(e, k);
-                    Object.defineProperty(n, k, d.get ? d : {
-                        enumerable: true,
-                        get: function () { return e[k]; }
-                    });
-                }
-            });
-        }
-        n.default = e;
-        return Object.freeze(n);
-    }
-
-    var _BN__namespace = /*#__PURE__*/_interopNamespaceDefault(_BN);
-
     /* Do NOT modify this file; see /src.ts/_admin/update-version.ts */
     /**
      *  The current version of corebc.
@@ -1001,7 +982,7 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
         return result;
     }
 
-    var BN = _BN__namespace.BN;
+    var BN = _BN.BN;
     const logger$5 = new Logger("bigNumber/0.0.1");
     const _constructorGuard = {};
     const MAX_SAFE = 0x1fffffffffffff;
@@ -5852,8 +5833,12 @@ const __$G = (typeof globalThis !== 'undefined' ? globalThis: typeof window !== 
          *  Creates a new **SigningKey** for %%privateKey%%.
          */
         constructor(privateKey) {
-            assertArgument(dataLength("0x" + privateKey) === 57, "invalid private key", "privateKey", "[REDACTED]");
-            this.#privateKey = hexlify("0x" + privateKey);
+            let tmp = privateKey;
+            if (typeof tmp === "string" && tmp.startsWith("0x")) {
+                tmp = tmp.replace("0x", "");
+            }
+            assertArgument(dataLength("0x" + tmp) === 57, "invalid private key", "privateKey", "[REDACTED]");
+            this.#privateKey = hexlify("0x" + tmp);
         }
         /**
          *  The private key.

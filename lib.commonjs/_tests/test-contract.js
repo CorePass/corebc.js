@@ -9,6 +9,7 @@ const tesSignedTransaction = "0xf8ce800a830f423f0496ce276773ac97d16855a3c8faa453
 const testWalletPhrase = "better artwork flavor fish solve deer orient spread adapt doll attack hour sort copper super income bacon engine skate ill similar wink crack club";
 const testSeed = "c1df56a610fd92afedb1ec838f3a4ab60668e157f3ea802cd587f18e215d25106fcdb47a2bdd9d989365371e602edf31896712c4af6dcbb443a1528b723502a0";
 const tesPrivateKey = "69bb68c3a00a0cd9cbf2cab316476228c758329bbfe0b1759e8634694a9497afea05bcbf24e2aa0627eac4240484bb71de646a9296872a3c0e";
+const tesPrivateKey2 = "60c2b4e05e9173e910fbe67d661d96dcf62d4a76864aa0a6b36609dc635c3a816fcb96bb220cec0c21e18bea220b2c789f05888e986988b86a";
 const testAddress = "0xab45fc2f96ea4708a9fbaafa39038bde9995c31cf8a3";
 const testPublicKey = "0x65e9bdb24e972e64aa323a237f936435115da03cfbe3d3dd1a2d3cd2b6f072c1a770faf96d4075ca6d1776910f38ef48f902c807af2accc700";
 const provider = (0, corebc_js_1.getDefaultProvider)("https://xcbapi.corecoin.cc/");
@@ -26,6 +27,11 @@ const seedWallet = corebc_js_1.Wallet.fromSeed({
     prefix: (0, index_js_1.networkIdToPrefix)(3),
     seed: testSeed,
 });
+const testWallet = new corebc_js_1.Wallet({
+    key: tesPrivateKey2,
+    prefix: (0, index_js_1.networkIdToPrefix)(3),
+});
+console.log({ trestWallet: testWallet });
 const signingKey = new corebc_js_1.SigningKey(tesPrivateKey);
 const baseWalletAddress = "0xab03a5fd22b9bee8b8ab877c86e0a2c21765e1d5bfc5";
 const baseWallet = new corebc_js_1.BaseWallet({

@@ -9,10 +9,10 @@ const tslib_1 = require("tslib");
  *  because it is used by elliptic, so it is required regardless.
  *
  */
-const _BN = tslib_1.__importStar(require("bn.js"));
+const bn_js_1 = tslib_1.__importDefault(require("bn.js"));
 const logger_js_1 = require("../logger/logger.js");
 const data_js_1 = require("../utils/data.js");
-var BN = _BN.BN;
+var BN = bn_js_1.default.BN;
 const logger = new logger_js_1.Logger("bigNumber/0.0.1");
 const _constructorGuard = {};
 const MAX_SAFE = 0x1fffffffffffff;
