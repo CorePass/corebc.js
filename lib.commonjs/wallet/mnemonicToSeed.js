@@ -13,7 +13,7 @@ function mnemonicToSeed(mnemonic, password) {
 }
 exports.mnemonicToSeed = mnemonicToSeed;
 const generateSeed = (mnemonic, password) => {
-    const goldilockSaltPrefix = "mnemonicforthegoldilockkey";
+    const goldilockSaltPrefix = "mnemonic";
     const aesSaltPrefix = "mnemonicfortheAESkey";
     const goldilockSalt = utf8_1.default.encode(goldilockSaltPrefix + password);
     const aesSalt = utf8_1.default.encode(aesSaltPrefix + password);

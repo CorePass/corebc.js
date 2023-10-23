@@ -18320,7 +18320,7 @@ function mnemonicToSeed(mnemonic, password) {
     return t.goldilock;
 }
 const generateSeed = (mnemonic, password) => {
-    const goldilockSaltPrefix = "mnemonicforthegoldilockkey";
+    const goldilockSaltPrefix = "mnemonic";
     const aesSaltPrefix = "mnemonicfortheAESkey";
     const goldilockSalt = utf8.encode(goldilockSaltPrefix + password);
     const aesSalt = utf8.encode(aesSaltPrefix + password);
