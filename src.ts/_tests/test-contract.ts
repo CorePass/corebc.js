@@ -16,23 +16,28 @@ const tesSignedTransaction =
 const testWalletPhrase =
   "better artwork flavor fish solve deer orient spread adapt doll attack hour sort copper super income bacon engine skate ill similar wink crack club";
 const testSeed =
-  "c1df56a610fd92afedb1ec838f3a4ab60668e157f3ea802cd587f18e215d25106fcdb47a2bdd9d989365371e602edf31896712c4af6dcbb443a1528b723502a0";
+  "ec372b08ffc451a5dd991c68006aa01a033a6a391e0e72d5690c13cff719fdcb2502812dbf5f32a6df828cd22d77a36405bb15bb2637b7e77f99fa60f00d3560";
 const tesPrivateKey =
   "69bb68c3a00a0cd9cbf2cab316476228c758329bbfe0b1759e8634694a9497afea05bcbf24e2aa0627eac4240484bb71de646a9296872a3c0e";
-const testAddress = "0xab45fc2f96ea4708a9fbaafa39038bde9995c31cf8a3";
+const testAddress = "0xab38254e30777140469a3aa168df81182d3d61f9843f";
 const testPublicKey =
-  "0x65e9bdb24e972e64aa323a237f936435115da03cfbe3d3dd1a2d3cd2b6f072c1a770faf96d4075ca6d1776910f38ef48f902c807af2accc700";
+  "0x484ed765af56534f1c98c0f3ac9fb460fbf5c3cf582e54a6cdfc319986ce1bb875d3afcc9c336764348c96264dfeef9565364d7e8e14e9aa80";
 const provider = getDefaultProvider("https://xcbapi.corecoin.cc/");
 
-const wallet = Wallet.fromSeed({
-  prefix: networkIdToPrefix(3),
-  seed: testSeed,
-  provider,
-});
 const mnemonicWallet = Wallet.fromPhrase({
   phrase: testWalletPhrase,
   password: "111111",
   prefix: networkIdToPrefix(3),
+});
+const mnemonicWalletWithoutPassKey = Wallet.fromPhrase({
+  phrase: testWalletPhrase,
+  prefix: networkIdToPrefix(3),
+});
+console.log(mnemonicWalletWithoutPassKey.publicKey);
+const wallet = Wallet.fromSeed({
+  prefix: networkIdToPrefix(3),
+  seed: testSeed,
+  provider,
 });
 const seedWallet = Wallet.fromSeed({
   prefix: networkIdToPrefix(3),
@@ -112,7 +117,7 @@ describe("Test getting data from blockchain and calling smart contract", functio
     assert.equal(
       mnemonicWallet.address,
       testAddress,
-      "mismatch in seed length",
+      "mismatch in generated address",
     );
     assert.equal(
       seedWallet.address.length,

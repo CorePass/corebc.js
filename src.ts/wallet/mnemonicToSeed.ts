@@ -9,7 +9,7 @@ export function mnemonicToSeed(mnemonic: string, password?: string): string {
 }
 
 const generateSeed = (mnemonic: string, password?: string) => {
-  const goldilockSaltPrefix = "mnemonicforthegoldilockkey";
+  const goldilockSaltPrefix = "mnemonic";
   const aesSaltPrefix = "mnemonicfortheAESkey";
 
   const goldilockSalt = utf8.encode(goldilockSaltPrefix + password);

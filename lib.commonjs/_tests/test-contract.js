@@ -7,31 +7,30 @@ const index_js_1 = require("../address/index.js");
 const TIMEOUT_PERIOD = 120000;
 const tesSignedTransaction = "0xf8ce800a830f423f0496ce276773ac97d16855a3c8faa45399136b56d419486081c880b8ab54bc60412c90c104a89865a43c33f335836bcb473f0cd477ecb2c82e6310676c87b708e3971d009b4a04e518f12454c3ee1aebc19a6b7df00076b834b692b7432611f3dafff0f422dfbae722ba4b989cfc82fee2e539fbbf21d652ea587df59e8421a3a8bc8ca2ba35033598954c54e10c00315484db568379ce94f9c894e3e6e4c7ee216676b713ca892d9b26746ae902a772e217a6a8bb493ce2bb313cf0cb66e76765d4c45ec6b68600";
 const testWalletPhrase = "better artwork flavor fish solve deer orient spread adapt doll attack hour sort copper super income bacon engine skate ill similar wink crack club";
-const testSeed = "c1df56a610fd92afedb1ec838f3a4ab60668e157f3ea802cd587f18e215d25106fcdb47a2bdd9d989365371e602edf31896712c4af6dcbb443a1528b723502a0";
+const testSeed = "ec372b08ffc451a5dd991c68006aa01a033a6a391e0e72d5690c13cff719fdcb2502812dbf5f32a6df828cd22d77a36405bb15bb2637b7e77f99fa60f00d3560";
 const tesPrivateKey = "69bb68c3a00a0cd9cbf2cab316476228c758329bbfe0b1759e8634694a9497afea05bcbf24e2aa0627eac4240484bb71de646a9296872a3c0e";
-const tesPrivateKey2 = "60c2b4e05e9173e910fbe67d661d96dcf62d4a76864aa0a6b36609dc635c3a816fcb96bb220cec0c21e18bea220b2c789f05888e986988b86a";
-const testAddress = "0xab45fc2f96ea4708a9fbaafa39038bde9995c31cf8a3";
-const testPublicKey = "0x65e9bdb24e972e64aa323a237f936435115da03cfbe3d3dd1a2d3cd2b6f072c1a770faf96d4075ca6d1776910f38ef48f902c807af2accc700";
+const testAddress = "0xab38254e30777140469a3aa168df81182d3d61f9843f";
+const testPublicKey = "0x484ed765af56534f1c98c0f3ac9fb460fbf5c3cf582e54a6cdfc319986ce1bb875d3afcc9c336764348c96264dfeef9565364d7e8e14e9aa80";
 const provider = (0, corebc_js_1.getDefaultProvider)("https://xcbapi.corecoin.cc/");
-const wallet = corebc_js_1.Wallet.fromSeed({
-    prefix: (0, index_js_1.networkIdToPrefix)(3),
-    seed: testSeed,
-    provider,
-});
 const mnemonicWallet = corebc_js_1.Wallet.fromPhrase({
     phrase: testWalletPhrase,
     password: "111111",
     prefix: (0, index_js_1.networkIdToPrefix)(3),
 });
+const mnemonicWalletWithoutPassKey = corebc_js_1.Wallet.fromPhrase({
+    phrase: testWalletPhrase,
+    prefix: (0, index_js_1.networkIdToPrefix)(3),
+});
+console.log(mnemonicWalletWithoutPassKey.publicKey);
+const wallet = corebc_js_1.Wallet.fromSeed({
+    prefix: (0, index_js_1.networkIdToPrefix)(3),
+    seed: testSeed,
+    provider,
+});
 const seedWallet = corebc_js_1.Wallet.fromSeed({
     prefix: (0, index_js_1.networkIdToPrefix)(3),
     seed: testSeed,
 });
-const testWallet = new corebc_js_1.Wallet({
-    key: tesPrivateKey2,
-    prefix: (0, index_js_1.networkIdToPrefix)(3),
-});
-console.log({ trestWallet: testWallet });
 const signingKey = new corebc_js_1.SigningKey(tesPrivateKey);
 const baseWalletAddress = "0xab03a5fd22b9bee8b8ab877c86e0a2c21765e1d5bfc5";
 const baseWallet = new corebc_js_1.BaseWallet({
@@ -75,7 +74,7 @@ describe("Test getting data from blockchain and calling smart contract", functio
     it("can generate wallet", function () {
         assert_1.default.equal(mnemonicWallet.address.length, 46, "mismatch in address length");
         assert_1.default.equal(mnemonicWallet.publicKey, testPublicKey, "mismatch in public key");
-        assert_1.default.equal(mnemonicWallet.address, testAddress, "mismatch in seed length");
+        assert_1.default.equal(mnemonicWallet.address, testAddress, "mismatch in generated address");
         assert_1.default.equal(seedWallet.address.length, 46, "mismatch in address length for seed wallet");
         assert_1.default.equal(seedWallet.publicKey, testPublicKey, "mismatch in public key for seed wallet");
         assert_1.default.equal(seedWallet.address, testAddress, "mismatch in seed length for seed wallet");

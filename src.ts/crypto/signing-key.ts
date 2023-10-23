@@ -39,8 +39,8 @@ export class SigningKey {
    *  Creates a new **SigningKey** for %%privateKey%%.
    */
   constructor(privateKey: BytesLike) {
-    let tmp=privateKey
-    if(typeof tmp === "string" && tmp.startsWith("0x")){
+    let tmp = privateKey;
+    if (typeof tmp === "string" && tmp.startsWith("0x")) {
       tmp = tmp.replace("0x", "");
     }
     assertArgument(
