@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.0.0
 
 - Support the updated Noble hashes, TypeScript 7, Node types, and Rollup dependencies.
 - Require Node.js 22.12 or newer; regenerate CommonJS through Rollup for ESM dependencies.
@@ -10,5 +10,4 @@
 - Add typed CIP-150, CIP-151, and CIP-152 helpers, bounded IPFS JSON loading, and exact Core custom-unit balances.
 - Add regression tests, package and browser smoke checks, npm dependency checks, issue forms, and validated npm trusted-publishing workflows.
 - Update package documentation and contributor instructions.
-
 - Remove committed build artifacts and lockfiles; generate npm distributions from source and use `npm install` in CI and releases.

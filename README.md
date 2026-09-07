@@ -1,4 +1,4 @@
-# corebc.js
+# CoreBC
 
 TypeScript and JavaScript tools for Core Blockchain: Ed448 wallets, signing, Core addresses, `xcb_*` JSON-RPC providers, ABI encoding, smart contracts, and token metadata.
 

@@ -9,7 +9,7 @@ body:
     id: version
     attributes:
       label: corebc version
-      placeholder: 0.4.1 or commit hash
+      placeholder: 1.0.0 or commit hash
     validations:
       required: true
   - type: input
