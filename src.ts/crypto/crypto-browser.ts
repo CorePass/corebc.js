@@ -71,9 +71,9 @@ export function pbkdf2Sync(
 	salt: Uint8Array,
 	iterations: number,
 	keylen: number,
-	_algo: "sha256" | "sha512",
+	_algo: "sha256" | "sha512" | "sha3-256",
 ): Uint8Array {
-	const algo = { sha256, sha512 }[_algo];
+	const algo = { sha256, sha512, "sha3-256": sha3_256 }[_algo];
 	assertArgument(algo != null, "invalid pbkdf2 algorithm", "algorithm", _algo);
 	return pbkdf2(algo, password, salt, { c: iterations, dkLen: keylen });
 }

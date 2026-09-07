@@ -9,6 +9,7 @@ import {
 	keccak256,
 } from "../index.js";
 import { createHash } from "../crypto/crypto-browser.js";
+import { sharedSecretVectors } from "./crypto-compat-vectors.js";
 
 describe("updated crypto dependencies", () => {
 	it("matches standard hash and scrypt vectors", async () => {
@@ -40,7 +41,7 @@ describe("updated crypto dependencies", () => {
 			assert.throws(() => new SigningKey(new Uint8Array(length)));
 		assert.throws(() => key.sign("0x00"));
 	});
-	it("signs, rejects tampering and derives symmetric Ed448 secrets in both key modes", () => {
+	it("signs, rejects tampering and derives symmetric secrets in both key modes", () => {
 		const a = new SigningKey("01".repeat(57));
 		const b = new SigningKey("02".repeat(56) + "80");
 		const digest = sha256("0x1234");
@@ -58,5 +59,26 @@ describe("updated crypto dependencies", () => {
 			SigningKey.addPoints(b.publicKey, a.publicKey),
 		);
 		assert.throws(() => a.computeSharedSecret("0x00"));
+	});
+	for (const vector of sharedSecretVectors) {
+		it(`matches Core X448 shared secrets in ${vector.name} mode`, () => {
+			const a = new SigningKey(vector.privateA);
+			const b = new SigningKey(vector.privateB);
+			assert.equal(a.publicKey, vector.publicA);
+			assert.equal(b.publicKey, vector.publicB);
+			assert.equal(a.computeSharedSecret(b.publicKey), vector.secret);
+			assert.equal(b.computeSharedSecret(a.publicKey), vector.secret);
+			assert.equal(getBytes(vector.secret).length, 56);
+			assert.equal(a.privateKey, vector.privateA);
+		});
+	}
+	it("rejects invalid and small-order peers during shared-secret derivation", () => {
+		const key = new SigningKey(sharedSecretVectors[0].privateA);
+		for (const peer of [
+			"0x" + "ff".repeat(57),
+			"0x" + "00".repeat(57),
+			"0x01" + "00".repeat(56),
+		])
+			assert.throws(() => key.computeSharedSecret(peer));
 	});
 });
