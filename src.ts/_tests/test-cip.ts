@@ -74,6 +74,7 @@ describe("CIP metadata and custom units", () => {
 		assert.equal((await metadata.readAll(42, false))[0].sealed, undefined);
 		assert.equal((await metadata.readLifecycle(42)).tokenExpiration, 100n);
 		const gateway = new IpfsGateway({
+			template: "https://{cid}.ipfs.dweb.link",
 			fetch: async () => new Response('{"pH":{"value":7}}'),
 		});
 		assert.equal(
@@ -138,6 +139,49 @@ describe("IPFS gateway", () => {
 		assert.throws(
 			() => new IpfsGateway({ template: "ftp://example.com/{cid}" }),
 		);
+	});
+	it("resolves subdomain and path gateways with URI encoding exactly once", async () => {
+		const cid = "bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi";
+		for (const template of [
+			"https://{cid}.ipfs.dweb.link",
+			"https://gateway.example/ipfs/{cid}?download=true",
+		]) {
+			const base = template.replace("{cid}", cid).split("?")[0];
+			const query = template.includes("?") ? "?download=true" : "";
+			const gateway = new IpfsGateway({
+				template,
+				fetch: async (url) => {
+					assert.equal(String(url), base + "/lab.json" + query);
+					return new Response('{"ok":true}');
+				},
+			});
+			assert.deepEqual(await gateway.readJson(`ipfs://${cid}/lab.json`), {
+				ok: true,
+			});
+			for (const [input, expected] of [
+				["my%20folder", "my%20folder"],
+				["my folder", "my%20folder"],
+				["%E2%82%AC", "%E2%82%AC"],
+				["€", "%E2%82%AC"],
+				["%25", "%25"],
+				["a%2fb", "a%2Fb"],
+				["%5C", "%5C"],
+				["%252e%252e", "%252e%252e"],
+			])
+				assert.equal(
+					gateway.resolve(`ipfs://${cid}/${input}/lab.json`).href,
+					base + "/" + expected + "/lab.json" + query,
+				);
+			assert.equal(
+				gateway.resolve(`${cid}/my%20folder/lab.json`).href,
+				base + "/my%2520folder/lab.json" + query,
+			);
+			for (const segment of [".", "..", "%2e", "%2E%2e", ".%2e", "%", "%FF"])
+				assert.throws(
+					() => gateway.resolve(`ipfs://${cid}/${segment}/lab.json`),
+					/invalid IPFS/,
+				);
+		}
 	});
 	it("bounds streamed bodies and cancels oversized responses", async () => {
 		let cancelled = false;

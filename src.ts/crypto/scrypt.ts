@@ -17,6 +17,9 @@ import type { BytesLike } from "../utils/index.js";
  */
 export type ProgressCallback = (percent: number) => void;
 
+// Shared with keystore validation; includes noble's parallel and scratch buffers.
+export const scryptMaxmem = 256 * 1024 * 1024;
+
 let lockedSync = false,
 	lockedAsync = false;
 
@@ -29,7 +32,14 @@ const _scryptAsync = async function (
 	dkLen: number,
 	onProgress?: ProgressCallback,
 ) {
-	return await _nobleAsync(passwd, salt, { N, r, p, dkLen, onProgress });
+	return await _nobleAsync(passwd, salt, {
+		N,
+		r,
+		p,
+		dkLen,
+		onProgress,
+		maxmem: scryptMaxmem,
+	});
 };
 const _scryptSync = function (
 	passwd: Uint8Array,
@@ -39,7 +49,7 @@ const _scryptSync = function (
 	p: number,
 	dkLen: number,
 ) {
-	return _nobleSync(passwd, salt, { N, r, p, dkLen });
+	return _nobleSync(passwd, salt, { N, r, p, dkLen, maxmem: scryptMaxmem });
 };
 
 let __scryptAsync: (

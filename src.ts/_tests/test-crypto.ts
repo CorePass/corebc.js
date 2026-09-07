@@ -32,6 +32,10 @@ describe("updated crypto dependencies", () => {
 			),
 		);
 	});
+	it("enforces the backend memory budget without allocating oversized buffers", async () => {
+		assert.throws(() => scryptSync("0x", "0x", 262144, 8, 1, 32), /maxmem/);
+		await assert.rejects(scrypt("0x", "0x", 262144, 8, 1, 32), /maxmem/);
+	});
 	it("copies byte private keys and validates lengths", () => {
 		const bytes = new Uint8Array(57).fill(1);
 		const key = new SigningKey(bytes);
