@@ -31,18 +31,28 @@ export class IpfsGateway {
 	resolve(reference: string): URL {
 		const value = reference.trim();
 		if (/^https?:\/\//i.test(value)) return new URL(value);
-		const path = value.replace(/^ipfs:\/\//, "").replace(/^\/?ipfs\//, "");
-		if (
-			!/^[A-Za-z0-9]+(?:\/[^?#]*)?$/.test(path) ||
-			path.split("/").some((part) => part === "." || part === "..")
-		)
+		const isUri = /^ipfs:\/\//i.test(value);
+		const path = value.replace(/^ipfs:\/\//i, "").replace(/^\/?ipfs\//, "");
+		if (!/^[A-Za-z0-9]+(?:\/[^?#]*)?$/.test(path))
 			throw new TypeError("invalid IPFS reference");
-		return new URL(
-			this.template.replace(
-				"{cid}",
-				path.split("/").map(encodeURIComponent).join("/"),
-			),
-		);
+		const [cid, ...segments] = path.split("/");
+		const encoded = segments.map((segment) => {
+			// URI segments are decoded independently so escaped separators stay
+			// within their original segment. Bare paths contain literal text.
+			let decoded: string;
+			try {
+				decoded = isUri ? decodeURIComponent(segment) : segment;
+			} catch {
+				throw new TypeError("invalid IPFS reference");
+			}
+			if (decoded === "." || decoded === "..")
+				throw new TypeError("invalid IPFS reference");
+			return encodeURIComponent(decoded);
+		});
+		const url = new URL(this.template.replace("{cid}", cid));
+		if (encoded.length)
+			url.pathname = url.pathname.replace(/\/$/, "") + "/" + encoded.join("/");
+		return url;
 	}
 	async readJson(reference: string): Promise<unknown> {
 		const controller = new AbortController();

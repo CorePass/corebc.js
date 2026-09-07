@@ -1,7 +1,9 @@
 # Changelog
 
-## Unreleased
+## 1.1.1
 
+- Fix IPFS subdomain gateway resolution and percent-encoded URI paths, with traversal validation.
+- Bound combined scrypt wallet work and temporary memory, and enforce the 256 MiB backend memory limit.
 - Return go-core-compatible 56-byte X448 shared secrets from `SigningKey.computeSharedSecret`, replacing the previous 57-byte Edwards encoding.
 - Import go-core PBKDF2-SHA3-256 keystores while preserving MAC-validated access to historical CoreBC SHA2 keystores.
 - Add independent shared-secret and keystore compatibility vectors for Node and browser builds.

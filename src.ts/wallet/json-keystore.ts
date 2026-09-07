@@ -16,6 +16,7 @@ const {
 } = pkg;
 
 import { getAddress } from "../address/index.js";
+import { scryptMaxmem } from "../crypto/scrypt.js";
 import { pbkdf2Sync } from "../crypto/crypto.js";
 import {
 	pbkdf2,
@@ -212,7 +213,8 @@ function getPbkdf2Key(
 	return pbkdf2(password, salt, count, dkLen, algorithm);
 }
 
-// Match Core Web3Dart's wallet KDF resource limits.
+// Allow at most twice the default wallet work (131072 * 8 * 1).
+// Include all noble temporary buffers in the memory budget.
 function validateScrypt(N: number, r: number, p: number): void {
 	assertArgument(
 		Number.isSafeInteger(N) && N > 1 && N <= 1048576 && (N & (N - 1)) === 0,
@@ -226,7 +228,8 @@ function validateScrypt(N: number, r: number, p: number): void {
 			r > 0 &&
 			p > 0 &&
 			r * p <= 1048576 &&
-			128 * N * r <= 256 * 1024 * 1024,
+			N * r * p <= 2 ** 21 &&
+			128 * r * (N + p + 1) <= scryptMaxmem,
 		"unsafe scrypt work or memory requirement",
 		"kdf",
 		{ N, r, p },

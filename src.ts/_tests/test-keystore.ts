@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import {
 	Wallet,
+	scrypt,
+	scryptSync,
 	networkIdToPrefix,
 	encryptKeystoreJsonSync,
 	encryptKeystoreJson,
@@ -99,6 +101,65 @@ describe("AES keystores", () => {
 				decryptKeystoreJson(JSON.stringify(changed), "test"),
 				/incorrect password/,
 			);
+		}
+	});
+	it("bounds combined scrypt work and all temporary buffers before either backend", async () => {
+		const data = JSON.parse(encryptKeystoreJsonSync(account, "test", options));
+		let calls = 0;
+		const intercepted = new Error("backend reached");
+		scryptSync.register(() => {
+			calls++;
+			throw intercepted;
+		});
+		scrypt.register(async () => {
+			calls++;
+			throw intercepted;
+		});
+		try {
+			for (const params of [
+				{ N: 1048576, r: 2, p: 524288 }, // Reported combination.
+				{ N: 131072, r: 8, p: 3 }, // CPU only.
+				{ N: 262144, r: 8, p: 1 }, // Scratch exceeds 256 MiB.
+				{ N: 2, r: 524288, p: 2 }, // Parallel buffers exceed 256 MiB.
+			]) {
+				Object.assign(data.Crypto.kdfparams, {
+					n: params.N,
+					r: params.r,
+					p: params.p,
+				});
+				assert.throws(
+					() => decryptKeystoreJsonSync(JSON.stringify(data), "test"),
+					/unsafe/,
+				);
+				await assert.rejects(
+					decryptKeystoreJson(JSON.stringify(data), "test"),
+					/unsafe/,
+				);
+				assert.throws(
+					() => encryptKeystoreJsonSync(account, "test", { scrypt: params }),
+					/unsafe/,
+				);
+				await assert.rejects(
+					encryptKeystoreJson(account, "test", { scrypt: params }),
+					/unsafe/,
+				);
+			}
+			assert.equal(calls, 0);
+			for (const p of [1, 2]) {
+				Object.assign(data.Crypto.kdfparams, { n: 131072, r: 8, p });
+				assert.throws(
+					() => decryptKeystoreJsonSync(JSON.stringify(data), "test"),
+					(error) => error === intercepted,
+				);
+				await assert.rejects(
+					decryptKeystoreJson(JSON.stringify(data), "test"),
+					(error) => error === intercepted,
+				);
+			}
+			assert.equal(calls, 4);
+		} finally {
+			scryptSync.register(scryptSync._);
+			scrypt.register(scrypt._);
 		}
 	});
 	it("rejects unsafe KDF parameters before allocating work", () => {

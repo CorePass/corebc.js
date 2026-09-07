@@ -38,9 +38,11 @@ const signature = await wallet.signMessage("Hello Core");
 ```
 
 Wallets support mnemonics, seed derivation, and encrypted JSON keystores. Wallet
-KDF limits match Core Web3Dart: PBKDF2 permits up to 10 million iterations;
-scrypt permits `N <= 1048576`, `r * p <= 1048576`, and at most 256 MiB of
-estimated memory. Wallets exceeding these limits are rejected. Private keys stay
+KDF limits allow PBKDF2 up to 10 million iterations;
+scrypt permits `N <= 1048576`, `r * p <= 1048576`, `N * r * p <= 2097152`
+(twice the default wallet work), and `128 * r * (N + p + 1) <= 256 MiB`
+including parallel and scratch buffers. The built-in scrypt backend also enforces
+the 256 MiB temporary memory limit. Wallets exceeding these limits are rejected. Private keys stay
 with the caller. Core uses 57-byte Ed448 private and public keys and
 network-prefixed addresses; Ethereum secp256k1 keys are not interchangeable.
 Keep private keys and recovery phrases out of logs and source control.
@@ -100,7 +102,11 @@ structure, not issuer authenticity or gateway content integrity.
 and HTTP(S) URLs. Its default template is `https://ipf.sk/{cid}`; configure
 another gateway with
 `new IpfsGateway({ template: "https://gateway.example/ipfs/{cid}" })`. JSON
-reads default to a 1 MiB limit and 30-second timeout. Treat metadata URLs as
+reads default to a 1 MiB limit and 30-second timeout. Subdomain templates such as
+`https://{cid}.ipfs.dweb.link` are also supported. In `ipfs://` URIs, path
+segments are percent-decoded once and re-encoded; escaped separators stay within
+their segment and dot segments are rejected. Bare and `/ipfs/` paths are literal
+text (a literal `%` becomes `%25`). Treat metadata URLs as
 untrusted input; server applications should supply a `fetch` implementation that
 enforces their outbound network policy.
 
