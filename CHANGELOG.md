@@ -8,5 +8,7 @@
 - Fix AES 3 keystore integration and browser crypto parity; bound wallet KDF resources and compare all MAC bytes.
 - Synchronize the exported runtime version with the npm package version.
 - Add typed CIP-150, CIP-151, and CIP-152 helpers, bounded IPFS JSON loading, and exact Core custom-unit balances.
-- Add regression tests, package and browser smoke checks, reproducible npm installs, issue forms, and validated npm trusted-publishing workflows.
+- Add regression tests, package and browser smoke checks, npm dependency checks, issue forms, and validated npm trusted-publishing workflows.
 - Update package documentation and contributor instructions.
+
+- Remove committed build artifacts and lockfiles; generate npm distributions from source and use `npm install` in CI and releases.

@@ -1,10 +1,25 @@
-node_modules/**
-output/**
-misc/**
+# Installed dependencies and generated build outputs
+node_modules/
+/dist/
+/lib.esm/
+/lib.commonjs/
+/types/
+/output/
+/coverage/
+.nyc_output/
+*.tsbuildinfo
+
+# Local tooling and temporary files
+/misc/
+.cache/
+.history/
+.env
+.env.*
+!.env.example
+!.env.*.example
 
 **/*.swp
 **/*.tgz
-dist/*.gz
 
 # Logs
 logs
@@ -22,9 +37,13 @@ lerna-debug.log*
 .yarn/install-state.gz
 .pnp.*
 
-# lock files (excluding will cause npm ci inaccessible)
+# This library does not commit package-manager lockfiles.
+package-lock.json
+npm-shrinkwrap.json
 yarn.lock
 pnpm-lock.yaml
+bun.lock
+bun.lockb
 
 # Optional npm cache directory
 .npm

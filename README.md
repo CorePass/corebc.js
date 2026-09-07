@@ -99,7 +99,7 @@ The UMD bundle `dist/corebc.umd.min.js` exposes `globalThis.corebc`. Secure rand
 ## Development
 
 ```sh
-npm ci
+npm install
 npm run check
 ```
 
