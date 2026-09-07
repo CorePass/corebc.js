@@ -1,20 +1,17 @@
-"use strict";
-/**
- *  About hashing here...
- *
- *  @_section: api/hashing:Hashing Utilities  [about-hashing]
- */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.verifyTypedData = exports.TypedDataEncoder = exports.solidityPackedSha256 = exports.solidityPacked = exports.verifyMessage = exports.hashMessage = exports.id = void 0;
-var id_js_1 = require("./id.js");
-Object.defineProperty(exports, "id", { enumerable: true, get: function () { return id_js_1.id; } });
-var message_js_1 = require("./message.js");
-Object.defineProperty(exports, "hashMessage", { enumerable: true, get: function () { return message_js_1.hashMessage; } });
-Object.defineProperty(exports, "verifyMessage", { enumerable: true, get: function () { return message_js_1.verifyMessage; } });
-var solidity_js_1 = require("./solidity.js");
-Object.defineProperty(exports, "solidityPacked", { enumerable: true, get: function () { return solidity_js_1.solidityPacked; } });
-Object.defineProperty(exports, "solidityPackedSha256", { enumerable: true, get: function () { return solidity_js_1.solidityPackedSha256; } });
-var typed_data_js_1 = require("./typed-data.js");
-Object.defineProperty(exports, "TypedDataEncoder", { enumerable: true, get: function () { return typed_data_js_1.TypedDataEncoder; } });
-Object.defineProperty(exports, "verifyTypedData", { enumerable: true, get: function () { return typed_data_js_1.verifyTypedData; } });
+'use strict';
+
+var id = require('./id.js');
+var message = require('./message.js');
+var solidity = require('./solidity.js');
+var typedData = require('./typed-data.js');
+
+
+
+exports.id = id.id;
+exports.hashMessage = message.hashMessage;
+exports.verifyMessage = message.verifyMessage;
+exports.solidityPacked = solidity.solidityPacked;
+exports.solidityPackedSha256 = solidity.solidityPackedSha256;
+exports.TypedDataEncoder = typedData.TypedDataEncoder;
+exports.verifyTypedData = typedData.verifyTypedData;
 //# sourceMappingURL=index.js.map

@@ -1,21 +1,21 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.FetchResponse = exports.FetchRequest = exports.FetchCancelSignal = void 0;
+'use strict';
+
+var base64 = require('./base64.js');
+var data = require('./data.js');
+var errors = require('./errors.js');
+var properties = require('./properties.js');
+var utf8 = require('./utf8.js');
+var geturl = require('./geturl.js');
+
 /**
  *  Explain fetching here...
  *
  *  @_section api/utils/fetching:Fetching Web Content  [about-fetch]
  */
-const base64_js_1 = require("./base64.js");
-const data_js_1 = require("./data.js");
-const errors_js_1 = require("./errors.js");
-const properties_js_1 = require("./properties.js");
-const utf8_js_1 = require("./utf8.js");
-const geturl_js_1 = require("./geturl.js");
 const MAX_ATTEMPTS = 12;
 const SLOT_INTERVAL = 250;
 // The global FetchGetUrlFunc implementation.
-let getUrlFunc = geturl_js_1.getUrl;
+let getUrlFunc = geturl.getUrl;
 const reData = new RegExp("^data:([^;:]*)?(;base64)?,(.*)$", "i");
 const reIpfs = new RegExp("^ipfs://(ipfs/)?(.*)$", "i");
 // If locked, new Gateways cannot be added
@@ -29,7 +29,7 @@ async function dataGatewayFunc(url, signal) {
         }
         return new FetchResponse(200, "OK", {
             "content-type": match[1] || "text/plain",
-        }, match[2] ? (0, base64_js_1.decodeBase64)(match[3]) : unpercent(match[3]));
+        }, match[2] ? base64.decodeBase64(match[3]) : unpercent(match[3]));
     }
     catch (error) {
         return new FetchResponse(599, "BAD REQUEST (invalid data: URI)", {}, null, new FetchRequest(url));
@@ -82,7 +82,7 @@ class FetchCancelSignal {
         });
     }
     addListener(listener) {
-        (0, errors_js_1.assert)(!this.#cancelled, "singal already cancelled", "UNSUPPORTED_OPERATION", {
+        errors.assert(!this.#cancelled, "singal already cancelled", "UNSUPPORTED_OPERATION", {
             operation: "fetchCancelSignal.addCancelListener",
         });
         this.#listeners.push(listener);
@@ -91,10 +91,9 @@ class FetchCancelSignal {
         return this.#cancelled;
     }
     checkSignal() {
-        (0, errors_js_1.assert)(!this.cancelled, "cancelled", "CANCELLED", {});
+        errors.assert(!this.cancelled, "cancelled", "CANCELLED", {});
     }
 }
-exports.FetchCancelSignal = FetchCancelSignal;
 // Check the signal, throwing if it is cancelled
 function checkSignal(signal) {
     if (signal == null) {
@@ -173,7 +172,7 @@ class FetchRequest {
             this.#bodyType = undefined;
         }
         else if (typeof body === "string") {
-            this.#body = (0, utf8_js_1.toUtf8Bytes)(body);
+            this.#body = utf8.toUtf8Bytes(body);
             this.#bodyType = "text/plain";
         }
         else if (body instanceof Uint8Array) {
@@ -181,7 +180,7 @@ class FetchRequest {
             this.#bodyType = "application/octet-stream";
         }
         else if (typeof body === "object") {
-            this.#body = (0, utf8_js_1.toUtf8Bytes)(JSON.stringify(body));
+            this.#body = utf8.toUtf8Bytes(JSON.stringify(body));
             this.#bodyType = "application/json";
         }
         else {
@@ -226,7 +225,7 @@ class FetchRequest {
     get headers() {
         const headers = Object.assign({}, this.#headers);
         if (this.#creds) {
-            headers["authorization"] = `Basic ${(0, base64_js_1.encodeBase64)((0, utf8_js_1.toUtf8Bytes)(this.#creds))}`;
+            headers["authorization"] = `Basic ${base64.encodeBase64(utf8.toUtf8Bytes(this.#creds))}`;
         }
         if (this.allowGzip) {
             headers["accept-encoding"] = "gzip";
@@ -287,7 +286,7 @@ class FetchRequest {
      *  Sets an ``Authorization`` for %%username%% with %%password%%.
      */
     setCredentials(username, password) {
-        (0, errors_js_1.assertArgument)(!username.match(/:/), "invalid basic authentication username", "username", "[REDACTED]");
+        errors.assertArgument(!username.match(/:/), "invalid basic authentication username", "username", "[REDACTED]");
         this.#creds = `${username}:${password}`;
     }
     /**
@@ -318,7 +317,7 @@ class FetchRequest {
         return this.#timeout;
     }
     set timeout(timeout) {
-        (0, errors_js_1.assertArgument)(timeout >= 0, "timeout must be non-zero", "timeout", timeout);
+        errors.assertArgument(timeout >= 0, "timeout must be non-zero", "timeout", timeout);
         this.#timeout = timeout;
     }
     /**
@@ -378,7 +377,7 @@ class FetchRequest {
         };
     }
     toString() {
-        return `<FetchRequest method=${JSON.stringify(this.method)} url=${JSON.stringify(this.url)} headers=${JSON.stringify(this.headers)} body=${this.#body ? (0, data_js_1.hexlify)(this.#body) : "null"}>`;
+        return `<FetchRequest method=${JSON.stringify(this.method)} url=${JSON.stringify(this.url)} headers=${JSON.stringify(this.headers)} body=${this.#body ? data.hexlify(this.#body) : "null"}>`;
     }
     /**
      *  Update the throttle parameters used to determine maximum
@@ -396,7 +395,7 @@ class FetchRequest {
         if (attempt >= this.#throttle.maxAttempts) {
             return _response.makeServerError("exceeded maximum retry limit");
         }
-        (0, errors_js_1.assert)(getTime() <= expires, "timeout", "TIMEOUT", {
+        errors.assert(getTime() <= expires, "timeout", "TIMEOUT", {
             operation: "request.send",
             reason: "timeout",
             request: _request,
@@ -493,7 +492,7 @@ class FetchRequest {
      *  Resolves to the response by sending the request.
      */
     send() {
-        (0, errors_js_1.assert)(this.#signal == null, "request already sent", "UNSUPPORTED_OPERATION", { operation: "fetchRequest.send" });
+        errors.assert(this.#signal == null, "request already sent", "UNSUPPORTED_OPERATION", { operation: "fetchRequest.send" });
         this.#signal = new FetchCancelSignal(this);
         return this.#send(0, getTime() + this.timeout, 0, this, new FetchResponse(0, "", {}, null, this));
     }
@@ -502,7 +501,7 @@ class FetchRequest {
      *  error to be rejected from the [[send]].
      */
     cancel() {
-        (0, errors_js_1.assert)(this.#signal != null, "request has not been sent", "UNSUPPORTED_OPERATION", { operation: "fetchRequest.cancel" });
+        errors.assert(this.#signal != null, "request has not been sent", "UNSUPPORTED_OPERATION", { operation: "fetchRequest.cancel" });
         const signal = fetchSignals.get(this);
         if (!signal) {
             throw new Error("missing signal; should not happen");
@@ -521,7 +520,7 @@ class FetchRequest {
         // - non-GET requests
         // - downgrading the security (e.g. https => http)
         // - to non-HTTP (or non-HTTPS) protocols [this could be relaxed?]
-        (0, errors_js_1.assert)(this.method === "GET" &&
+        errors.assert(this.method === "GET" &&
             (current !== "https" || target !== "http") &&
             location.match(/^https?:/), `unsupported redirect`, "UNSUPPORTED_OPERATION", {
             operation: `redirect(${this.method} ${JSON.stringify(this.url)} => ${JSON.stringify(location)})`,
@@ -638,7 +637,6 @@ class FetchRequest {
         return getIpfsGatewayFunc(baseUrl);
     }
 }
-exports.FetchRequest = FetchRequest;
 /**
  *  The response for a FetchREquest.
  */
@@ -650,7 +648,7 @@ class FetchResponse {
     #request;
     #error;
     toString() {
-        return `<FetchResponse status=${this.statusCode} body=${this.#body ? (0, data_js_1.hexlify)(this.#body) : "null"}>`;
+        return `<FetchResponse status=${this.statusCode} body=${this.#body ? data.hexlify(this.#body) : "null"}>`;
     }
     /**
      *  The response status code.
@@ -684,10 +682,10 @@ class FetchResponse {
      */
     get bodyText() {
         try {
-            return this.#body == null ? "" : (0, utf8_js_1.toUtf8String)(this.#body);
+            return this.#body == null ? "" : utf8.toUtf8String(this.#body);
         }
         catch (error) {
-            (0, errors_js_1.assert)(false, "response body is not valid UTF-8 data", "UNSUPPORTED_OPERATION", {
+            errors.assert(false, "response body is not valid UTF-8 data", "UNSUPPORTED_OPERATION", {
                 operation: "bodyText",
                 info: { response: this },
             });
@@ -704,7 +702,7 @@ class FetchResponse {
             return JSON.parse(this.bodyText);
         }
         catch (error) {
-            (0, errors_js_1.assert)(false, "response body is not valid JSON", "UNSUPPORTED_OPERATION", {
+            errors.assert(false, "response body is not valid JSON", "UNSUPPORTED_OPERATION", {
                 operation: "bodyJson",
                 info: { response: this },
             });
@@ -766,10 +764,10 @@ class FetchResponse {
             stall = -1;
         }
         else {
-            (0, errors_js_1.assertArgument)(Number.isInteger(stall) && stall >= 0, "invalid stall timeout", "stall", stall);
+            errors.assertArgument(Number.isInteger(stall) && stall >= 0, "invalid stall timeout", "stall", stall);
         }
         const error = new Error(message || "throttling requests");
-        (0, properties_js_1.defineProperties)(error, { stall, throttle: true });
+        properties.defineProperties(error, { stall, throttle: true });
         throw error;
     }
     /**
@@ -809,23 +807,26 @@ class FetchResponse {
         if (message === "") {
             message = `server response ${this.statusCode} ${this.statusMessage}`;
         }
-        (0, errors_js_1.assert)(false, message, "SERVER_ERROR", {
+        errors.assert(false, message, "SERVER_ERROR", {
             request: this.request || "unknown request",
             response: this,
             error,
         });
     }
 }
-exports.FetchResponse = FetchResponse;
 function getTime() {
     return new Date().getTime();
 }
 function unpercent(value) {
-    return (0, utf8_js_1.toUtf8Bytes)(value.replace(/%([0-9a-f][0-9a-f])/gi, (all, code) => {
+    return utf8.toUtf8Bytes(value.replace(/%([0-9a-f][0-9a-f])/gi, (all, code) => {
         return String.fromCharCode(parseInt(code, 16));
     }));
 }
 function wait(delay) {
     return new Promise((resolve) => setTimeout(resolve, delay));
 }
+
+exports.FetchCancelSignal = FetchCancelSignal;
+exports.FetchRequest = FetchRequest;
+exports.FetchResponse = FetchResponse;
 //# sourceMappingURL=fetch.js.map

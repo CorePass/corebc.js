@@ -4,101 +4,101 @@ import { assertArgument } from "../utils/index.js";
 
 import type { FeeData, Provider } from "./provider.js";
 export class NetworkPlugin {
-  readonly name!: string;
+	readonly name!: string;
 
-  constructor(name: string) {
-    defineProperties<NetworkPlugin>(this, { name });
-  }
+	constructor(name: string) {
+		defineProperties<NetworkPlugin>(this, { name });
+	}
 
-  clone(): NetworkPlugin {
-    return new NetworkPlugin(this.name);
-  }
+	clone(): NetworkPlugin {
+		return new NetworkPlugin(this.name);
+	}
 
-  //    validate(network: Network): NetworkPlugin {
-  //        return this;
-  //    }
+	//    validate(network: Network): NetworkPlugin {
+	//        return this;
+	//    }
 }
 
 // Networks can use this plugin to override calculations for the
 // intrinsic energy cost of a transaction for networks that differ
 // from the latest hardfork on Core mainnet.
 export type EnergyCostParameters = {
-  txBase?: number;
-  txCreate?: number;
-  txDataZero?: number;
-  txDataNonzero?: number;
-  txAccessListStorageKey?: number;
-  txAccessListAddress?: number;
+	txBase?: number;
+	txCreate?: number;
+	txDataZero?: number;
+	txDataNonzero?: number;
+	txAccessListStorageKey?: number;
+	txAccessListAddress?: number;
 };
 
 export class EnergyCostPlugin
-  extends NetworkPlugin
-  implements EnergyCostParameters
+	extends NetworkPlugin
+	implements EnergyCostParameters
 {
-  readonly effectiveBlock!: number;
+	readonly effectiveBlock!: number;
 
-  readonly txBase!: number;
-  readonly txCreate!: number;
-  readonly txDataZero!: number;
-  readonly txDataNonzero!: number;
-  readonly txAccessListStorageKey!: number;
-  readonly txAccessListAddress!: number;
+	readonly txBase!: number;
+	readonly txCreate!: number;
+	readonly txDataZero!: number;
+	readonly txDataNonzero!: number;
+	readonly txAccessListStorageKey!: number;
+	readonly txAccessListAddress!: number;
 
-  constructor(effectiveBlock?: number, costs?: EnergyCostParameters) {
-    if (effectiveBlock == null) {
-      effectiveBlock = 0;
-    }
-    super(`org.corebc.network.plugins.EnergyCost#${effectiveBlock || 0}`);
+	constructor(effectiveBlock?: number, costs?: EnergyCostParameters) {
+		if (effectiveBlock == null) {
+			effectiveBlock = 0;
+		}
+		super(`org.corebc.network.plugins.EnergyCost#${effectiveBlock || 0}`);
 
-    const props: Record<string, number> = { effectiveBlock };
-    function set(name: keyof EnergyCostParameters, nullish: number): void {
-      let value = (costs || {})[name];
-      if (value == null) {
-        value = nullish;
-      }
-      assertArgument(
-        typeof value === "number",
-        `invalud value for ${name}`,
-        "costs",
-        costs,
-      );
-      props[name] = value;
-    }
+		const props: Record<string, number> = { effectiveBlock };
+		function set(name: keyof EnergyCostParameters, nullish: number): void {
+			let value = (costs || {})[name];
+			if (value == null) {
+				value = nullish;
+			}
+			assertArgument(
+				typeof value === "number",
+				`invalud value for ${name}`,
+				"costs",
+				costs,
+			);
+			props[name] = value;
+		}
 
-    set("txBase", 21000);
-    set("txCreate", 32000);
-    set("txDataZero", 4);
-    set("txDataNonzero", 16);
-    set("txAccessListStorageKey", 1900);
-    set("txAccessListAddress", 2400);
+		set("txBase", 21000);
+		set("txCreate", 32000);
+		set("txDataZero", 4);
+		set("txDataNonzero", 16);
+		set("txAccessListStorageKey", 1900);
+		set("txAccessListAddress", 2400);
 
-    defineProperties<EnergyCostPlugin>(this, props);
-  }
+		defineProperties<EnergyCostPlugin>(this, props);
+	}
 
-  clone(): EnergyCostPlugin {
-    return new EnergyCostPlugin(this.effectiveBlock, this);
-  }
+	clone(): EnergyCostPlugin {
+		return new EnergyCostPlugin(this.effectiveBlock, this);
+	}
 }
 
 export class FeeDataNetworkPlugin extends NetworkPlugin {
-  readonly #feeDataFunc: (provider: Provider) => Promise<FeeData>;
+	readonly #feeDataFunc: (provider: Provider) => Promise<FeeData>;
 
-  get feeDataFunc(): (provider: Provider) => Promise<FeeData> {
-    return this.#feeDataFunc;
-  }
+	get feeDataFunc(): (provider: Provider) => Promise<FeeData> {
+		return this.#feeDataFunc;
+	}
 
-  constructor(feeDataFunc: (provider: Provider) => Promise<FeeData>) {
-    super("org.corebc.plugins.network.FeeData");
-    this.#feeDataFunc = feeDataFunc;
-  }
+	constructor(feeDataFunc: (provider: Provider) => Promise<FeeData>) {
+		super("org.corebc.plugins.network.FeeData");
+		this.#feeDataFunc = feeDataFunc;
+	}
 
-  async getFeeData(provider: Provider): Promise<FeeData> {
-    return await this.#feeDataFunc(provider);
-  }
+	async getFeeData(provider: Provider): Promise<FeeData> {
+		return await this.#feeDataFunc(provider);
+	}
 
-  clone(): FeeDataNetworkPlugin {
-    return new FeeDataNetworkPlugin(this.#feeDataFunc);
-  }
+	clone(): FeeDataNetworkPlugin {
+		return new FeeDataNetworkPlugin(this.#feeDataFunc);
+	}
 }
 
 /*

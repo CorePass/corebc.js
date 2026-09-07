@@ -1,9 +1,35 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.LangJa = void 0;
-const index_js_1 = require("../hash/index.js");
-const index_js_2 = require("../utils/index.js");
-const wordlist_js_1 = require("./wordlist.js");
+'use strict';
+
+var id = require('../hash/id.js');
+require('../constants/numbers.js');
+require('../address/index.js');
+require('../utils/base58.js');
+var data$1 = require('../utils/data.js');
+var errors = require('../utils/errors.js');
+require('../logger/logger.js');
+var utf8 = require('../utils/utf8.js');
+require('http');
+require('https');
+require('zlib');
+require('../utils/fixednumber.js');
+require('../utils/maths.js');
+require('../crypto/hmac.js');
+require('../crypto/ripemd160.js');
+require('../crypto/pbkdf2.js');
+require('../crypto/random.js');
+require('../crypto/scrypt.js');
+require('../crypto/sha3.js');
+require('bcrypto/lib/ed448.js');
+require('buffer');
+require('bcrypto/lib/pbkdf2.js');
+require('bcrypto/lib/sha3-512.js');
+require('crypto');
+require('../crypto/keccak.js');
+require('../crypto/signature.js');
+require('../transaction/transaction.js');
+require('../hash/typed-data.js');
+var wordlist$1 = require('./wordlist.js');
+
 const data = [
     // 4-kana words
     "AQRASRAGBAGUAIRAHBAghAURAdBAdcAnoAMEAFBAFCBKFBQRBSFBCXBCDBCHBGFBEQBpBBpQBIkBHNBeOBgFBVCBhBBhNBmOBmRBiHBiFBUFBZDBvFBsXBkFBlcBjYBwDBMBBTBBTRBWBBWXXaQXaRXQWXSRXCFXYBXpHXOQXHRXhRXuRXmXXbRXlXXwDXTRXrCXWQXWGaBWaKcaYgasFadQalmaMBacAKaRKKBKKXKKjKQRKDRKCYKCRKIDKeVKHcKlXKjHKrYNAHNBWNaRNKcNIBNIONmXNsXNdXNnBNMBNRBNrXNWDNWMNFOQABQAHQBrQXBQXFQaRQKXQKDQKOQKFQNBQNDQQgQCXQCDQGBQGDQGdQYXQpBQpQQpHQLXQHuQgBQhBQhCQuFQmXQiDQUFQZDQsFQdRQkHQbRQlOQlmQPDQjDQwXQMBQMDQcFQTBQTHQrDDXQDNFDGBDGQDGRDpFDhFDmXDZXDbRDMYDRdDTRDrXSAhSBCSBrSGQSEQSHBSVRShYShkSyQSuFSiBSdcSoESocSlmSMBSFBSFKSFNSFdSFcCByCaRCKcCSBCSRCCrCGbCEHCYXCpBCpQCIBCIHCeNCgBCgFCVECVcCmkCmwCZXCZFCdRClOClmClFCjDCjdCnXCwBCwXCcRCFQCFjGXhGNhGDEGDMGCDGCHGIFGgBGVXGVEGVRGmXGsXGdYGoSGbRGnXGwXGwDGWRGFNGFLGFOGFdGFkEABEBDEBFEXOEaBEKSENBENDEYXEIgEIkEgBEgQEgHEhFEudEuFEiBEiHEiFEZDEvBEsXEsFEdXEdREkFEbBEbRElFEPCEfkEFNYAEYAhYBNYQdYDXYSRYCEYYoYgQYgRYuRYmCYZTYdBYbEYlXYjQYRbYWRpKXpQopQnpSFpCXpIBpISphNpdBpdRpbRpcZpFBpFNpFDpFopFrLADLBuLXQLXcLaFLCXLEhLpBLpFLHXLeVLhILdHLdRLoDLbRLrXIABIBQIBCIBsIBoIBMIBRIXaIaRIKYIKRINBINuICDIGBIIDIIkIgRIxFIyQIiHIdRIbYIbRIlHIwRIMYIcRIRVITRIFBIFNIFQOABOAFOBQOaFONBONMOQFOSFOCDOGBOEQOpBOLXOIBOIFOgQOgFOyQOycOmXOsXOdIOkHOMEOMkOWWHBNHXNHXWHNXHDuHDRHSuHSRHHoHhkHmRHdRHkQHlcHlRHwBHWcgAEgAggAkgBNgBQgBEgXOgYcgLXgHjgyQgiBgsFgdagMYgWSgFQgFEVBTVXEVKBVKNVKDVKYVKRVNBVNYVDBVDxVSBVSRVCjVGNVLXVIFVhBVhcVsXVdRVbRVlRhBYhKYhDYhGShxWhmNhdahdkhbRhjohMXhTRxAXxXSxKBxNBxEQxeNxeQxhXxsFxdbxlHxjcxFBxFNxFQxFOxFoyNYyYoybcyMYuBQuBRuBruDMuCouHBudQukkuoBulVuMXuFEmCYmCRmpRmeDmiMmjdmTFmFQiADiBOiaRiKRiNBiNRiSFiGkiGFiERipRiLFiIFihYibHijBijEiMXiWBiFBiFCUBQUXFUaRUNDUNcUNRUNFUDBUSHUCDUGBUGFUEqULNULoUIRUeEUeYUgBUhFUuRUiFUsXUdFUkHUbBUjSUjYUwXUMDUcHURdUTBUrBUrXUrQZAFZXZZaRZKFZNBZQFZCXZGBZYdZpBZLDZIFZHXZHNZeQZVRZVFZmXZiBZvFZdFZkFZbHZbFZwXZcCZcRZRBvBQvBGvBLvBWvCovMYsAFsBDsaRsKFsNFsDrsSHsSFsCXsCRsEBsEHsEfspBsLBsLDsIgsIRseGsbRsFBsFQsFSdNBdSRdCVdGHdYDdHcdVbdySduDdsXdlRdwXdWYdWcdWRkBMkXOkaRkNIkNFkSFkCFkYBkpRkeNkgBkhVkmXksFklVkMBkWDkFNoBNoaQoaFoNBoNXoNaoNEoSRoEroYXoYCoYbopRopFomXojkowXorFbBEbEIbdBbjYlaRlDElMXlFDjKjjSRjGBjYBjYkjpRjLXjIBjOFjeVjbRjwBnXQnSHnpFnLXnINnMBnTRwXBwXNwXYwNFwQFwSBwGFwLXwLDweNwgBwuHwjDwnXMBXMpFMIBMeNMTHcaQcNBcDHcSFcCXcpBcLXcLDcgFcuFcnXcwXccDcTQcrFTQErXNrCHrpFrgFrbFrTHrFcWNYWNbWEHWMXWTR",
@@ -24,12 +50,12 @@ const data = [
 const mapping = "~~AzB~X~a~KN~Q~D~S~C~G~E~Y~p~L~I~O~eH~g~V~hxyumi~~U~~Z~~v~~s~~dkoblPjfnqwMcRTr~W~~~F~~~~~Jt";
 let _wordlist = null;
 function hex(word) {
-    return (0, index_js_2.hexlify)((0, index_js_2.toUtf8Bytes)(word));
+    return data$1.hexlify(utf8.toUtf8Bytes(word));
 }
 const KiYoKu = "0xe3818de38284e3818f";
 const KyoKu = "0xe3818de38283e3818f";
 function toString(data) {
-    return (0, index_js_2.toUtf8String)(new Uint8Array(data));
+    return utf8.toUtf8String(new Uint8Array(data));
 }
 function loadWords() {
     if (_wordlist !== null) {
@@ -103,7 +129,7 @@ function loadWords() {
     /* c8 ignore stop */
     // Verify the computed list matches the official list
     /* istanbul ignore if */
-    const checksum = (0, index_js_1.id)(wordlist.join("\n") + "\n");
+    const checksum = id.id(wordlist.join("\n") + "\n");
     /* c8 ignore start */
     if (checksum !==
         "0xcb36b09e6baa935787fd762ce65e80b0c6a8dabdfbc3a7f86ac0e2c4fd111600") {
@@ -119,7 +145,7 @@ let wordlist = null;
  *
  *  @_docloc: api/wordlists
  */
-class LangJa extends wordlist_js_1.Wordlist {
+class LangJa extends wordlist$1.Wordlist {
     /**
      *  Creates a new instance of the Japanese language Wordlist.
      *
@@ -133,7 +159,7 @@ class LangJa extends wordlist_js_1.Wordlist {
     }
     getWord(index) {
         const words = loadWords();
-        (0, index_js_2.assertArgument)(index >= 0 && index < words.length, `invalid word index: ${index}`, "index", index);
+        errors.assertArgument(index >= 0 && index < words.length, `invalid word index: ${index}`, "index", index);
         return words[index];
     }
     getWordIndex(word) {
@@ -157,5 +183,6 @@ class LangJa extends wordlist_js_1.Wordlist {
         return wordlist;
     }
 }
+
 exports.LangJa = LangJa;
 //# sourceMappingURL=lang-ja.js.map

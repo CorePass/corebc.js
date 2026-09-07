@@ -1,11 +1,22 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Contract = exports.BaseContract = exports.resolveArgs = exports.copyOverrides = void 0;
-const index_js_1 = require("../abi/index.js");
-const checks_js_1 = require("../address/checks.js");
-const provider_js_1 = require("../providers/provider.js");
-const index_js_2 = require("../utils/index.js");
-const wrappers_js_1 = require("./wrappers.js");
+'use strict';
+
+require('../abi/abi-coder.js');
+require('../utils/base58.js');
+var data = require('../utils/data.js');
+var errors = require('../utils/errors.js');
+var properties = require('../utils/properties.js');
+require('http');
+require('https');
+require('zlib');
+require('../utils/fixednumber.js');
+require('../utils/maths.js');
+require('../abi/fragments.js');
+var _interface = require('../abi/interface.js');
+var typed = require('../abi/typed.js');
+var checks = require('../address/checks.js');
+var provider = require('../providers/provider.js');
+var wrappers = require('./wrappers.js');
+
 const BN_0 = BigInt(0);
 function canCall(value) {
     return value && typeof value.call === "function";
@@ -23,7 +34,7 @@ class PreparedTopicFilter {
     #filter;
     fragment;
     constructor(contract, fragment, args) {
-        (0, index_js_2.defineProperties)(this, { fragment });
+        properties.defineProperties(this, { fragment });
         if (fragment.inputs.length < args.length) {
             throw new Error("too many arguments");
         }
@@ -36,7 +47,7 @@ class PreparedTopicFilter {
                 }
                 return param.walkAsync(args[index], (type, value) => {
                     if (type === "address") {
-                        return (0, checks_js_1.resolveAddress)(value);
+                        return checks.resolveAddress(value);
                     }
                     return value;
                 });
@@ -77,16 +88,15 @@ function getProvider(value) {
  */
 async function copyOverrides(arg, allowed) {
     // Create a shallow copy (we'll deep-ify anything needed during normalizing)
-    const overrides = (0, provider_js_1.copyRequest)(index_js_1.Typed.dereference(arg, "overrides"));
-    (0, index_js_2.assertArgument)(overrides.to == null || (allowed || []).indexOf("to") >= 0, "cannot override to", "overrides.to", overrides.to);
-    (0, index_js_2.assertArgument)(overrides.data == null || (allowed || []).indexOf("data") >= 0, "cannot override data", "overrides.data", overrides.data);
+    const overrides = provider.copyRequest(typed.Typed.dereference(arg, "overrides"));
+    errors.assertArgument(overrides.to == null || (allowed || []).indexOf("to") >= 0, "cannot override to", "overrides.to", overrides.to);
+    errors.assertArgument(overrides.data == null || (allowed || []).indexOf("data") >= 0, "cannot override data", "overrides.data", overrides.data);
     // Resolve any from
     if (overrides.from) {
-        overrides.from = await (0, checks_js_1.resolveAddress)(overrides.from);
+        overrides.from = await checks.resolveAddress(overrides.from);
     }
     return overrides;
 }
-exports.copyOverrides = copyOverrides;
 /**
  *  @_ignore:
  */
@@ -94,15 +104,14 @@ async function resolveArgs(_runner, inputs, args) {
     // Recursively descend into args and resolve any addresses
     return await Promise.all(inputs.map((param, index) => {
         return param.walkAsync(args[index], (type, value) => {
-            value = index_js_1.Typed.dereference(value, type);
+            value = typed.Typed.dereference(value, type);
             if (type === "address") {
-                return (0, checks_js_1.resolveAddress)(value);
+                return checks.resolveAddress(value);
             }
             return value;
         });
     }));
 }
-exports.resolveArgs = resolveArgs;
 function buildWrappedFallback(contract) {
     const populateTransaction = async function (overrides) {
         // If an overrides was passed in, copy it and normalize the values
@@ -111,20 +120,20 @@ function buildWrappedFallback(contract) {
         const iface = contract.interface;
         // Only allow payable contracts to set non-zero value
         const payable = iface.receive || (iface.fallback && iface.fallback.payable);
-        (0, index_js_2.assertArgument)(payable || (tx.value || BN_0) === BN_0, "cannot send value to non-payable contract", "overrides.value", tx.value);
+        errors.assertArgument(payable || (tx.value || BN_0) === BN_0, "cannot send value to non-payable contract", "overrides.value", tx.value);
         // Only allow fallback contracts to set non-empty data
-        (0, index_js_2.assertArgument)(iface.fallback || (tx.data || "0x") === "0x", "cannot send data to receive-only contract", "overrides.data", tx.data);
+        errors.assertArgument(iface.fallback || (tx.data || "0x") === "0x", "cannot send data to receive-only contract", "overrides.data", tx.data);
         return tx;
     };
     const staticCall = async function (overrides) {
         const runner = getRunner(contract.runner, "call");
-        (0, index_js_2.assert)(canCall(runner), "contract runner does not support calling", "UNSUPPORTED_OPERATION", { operation: "call" });
+        errors.assert(canCall(runner), "contract runner does not support calling", "UNSUPPORTED_OPERATION", { operation: "call" });
         const tx = await populateTransaction(overrides);
         try {
             return await runner.call(tx);
         }
         catch (error) {
-            if ((0, index_js_2.isCallException)(error) && error.data) {
+            if (errors.isCallException(error) && error.data) {
                 throw contract.interface.makeError(error.data, tx);
             }
             throw error;
@@ -132,22 +141,22 @@ function buildWrappedFallback(contract) {
     };
     const send = async function (overrides) {
         const runner = contract.runner;
-        (0, index_js_2.assert)(canSend(runner), "contract runner does not support sending transactions", "UNSUPPORTED_OPERATION", { operation: "sendTransaction" });
+        errors.assert(canSend(runner), "contract runner does not support sending transactions", "UNSUPPORTED_OPERATION", { operation: "sendTransaction" });
         const tx = await runner.sendTransaction(await populateTransaction(overrides));
         const provider = getProvider(contract.runner);
         // @TODO: the provider can be null; make a custom dummy provider that will throw a
         // meaningful error
-        return new wrappers_js_1.ContractTransactionResponse(contract.interface, provider, tx);
+        return new wrappers.ContractTransactionResponse(contract.interface, provider, tx);
     };
     const estimateEnergy = async function (overrides) {
         const runner = getRunner(contract.runner, "estimateEnergy");
-        (0, index_js_2.assert)(canEstimate(runner), "contract runner does not support energy estimation", "UNSUPPORTED_OPERATION", { operation: "estimateEnergy" });
+        errors.assert(canEstimate(runner), "contract runner does not support energy estimation", "UNSUPPORTED_OPERATION", { operation: "estimateEnergy" });
         return await runner.estimateEnergy(await populateTransaction(overrides));
     };
     const method = async (overrides) => {
         return await send(overrides);
     };
-    (0, index_js_2.defineProperties)(method, {
+    properties.defineProperties(method, {
         _contract: contract,
         estimateEnergy,
         populateTransaction,
@@ -159,7 +168,7 @@ function buildWrappedFallback(contract) {
 function buildWrappedMethod(contract, key) {
     const getFragment = function (...args) {
         const fragment = contract.interface.getFunction(key, args);
-        (0, index_js_2.assert)(fragment, "no matching fragment in getFragment", "UNSUPPORTED_OPERATION", {
+        errors.assert(fragment, "no matching fragment in getFragment", "UNSUPPORTED_OPERATION", {
             operation: "fragment",
         });
         return fragment;
@@ -175,7 +184,7 @@ function buildWrappedMethod(contract, key) {
             throw new Error("internal error: fragment inputs doesn't match arguments; should not happen");
         }
         const resolvedArgs = await resolveArgs(contract.runner, fragment.inputs, args);
-        return Object.assign({}, overrides, await (0, index_js_2.resolveProperties)({
+        return Object.assign({}, overrides, await properties.resolveProperties({
             to: contract.getAddress(),
             data: contract.interface.encodeFunctionData(fragment, resolvedArgs),
         }));
@@ -189,28 +198,28 @@ function buildWrappedMethod(contract, key) {
     };
     const send = async function (...args) {
         const runner = contract.runner;
-        (0, index_js_2.assert)(canSend(runner), "contract runner does not support sending transactions", "UNSUPPORTED_OPERATION", { operation: "sendTransaction" });
+        errors.assert(canSend(runner), "contract runner does not support sending transactions", "UNSUPPORTED_OPERATION", { operation: "sendTransaction" });
         const tx = await runner.sendTransaction(await populateTransaction(...args));
         const provider = getProvider(contract.runner);
         // @TODO: the provider can be null; make a custom dummy provider that will throw a
         // meaningful error
-        return new wrappers_js_1.ContractTransactionResponse(contract.interface, provider, tx);
+        return new wrappers.ContractTransactionResponse(contract.interface, provider, tx);
     };
     const estimateEnergy = async function (...args) {
         const runner = getRunner(contract.runner, "estimateEnergy");
-        (0, index_js_2.assert)(canEstimate(runner), "contract runner does not support energy estimation", "UNSUPPORTED_OPERATION", { operation: "estimateEnergy" });
+        errors.assert(canEstimate(runner), "contract runner does not support energy estimation", "UNSUPPORTED_OPERATION", { operation: "estimateEnergy" });
         return await runner.estimateEnergy(await populateTransaction(...args));
     };
     const staticCallResult = async function (...args) {
         const runner = getRunner(contract.runner, "call");
-        (0, index_js_2.assert)(canCall(runner), "contract runner does not support calling", "UNSUPPORTED_OPERATION", { operation: "call" });
+        errors.assert(canCall(runner), "contract runner does not support calling", "UNSUPPORTED_OPERATION", { operation: "call" });
         const tx = await populateTransaction(...args);
         let result = "0x";
         try {
             result = await runner.call(tx);
         }
         catch (error) {
-            if ((0, index_js_2.isCallException)(error) && error.data) {
+            if (errors.isCallException(error) && error.data) {
                 throw contract.interface.makeError(error.data, tx);
             }
             throw error;
@@ -225,7 +234,7 @@ function buildWrappedMethod(contract, key) {
         }
         return await send(...args);
     };
-    (0, index_js_2.defineProperties)(method, {
+    properties.defineProperties(method, {
         name: contract.interface.getFunctionName(key),
         _contract: contract,
         _key: key,
@@ -242,7 +251,7 @@ function buildWrappedMethod(contract, key) {
         enumerable: true,
         get: () => {
             const fragment = contract.interface.getFunction(key);
-            (0, index_js_2.assert)(fragment, "no matching fragment in defineProperty", "UNSUPPORTED_OPERATION", {
+            errors.assert(fragment, "no matching fragment in defineProperty", "UNSUPPORTED_OPERATION", {
                 operation: "fragment",
             });
             return fragment;
@@ -253,7 +262,7 @@ function buildWrappedMethod(contract, key) {
 function buildWrappedEvent(contract, key) {
     const getFragment = function (...args) {
         const fragment = contract.interface.getEvent(key, args);
-        (0, index_js_2.assert)(fragment, "no matching fragment in", "UNSUPPORTED_OPERATION", {
+        errors.assert(fragment, "no matching fragment in", "UNSUPPORTED_OPERATION", {
             operation: "fragment",
         });
         return fragment;
@@ -261,7 +270,7 @@ function buildWrappedEvent(contract, key) {
     const method = function (...args) {
         return new PreparedTopicFilter(contract, getFragment(...args), args);
     };
-    (0, index_js_2.defineProperties)(method, {
+    properties.defineProperties(method, {
         name: contract.interface.getEventName(key),
         _contract: contract,
         _key: key,
@@ -273,7 +282,7 @@ function buildWrappedEvent(contract, key) {
         enumerable: true,
         get: () => {
             const fragment = contract.interface.getEvent(key);
-            (0, index_js_2.assert)(fragment, "no matching fragment", "UNSUPPORTED_OPERATION", {
+            errors.assert(fragment, "no matching fragment", "UNSUPPORTED_OPERATION", {
                 operation: "fragment",
             });
             return fragment;
@@ -307,11 +316,11 @@ async function getSubInfo(contract, event) {
     // events which need deconstructing.
     if (Array.isArray(event)) {
         const topicHashify = function (name) {
-            if ((0, index_js_2.isHexString)(name, 32)) {
+            if (data.isHexString(name, 32)) {
                 return name;
             }
             const fragment = contract.interface.getEvent(name);
-            (0, index_js_2.assertArgument)(fragment, "unknown fragment", "name", name);
+            errors.assertArgument(fragment, "unknown fragment", "name", name);
             return fragment.topicHash;
         };
         // Array of Topics and Names; e.g. `[ "0x1234...89ab", "Transfer(address)" ]`
@@ -329,14 +338,14 @@ async function getSubInfo(contract, event) {
         topics = [null];
     }
     else if (typeof event === "string") {
-        if ((0, index_js_2.isHexString)(event, 32)) {
+        if (data.isHexString(event, 32)) {
             // Topic Hash
             topics = [event];
         }
         else {
             // Name or Signature; e.g. `"Transfer", `"Transfer(address)"`
             fragment = contract.interface.getEvent(event);
-            (0, index_js_2.assertArgument)(fragment, "unknown fragment", "event", event);
+            errors.assertArgument(fragment, "unknown fragment", "event", event);
             topics = [fragment.topicHash];
         }
     }
@@ -350,7 +359,7 @@ async function getSubInfo(contract, event) {
         topics = [fragment.topicHash];
     }
     else {
-        (0, index_js_2.assertArgument)(false, "unknown event name", "event", event);
+        errors.assertArgument(false, "unknown event name", "event", event);
     }
     // Normalize topics and sort TopicSets
     topics = topics.map((t) => {
@@ -387,7 +396,7 @@ async function hasSub(contract, event) {
 async function getSub(contract, operation, event) {
     // Make sure our runner can actually subscribe to events
     const provider = getProvider(contract.runner);
-    (0, index_js_2.assert)(provider, "contract runner does not support subscribing", "UNSUPPORTED_OPERATION", { operation });
+    errors.assert(provider, "contract runner does not support subscribing", "UNSUPPORTED_OPERATION", { operation });
     const { fragment, tag, topics } = await getSubInfo(contract, event);
     const { addr, subs } = getInternal(contract);
     let sub = subs.get(tag);
@@ -409,12 +418,12 @@ async function getSub(contract, operation, event) {
                     ? contract.interface.decodeEventLog(fragment, log.data, log.topics)
                     : [];
                 emit(contract, event, args, (listener) => {
-                    return new wrappers_js_1.ContractEventPayload(contract, listener, event, _foundFragment, log);
+                    return new wrappers.ContractEventPayload(contract, listener, event, _foundFragment, log);
                 });
             }
             else {
                 emit(contract, event, [], (listener) => {
-                    return new wrappers_js_1.ContractUnknownEventPayload(contract, listener, event, log);
+                    return new wrappers.ContractUnknownEventPayload(contract, listener, event, log);
                 });
             }
         };
@@ -484,8 +493,8 @@ class BaseContract {
         if (runner == null) {
             runner = null;
         }
-        const iface = index_js_1.Interface.from(abi);
-        (0, index_js_2.defineProperties)(this, { target, runner, interface: iface });
+        const iface = _interface.Interface.from(abi);
+        properties.defineProperties(this, { target, runner, interface: iface });
         Object.defineProperty(this, internal, { value: {} });
         let addrPromise;
         let addr = null;
@@ -494,19 +503,19 @@ class BaseContract {
             const provider = getProvider(runner);
             // @TODO: the provider can be null; make a custom dummy provider that will throw a
             // meaningful error
-            deployTx = new wrappers_js_1.ContractTransactionResponse(this.interface, provider, _deployTx);
+            deployTx = new wrappers.ContractTransactionResponse(this.interface, provider, _deployTx);
         }
         let subs = new Map();
         // Resolve the target as the address
         if (typeof target === "string") {
-            if ((0, index_js_2.isHexString)(target)) {
+            if (data.isHexString(target)) {
                 addr = target;
                 addrPromise = Promise.resolve(target);
             }
             else {
                 const resolver = getRunner(runner, "resolveName");
                 if (!canResolve(resolver)) {
-                    throw (0, index_js_2.makeError)("contract runner does not support name resolution", "UNSUPPORTED_OPERATION", {
+                    throw errors.makeError("contract runner does not support name resolution", "UNSUPPORTED_OPERATION", {
                         operation: "resolveName",
                     });
                 }
@@ -552,8 +561,8 @@ class BaseContract {
                 return (Reflect.has(target, prop) || this.interface.hasEvent(String(prop)));
             },
         });
-        (0, index_js_2.defineProperties)(this, { filters });
-        (0, index_js_2.defineProperties)(this, {
+        properties.defineProperties(this, { filters });
+        properties.defineProperties(this, {
             fallback: iface.receive || iface.fallback ? buildWrappedFallback(this) : null,
         });
         // Return a Proxy that will respond to functions
@@ -585,7 +594,7 @@ class BaseContract {
     }
     async getDeployedCode() {
         const provider = getProvider(this.runner);
-        (0, index_js_2.assert)(provider, "runner does not support .provider", "UNSUPPORTED_OPERATION", { operation: "getDeployedCode" });
+        errors.assert(provider, "runner does not support .provider", "UNSUPPORTED_OPERATION", { operation: "getDeployedCode" });
         const code = await provider.getCode(await this.getAddress());
         if (code === "0x") {
             return null;
@@ -606,7 +615,7 @@ class BaseContract {
         }
         // Make sure we can subscribe to a provider event
         const provider = getProvider(this.runner);
-        (0, index_js_2.assert)(provider != null, "contract runner does not support .provider", "UNSUPPORTED_OPERATION", { operation: "waitForDeployment" });
+        errors.assert(provider != null, "contract runner does not support .provider", "UNSUPPORTED_OPERATION", { operation: "waitForDeployment" });
         return new Promise((resolve, reject) => {
             const checkCode = async () => {
                 try {
@@ -654,9 +663,9 @@ class BaseContract {
         const address = addr ? addr : await addrPromise;
         const { fragment, topics } = await getSubInfo(this, event);
         const filter = { address, topics, fromBlock, toBlock };
-        const provider = getProvider(this.runner);
-        (0, index_js_2.assert)(provider, "contract runner does not have a provider", "UNSUPPORTED_OPERATION", { operation: "queryFilter" });
-        return (await provider.getLogs(filter)).map((log) => {
+        const provider$1 = getProvider(this.runner);
+        errors.assert(provider$1, "contract runner does not have a provider", "UNSUPPORTED_OPERATION", { operation: "queryFilter" });
+        return (await provider$1.getLogs(filter)).map((log) => {
             let foundFragment = fragment;
             if (foundFragment == null) {
                 try {
@@ -665,10 +674,10 @@ class BaseContract {
                 catch (error) { }
             }
             if (foundFragment) {
-                return new wrappers_js_1.EventLog(log, this.interface, foundFragment);
+                return new wrappers.EventLog(log, this.interface, foundFragment);
             }
             else {
-                return new provider_js_1.Log(log, provider);
+                return new provider.Log(log, provider$1);
             }
         });
     }
@@ -778,14 +787,17 @@ class BaseContract {
         return contract;
     }
     static isIndexed(value) {
-        return index_js_1.Indexed.isIndexed(value);
+        return _interface.Indexed.isIndexed(value);
     }
 }
-exports.BaseContract = BaseContract;
 function _ContractBase() {
     return BaseContract;
 }
 class Contract extends _ContractBase() {
 }
+
+exports.BaseContract = BaseContract;
 exports.Contract = Contract;
+exports.copyOverrides = copyOverrides;
+exports.resolveArgs = resolveArgs;
 //# sourceMappingURL=contract.js.map

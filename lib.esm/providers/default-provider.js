@@ -64,20 +64,20 @@ export function getDefaultProvider(network, options) {
         }
     }
     /*
-      if (options.pocket !== "-") {
-          try {
-              let appId = options.pocket;
-              let secretKey: undefined | string = undefined;
-              let loadBalancer: undefined | boolean = undefined;
-              if (typeof(appId) === "object") {
-                  loadBalancer = !!appId.loadBalancer;
-                  secretKey = appId.secretKey;
-                  appId = appId.appId;
-              }
-              providers.push(new PocketProvider(network, appId, secretKey, loadBalancer));
-          } catch (error) { console.log(error); }
-      }
-  */
+    if (options.pocket !== "-") {
+        try {
+            let appId = options.pocket;
+            let secretKey: undefined | string = undefined;
+            let loadBalancer: undefined | boolean = undefined;
+            if (typeof(appId) === "object") {
+                loadBalancer = !!appId.loadBalancer;
+                secretKey = appId.secretKey;
+                appId = appId.appId;
+            }
+            providers.push(new PocketProvider(network, appId, secretKey, loadBalancer));
+        } catch (error) { console.log(error); }
+    }
+*/
     if (options.quicknode !== "-") {
         try {
             let token = options.quicknode;

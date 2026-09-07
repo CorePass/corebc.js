@@ -1,19 +1,37 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.getIndexedAccountPath = exports.getAccountPath = exports.HDNodeWallet = exports.defaultPath = void 0;
+'use strict';
+
+require('../crypto/hmac.js');
+var ripemd160 = require('../crypto/ripemd160.js');
+require('../crypto/pbkdf2.js');
+var random = require('../crypto/random.js');
+require('../crypto/scrypt.js');
+var sha3 = require('../crypto/sha3.js');
+require('bcrypto/lib/ed448.js');
+var ed448goldilock = require('../crypto/ed448goldilock.js');
+require('crypto');
+require('../crypto/keccak.js');
+var signingKey = require('../crypto/signing-key.js');
+require('../crypto/signature.js');
+require('../utils/base58.js');
+var data = require('../utils/data.js');
+var errors = require('../utils/errors.js');
+var properties = require('../utils/properties.js');
+require('http');
+require('https');
+require('zlib');
+require('../utils/fixednumber.js');
+var maths = require('../utils/maths.js');
+var langEn = require('../wordlists/lang-en.js');
+var baseWallet = require('./base-wallet.js');
+var mnemonic = require('./mnemonic.js');
+var jsonKeystore = require('./json-keystore.js');
+var mnemonicToSeed = require('./mnemonicToSeed.js');
+
 /**
  *  Explain HD Wallets..
  *
  *  @_subsection: api/wallet:HD Wallets  [hd-wallets]
  */
-const index_js_1 = require("../crypto/index.js");
-const index_js_2 = require("../utils/index.js");
-const lang_en_js_1 = require("../wordlists/lang-en.js");
-const base_wallet_js_1 = require("./base-wallet.js");
-const mnemonic_js_1 = require("./mnemonic.js");
-const json_keystore_js_1 = require("./json-keystore.js");
-const crypto_js_1 = require("../crypto/crypto.js");
-const mnemonicToSeed_js_1 = require("./mnemonicToSeed.js");
 // import { arrayify,
 //     //  hexDataSlice
 //      } from "../utils/data.js";
@@ -25,7 +43,7 @@ const mnemonicToSeed_js_1 = require("./mnemonicToSeed.js");
 /**
  *  The default derivation path for Core HD Nodes. (i.e. ``"m/44'/60'/0'/0/0"``)
  */
-exports.defaultPath = "m";
+const defaultPath = "m";
 // "Bitcoin seed"
 // const MasterSecret = new Uint8Array([66, 105, 116, 99, 111, 105, 110, 32, 115, 101, 101, 100]);
 const HardenedBit = 0x80000000;
@@ -44,7 +62,7 @@ const HardenedBit = 0x80000000;
 const _guard = {};
 function derivePath(node, path) {
     const components = path.split("/");
-    (0, index_js_2.assertArgument)(components.length > 0 && (components[0] === "m" || node.depth > 0), "invalid path", "path", path);
+    errors.assertArgument(components.length > 0 && (components[0] === "m" || node.depth > 0), "invalid path", "path", path);
     if (components[0] === "m") {
         components.shift();
     }
@@ -53,16 +71,16 @@ function derivePath(node, path) {
         const component = components[i];
         if (component.match(/^[0-9]+'$/)) {
             const index = parseInt(component.substring(0, component.length - 1));
-            (0, index_js_2.assertArgument)(index < HardenedBit, "invalid path index", `path[${i}]`, component);
+            errors.assertArgument(index < HardenedBit, "invalid path index", `path[${i}]`, component);
             result = result.deriveChild(HardenedBit + index);
         }
         else if (component.match(/^[0-9]+$/)) {
             const index = parseInt(component);
-            (0, index_js_2.assertArgument)(index < HardenedBit, "invalid path index", `path[${i}]`, component);
+            errors.assertArgument(index < HardenedBit, "invalid path index", `path[${i}]`, component);
             result = result.deriveChild(index);
         }
         else {
-            (0, index_js_2.assertArgument)(false, "invalid path component", `path[${i}]`, component);
+            errors.assertArgument(false, "invalid path component", `path[${i}]`, component);
         }
     }
     return result;
@@ -75,7 +93,7 @@ function derivePath(node, path) {
  *  private key and the ability to derive child HD Nodes, defined by
  *  a path indicating the index of each child.
  */
-class HDNodeWallet extends base_wallet_js_1.BaseWallet {
+class HDNodeWallet extends baseWallet.BaseWallet {
     /**
      *  The compressed public key.
      */
@@ -128,19 +146,19 @@ class HDNodeWallet extends base_wallet_js_1.BaseWallet {
             prefix,
             provider,
         });
-        (0, index_js_2.assertPrivate)(guard, _guard, "HDNodeWallet");
-        (0, index_js_2.defineProperties)(this, { publicKey: signingKey.publicKey });
+        errors.assertPrivate(guard, _guard, "HDNodeWallet");
+        properties.defineProperties(this, { publicKey: signingKey.publicKey });
         this.prefix = prefix;
         this.#seed = seed;
-        const fingerprint = (0, index_js_2.dataSlice)((0, index_js_1.ripemd160)((0, index_js_1.sha256)(this.publicKey)), 0, 4);
-        (0, index_js_2.defineProperties)(this, {
+        const fingerprint = data.dataSlice(ripemd160.ripemd160(sha3.sha256(this.publicKey)), 0, 4);
+        properties.defineProperties(this, {
             parentFingerprint,
             fingerprint,
             path,
             index,
             depth,
         });
-        (0, index_js_2.defineProperties)(this, { mnemonic });
+        properties.defineProperties(this, { mnemonic });
     }
     connect(provider) {
         return new HDNodeWallet({
@@ -179,7 +197,7 @@ class HDNodeWallet extends base_wallet_js_1.BaseWallet {
      *  updates as the encryption process progreses.
      */
     async encrypt(password, progressCallback) {
-        return await (0, json_keystore_js_1.encryptKeystoreJson)(this.#account(), password, {
+        return await jsonKeystore.encryptKeystoreJson(this.#account(), password, {
             progressCallback,
         });
     }
@@ -194,7 +212,7 @@ class HDNodeWallet extends base_wallet_js_1.BaseWallet {
      *  it is complete, which may be a non-trivial duration.
      */
     encryptSync(password) {
-        return (0, json_keystore_js_1.encryptKeystoreJsonSync)(this.#account(), password);
+        return jsonKeystore.encryptKeystoreJsonSync(this.#account(), password);
     }
     /**
      *  Returns true if this wallet has a path, providing a Type Guard
@@ -207,8 +225,8 @@ class HDNodeWallet extends base_wallet_js_1.BaseWallet {
      *  Return the child for %%index%%.
      */
     deriveChild(_index) {
-        const newPrivateKey = crypto_js_1.Ed448Goldilock.HDWalletGenerateKeyFromSeed(this.#seed, Number(_index));
-        const newSigningKey = new index_js_1.SigningKey(newPrivateKey);
+        const newPrivateKey = ed448goldilock.Ed448Goldilock.HDWalletGenerateKeyFromSeed(this.#seed, Number(_index));
+        const newSigningKey = new signingKey.SigningKey(newPrivateKey);
         // Base path
         let path = this.path;
         if (path) {
@@ -237,15 +255,15 @@ class HDNodeWallet extends base_wallet_js_1.BaseWallet {
         return derivePath(this, path);
     }
     static #fromSeed({ _seed, mnemonic, prefix, path, }) {
-        const extendetPrivateKey = crypto_js_1.Ed448Goldilock.HDWalletGenerateKeyFromSeed(_seed, 0);
-        const signingKey = new index_js_1.SigningKey(extendetPrivateKey);
+        const extendetPrivateKey = ed448goldilock.Ed448Goldilock.HDWalletGenerateKeyFromSeed(_seed, 0);
+        const signingKey$1 = new signingKey.SigningKey(extendetPrivateKey);
         // console.log({ privateKey, thisKey: signingKey.privateKey,len:tmp.privateKey.length })
         return new HDNodeWallet({
             seed: _seed,
             guard: _guard,
-            signingKey,
+            signingKey: signingKey$1,
             parentFingerprint: "0x00000000",
-            path: path || exports.defaultPath,
+            path: path || defaultPath,
             index: 0,
             depth: 0,
             mnemonic,
@@ -261,15 +279,15 @@ class HDNodeWallet extends base_wallet_js_1.BaseWallet {
             password = "";
         }
         if (path == null) {
-            path = exports.defaultPath;
+            path = defaultPath;
         }
         if (wordlist == null) {
-            wordlist = lang_en_js_1.LangEn.wordlist();
+            wordlist = langEn.LangEn.wordlist();
         }
-        const mnemonic = mnemonic_js_1.Mnemonic.fromEntropy((0, index_js_1.randomBytes)(32), password, wordlist);
+        const mnemonic$1 = mnemonic.Mnemonic.fromEntropy(random.randomBytes(32), password, wordlist);
         return HDNodeWallet.#fromSeed({
-            _seed: mnemonic.computeSeed(),
-            mnemonic,
+            _seed: mnemonic$1.computeSeed(),
+            mnemonic: mnemonic$1,
             prefix,
         }).derivePath(path);
     }
@@ -278,7 +296,7 @@ class HDNodeWallet extends base_wallet_js_1.BaseWallet {
      */
     static fromMnemonic(mnemonic, prefix, path) {
         if (!path) {
-            path = exports.defaultPath;
+            path = defaultPath;
         }
         return HDNodeWallet.#fromSeed({
             _seed: mnemonic.computeSeed(),
@@ -287,7 +305,7 @@ class HDNodeWallet extends base_wallet_js_1.BaseWallet {
         }).derivePath(path);
     }
     static mnemonicToSeed(mnemonic, password) {
-        const seed = (0, mnemonicToSeed_js_1.mnemonicToSeed)(mnemonic, password);
+        const seed = mnemonicToSeed.mnemonicToSeed(mnemonic, password);
         return seed;
     }
     /**
@@ -298,16 +316,16 @@ class HDNodeWallet extends base_wallet_js_1.BaseWallet {
             password = "";
         }
         if (!path) {
-            path = exports.defaultPath;
+            path = defaultPath;
         }
         if (!wordlist) {
-            wordlist = lang_en_js_1.LangEn.wordlist();
+            wordlist = langEn.LangEn.wordlist();
         }
-        const mnemonic = mnemonic_js_1.Mnemonic.fromPhrase({ phrase, password, wordlist });
-        const _seed = mnemonic.computeSeed();
+        const mnemonic$1 = mnemonic.Mnemonic.fromPhrase({ phrase, password, wordlist });
+        const _seed = mnemonic$1.computeSeed();
         return HDNodeWallet.#fromSeed({
             _seed,
-            mnemonic,
+            mnemonic: mnemonic$1,
             prefix,
         }).derivePath(path);
     }
@@ -318,12 +336,11 @@ class HDNodeWallet extends base_wallet_js_1.BaseWallet {
         return HDNodeWallet.#fromSeed({
             _seed: seed,
             mnemonic: null,
-            path: path || exports.defaultPath,
+            path: path || defaultPath,
             prefix,
         });
     }
 }
-exports.HDNodeWallet = HDNodeWallet;
 /*
 export class HDNodeWalletManager {
     #root: HDNodeWallet;
@@ -349,11 +366,10 @@ export class HDNodeWalletManager {
  *  some software.
  */
 function getAccountPath(_index) {
-    const index = (0, index_js_2.getNumber)(_index, "index");
-    (0, index_js_2.assertArgument)(index >= 0 && index < HardenedBit, "invalid account index", "index", index);
+    const index = maths.getNumber(_index, "index");
+    errors.assertArgument(index >= 0 && index < HardenedBit, "invalid account index", "index", index);
     return `m/44'/60'/${index}'/0/0`;
 }
-exports.getAccountPath = getAccountPath;
 /**
  *  Returns the path using an alternative pattern for deriving accounts,
  *  at %%index%%.
@@ -364,9 +380,13 @@ exports.getAccountPath = getAccountPath;
  *  This is the pattern used by wallets like MetaMask.
  */
 function getIndexedAccountPath(_index) {
-    const index = (0, index_js_2.getNumber)(_index, "index");
-    (0, index_js_2.assertArgument)(index >= 0 && index < HardenedBit, "invalid account index", "index", index);
+    const index = maths.getNumber(_index, "index");
+    errors.assertArgument(index >= 0 && index < HardenedBit, "invalid account index", "index", index);
     return `m/44'/60'/0'/0/${index}`;
 }
+
+exports.HDNodeWallet = HDNodeWallet;
+exports.defaultPath = defaultPath;
+exports.getAccountPath = getAccountPath;
 exports.getIndexedAccountPath = getIndexedAccountPath;
 //# sourceMappingURL=hdwallet.js.map

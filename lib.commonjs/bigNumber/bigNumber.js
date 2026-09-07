@@ -1,19 +1,11 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports._base16To36 = exports._base36To16 = exports.BigNumber = exports.isBigNumberish = void 0;
-const tslib_1 = require("tslib");
-/**
- *  BigNumber
- *
- *  A wrapper around the BN.js object. We use the BN.js library
- *  because it is used by elliptic, so it is required regardless.
- *
- */
-const bn_js_1 = tslib_1.__importDefault(require("bn.js"));
-const logger_js_1 = require("../logger/logger.js");
-const data_js_1 = require("../utils/data.js");
-var BN = bn_js_1.default.BN;
-const logger = new logger_js_1.Logger("bigNumber/0.0.1");
+'use strict';
+
+var _BN = require('bn.js');
+var logger$1 = require('../logger/logger.js');
+var data = require('../utils/data.js');
+
+var BN = _BN.BN;
+const logger = new logger$1.Logger("bigNumber/0.0.1");
 const _constructorGuard = {};
 const MAX_SAFE = 0x1fffffffffffff;
 function isBigNumberish(value) {
@@ -21,11 +13,10 @@ function isBigNumberish(value) {
         (BigNumber.isBigNumber(value) ||
             (typeof value === "number" && value % 1 === 0) ||
             (typeof value === "string" && !!value.match(/^-?[0-9]+$/)) ||
-            (0, data_js_1.isHexString)(value) ||
+            data.isHexString(value) ||
             typeof value === "bigint" ||
-            (0, data_js_1.isBytes)(value)));
+            data.isBytes(value)));
 }
-exports.isBigNumberish = isBigNumberish;
 // Only warn about passing 10 into radix once
 let _warnedToStringRadix = false;
 class BigNumber {
@@ -34,7 +25,7 @@ class BigNumber {
     constructor(constructorGuard, hex) {
         logger.checkNew(new.target, BigNumber);
         if (constructorGuard !== _constructorGuard) {
-            logger.throwError("cannot call constructor directly; use BigNumber.from", logger_js_1.Logger.errors.UNSUPPORTED_OPERATION, {
+            logger.throwError("cannot call constructor directly; use BigNumber.from", logger$1.Logger.errors.UNSUPPORTED_OPERATION, {
                 operation: "new (BigNumber)",
             });
         }
@@ -159,7 +150,7 @@ class BigNumber {
             return BigInt(this.toString());
         }
         catch (e) { }
-        return logger.throwError("this platform does not support BigInt", logger_js_1.Logger.errors.UNSUPPORTED_OPERATION, {
+        return logger.throwError("this platform does not support BigInt", logger$1.Logger.errors.UNSUPPORTED_OPERATION, {
             value: this.toString(),
         });
     }
@@ -173,10 +164,10 @@ class BigNumber {
                 }
             }
             else if (arguments[0] === 16) {
-                logger.throwError("BigNumber.toString does not accept any parameters; use bigNumber.toHexString()", logger_js_1.Logger.errors.UNEXPECTED_ARGUMENT, {});
+                logger.throwError("BigNumber.toString does not accept any parameters; use bigNumber.toHexString()", logger$1.Logger.errors.UNEXPECTED_ARGUMENT, {});
             }
             else {
-                logger.throwError("BigNumber.toString does not accept parameters", logger_js_1.Logger.errors.UNEXPECTED_ARGUMENT, {});
+                logger.throwError("BigNumber.toString does not accept parameters", logger$1.Logger.errors.UNEXPECTED_ARGUMENT, {});
             }
         }
         return toBN(this).toString(10);
@@ -213,8 +204,8 @@ class BigNumber {
         if (typeof anyValue === "bigint") {
             return BigNumber.from(anyValue.toString());
         }
-        if ((0, data_js_1.isBytes)(anyValue)) {
-            return BigNumber.from((0, data_js_1.hexlify)(anyValue));
+        if (data.isBytes(anyValue)) {
+            return BigNumber.from(data.hexlify(anyValue));
         }
         if (anyValue) {
             // Hexable interface (takes priority)
@@ -232,8 +223,8 @@ class BigNumber {
                     hex = anyValue.hex;
                 }
                 if (typeof hex === "string") {
-                    if ((0, data_js_1.isHexString)(hex) ||
-                        (hex[0] === "-" && (0, data_js_1.isHexString)(hex.substring(1)))) {
+                    if (data.isHexString(hex) ||
+                        (hex[0] === "-" && data.isHexString(hex.substring(1)))) {
                         return BigNumber.from(hex);
                     }
                 }
@@ -245,7 +236,6 @@ class BigNumber {
         return !!(value && value._isBigNumber);
     }
 }
-exports.BigNumber = BigNumber;
 // Normalize the hex string
 // @ts-ignore
 function toHex(value) {
@@ -305,16 +295,19 @@ function throwFault(fault, operation, value) {
     if (value != null) {
         params.value = value;
     }
-    return logger.throwError(fault, logger_js_1.Logger.errors.NUMERIC_FAULT, params);
+    return logger.throwError(fault, logger$1.Logger.errors.NUMERIC_FAULT, params);
 }
 // value should have no prefix
 function _base36To16(value) {
     return new BN(value, 36).toString(16);
 }
-exports._base36To16 = _base36To16;
 // value should have no prefix
 function _base16To36(value) {
     return new BN(value, 16).toString(36);
 }
+
+exports.BigNumber = BigNumber;
 exports._base16To36 = _base16To36;
+exports._base36To16 = _base36To16;
+exports.isBigNumberish = isBigNumberish;
 //# sourceMappingURL=bigNumber.js.map

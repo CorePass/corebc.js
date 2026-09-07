@@ -1,7 +1,7 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.encodeRlp = void 0;
-const data_js_1 = require("./data.js");
+'use strict';
+
+var data = require('./data.js');
+
 function arrayifyInteger(value) {
     const result = [];
     while (value) {
@@ -24,17 +24,17 @@ function _encode(object) {
         length.unshift(0xf7 + length.length);
         return length.concat(payload);
     }
-    const data = Array.prototype.slice.call((0, data_js_1.getBytes)(object, "object"));
-    if (data.length === 1 && data[0] <= 0x7f) {
-        return data;
+    const data$1 = Array.prototype.slice.call(data.getBytes(object, "object"));
+    if (data$1.length === 1 && data$1[0] <= 0x7f) {
+        return data$1;
     }
-    else if (data.length <= 55) {
-        data.unshift(0x80 + data.length);
-        return data;
+    else if (data$1.length <= 55) {
+        data$1.unshift(0x80 + data$1.length);
+        return data$1;
     }
-    const length = arrayifyInteger(data.length);
+    const length = arrayifyInteger(data$1.length);
     length.unshift(0xb7 + length.length);
-    return length.concat(data);
+    return length.concat(data$1);
 }
 const nibbles = "0123456789abcdef";
 /**
@@ -48,5 +48,6 @@ function encodeRlp(object) {
     }
     return result;
 }
+
 exports.encodeRlp = encodeRlp;
 //# sourceMappingURL=rlp-encode.js.map

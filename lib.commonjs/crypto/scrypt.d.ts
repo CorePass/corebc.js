@@ -8,6 +8,8 @@ import type { BytesLike } from "../utils/index.js";
  *  @_docloc: api/crypto:Passwords
  */
 export type ProgressCallback = (percent: number) => void;
+declare const _scryptAsync: (passwd: Uint8Array, salt: Uint8Array, N: number, r: number, p: number, dkLen: number, onProgress?: ProgressCallback) => Promise<Uint8Array<ArrayBufferLike> & Uint8Array<ArrayBuffer>>;
+declare const _scryptSync: (passwd: Uint8Array, salt: Uint8Array, N: number, r: number, p: number, dkLen: number) => Uint8Array<ArrayBufferLike> & Uint8Array<ArrayBuffer>;
 /**
  *  The [[link-wiki-scrypt]] uses a memory and cpu hard method of
  *  derivation to increase the resource cost to brute-force a password
@@ -47,9 +49,9 @@ export type ProgressCallback = (percent: number) => void;
  */
 export declare function scrypt(_passwd: BytesLike, _salt: BytesLike, N: number, r: number, p: number, dkLen: number, progress?: ProgressCallback): Promise<string>;
 export declare namespace scrypt {
-    var _: (passwd: Uint8Array, salt: Uint8Array, N: number, r: number, p: number, dkLen: number, onProgress?: ProgressCallback | undefined) => Promise<Uint8Array>;
-    var lock: () => void;
-    var register: (func: (passwd: Uint8Array, salt: Uint8Array, N: number, r: number, p: number, dkLen: number, progress?: ProgressCallback | undefined) => Promise<BytesLike>) => void;
+    export { _scryptAsync as _ };
+    export var lock: () => void;
+    export var register: (func: (passwd: Uint8Array, salt: Uint8Array, N: number, r: number, p: number, dkLen: number, progress?: ProgressCallback) => Promise<BytesLike>) => void;
 }
 /**
  *  Provides a synchronous variant of [[scrypt]].
@@ -75,8 +77,9 @@ export declare namespace scrypt {
  */
 export declare function scryptSync(_passwd: BytesLike, _salt: BytesLike, N: number, r: number, p: number, dkLen: number): string;
 export declare namespace scryptSync {
-    var _: (passwd: Uint8Array, salt: Uint8Array, N: number, r: number, p: number, dkLen: number) => Uint8Array;
-    var lock: () => void;
-    var register: (func: (passwd: Uint8Array, salt: Uint8Array, N: number, r: number, p: number, dkLen: number) => BytesLike) => void;
+    export { _scryptSync as _ };
+    export var lock: () => void;
+    export var register: (func: (passwd: Uint8Array, salt: Uint8Array, N: number, r: number, p: number, dkLen: number) => BytesLike) => void;
 }
+export {};
 //# sourceMappingURL=scrypt.d.ts.map

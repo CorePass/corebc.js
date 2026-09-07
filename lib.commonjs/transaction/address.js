@@ -1,10 +1,22 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.extractPrefix = exports.recoverAddress = exports.computeAddress = exports.publicToAddress = exports.removeHexPrefix = void 0;
-const index_js_1 = require("../address/index.js");
-const index_js_2 = require("../crypto/index.js");
-const data_js_1 = require("../utils/data.js");
-const index_js_3 = require("../address/index.js");
+'use strict';
+
+var index = require('../address/index.js');
+require('../crypto/hmac.js');
+require('../crypto/ripemd160.js');
+require('../crypto/pbkdf2.js');
+require('../crypto/random.js');
+require('../crypto/scrypt.js');
+var sha3 = require('../crypto/sha3.js');
+require('bcrypto/lib/ed448.js');
+require('buffer');
+require('bcrypto/lib/pbkdf2.js');
+require('bcrypto/lib/sha3-512.js');
+require('crypto');
+require('../crypto/keccak.js');
+var signingKey = require('../crypto/signing-key.js');
+require('../crypto/signature.js');
+var data = require('../utils/data.js');
+
 /**
  *  Returns the address for the %%key%%.
  *
@@ -13,37 +25,38 @@ const index_js_3 = require("../address/index.js");
 function removeHexPrefix(val) {
     return val.substring(0, 2) === "0x" ? val.substring(2) : val;
 }
-exports.removeHexPrefix = removeHexPrefix;
 function publicToAddress(key, prefix) {
-    const val = (0, data_js_1.hexDataSlice)((0, index_js_2.sha256)(key), 12);
-    const checksum = (0, index_js_3.calculateCheckSum)(val, prefix);
+    const val = data.hexDataSlice(sha3.sha256(key), 12);
+    const checksum = index.calculateCheckSum(val, prefix);
     return "0x" + prefix + checksum + removeHexPrefix(val);
 }
-exports.publicToAddress = publicToAddress;
 function computeAddress(key, prefix) {
     let pubkey;
     if (typeof key === "string") {
-        pubkey = index_js_2.SigningKey.computePublicKey(key, false);
+        pubkey = signingKey.SigningKey.computePublicKey(key, false);
     }
     else {
         pubkey = key.publicKey;
     }
     return publicToAddress(pubkey, prefix); // getAddress(sha256("0x" + pubkey.substring(4)).substring(26));
 }
-exports.computeAddress = computeAddress;
 /**
  *  Returns the recovered address for the private key that was
  *  used to sign %%digest%% that resulted in %%signature%%.
  */
 function recoverAddress(digest, signature, prefix) {
     // return computeAddress(SigningKey.recoverPublicKey(digest, signature));
-    const publicKey = index_js_2.SigningKey.recoverPublicKey((0, data_js_1.arrayify)(digest), signature);
+    const publicKey = signingKey.SigningKey.recoverPublicKey(data.arrayify(digest), signature);
     return publicToAddress(publicKey, prefix);
 }
-exports.recoverAddress = recoverAddress;
 function extractPrefix(address) {
-    address = (0, index_js_1.getAddress)(address);
+    address = index.getAddress(address);
     return address.substring(2, 4);
 }
+
+exports.computeAddress = computeAddress;
 exports.extractPrefix = extractPrefix;
+exports.publicToAddress = publicToAddress;
+exports.recoverAddress = recoverAddress;
+exports.removeHexPrefix = removeHexPrefix;
 //# sourceMappingURL=address.js.map

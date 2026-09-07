@@ -1,9 +1,12 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.mnemonicToSeed = void 0;
-const tslib_1 = require("tslib");
-const crypto_js_1 = require("../crypto/crypto.js");
-const utf8_1 = tslib_1.__importDefault(require("utf8"));
+'use strict';
+
+var buffer = require('buffer');
+require('bcrypto/lib/ed448.js');
+require('bcrypto/lib/pbkdf2.js');
+require('bcrypto/lib/sha3-512.js');
+var crypto = require('crypto');
+var utf8 = require('utf8');
+
 function mnemonicToSeed(mnemonic, password) {
     if (!password) {
         password = "";
@@ -11,17 +14,18 @@ function mnemonicToSeed(mnemonic, password) {
     const t = generateSeed(mnemonic, password);
     return t.goldilock;
 }
-exports.mnemonicToSeed = mnemonicToSeed;
 const generateSeed = (mnemonic, password) => {
     const goldilockSaltPrefix = "mnemonic";
     const aesSaltPrefix = "mnemonicfortheAESkey";
-    const goldilockSalt = utf8_1.default.encode(goldilockSaltPrefix + password);
-    const aesSalt = utf8_1.default.encode(aesSaltPrefix + password);
-    const goldilockKey = (0, crypto_js_1.pbkdf2Sync)(Buffer.from(mnemonic), goldilockSalt, 2048, 64, "sha512");
-    const aesKeySeed = (0, crypto_js_1.pbkdf2Sync)(Buffer.from(mnemonic), aesSalt, 2048, 64, "sha512");
+    const goldilockSalt = utf8.encode(goldilockSaltPrefix + password);
+    const aesSalt = utf8.encode(aesSaltPrefix + password);
+    const goldilockKey = crypto.pbkdf2Sync(buffer.Buffer.from(mnemonic), buffer.Buffer.from(goldilockSalt), 2048, 64, "sha512");
+    const aesKeySeed = crypto.pbkdf2Sync(buffer.Buffer.from(mnemonic), buffer.Buffer.from(aesSalt), 2048, 64, "sha512");
     return {
-        aes: aesKeySeed.toString("hex"),
-        goldilock: goldilockKey.toString("hex"),
+        aes: buffer.Buffer.from(aesKeySeed).toString("hex"),
+        goldilock: buffer.Buffer.from(goldilockKey).toString("hex"),
     };
 };
+
+exports.mnemonicToSeed = mnemonicToSeed;
 //# sourceMappingURL=mnemonicToSeed.js.map

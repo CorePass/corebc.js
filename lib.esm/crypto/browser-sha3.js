@@ -1,4 +1,5 @@
-"use strict";
+import { Buffer } from "buffer";
+("use strict");
 // @ts-ignore
 import _ripemd160 from "bcrypto/lib/ripemd160-browser";
 // @ts-ignore

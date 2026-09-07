@@ -1,1 +1,1 @@
-{"version":3,"file":"pbkdf2-browser.js","sourceRoot":"","sources":["../../src.ts/crypto/pbkdf2-browser.ts"],"names":[],"mappings":";;;AAAA,aAAa;AACb,8FAAmD;AACnD,kBAAe,2BAAM,CAAC"}
+{"version":3,"file":"pbkdf2-browser.js","sources":["../../lib.esm/crypto/pbkdf2-browser.js"],"sourcesContent":["// @ts-ignore\nimport pbkdf2 from \"bcrypto/lib/pbkdf2-browser.js\";\nexport default pbkdf2;\n//# sourceMappingURL=pbkdf2-browser.js.map"],"names":[],"mappings":";;;;;;AAAA;;"}

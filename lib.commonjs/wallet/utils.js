@@ -1,17 +1,25 @@
-"use strict";
+'use strict';
+
+require('../utils/base58.js');
+var data = require('../utils/data.js');
+var errors = require('../utils/errors.js');
+require('../logger/logger.js');
+var utf8 = require('../utils/utf8.js');
+require('http');
+require('https');
+require('zlib');
+require('../utils/fixednumber.js');
+require('../utils/maths.js');
+
 /**
  *  @_ignore
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.spelunk = exports.getPassword = exports.zpad = exports.looseArrayify = void 0;
-const index_js_1 = require("../utils/index.js");
 function looseArrayify(hexString) {
     if (typeof hexString === "string" && !hexString.startsWith("0x")) {
         hexString = "0x" + hexString;
     }
-    return (0, index_js_1.getBytesCopy)(hexString);
+    return data.getBytesCopy(hexString);
 }
-exports.looseArrayify = looseArrayify;
 function zpad(value, length) {
     value = String(value);
     while (value.length < length) {
@@ -19,17 +27,15 @@ function zpad(value, length) {
     }
     return value;
 }
-exports.zpad = zpad;
 function getPassword(password) {
     if (typeof password === "string") {
-        return (0, index_js_1.toUtf8Bytes)(password, "NFKC");
+        return utf8.toUtf8Bytes(password, "NFKC");
     }
-    return (0, index_js_1.getBytesCopy)(password);
+    return data.getBytesCopy(password);
 }
-exports.getPassword = getPassword;
 function spelunk(object, _path) {
     const match = _path.match(/^([a-z0-9$_.-]*)(:([a-z]+))?(!)?$/i);
-    (0, index_js_1.assertArgument)(match != null, "invalid path", "path", _path);
+    errors.assertArgument(match != null, "invalid path", "path", _path);
     const path = match[1];
     const type = match[3];
     const reqd = match[4] === "!";
@@ -59,7 +65,7 @@ function spelunk(object, _path) {
             break;
         }
     }
-    (0, index_js_1.assertArgument)(!reqd || cur != null, "missing required value", "path", path);
+    errors.assertArgument(!reqd || cur != null, "missing required value", "path", path);
     if (type && cur != null) {
         if (type === "int") {
             if (typeof cur === "string" && cur.match(/^-?[0-9]+$/)) {
@@ -85,11 +91,10 @@ function spelunk(object, _path) {
         if (type === typeof cur) {
             return cur;
         }
-        (0, index_js_1.assertArgument)(false, `wrong type found for ${type} `, "path", path);
+        errors.assertArgument(false, `wrong type found for ${type} `, "path", path);
     }
     return cur;
 }
-exports.spelunk = spelunk;
 /*
 export function follow(object: any, path: string): null | string {
     let currentChild = object;
@@ -146,4 +151,9 @@ export function uuidV4(randomBytes: BytesLike): string {
     ].join("-");
 }
 */
+
+exports.getPassword = getPassword;
+exports.looseArrayify = looseArrayify;
+exports.spelunk = spelunk;
+exports.zpad = zpad;
 //# sourceMappingURL=utils.js.map

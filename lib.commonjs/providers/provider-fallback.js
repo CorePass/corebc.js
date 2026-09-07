@@ -1,14 +1,21 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.FallbackProvider = void 0;
+'use strict';
+
+require('../utils/base58.js');
+require('../logger/logger.js');
+var errors = require('../utils/errors.js');
+require('http');
+require('https');
+require('zlib');
+require('../utils/fixednumber.js');
+var maths = require('../utils/maths.js');
+var abstractProvider = require('./abstract-provider.js');
+var network = require('./network.js');
+
 /**
  *  Explain all the nitty-gritty about the **FallbackProvider**.
  *
  *  @_section: api/providers/fallback-provider:Fallback Provider [about-fallback-provider]
  */
-const index_js_1 = require("../utils/index.js");
-const abstract_provider_js_1 = require("./abstract-provider.js");
-const network_js_1 = require("./network.js");
 const BN_1 = BigInt("1");
 const BN_2 = BigInt("2");
 function shuffle(array) {
@@ -178,7 +185,7 @@ function getAnyResult(quorum, results) {
 }
 function getFuzzyMode(quorum, results) {
     if (quorum === 1) {
-        return (0, index_js_1.getNumber)(getMedian(quorum, results), "%internal");
+        return maths.getNumber(getMedian(quorum, results), "%internal");
     }
     const tally = new Map();
     const add = (result, weight) => {
@@ -187,7 +194,7 @@ function getFuzzyMode(quorum, results) {
         tally.set(result, t);
     };
     for (const { weight, value } of results) {
-        const r = (0, index_js_1.getNumber)(value);
+        const r = maths.getNumber(value);
         add(r - 1, weight);
         add(r, weight);
         add(r + 1, weight);
@@ -211,7 +218,7 @@ function getFuzzyMode(quorum, results) {
  *  A Fallback Provider.
  *
  */
-class FallbackProvider extends abstract_provider_js_1.AbstractProvider {
+class FallbackProvider extends abstractProvider.AbstractProvider {
     quorum;
     eventQuorum;
     eventWorkers;
@@ -221,7 +228,7 @@ class FallbackProvider extends abstract_provider_js_1.AbstractProvider {
     constructor(providers, network) {
         super(network);
         this.#configs = providers.map((p) => {
-            if (p instanceof abstract_provider_js_1.AbstractProvider) {
+            if (p instanceof abstractProvider.AbstractProvider) {
                 return Object.assign({ provider: p }, defaultConfig, defaultState);
             }
             else {
@@ -233,7 +240,7 @@ class FallbackProvider extends abstract_provider_js_1.AbstractProvider {
         this.quorum = 2; //Math.ceil(providers.length /  2);
         this.eventQuorum = 1;
         this.eventWorkers = 1;
-        (0, index_js_1.assertArgument)(this.quorum <= this.#configs.reduce((a, c) => a + c.weight, 0), "quorum exceed provider wieght", "quorum", this.quorum);
+        errors.assertArgument(this.quorum <= this.#configs.reduce((a, c) => a + c.weight, 0), "quorum exceed provider wieght", "quorum", this.quorum);
     }
     get providerConfigs() {
         return this.#configs.map((c) => {
@@ -247,7 +254,7 @@ class FallbackProvider extends abstract_provider_js_1.AbstractProvider {
         });
     }
     async _detectNetwork() {
-        return network_js_1.Network.from((0, index_js_1.getBigInt)(await this._perform({ method: "networkId" })));
+        return network.Network.from(maths.getBigInt(await this._perform({ method: "networkId" })));
     }
     // @TODO: Add support to select providers to be the event subscriber
     //_getSubscriber(sub: Subscription): Subscriber {
@@ -371,7 +378,7 @@ class FallbackProvider extends abstract_provider_js_1.AbstractProvider {
                         networkId = network.networkId;
                     }
                     else if (network.networkId !== networkId) {
-                        (0, index_js_1.assert)(false, "cannot mix providers on different networks", "UNSUPPORTED_OPERATION", {
+                        errors.assert(false, "cannot mix providers on different networks", "UNSUPPORTED_OPERATION", {
                             operation: "new FallbackProvider",
                         });
                     }
@@ -397,9 +404,9 @@ class FallbackProvider extends abstract_provider_js_1.AbstractProvider {
             case "getBlockNumber": {
                 // We need to get the bootstrap block height
                 if (this.#height === -2) {
-                    this.#height = Math.ceil((0, index_js_1.getNumber)(getMedian(this.quorum, this.#configs.map((c) => ({
+                    this.#height = Math.ceil(maths.getNumber(getMedian(this.quorum, this.#configs.map((c) => ({
                         value: c.blockNumber,
-                        tag: (0, index_js_1.getNumber)(c.blockNumber).toString(),
+                        tag: maths.getNumber(c.blockNumber).toString(),
                         weight: c.weight,
                     })))));
                 }
@@ -437,7 +444,7 @@ class FallbackProvider extends abstract_provider_js_1.AbstractProvider {
             case "broadcastTransaction":
                 return getAnyResult(this.quorum, results);
         }
-        (0, index_js_1.assert)(false, "unsupported method", "UNSUPPORTED_OPERATION", {
+        errors.assert(false, "unsupported method", "UNSUPPORTED_OPERATION", {
             operation: `_perform(${stringify(req.method)})`,
         });
     }
@@ -481,7 +488,7 @@ class FallbackProvider extends abstract_provider_js_1.AbstractProvider {
             this.#addRunner(running, req);
         }
         // All providers have returned, and we have no result
-        (0, index_js_1.assert)(interesting.length > 0, "quorum not met", "SERVER_ERROR", {
+        errors.assert(interesting.length > 0, "quorum not met", "SERVER_ERROR", {
             request: "%sub-requests",
             info: {
                 request: req,
@@ -509,7 +516,7 @@ class FallbackProvider extends abstract_provider_js_1.AbstractProvider {
                 }
             }));
             const result = getAnyResult(this.quorum, results);
-            (0, index_js_1.assert)(result !== undefined, "problem multi-broadcasting", "SERVER_ERROR", {
+            errors.assert(result !== undefined, "problem multi-broadcasting", "SERVER_ERROR", {
                 request: "%sub-requests",
                 info: { request: req, results: results.map(stringify) },
             });
@@ -541,5 +548,6 @@ class FallbackProvider extends abstract_provider_js_1.AbstractProvider {
         super.destroy();
     }
 }
+
 exports.FallbackProvider = FallbackProvider;
 //# sourceMappingURL=provider-fallback.js.map

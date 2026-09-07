@@ -1,6 +1,16 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.PocketProvider = void 0;
+'use strict';
+
+require('../utils/base58.js');
+require('../logger/logger.js');
+var errors = require('../utils/errors.js');
+var properties = require('../utils/properties.js');
+var fetch = require('../utils/fetch.js');
+require('../utils/fixednumber.js');
+require('../utils/maths.js');
+var community = require('./community.js');
+var network = require('./network.js');
+var providerJsonrpc = require('./provider-jsonrpc.js');
+
 /**
  *  [[link-pocket]] provides a third-party service for connecting to
  *  various blockchains over JSON-RPC.
@@ -14,10 +24,6 @@ exports.PocketProvider = void 0;
  *
  *  @_subsection: api/providers/thirdparty:Pocket  [providers-pocket]
  */
-const index_js_1 = require("../utils/index.js");
-const community_js_1 = require("./community.js");
-const network_js_1 = require("./network.js");
-const provider_jsonrpc_js_1 = require("./provider-jsonrpc.js");
 const defaultApplicationId = "62e1ad51b37b8e00394bda3b";
 function getHost(name) {
     switch (name) {
@@ -30,7 +36,7 @@ function getHost(name) {
         case "matic-mumbai":
             return "polygon-mumbai-rpc.gateway.pokt.network";
     }
-    (0, index_js_1.assertArgument)(false, "unsupported network", "network", name);
+    errors.assertArgument(false, "unsupported network", "network", name);
 }
 /**
  *  The **PocketProvider** connects to the [[link-pocket]]
@@ -41,7 +47,7 @@ function getHost(name) {
  *  gain access to an increased rate-limit, it is highly
  *  recommended to [sign up here](link-pocket-signup).
  */
-class PocketProvider extends provider_jsonrpc_js_1.JsonRpcProvider {
+class PocketProvider extends providerJsonrpc.JsonRpcProvider {
     /**
      *  The Application ID for the Pocket connection.
      */
@@ -61,17 +67,17 @@ class PocketProvider extends provider_jsonrpc_js_1.JsonRpcProvider {
         if (_network == null) {
             _network = "mainnet";
         }
-        const network = network_js_1.Network.from(_network);
+        const network$1 = network.Network.from(_network);
         if (applicationId == null) {
             applicationId = defaultApplicationId;
         }
         if (applicationSecret == null) {
             applicationSecret = null;
         }
-        const options = { staticNetwork: network };
-        const request = PocketProvider.getRequest(network, applicationId, applicationSecret);
-        super(request, network, options);
-        (0, index_js_1.defineProperties)(this, {
+        const options = { staticNetwork: network$1 };
+        const request = PocketProvider.getRequest(network$1, applicationId, applicationSecret);
+        super(request, network$1, options);
+        properties.defineProperties(this, {
             applicationId,
             applicationSecret,
         });
@@ -91,14 +97,14 @@ class PocketProvider extends provider_jsonrpc_js_1.JsonRpcProvider {
         if (applicationId == null) {
             applicationId = defaultApplicationId;
         }
-        const request = new index_js_1.FetchRequest(`https:/\/${getHost(network.name)}/v1/lb/${applicationId}`);
+        const request = new fetch.FetchRequest(`https:/\/${getHost(network.name)}/v1/lb/${applicationId}`);
         request.allowGzip = true;
         if (applicationSecret) {
             request.setCredentials("", applicationSecret);
         }
         if (applicationId === defaultApplicationId) {
             request.retryFunc = async (request, response, attempt) => {
-                (0, community_js_1.showThrottleMessage)("PocketProvider");
+                community.showThrottleMessage("PocketProvider");
                 return true;
             };
         }
@@ -108,5 +114,6 @@ class PocketProvider extends provider_jsonrpc_js_1.JsonRpcProvider {
         return this.applicationId === defaultApplicationId;
     }
 }
+
 exports.PocketProvider = PocketProvider;
 //# sourceMappingURL=provider-pocket.js.map

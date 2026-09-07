@@ -1,6 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Logger = exports.ErrorCode = exports.LogLevel = void 0;
+'use strict';
+
 let _permanentCensorErrors = false;
 let _censorErrors = false;
 const LogLevels = {
@@ -41,15 +40,15 @@ function _checkNormalize() {
     return null;
 }
 const _normalizeError = _checkNormalize();
-var LogLevel;
+exports.LogLevel = void 0;
 (function (LogLevel) {
     LogLevel["DEBUG"] = "DEBUG";
     LogLevel["INFO"] = "INFO";
     LogLevel["WARNING"] = "WARNING";
     LogLevel["ERROR"] = "ERROR";
     LogLevel["OFF"] = "OFF";
-})(LogLevel || (exports.LogLevel = LogLevel = {}));
-var ErrorCode;
+})(exports.LogLevel || (exports.LogLevel = {}));
+exports.ErrorCode = void 0;
 (function (ErrorCode) {
     ///////////////////
     // Generic Errors
@@ -122,12 +121,12 @@ var ErrorCode;
     //   - replacement: the full TransactionsResponse for the replacement
     //   - receipt: the receipt of the replacement
     ErrorCode["TRANSACTION_REPLACED"] = "TRANSACTION_REPLACED";
-})(ErrorCode || (exports.ErrorCode = ErrorCode = {}));
+})(exports.ErrorCode || (exports.ErrorCode = {}));
 const HEX = "0123456789abcdef";
 class Logger {
     version = "0.0.1";
-    static errors = ErrorCode;
-    static levels = LogLevel;
+    static errors = exports.ErrorCode;
+    static levels = exports.LogLevel;
     constructor(version) {
         Object.defineProperty(this, "version", {
             enumerable: true,
@@ -222,9 +221,6 @@ class Logger {
         this.throwArgumentError(message, name, value);
     }
     checkNormalize(message) {
-        if (message == null) {
-            message = "platform missing String.prototype.normalize";
-        }
         if (_normalizeError) {
             this.throwError("platform missing String.prototype.normalize", Logger.errors.UNSUPPORTED_OPERATION, {
                 operation: "String.prototype.normalize",
@@ -328,5 +324,6 @@ class Logger {
         return new Logger(version);
     }
 }
+
 exports.Logger = Logger;
 //# sourceMappingURL=logger.js.map

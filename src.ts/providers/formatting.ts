@@ -59,72 +59,72 @@ export interface PreparedTransactionRequest {
 // Block
 
 export interface BlockParams {
-  hash?: null | string;
+	hash?: null | string;
 
-  number: number;
-  timestamp: number;
+	number: number;
+	timestamp: number;
 
-  parentHash: string;
+	parentHash: string;
 
-  nonce: string;
-  difficulty: bigint;
+	nonce: string;
+	difficulty: bigint;
 
-  energyLimit: bigint;
-  energyUsed: bigint;
+	energyLimit: bigint;
+	energyUsed: bigint;
 
-  miner: string;
-  extraData: string;
+	miner: string;
+	extraData: string;
 
-  baseFeePerEnergy: null | bigint;
+	baseFeePerEnergy: null | bigint;
 
-  transactions: ReadonlyArray<string | TransactionResponseParams>;
+	transactions: ReadonlyArray<string | TransactionResponseParams>;
 }
 
 //////////////////////
 // Log
 
 export interface LogParams {
-  transactionHash: string;
-  blockHash: string;
-  blockNumber: number;
+	transactionHash: string;
+	blockHash: string;
+	blockNumber: number;
 
-  removed: boolean;
+	removed: boolean;
 
-  address: string;
-  data: string;
+	address: string;
+	data: string;
 
-  topics: ReadonlyArray<string>;
+	topics: ReadonlyArray<string>;
 
-  index: number;
-  transactionIndex: number;
+	index: number;
+	transactionIndex: number;
 }
 
 //////////////////////
 // Transaction Receipt
 
 export interface TransactionReceiptParams {
-  to: null | string;
-  from: string;
-  contractAddress: null | string;
+	to: null | string;
+	from: string;
+	contractAddress: null | string;
 
-  hash: string;
-  index: number;
+	hash: string;
+	index: number;
 
-  blockHash: string;
-  blockNumber: number;
+	blockHash: string;
+	blockNumber: number;
 
-  logsBloom: string;
-  logs: ReadonlyArray<LogParams>;
+	logsBloom: string;
+	logs: ReadonlyArray<LogParams>;
 
-  energyUsed: bigint;
-  cumulativeEnergyUsed: bigint;
-  energyPrice?: null | bigint;
-  effectiveEnergyPrice?: null | bigint;
+	energyUsed: bigint;
+	cumulativeEnergyUsed: bigint;
+	energyPrice?: null | bigint;
+	effectiveEnergyPrice?: null | bigint;
 
-  type: number;
-  //byzantium: boolean;
-  status: null | number;
-  root: null | string;
+	type: number;
+	//byzantium: boolean;
+	status: null | number;
+	root: null | string;
 }
 
 /*
@@ -145,26 +145,26 @@ export interface ByzantiumTransactionReceipt {
 // Transaction Response
 
 export interface TransactionResponseParams {
-  blockNumber: null | number;
-  blockHash: null | string;
+	blockNumber: null | number;
+	blockHash: null | string;
 
-  hash: string;
-  index: number;
+	hash: string;
+	index: number;
 
-  type: number;
+	type: number;
 
-  to: null | string;
-  from: string;
+	to: null | string;
+	from: string;
 
-  nonce: number;
+	nonce: number;
 
-  energyLimit: bigint;
+	energyLimit: bigint;
 
-  energyPrice: bigint;
+	energyPrice: bigint;
 
-  data: string;
-  value: bigint;
-  networkId: bigint;
+	data: string;
+	value: bigint;
+	networkId: bigint;
 
-  signature: string;
+	signature: string;
 }

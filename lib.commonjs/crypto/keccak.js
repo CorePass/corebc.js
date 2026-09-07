@@ -1,16 +1,24 @@
-"use strict";
+'use strict';
+
+var sha3_js = require('@noble/hashes/sha3.js');
+require('../utils/base58.js');
+var data = require('../utils/data.js');
+require('../utils/errors.js');
+require('../logger/logger.js');
+require('http');
+require('https');
+require('zlib');
+require('../utils/fixednumber.js');
+require('../utils/maths.js');
+
 /**
  *  Cryptographic hashing functions
  *
  *  @_subsection: api/crypto:Hash Functions [about-crypto-hashing]
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.keccak256 = void 0;
-const sha3_1 = require("@noble/hashes/sha3");
-const index_js_1 = require("../utils/index.js");
 let locked = false;
 const _keccak256 = function (data) {
-    return (0, sha3_1.keccak_256)(data);
+    return sha3_js.keccak_256(data);
 };
 let __keccak256 = _keccak256;
 /**
@@ -36,10 +44,9 @@ let __keccak256 = _keccak256;
  *    //_error:
  */
 function keccak256(_data) {
-    const data = (0, index_js_1.getBytes)(_data, "data");
-    return (0, index_js_1.hexlify)(__keccak256(data));
+    const data$1 = data.getBytes(_data, "data");
+    return data.hexlify(__keccak256(data$1));
 }
-exports.keccak256 = keccak256;
 keccak256._ = _keccak256;
 keccak256.lock = function () {
     locked = true;
@@ -51,4 +58,6 @@ keccak256.register = function (func) {
     __keccak256 = func;
 };
 Object.freeze(keccak256);
+
+exports.keccak256 = keccak256;
 //# sourceMappingURL=keccak.js.map

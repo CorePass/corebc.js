@@ -1,14 +1,14 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.TupleCoder = void 0;
-const properties_js_1 = require("../../utils/properties.js");
-const typed_js_1 = require("../typed.js");
-const abstract_coder_js_1 = require("./abstract-coder.js");
-const array_js_1 = require("./array.js");
+'use strict';
+
+var properties = require('../../utils/properties.js');
+var typed = require('../typed.js');
+var abstractCoder = require('./abstract-coder.js');
+var array = require('./array.js');
+
 /**
  *  @_ignore
  */
-class TupleCoder extends abstract_coder_js_1.Coder {
+class TupleCoder extends abstractCoder.Coder {
     coders;
     constructor(coders, localName) {
         let dynamic = false;
@@ -21,7 +21,7 @@ class TupleCoder extends abstract_coder_js_1.Coder {
         });
         const type = "tuple(" + types.join(",") + ")";
         super("tuple", type, localName, dynamic);
-        (0, properties_js_1.defineProperties)(this, {
+        properties.defineProperties(this, {
             coders: Object.freeze(coders.slice()),
         });
     }
@@ -58,12 +58,13 @@ class TupleCoder extends abstract_coder_js_1.Coder {
         return Object.freeze(values);
     }
     encode(writer, _value) {
-        const value = typed_js_1.Typed.dereference(_value, "tuple");
-        return (0, array_js_1.pack)(writer, this.coders, value);
+        const value = typed.Typed.dereference(_value, "tuple");
+        return array.pack(writer, this.coders, value);
     }
     decode(reader) {
-        return (0, array_js_1.unpack)(reader, this.coders);
+        return array.unpack(reader, this.coders);
     }
 }
+
 exports.TupleCoder = TupleCoder;
 //# sourceMappingURL=tuple.js.map

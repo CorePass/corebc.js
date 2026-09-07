@@ -1,16 +1,22 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.getDefaultProvider = void 0;
-const index_js_1 = require("../utils/index.js");
-const provider_ankr_js_1 = require("./provider-ankr.js");
-const provider_alchemy_js_1 = require("./provider-alchemy.js");
-const provider_cloudflare_js_1 = require("./provider-cloudflare.js");
-const provider_infura_js_1 = require("./provider-infura.js");
-//import { PocketProvider } from "./provider-pocket.js";
-const provider_quicknode_js_1 = require("./provider-quicknode.js");
-const provider_fallback_js_1 = require("./provider-fallback.js");
-const provider_jsonrpc_js_1 = require("./provider-jsonrpc.js");
-const provider_websocket_js_1 = require("./provider-websocket.js");
+'use strict';
+
+require('../utils/base58.js');
+require('../logger/logger.js');
+var errors = require('../utils/errors.js');
+require('http');
+require('https');
+require('zlib');
+require('../utils/fixednumber.js');
+require('../utils/maths.js');
+var providerAnkr = require('./provider-ankr.js');
+var providerAlchemy = require('./provider-alchemy.js');
+var providerCloudflare = require('./provider-cloudflare.js');
+var providerInfura = require('./provider-infura.js');
+var providerQuicknode = require('./provider-quicknode.js');
+var providerFallback = require('./provider-fallback.js');
+var providerJsonrpc = require('./provider-jsonrpc.js');
+var providerWebsocket = require('./provider-websocket.js');
+
 function isWebSocketLike(value) {
     return (value &&
         typeof value.send === "function" &&
@@ -21,16 +27,16 @@ function getDefaultProvider(network, options) {
         options = {};
     }
     if (typeof network === "string" && network.match(/^https?:/)) {
-        return new provider_jsonrpc_js_1.JsonRpcProvider(network);
+        return new providerJsonrpc.JsonRpcProvider(network);
     }
     if ((typeof network === "string" && network.match(/^wss?:/)) ||
         isWebSocketLike(network)) {
-        return new provider_websocket_js_1.WebSocketProvider(network);
+        return new providerWebsocket.WebSocketProvider(network);
     }
     const providers = [];
     if (options.alchemy !== "-") {
         try {
-            providers.push(new provider_alchemy_js_1.AlchemyProvider(network, options.alchemy));
+            providers.push(new providerAlchemy.AlchemyProvider(network, options.alchemy));
         }
         catch (error) {
             console.log(error);
@@ -38,7 +44,7 @@ function getDefaultProvider(network, options) {
     }
     if (options.ankr !== "-" && options.ankr != null) {
         try {
-            providers.push(new provider_ankr_js_1.AnkrProvider(network, options.ankr));
+            providers.push(new providerAnkr.AnkrProvider(network, options.ankr));
         }
         catch (error) {
             console.log(error);
@@ -46,7 +52,7 @@ function getDefaultProvider(network, options) {
     }
     if (options.cloudflare !== "-") {
         try {
-            providers.push(new provider_cloudflare_js_1.CloudflareProvider(network));
+            providers.push(new providerCloudflare.CloudflareProvider(network));
         }
         catch (error) {
             console.log(error);
@@ -60,43 +66,44 @@ function getDefaultProvider(network, options) {
                 projectSecret = projectId.projectSecret;
                 projectId = projectId.projectId;
             }
-            providers.push(new provider_infura_js_1.InfuraProvider(network, projectId, projectSecret));
+            providers.push(new providerInfura.InfuraProvider(network, projectId, projectSecret));
         }
         catch (error) {
             console.log(error);
         }
     }
     /*
-      if (options.pocket !== "-") {
-          try {
-              let appId = options.pocket;
-              let secretKey: undefined | string = undefined;
-              let loadBalancer: undefined | boolean = undefined;
-              if (typeof(appId) === "object") {
-                  loadBalancer = !!appId.loadBalancer;
-                  secretKey = appId.secretKey;
-                  appId = appId.appId;
-              }
-              providers.push(new PocketProvider(network, appId, secretKey, loadBalancer));
-          } catch (error) { console.log(error); }
-      }
-  */
+    if (options.pocket !== "-") {
+        try {
+            let appId = options.pocket;
+            let secretKey: undefined | string = undefined;
+            let loadBalancer: undefined | boolean = undefined;
+            if (typeof(appId) === "object") {
+                loadBalancer = !!appId.loadBalancer;
+                secretKey = appId.secretKey;
+                appId = appId.appId;
+            }
+            providers.push(new PocketProvider(network, appId, secretKey, loadBalancer));
+        } catch (error) { console.log(error); }
+    }
+*/
     if (options.quicknode !== "-") {
         try {
             let token = options.quicknode;
-            providers.push(new provider_quicknode_js_1.QuickNodeProvider(network, token));
+            providers.push(new providerQuicknode.QuickNodeProvider(network, token));
         }
         catch (error) {
             console.log(error);
         }
     }
-    (0, index_js_1.assert)(providers.length, "unsupported default network", "UNSUPPORTED_OPERATION", {
+    errors.assert(providers.length, "unsupported default network", "UNSUPPORTED_OPERATION", {
         operation: "getDefaultProvider",
     });
     if (providers.length === 1) {
         return providers[0];
     }
-    return new provider_fallback_js_1.FallbackProvider(providers);
+    return new providerFallback.FallbackProvider(providers);
 }
+
 exports.getDefaultProvider = getDefaultProvider;
 //# sourceMappingURL=default-provider.js.map

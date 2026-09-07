@@ -1,7 +1,6 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.networkFeatureAtBlock = exports.networkNames = exports.testReceipt = exports.testTransaction = exports.testBlock = exports.testAddress = void 0;
-exports.testAddress = {
+'use strict';
+
+const testAddress = {
     mainnet: [
         {
             test: "old-account",
@@ -26,7 +25,7 @@ exports.testAddress = {
     ],
     goerli: [],
 };
-exports.testBlock = {
+const testBlock = {
     mainnet: [
         {
             test: "old-homestead-block",
@@ -88,7 +87,7 @@ exports.testBlock = {
     ],
     goerli: [],
 };
-exports.testTransaction = {
+const testTransaction = {
     mainnet: [
         {
             test: "legacy",
@@ -142,7 +141,7 @@ exports.testTransaction = {
     ],
     goerli: [],
 };
-exports.testReceipt = {
+const testReceipt = {
     mainnet: [
         {
             test: "legacy",
@@ -229,15 +228,19 @@ exports.testReceipt = {
     ],
     goerli: [],
 };
-exports.networkNames = ["mainnet", "goerli"];
+const networkNames = ["mainnet", "goerli"];
 function networkFeatureAtBlock(feature, block) {
     switch (feature) {
         case "byzantium":
             return block >= 4370000;
-        default:
-            break;
     }
     throw new Error(`unknown feature: ${feature}`);
 }
+
 exports.networkFeatureAtBlock = networkFeatureAtBlock;
+exports.networkNames = networkNames;
+exports.testAddress = testAddress;
+exports.testBlock = testBlock;
+exports.testReceipt = testReceipt;
+exports.testTransaction = testTransaction;
 //# sourceMappingURL=blockchain-data.js.map

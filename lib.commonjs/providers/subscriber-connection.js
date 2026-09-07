@@ -1,7 +1,14 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.BlockConnectionSubscriber = void 0;
-const index_js_1 = require("../utils/index.js");
+'use strict';
+
+require('../utils/base58.js');
+require('../logger/logger.js');
+require('../utils/errors.js');
+require('http');
+require('https');
+require('zlib');
+require('../utils/fixednumber.js');
+var maths = require('../utils/maths.js');
+
 /**
  *  @TODO
  *
@@ -24,7 +31,7 @@ class BlockConnectionSubscriber {
         }
         this.#running = true;
         this.#filterId = this.#provider._subscribe(["newHeads"], (result) => {
-            const blockNumber = (0, index_js_1.getNumber)(result.number);
+            const blockNumber = maths.getNumber(result.number);
             const initial = this.#blockNumber === -2 ? blockNumber : this.#blockNumber + 1;
             for (let b = initial; b <= blockNumber; b++) {
                 this.#provider.emit("block", b);
@@ -52,5 +59,6 @@ class BlockConnectionSubscriber {
         this.start();
     }
 }
+
 exports.BlockConnectionSubscriber = BlockConnectionSubscriber;
 //# sourceMappingURL=subscriber-connection.js.map

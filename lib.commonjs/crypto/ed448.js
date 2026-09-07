@@ -1,7 +1,12 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const tslib_1 = require("tslib");
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+var backend = require('bcrypto/lib/ed448.js');
+
+// bcrypto does not ship TypeScript declarations.
 // @ts-ignore
-const ed448_js_1 = tslib_1.__importDefault(require("bcrypto/lib/ed448.js"));
-exports.default = ed448_js_1.default;
+const ed448 = backend;
+
+exports.default = ed448;
 //# sourceMappingURL=ed448.js.map

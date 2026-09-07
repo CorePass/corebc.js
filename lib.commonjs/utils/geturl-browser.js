@@ -1,16 +1,16 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.getUrl = void 0;
-const errors_js_1 = require("./errors.js");
+'use strict';
+
+var errors = require('./errors.js');
+
 // @TODO: timeout is completely ignored; start a Promise.any with a reject?
 // @ts-ignore
 async function getUrl(req, _signal) {
     const protocol = req.url.split(":")[0].toLowerCase();
-    (0, errors_js_1.assert)(protocol === "http" || protocol === "https", `unsupported protocol ${protocol}`, "UNSUPPORTED_OPERATION", {
+    errors.assert(protocol === "http" || protocol === "https", `unsupported protocol ${protocol}`, "UNSUPPORTED_OPERATION", {
         info: { protocol },
         operation: "request",
     });
-    (0, errors_js_1.assert)(protocol === "https" || !req.credentials || req.allowInsecureAuthentication, "insecure authorized connections unsupported", "UNSUPPORTED_OPERATION", {
+    errors.assert(protocol === "https" || !req.credentials || req.allowInsecureAuthentication, "insecure authorized connections unsupported", "UNSUPPORTED_OPERATION", {
         operation: "request",
     });
     let signal = undefined;
@@ -47,5 +47,6 @@ async function getUrl(req, _signal) {
         return undefined;
     }
 }
+
 exports.getUrl = getUrl;
 //# sourceMappingURL=geturl-browser.js.map

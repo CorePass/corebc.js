@@ -4,7 +4,7 @@
  *  (**i.e.** ``0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141n``)
  */
 export const N: bigint = BigInt(
-  "0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141",
+	"0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141",
 );
 
 /**
@@ -20,7 +20,7 @@ export const OrePerXCB: bigint = BigInt("1000000000000000000");
  *  (**i.e.** ``0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffn``)
  */
 export const MaxUint256: bigint = BigInt(
-  "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+	"0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
 );
 
 /**
@@ -29,8 +29,8 @@ export const MaxUint256: bigint = BigInt(
  *  (**i.e.** ``-8000000000000000000000000000000000000000000000000000000000000000n``)
  */
 export const MinInt256: bigint =
-  BigInt("0x8000000000000000000000000000000000000000000000000000000000000000") *
-  BigInt(-1);
+	BigInt("0x8000000000000000000000000000000000000000000000000000000000000000") *
+	BigInt(-1);
 
 /**
  *  A constant for the maximum value for an ``int256``.
@@ -38,7 +38,7 @@ export const MinInt256: bigint =
  *  (**i.e.** ``0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffn``)
  */
 export const MaxInt256: bigint = BigInt(
-  "0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+	"0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
 );
 
 export const NegativeOne: bigint = /*#__PURE__*/ BigInt(-1);

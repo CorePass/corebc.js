@@ -23,7 +23,6 @@ lerna-debug.log*
 .pnp.*
 
 # lock files (excluding will cause npm ci inaccessible)
-package-lock.json
 yarn.lock
 pnpm-lock.yaml
 

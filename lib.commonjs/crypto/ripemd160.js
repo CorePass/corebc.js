@@ -1,11 +1,19 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ripemd160 = void 0;
-const ripemd160_1 = require("@noble/hashes/ripemd160");
-const index_js_1 = require("../utils/index.js");
+'use strict';
+
+var legacy_js = require('@noble/hashes/legacy.js');
+require('../utils/base58.js');
+var data = require('../utils/data.js');
+require('../utils/errors.js');
+require('../logger/logger.js');
+require('http');
+require('https');
+require('zlib');
+require('../utils/fixednumber.js');
+require('../utils/maths.js');
+
 let locked = false;
 const _ripemd160 = function (data) {
-    return (0, ripemd160_1.ripemd160)(data);
+    return legacy_js.ripemd160(data);
 };
 let __ripemd160 = _ripemd160;
 /**
@@ -26,10 +34,9 @@ let __ripemd160 = _ripemd160;
  *
  */
 function ripemd160(_data) {
-    const data = (0, index_js_1.getBytes)(_data, "data");
-    return (0, index_js_1.hexlify)(__ripemd160(data));
+    const data$1 = data.getBytes(_data, "data");
+    return data.hexlify(__ripemd160(data$1));
 }
-exports.ripemd160 = ripemd160;
 ripemd160._ = _ripemd160;
 ripemd160.lock = function () {
     locked = true;
@@ -41,4 +48,6 @@ ripemd160.register = function (func) {
     __ripemd160 = func;
 };
 Object.freeze(ripemd160);
+
+exports.ripemd160 = ripemd160;
 //# sourceMappingURL=ripemd160.js.map

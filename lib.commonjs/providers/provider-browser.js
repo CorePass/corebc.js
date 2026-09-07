@@ -1,9 +1,16 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.BrowserProvider = void 0;
-const index_js_1 = require("../utils/index.js");
-const provider_jsonrpc_js_1 = require("./provider-jsonrpc.js");
-class BrowserProvider extends provider_jsonrpc_js_1.JsonRpcApiPollingProvider {
+'use strict';
+
+require('../utils/base58.js');
+require('../logger/logger.js');
+var errors = require('../utils/errors.js');
+require('http');
+require('https');
+require('zlib');
+require('../utils/fixednumber.js');
+require('../utils/maths.js');
+var providerJsonrpc = require('./provider-jsonrpc.js');
+
+class BrowserProvider extends providerJsonrpc.JsonRpcApiPollingProvider {
     #request;
     constructor(core, network) {
         super(network, { batchMaxCount: 1 });
@@ -30,7 +37,7 @@ class BrowserProvider extends provider_jsonrpc_js_1.JsonRpcApiPollingProvider {
         return await super.send(method, params);
     }
     async _send(payload) {
-        (0, index_js_1.assertArgument)(!Array.isArray(payload), "EIP-1193 does not support batch request", "payload", payload);
+        errors.assertArgument(!Array.isArray(payload), "EIP-1193 does not support batch request", "payload", payload);
         try {
             const result = await this.#request(payload.method, payload.params || []);
             return [{ id: payload.id, result }];
@@ -87,5 +94,6 @@ class BrowserProvider extends provider_jsonrpc_js_1.JsonRpcApiPollingProvider {
         return await super.getSigner(address);
     }
 }
+
 exports.BrowserProvider = BrowserProvider;
 //# sourceMappingURL=provider-browser.js.map

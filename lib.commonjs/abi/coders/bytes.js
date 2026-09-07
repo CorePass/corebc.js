@@ -1,12 +1,20 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.BytesCoder = exports.DynamicBytesCoder = void 0;
-const index_js_1 = require("../../utils/index.js");
-const abstract_coder_js_1 = require("./abstract-coder.js");
+'use strict';
+
+require('../../utils/base58.js');
+var data = require('../../utils/data.js');
+require('../../utils/errors.js');
+require('../../logger/logger.js');
+require('http');
+require('https');
+require('zlib');
+require('../../utils/fixednumber.js');
+require('../../utils/maths.js');
+var abstractCoder = require('./abstract-coder.js');
+
 /**
  *  @_ignore
  */
-class DynamicBytesCoder extends abstract_coder_js_1.Coder {
+class DynamicBytesCoder extends abstractCoder.Coder {
     constructor(type, localName) {
         super(type, type, localName, true);
     }
@@ -14,7 +22,7 @@ class DynamicBytesCoder extends abstract_coder_js_1.Coder {
         return "0x";
     }
     encode(writer, value) {
-        value = (0, index_js_1.getBytesCopy)(value);
+        value = data.getBytesCopy(value);
         let length = writer.writeValue(value.length);
         length += writer.writeBytes(value);
         return length;
@@ -23,7 +31,6 @@ class DynamicBytesCoder extends abstract_coder_js_1.Coder {
         return reader.readBytes(reader.readIndex(), true);
     }
 }
-exports.DynamicBytesCoder = DynamicBytesCoder;
 /**
  *  @_ignore
  */
@@ -32,8 +39,10 @@ class BytesCoder extends DynamicBytesCoder {
         super("bytes", localName);
     }
     decode(reader) {
-        return (0, index_js_1.hexlify)(super.decode(reader));
+        return data.hexlify(super.decode(reader));
     }
 }
+
 exports.BytesCoder = BytesCoder;
+exports.DynamicBytesCoder = DynamicBytesCoder;
 //# sourceMappingURL=bytes.js.map

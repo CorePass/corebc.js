@@ -14,4 +14,6 @@ export { decodeBase58, encodeBase58, decodeBase64, encodeBase64, concat, dataLen
 export { Mnemonic, BaseWallet, HDNodeWallet, Wallet, defaultPath, getAccountPath, getIndexedAccountPath, isCrowdsaleJson, isKeystoreJson, decryptCrowdsaleJson, decryptKeystoreJsonSync, decryptKeystoreJson, encryptKeystoreJson, encryptKeystoreJsonSync, } from "./wallet/index.js";
 export { BigNumber } from "./bigNumber/bigNumber.js";
 export { Wordlist, LangEn, WordlistOwl, WordlistOwlA, wordlists, } from "./wordlists/index.js";
+export * from "./cip/index.js";
+export * from "./ipfs/index.js";
 //# sourceMappingURL=corebc.js.map

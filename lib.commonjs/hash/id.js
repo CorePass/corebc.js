@@ -1,9 +1,17 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.id = void 0;
-const keccak_js_1 = require("../crypto/keccak.js");
-const sha3_js_1 = require("../crypto/sha3.js");
-const index_js_1 = require("../utils/index.js");
+'use strict';
+
+var keccak = require('../crypto/keccak.js');
+var sha3 = require('../crypto/sha3.js');
+require('../utils/base58.js');
+require('../logger/logger.js');
+require('../utils/errors.js');
+var utf8 = require('../utils/utf8.js');
+require('http');
+require('https');
+require('zlib');
+require('../utils/fixednumber.js');
+require('../utils/maths.js');
+
 /**
  *  A simple hashing function which operates on UTF-8 strings to
  *  compute an 32-byte identifier.
@@ -15,9 +23,10 @@ const index_js_1 = require("../utils/index.js");
  */
 function id(value, useKeccak) {
     if (useKeccak) {
-        return (0, keccak_js_1.keccak256)((0, index_js_1.toUtf8Bytes)(value));
+        return keccak.keccak256(utf8.toUtf8Bytes(value));
     }
-    return (0, sha3_js_1.sha256)((0, index_js_1.toUtf8Bytes)(value));
+    return sha3.sha256(utf8.toUtf8Bytes(value));
 }
+
 exports.id = id;
 //# sourceMappingURL=id.js.map

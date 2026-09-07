@@ -123,13 +123,13 @@ export class SocketProvider extends JsonRpcApiProvider {
     }
     // This value is only valid after _start has been called
     /*
-      get _network(): Network {
-          if (this.#network == null) {
-              throw new Error("this shouldn't happen");
-          }
-          return this.#network.clone();
-      }
-      */
+    get _network(): Network {
+        if (this.#network == null) {
+            throw new Error("this shouldn't happen");
+        }
+        return this.#network.clone();
+    }
+    */
     _getSubscriber(sub) {
         switch (sub.type) {
             case "close":
@@ -175,18 +175,18 @@ export class SocketProvider extends JsonRpcApiProvider {
     }
     // Sub-classes must call this once they are connected
     /*
-      async _start(): Promise<void> {
-          if (this.#ready) { return; }
-  
-          for (const { payload } of this.#callbacks.values()) {
-              await this._write(JSON.stringify(payload));
-          }
-  
-          this.#ready = (async function() {
-              await super._start();
-          })();
-      }
-      */
+    async _start(): Promise<void> {
+        if (this.#ready) { return; }
+
+        for (const { payload } of this.#callbacks.values()) {
+            await this._write(JSON.stringify(payload));
+        }
+
+        this.#ready = (async function() {
+            await super._start();
+        })();
+    }
+    */
     // Sub-classes must call this for each message
     async _processMessage(message) {
         const result = (JSON.parse(message));

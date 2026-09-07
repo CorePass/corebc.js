@@ -1,6 +1,8 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.toUtf8CodePoints = exports.toUtf8String = exports.toUtf8Bytes = exports.Utf8ErrorFuncs = void 0;
+'use strict';
+
+var data = require('./data.js');
+var errors = require('./errors.js');
+
 /**
  *  Using strings in Core (or any security-basd system) requires
  *  additional care. These utilities attempt to mitigate some of the
@@ -9,10 +11,8 @@ exports.toUtf8CodePoints = exports.toUtf8String = exports.toUtf8Bytes = exports.
  *
  *  @_subsection api/utils:Strings and UTF-8  [about-strings]
  */
-const data_js_1 = require("./data.js");
-const errors_js_1 = require("./errors.js");
 function errorFunc(reason, offset, bytes, output, badCodepoint) {
-    (0, errors_js_1.assertArgument)(false, `invalid codepoint at offset ${offset}; ${reason}`, "bytes", bytes);
+    errors.assertArgument(false, `invalid codepoint at offset ${offset}; ${reason}`, "bytes", bytes);
 }
 function ignoreFunc(reason, offset, bytes, output, badCodepoint) {
     // If there is an invalid prefix (including stray continuation), skip any additional continuation bytes
@@ -37,14 +37,14 @@ function ignoreFunc(reason, offset, bytes, output, badCodepoint) {
 function replaceFunc(reason, offset, bytes, output, badCodepoint) {
     // Overlong representations are otherwise "valid" code points; just non-deistingtished
     if (reason === "OVERLONG") {
-        (0, errors_js_1.assertArgument)(typeof badCodepoint === "number", "invalid bad code point for replacement", "badCodepoint", badCodepoint);
+        errors.assertArgument(typeof badCodepoint === "number", "invalid bad code point for replacement", "badCodepoint", badCodepoint);
         output.push(badCodepoint);
         return 0;
     }
     // Put the replacement character into the output
     output.push(0xfffd);
     // Otherwise, process as if ignoring errors
-    return ignoreFunc(reason, offset, bytes, output, badCodepoint);
+    return ignoreFunc(reason, offset, bytes);
 }
 /**
  *  A handful of popular, built-in UTF-8 error handling strategies.
@@ -61,7 +61,7 @@ function replaceFunc(reason, offset, bytes, output, badCodepoint) {
  *
  *  @returns: Record<"error" | "ignore" | "replace", Utf8ErrorFunc>
  */
-exports.Utf8ErrorFuncs = Object.freeze({
+const Utf8ErrorFuncs = Object.freeze({
     error: errorFunc,
     ignore: ignoreFunc,
     replace: replaceFunc,
@@ -69,9 +69,9 @@ exports.Utf8ErrorFuncs = Object.freeze({
 // http://stackoverflow.com/questions/13356493/decode-utf-8-with-javascript#13691499
 function getUtf8CodePoints(_bytes, onError) {
     if (onError == null) {
-        onError = exports.Utf8ErrorFuncs.error;
+        onError = Utf8ErrorFuncs.error;
     }
-    const bytes = (0, data_js_1.getBytes)(_bytes, "bytes");
+    const bytes = data.getBytes(_bytes, "bytes");
     const result = [];
     let i = 0;
     // Invalid bytes are ignored
@@ -158,7 +158,7 @@ function getUtf8CodePoints(_bytes, onError) {
  */
 function toUtf8Bytes(str, form) {
     if (form != null) {
-        (0, errors_js_1.assertNormalize)(form);
+        errors.assertNormalize(form);
         str = str.normalize(form);
     }
     let result = [];
@@ -174,7 +174,7 @@ function toUtf8Bytes(str, form) {
         else if ((c & 0xfc00) == 0xd800) {
             i++;
             const c2 = str.charCodeAt(i);
-            (0, errors_js_1.assertArgument)(i < str.length && (c2 & 0xfc00) === 0xdc00, "invalid surrogate pair", "str", str);
+            errors.assertArgument(i < str.length && (c2 & 0xfc00) === 0xdc00, "invalid surrogate pair", "str", str);
             // Surrogate Pair
             const pair = 0x10000 + ((c & 0x03ff) << 10) + (c2 & 0x03ff);
             result.push((pair >> 18) | 0xf0);
@@ -190,7 +190,6 @@ function toUtf8Bytes(str, form) {
     }
     return new Uint8Array(result);
 }
-exports.toUtf8Bytes = toUtf8Bytes;
 //export
 function _toUtf8String(codePoints) {
     return codePoints
@@ -213,7 +212,6 @@ function _toUtf8String(codePoints) {
 function toUtf8String(bytes, onError) {
     return _toUtf8String(getUtf8CodePoints(bytes, onError));
 }
-exports.toUtf8String = toUtf8String;
 /**
  *  Returns the UTF-8 code-points for %%str%%.
  *
@@ -222,5 +220,9 @@ exports.toUtf8String = toUtf8String;
 function toUtf8CodePoints(str, form) {
     return getUtf8CodePoints(toUtf8Bytes(str, form));
 }
+
+exports.Utf8ErrorFuncs = Utf8ErrorFuncs;
+exports.toUtf8Bytes = toUtf8Bytes;
 exports.toUtf8CodePoints = toUtf8CodePoints;
+exports.toUtf8String = toUtf8String;
 //# sourceMappingURL=utf8.js.map

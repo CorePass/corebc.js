@@ -1,8 +1,15 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.FilterIdPendingSubscriber = exports.FilterIdEventSubscriber = exports.FilterIdSubscriber = void 0;
-const index_js_1 = require("../utils/index.js");
-const subscriber_polling_js_1 = require("./subscriber-polling.js");
+'use strict';
+
+require('../utils/base58.js');
+require('../logger/logger.js');
+var errors = require('../utils/errors.js');
+require('http');
+require('https');
+require('zlib');
+require('../utils/fixednumber.js');
+require('../utils/maths.js');
+var subscriberPolling = require('./subscriber-polling.js');
+
 function copy(obj) {
     return JSON.parse(JSON.stringify(obj));
 }
@@ -52,7 +59,7 @@ class FilterIdSubscriber {
                 filterId = await this.#filterIdPromise;
             }
             catch (error) {
-                if (!(0, index_js_1.isError)(error, "UNSUPPORTED_OPERATION") ||
+                if (!errors.isError(error, "UNSUPPORTED_OPERATION") ||
                     error.operation !== "xcb_newFilter") {
                     throw error;
                 }
@@ -119,7 +126,6 @@ class FilterIdSubscriber {
         this.start();
     }
 }
-exports.FilterIdSubscriber = FilterIdSubscriber;
 /**
  *  A **FilterIdSubscriber** for receiving contract events.
  *
@@ -132,7 +138,7 @@ class FilterIdEventSubscriber extends FilterIdSubscriber {
         this.#event = copy(filter);
     }
     _recover(provider) {
-        return new subscriber_polling_js_1.PollingEventSubscriber(provider, this.#event);
+        return new subscriberPolling.PollingEventSubscriber(provider, this.#event);
     }
     async _subscribe(provider) {
         const filterId = await provider.send("xcb_newFilter", [this.#event]);
@@ -144,7 +150,6 @@ class FilterIdEventSubscriber extends FilterIdSubscriber {
         }
     }
 }
-exports.FilterIdEventSubscriber = FilterIdEventSubscriber;
 /**
  *  A **FilterIdSubscriber** for receiving pending transactions events.
  *
@@ -160,5 +165,8 @@ class FilterIdPendingSubscriber extends FilterIdSubscriber {
         }
     }
 }
+
+exports.FilterIdEventSubscriber = FilterIdEventSubscriber;
 exports.FilterIdPendingSubscriber = FilterIdPendingSubscriber;
+exports.FilterIdSubscriber = FilterIdSubscriber;
 //# sourceMappingURL=subscriber-filterid.js.map

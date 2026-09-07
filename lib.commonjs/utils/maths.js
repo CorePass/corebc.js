@@ -1,13 +1,13 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.toQuantity = exports.toBeArray = exports.toBeHex = exports.toNumber = exports.getNumber = exports.toBigInt = exports.getUint = exports.getBigInt = exports.mask = exports.toTwos = exports.fromTwos = void 0;
+'use strict';
+
+var data = require('./data.js');
+var errors = require('./errors.js');
+
 /**
  *  Some mathematic operations.
  *
  *  @_subsection: api/utils:Math Helpers  [about-maths]
  */
-const data_js_1 = require("./data.js");
-const errors_js_1 = require("./errors.js");
 const BN_0 = BigInt(0);
 const BN_1 = BigInt(1);
 //const BN_Max256 = (BN_1 << BigInt(256)) - BN_1;
@@ -22,7 +22,7 @@ const maxValue = 0x1fffffffffffff;
 function fromTwos(_value, _width) {
     const value = getUint(_value, "value");
     const width = BigInt(getNumber(_width, "width"));
-    (0, errors_js_1.assert)(value >> width === BN_0, "overflow", "NUMERIC_FAULT", {
+    errors.assert(value >> width === BN_0, "overflow", "NUMERIC_FAULT", {
         operation: "fromTwos",
         fault: "overflow",
         value: _value,
@@ -34,7 +34,6 @@ function fromTwos(_value, _width) {
     }
     return value;
 }
-exports.fromTwos = fromTwos;
 /**
  *  Convert %%value%% to a twos-compliment representation of
  *  %%width%% bits.
@@ -47,7 +46,7 @@ function toTwos(_value, _width) {
     const limit = BN_1 << (width - BN_1);
     if (value < BN_0) {
         value = -value;
-        (0, errors_js_1.assert)(value <= limit, "too low", "NUMERIC_FAULT", {
+        errors.assert(value <= limit, "too low", "NUMERIC_FAULT", {
             operation: "toTwos",
             fault: "overflow",
             value: _value,
@@ -56,7 +55,7 @@ function toTwos(_value, _width) {
         return (~value & mask) + BN_1;
     }
     else {
-        (0, errors_js_1.assert)(value < limit, "too high", "NUMERIC_FAULT", {
+        errors.assert(value < limit, "too high", "NUMERIC_FAULT", {
             operation: "toTwos",
             fault: "overflow",
             value: _value,
@@ -64,7 +63,6 @@ function toTwos(_value, _width) {
     }
     return value;
 }
-exports.toTwos = toTwos;
 /**
  *  Mask %%value%% with a bitmask of %%bits%% ones.
  */
@@ -73,7 +71,6 @@ function mask(_value, _bits) {
     const bits = BigInt(getNumber(_bits, "bits"));
     return value & ((BN_1 << bits) - BN_1);
 }
-exports.mask = mask;
 /**
  *  Gets a BigInt from %%value%%. If it is an invalid value for
  *  a BigInt, then an ArgumentError will be thrown for %%name%%.
@@ -83,8 +80,8 @@ function getBigInt(value, name) {
         case "bigint":
             return value;
         case "number":
-            (0, errors_js_1.assertArgument)(Number.isInteger(value), "underflow", name || "value", value);
-            (0, errors_js_1.assertArgument)(value >= -maxValue && value <= maxValue, "overflow", name || "value", value);
+            errors.assertArgument(Number.isInteger(value), "underflow", name || "value", value);
+            errors.assertArgument(value >= -maxValue && value <= maxValue, "overflow", name || "value", value);
             return BigInt(value);
         case "string":
             try {
@@ -97,22 +94,20 @@ function getBigInt(value, name) {
                 return BigInt(value);
             }
             catch (e) {
-                (0, errors_js_1.assertArgument)(false, `invalid BigNumberish string: ${e.message}`, name || "value", value);
+                errors.assertArgument(false, `invalid BigNumberish string: ${e.message}`, name || "value", value);
             }
     }
-    (0, errors_js_1.assertArgument)(false, "invalid BigNumberish value", name || "value", value);
+    errors.assertArgument(false, "invalid BigNumberish value", name || "value", value);
 }
-exports.getBigInt = getBigInt;
 function getUint(value, name) {
     const result = getBigInt(value, name);
-    (0, errors_js_1.assert)(result >= BN_0, "unsigned value cannot be negative", "NUMERIC_FAULT", {
+    errors.assert(result >= BN_0, "unsigned value cannot be negative", "NUMERIC_FAULT", {
         fault: "overflow",
         operation: "getUint",
         value,
     });
     return result;
 }
-exports.getUint = getUint;
 const Nibbles = "0123456789abcdef";
 /*
  * Converts %%value%% to a BigInt. If %%value%% is a Uint8Array, it
@@ -129,7 +124,6 @@ function toBigInt(value) {
     }
     return getBigInt(value);
 }
-exports.toBigInt = toBigInt;
 /**
  *  Gets a //number// from %%value%%. If it is an invalid value for
  *  a //number//, then an ArgumentError will be thrown for %%name%%.
@@ -137,11 +131,11 @@ exports.toBigInt = toBigInt;
 function getNumber(value, name) {
     switch (typeof value) {
         case "bigint":
-            (0, errors_js_1.assertArgument)(value >= -maxValue && value <= maxValue, "overflow", name || "value", value);
+            errors.assertArgument(value >= -maxValue && value <= maxValue, "overflow", name || "value", value);
             return Number(value);
         case "number":
-            (0, errors_js_1.assertArgument)(Number.isInteger(value), "underflow", name || "value", value);
-            (0, errors_js_1.assertArgument)(value >= -maxValue && value <= maxValue, "overflow", name || "value", value);
+            errors.assertArgument(Number.isInteger(value), "underflow", name || "value", value);
+            errors.assertArgument(value >= -maxValue && value <= maxValue, "overflow", name || "value", value);
             return value;
         case "string":
             try {
@@ -151,12 +145,11 @@ function getNumber(value, name) {
                 return getNumber(BigInt(value), name);
             }
             catch (e) {
-                (0, errors_js_1.assertArgument)(false, `invalid numeric string: ${e.message}`, name || "value", value);
+                errors.assertArgument(false, `invalid numeric string: ${e.message}`, name || "value", value);
             }
     }
-    (0, errors_js_1.assertArgument)(false, "invalid numeric value", name || "value", value);
+    errors.assertArgument(false, "invalid numeric value", name || "value", value);
 }
-exports.getNumber = getNumber;
 /**
  *  Converts %%value%% to a number. If %%value%% is a Uint8Array, it
  *  is treated as Big Endian data. Throws if the value is not safe.
@@ -164,7 +157,6 @@ exports.getNumber = getNumber;
 function toNumber(value) {
     return getNumber(toBigInt(value));
 }
-exports.toNumber = toNumber;
 /**
  *  Converts %%value%% to a Big Endian hexstring, optionally padded to
  *  %%width%% bytes.
@@ -180,7 +172,7 @@ function toBeHex(_value, _width) {
     }
     else {
         const width = getNumber(_width, "width");
-        (0, errors_js_1.assert)(width * 2 >= result.length, `value exceeds width (${width} bits)`, "NUMERIC_FAULT", {
+        errors.assert(width * 2 >= result.length, `value exceeds width (${width} bits)`, "NUMERIC_FAULT", {
             operation: "toBeHex",
             fault: "overflow",
             value: _value,
@@ -192,7 +184,6 @@ function toBeHex(_value, _width) {
     }
     return "0x" + result;
 }
-exports.toBeHex = toBeHex;
 /**
  *  Converts %%value%% to a Big Endian Uint8Array.
  */
@@ -212,7 +203,6 @@ function toBeArray(_value) {
     }
     return result;
 }
-exports.toBeArray = toBeArray;
 /**
  *  Returns a [[HexString]] for %%value%% safe to use as a //Quantity//.
  *
@@ -221,7 +211,7 @@ exports.toBeArray = toBeArray;
  *  numeric values.
  */
 function toQuantity(value) {
-    let result = (0, data_js_1.hexlify)((0, data_js_1.isBytesLike)(value) ? value : toBeArray(value)).substring(2);
+    let result = data.hexlify(data.isBytesLike(value) ? value : toBeArray(value)).substring(2);
     while (result.startsWith("0")) {
         result = result.substring(1);
     }
@@ -230,5 +220,16 @@ function toQuantity(value) {
     }
     return "0x" + result;
 }
+
+exports.fromTwos = fromTwos;
+exports.getBigInt = getBigInt;
+exports.getNumber = getNumber;
+exports.getUint = getUint;
+exports.mask = mask;
+exports.toBeArray = toBeArray;
+exports.toBeHex = toBeHex;
+exports.toBigInt = toBigInt;
+exports.toNumber = toNumber;
 exports.toQuantity = toQuantity;
+exports.toTwos = toTwos;
 //# sourceMappingURL=maths.js.map

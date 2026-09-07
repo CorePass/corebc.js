@@ -49,7 +49,7 @@ function checkValue(val, format, safeOp) {
             fault: "overflow",
             value: val,
         });
-        val = ((val % limit) + limit) % limit & (limit - BN_1);
+        val = (((val % limit) + limit) % limit) & (limit - BN_1);
     }
     return val;
 }
@@ -219,27 +219,27 @@ export class FixedNumber {
     }
     #checkValue(val, safeOp) {
         /*
-            const width = BigInt(this.width);
-            if (this.signed) {
-                const limit = (BN_1 << (width - BN_1));
-                assert(safeOp == null || (val >= -limit  && val < limit), "overflow", "NUMERIC_FAULT", {
-                    operation: <string>safeOp, fault: "overflow", value: val
-                });
-    
-                if (val > BN_0) {
-                    val = fromTwos(mask(val, width), width);
-                } else {
-                    val = -fromTwos(mask(-val, width), width);
-                }
-    
+        const width = BigInt(this.width);
+        if (this.signed) {
+            const limit = (BN_1 << (width - BN_1));
+            assert(safeOp == null || (val >= -limit  && val < limit), "overflow", "NUMERIC_FAULT", {
+                operation: <string>safeOp, fault: "overflow", value: val
+            });
+
+            if (val > BN_0) {
+                val = fromTwos(mask(val, width), width);
             } else {
-                const masked = mask(val, width);
-                assert(safeOp == null || (val >= 0 && val === masked), "overflow", "NUMERIC_FAULT", {
-                    operation: <string>safeOp, fault: "overflow", value: val
-                });
-                val = masked;
+                val = -fromTwos(mask(-val, width), width);
             }
-    */
+
+        } else {
+            const masked = mask(val, width);
+            assert(safeOp == null || (val >= 0 && val === masked), "overflow", "NUMERIC_FAULT", {
+                operation: <string>safeOp, fault: "overflow", value: val
+            });
+            val = masked;
+        }
+*/
         val = checkValue(val, this.#format, safeOp);
         return new _a(_guard, val, this.#format);
     }

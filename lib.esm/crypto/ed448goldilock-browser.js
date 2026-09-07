@@ -1,3 +1,4 @@
+import { Buffer } from "buffer";
 // @ts-ignore
 import ed448 from "./browser-ed448.js";
 // @ts-ignore
@@ -48,7 +49,7 @@ export class Ed448Goldilock {
         return signedMessage + publicKey;
     }
     static verifySignature(msgHash, signedMsg, pubKey) {
-        return this._channel.verify(msgHash, signedMsg, pubKey);
+        return this._channel.verify(Buffer.from(msgHash, "hex"), Buffer.from(signedMsg, "hex"), Buffer.from(pubKey, "hex"));
     }
     static SHA512Hash(password, salt) {
         var p1 = Buffer.from(password, "hex");

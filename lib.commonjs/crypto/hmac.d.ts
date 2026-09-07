@@ -1,4 +1,5 @@
 import type { BytesLike } from "../utils/index.js";
+declare const _computeHmac: (algorithm: "sha256" | "sha512", key: Uint8Array, data: Uint8Array) => BytesLike;
 /**
  *  Return the HMAC for %%data%% using the %%key%% key with the underlying
  *  %%algo%% used for compression.
@@ -18,8 +19,9 @@ import type { BytesLike } from "../utils/index.js";
  */
 export declare function computeHmac(algorithm: "sha256" | "sha512", _key: BytesLike, _data: BytesLike): string;
 export declare namespace computeHmac {
-    var _: (algorithm: "sha256" | "sha512", key: Uint8Array, data: Uint8Array) => BytesLike;
-    var lock: () => void;
-    var register: (func: (algorithm: "sha256" | "sha512", key: Uint8Array, data: Uint8Array) => BytesLike) => void;
+    export { _computeHmac as _ };
+    export var lock: () => void;
+    export var register: (func: (algorithm: "sha256" | "sha512", key: Uint8Array, data: Uint8Array) => BytesLike) => void;
 }
+export {};
 //# sourceMappingURL=hmac.d.ts.map

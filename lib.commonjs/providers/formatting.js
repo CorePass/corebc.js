@@ -1,8 +1,3 @@
-"use strict";
-/**
- *  About provider formatting?
- *
- *  @_section: api/providers/formatting:Formatting  [provider-formatting]
- */
-Object.defineProperty(exports, "__esModule", { value: true });
+'use strict';
+
 //# sourceMappingURL=formatting.js.map

@@ -6,6 +6,7 @@
  *  @_subsection: api/crypto:Passwords  [about-pbkdf]
  */
 import type { BytesLike } from "../utils/index.js";
+declare const _pbkdf2: (password: Uint8Array, salt: Uint8Array, iterations: number, keylen: number, algo: "sha256" | "sha512") => BytesLike;
 /**
  *  Return the [[link-pbkdf2]] for %%keylen%% bytes for %%password%% using
  *  the %%salt%% and using %%iterations%% of %%algo%%.
@@ -28,8 +29,9 @@ import type { BytesLike } from "../utils/index.js";
  */
 export declare function pbkdf2(_password: BytesLike, _salt: BytesLike, iterations: number, keylen: number, algo: "sha256" | "sha512"): string;
 export declare namespace pbkdf2 {
-    var _: (password: Uint8Array, salt: Uint8Array, iterations: number, keylen: number, algo: "sha256" | "sha512") => BytesLike;
-    var lock: () => void;
-    var register: (func: (password: Uint8Array, salt: Uint8Array, iterations: number, keylen: number, algo: "sha256" | "sha512") => BytesLike) => void;
+    export { _pbkdf2 as _ };
+    export var lock: () => void;
+    export var register: (func: (password: Uint8Array, salt: Uint8Array, iterations: number, keylen: number, algo: "sha256" | "sha512") => BytesLike) => void;
 }
+export {};
 //# sourceMappingURL=pbkdf2.d.ts.map

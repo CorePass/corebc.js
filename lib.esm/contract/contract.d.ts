@@ -45,7 +45,7 @@ export declare class BaseContract implements Addressable, EventEmitterable<Contr
     static from<T = ContractInterface>(target: string, abi: InterfaceAbi, runner?: null | ContractRunner): BaseContract & Omit<T, keyof BaseContract>;
     static isIndexed(value: any): value is Indexed;
 }
-declare const Contract_base: new (target: string, abi: InterfaceAbi, runner?: ContractRunner | null | undefined) => BaseContract & Omit<ContractInterface, keyof BaseContract>;
+declare const Contract_base: new (target: string, abi: InterfaceAbi, runner?: null | ContractRunner) => BaseContract & Omit<ContractInterface, keyof BaseContract>;
 export declare class Contract extends Contract_base {
 }
 export {};

@@ -1,13 +1,13 @@
-"use strict";
+'use strict';
+
+var _version = require('../_version.js');
+var properties = require('./properties.js');
+
 /**
  *  About Errors.
  *
  *  @_section: api/utils/errors:Errors  [about-errors]
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.assertPrivate = exports.assertNormalize = exports.assertArgumentCount = exports.assertArgument = exports.assert = exports.makeError = exports.isCallException = exports.isError = void 0;
-const _version_js_1 = require("../_version.js");
-const properties_js_1 = require("./properties.js");
 function stringify(value) {
     if (value == null) {
         return "null";
@@ -69,14 +69,12 @@ function stringify(value) {
 function isError(error, code) {
     return error && error.code === code;
 }
-exports.isError = isError;
 /**
  *  Returns true if %%error%% is a [[CallExceptionError].
  */
 function isCallException(error) {
     return isError(error, "CALL_EXCEPTION");
 }
-exports.isCallException = isCallException;
 /**
  *  Returns a new Error configured to the format corebc emits errors, with
  *  the %%message%%, [[api:ErrorCode]] %%code%% and additioanl properties
@@ -105,7 +103,7 @@ function makeError(message, code, info) {
             }
         }
         details.push(`code=${code}`);
-        details.push(`version=${_version_js_1.version}`);
+        details.push(`version=${_version.version}`);
         if (details.length) {
             message += " (" + details.join(", ") + ")";
         }
@@ -122,13 +120,12 @@ function makeError(message, code, info) {
         default:
             error = new Error(message);
     }
-    (0, properties_js_1.defineProperties)(error, { code });
+    properties.defineProperties(error, { code });
     if (info) {
         Object.assign(error, info);
     }
     return error;
 }
-exports.makeError = makeError;
 /**
  *  Throws an corebcError with %%message%%, %%code%% and additional error
  *  %%info%% when %%check%% is falsish..
@@ -140,7 +137,6 @@ function assert(check, message, code, info) {
         throw makeError(message, code, info);
     }
 }
-exports.assert = assert;
 /**
  *  A simple helper to simply ensuring provided arguments match expected
  *  constraints, throwing if not.
@@ -151,7 +147,6 @@ exports.assert = assert;
 function assertArgument(check, message, name, value) {
     assert(check, message, "INVALID_ARGUMENT", { argument: name, value: value });
 }
-exports.assertArgument = assertArgument;
 function assertArgumentCount(count, expectedCount, message) {
     if (message == null) {
         message = "";
@@ -168,7 +163,6 @@ function assertArgumentCount(count, expectedCount, message) {
         expectedCount: expectedCount,
     });
 }
-exports.assertArgumentCount = assertArgumentCount;
 const _normalizeForms = ["NFD", "NFC", "NFKD", "NFKC"].reduce((accum, form) => {
     try {
         // General test for normalize
@@ -200,7 +194,6 @@ function assertNormalize(form) {
         info: { form },
     });
 }
-exports.assertNormalize = assertNormalize;
 /**
  *  Many classes use file-scoped values to guard the constructor,
  *  making it effectively private. This facilitates that pattern
@@ -222,5 +215,13 @@ function assertPrivate(givenGuard, guard, className) {
         });
     }
 }
+
+exports.assert = assert;
+exports.assertArgument = assertArgument;
+exports.assertArgumentCount = assertArgumentCount;
+exports.assertNormalize = assertNormalize;
 exports.assertPrivate = assertPrivate;
+exports.isCallException = isCallException;
+exports.isError = isError;
+exports.makeError = makeError;
 //# sourceMappingURL=errors.js.map

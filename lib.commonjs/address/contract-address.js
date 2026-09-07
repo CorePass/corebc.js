@@ -1,14 +1,19 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.getCreate2Address = exports.getCreateAddress = void 0;
-const index_js_1 = require("../utils/index.js");
-const index_js_2 = require("./index.js");
-const sha3_js_1 = require("../crypto/sha3.js");
-const data_js_1 = require("../utils/data.js");
-const logger_js_1 = require("../logger/logger.js");
-const address_js_1 = require("../transaction/address.js");
-const index_js_3 = require("./index.js");
-const logger = new logger_js_1.Logger("contract-address/0.0.1");
+'use strict';
+
+require('../utils/base58.js');
+var data = require('../utils/data.js');
+require('../utils/errors.js');
+var logger$1 = require('../logger/logger.js');
+require('http');
+require('https');
+require('zlib');
+require('../utils/fixednumber.js');
+var maths = require('../utils/maths.js');
+var index = require('./index.js');
+var sha3 = require('../crypto/sha3.js');
+var address = require('../transaction/address.js');
+
+const logger = new logger$1.Logger("contract-address/0.0.1");
 /**
  *  Returns the address that would result from a ``CREATE`` for %%tx%%.
  *
@@ -28,8 +33,8 @@ const logger = new logger_js_1.Logger("contract-address/0.0.1");
  *    //_result:
  */
 function getCreateAddress(tx) {
-    const from = (0, index_js_2.getAddress)(tx.from);
-    const nonce = (0, index_js_1.getBigInt)(tx.nonce, "tx.nonce");
+    const from = index.getAddress(tx.from);
+    const nonce = maths.getBigInt(tx.nonce, "tx.nonce");
     let nonceHex = nonce.toString(16);
     if (nonceHex === "0") {
         nonceHex = "0x";
@@ -40,9 +45,8 @@ function getCreateAddress(tx) {
     else {
         nonceHex = "0x" + nonceHex;
     }
-    return (0, index_js_2.getAddress)(from);
+    return index.getAddress(from);
 }
-exports.getCreateAddress = getCreateAddress;
 /**
  *  Returns the address that would result from a ``CREATE2`` operation
  *  with the given %%from%%, %%salt%% and %%initCodeHash%%.
@@ -60,17 +64,19 @@ exports.getCreateAddress = getCreateAddress;
  *    //_result:
  */
 function getCreate2Address(from, salt, initCodeHash) {
-    if ((0, data_js_1.hexDataLength)(salt) !== 32) {
+    if (data.hexDataLength(salt) !== 32) {
         logger.throwArgumentError("salt must be 32 bytes", "salt", salt);
     }
-    if ((0, data_js_1.hexDataLength)(initCodeHash) !== 32) {
+    if (data.hexDataLength(initCodeHash) !== 32) {
         logger.throwArgumentError("initCodeHash must be 32 bytes", "initCodeHash", initCodeHash);
     }
-    const val = (0, data_js_1.hexDataSlice)((0, sha3_js_1.sha256)((0, index_js_1.concat)(["0xff", (0, index_js_2.getAddress)(from), salt, initCodeHash])), 12);
+    const val = data.hexDataSlice(sha3.sha256(data.concat(["0xff", index.getAddress(from), salt, initCodeHash])), 12);
     console.log({ "contract-address/74=>should be string": val });
     const prefix = from.substring(2, 4);
-    const checksum = (0, index_js_3.calculateCheckSum)(val, prefix);
-    return "0x" + prefix + checksum + (0, address_js_1.removeHexPrefix)(val);
+    const checksum = index.calculateCheckSum(val, prefix);
+    return "0x" + prefix + checksum + address.removeHexPrefix(val);
 }
+
 exports.getCreate2Address = getCreate2Address;
+exports.getCreateAddress = getCreateAddress;
 //# sourceMappingURL=contract-address.js.map

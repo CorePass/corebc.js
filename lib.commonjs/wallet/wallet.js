@@ -1,14 +1,34 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Wallet = void 0;
-const index_js_1 = require("../crypto/index.js");
-const index_js_2 = require("../utils/index.js");
-const base_wallet_js_1 = require("./base-wallet.js");
-const hdwallet_js_1 = require("./hdwallet.js");
-const json_crowdsale_js_1 = require("./json-crowdsale.js");
-const json_keystore_js_1 = require("./json-keystore.js");
-const mnemonic_js_1 = require("./mnemonic.js");
-const address_js_1 = require("../transaction/address.js");
+'use strict';
+
+require('../crypto/hmac.js');
+require('../crypto/ripemd160.js');
+require('../crypto/pbkdf2.js');
+require('../crypto/random.js');
+require('../crypto/scrypt.js');
+require('../crypto/sha3.js');
+require('bcrypto/lib/ed448.js');
+require('buffer');
+require('bcrypto/lib/pbkdf2.js');
+require('bcrypto/lib/sha3-512.js');
+require('crypto');
+require('../crypto/keccak.js');
+var signingKey = require('../crypto/signing-key.js');
+require('../crypto/signature.js');
+require('../utils/base58.js');
+require('../logger/logger.js');
+var errors = require('../utils/errors.js');
+require('http');
+require('https');
+require('zlib');
+require('../utils/fixednumber.js');
+require('../utils/maths.js');
+var baseWallet = require('./base-wallet.js');
+var hdwallet = require('./hdwallet.js');
+var jsonCrowdsale = require('./json-crowdsale.js');
+var jsonKeystore = require('./json-keystore.js');
+var mnemonic = require('./mnemonic.js');
+var address = require('../transaction/address.js');
+
 function stall(duration) {
     return new Promise((resolve) => {
         setTimeout(() => {
@@ -26,7 +46,7 @@ function stall(duration) {
  *  raw private key, [[link-bip-39]] mnemonics and encrypte JSON
  *  wallets.
  */
-class Wallet extends base_wallet_js_1.BaseWallet {
+class Wallet extends baseWallet.BaseWallet {
     /**
      *  Create a new wallet for the %%privateKey%% or %%signingKey%%, optionally connected
      *  to %%provider%%.
@@ -35,9 +55,9 @@ class Wallet extends base_wallet_js_1.BaseWallet {
         if (typeof key === "string" && !key.startsWith("0x")) {
             key = "0x" + key;
         }
-        let signingKey = typeof key === "string" ? new index_js_1.SigningKey(key) : key;
+        let signingKey$1 = typeof key === "string" ? new signingKey.SigningKey(key) : key;
         super({
-            signingKey,
+            signingKey: signingKey$1,
             prefix,
             provider,
         });
@@ -58,7 +78,7 @@ class Wallet extends base_wallet_js_1.BaseWallet {
      */
     async encrypt(password, progressCallback) {
         const account = { address: this.address, privateKey: this.privateKey };
-        return await (0, json_keystore_js_1.encryptKeystoreJson)(account, password, { progressCallback });
+        return await jsonKeystore.encryptKeystoreJson(account, password, { progressCallback });
     }
     /**
      *  Returns a [JSON Keystore Wallet](json-wallets) encryped with
@@ -72,17 +92,17 @@ class Wallet extends base_wallet_js_1.BaseWallet {
      */
     encryptSync(password) {
         const account = { address: this.address, privateKey: this.privateKey };
-        return (0, json_keystore_js_1.encryptKeystoreJsonSync)(account, password);
+        return jsonKeystore.encryptKeystoreJsonSync(account, password);
     }
     static #fromAccount(account) {
-        (0, index_js_2.assertArgument)(account, "invalid JSON wallet", "json", "[ REDACTED ]");
-        const address = account.address;
-        const prefix = (0, address_js_1.extractPrefix)(address);
+        errors.assertArgument(account, "invalid JSON wallet", "json", "[ REDACTED ]");
+        const address$1 = account.address;
+        const prefix = address.extractPrefix(address$1);
         if ("mnemonic" in account &&
             account.mnemonic &&
             account.mnemonic.locale === "en") {
-            const mnemonic = mnemonic_js_1.Mnemonic.fromEntropy(account.mnemonic.entropy);
-            const wallet = hdwallet_js_1.HDNodeWallet.fromMnemonic(mnemonic, prefix, account.mnemonic.path);
+            const mnemonic$1 = mnemonic.Mnemonic.fromEntropy(account.mnemonic.entropy);
+            const wallet = hdwallet.HDNodeWallet.fromMnemonic(mnemonic$1, prefix, account.mnemonic.path);
             if (wallet.address === account.address &&
                 wallet.privateKey === account.privateKey) {
                 return wallet;
@@ -93,7 +113,7 @@ class Wallet extends base_wallet_js_1.BaseWallet {
             key: account.privateKey,
             prefix,
         });
-        (0, index_js_2.assertArgument)(wallet.address === account.address, "address/privateKey mismatch", "json", "[ REDACTED ]");
+        errors.assertArgument(wallet.address === account.address, "address/privateKey mismatch", "json", "[ REDACTED ]");
         return wallet;
     }
     /**
@@ -105,15 +125,15 @@ class Wallet extends base_wallet_js_1.BaseWallet {
      */
     static async fromEncryptedJson(json, password, progress) {
         let account = null;
-        if ((0, json_keystore_js_1.isKeystoreJson)(json)) {
-            account = await (0, json_keystore_js_1.decryptKeystoreJson)(json, password, progress);
+        if (jsonKeystore.isKeystoreJson(json)) {
+            account = await jsonKeystore.decryptKeystoreJson(json, password, progress);
         }
-        else if ((0, json_crowdsale_js_1.isCrowdsaleJson)(json)) {
+        else if (jsonCrowdsale.isCrowdsaleJson(json)) {
             if (progress) {
                 progress(0);
                 await stall(0);
             }
-            account = (0, json_crowdsale_js_1.decryptCrowdsaleJson)(json, password);
+            account = jsonCrowdsale.decryptCrowdsaleJson(json, password);
             if (progress) {
                 progress(1);
                 await stall(0);
@@ -130,14 +150,14 @@ class Wallet extends base_wallet_js_1.BaseWallet {
      */
     static fromEncryptedJsonSync(json, password) {
         let account = null;
-        if ((0, json_keystore_js_1.isKeystoreJson)(json)) {
-            account = (0, json_keystore_js_1.decryptKeystoreJsonSync)(json, password);
+        if (jsonKeystore.isKeystoreJson(json)) {
+            account = jsonKeystore.decryptKeystoreJsonSync(json, password);
         }
-        else if ((0, json_crowdsale_js_1.isCrowdsaleJson)(json)) {
-            account = (0, json_crowdsale_js_1.decryptCrowdsaleJson)(json, password);
+        else if (jsonCrowdsale.isCrowdsaleJson(json)) {
+            account = jsonCrowdsale.decryptCrowdsaleJson(json, password);
         }
         else {
-            (0, index_js_2.assertArgument)(false, "invalid JSON wallet", "json", "[ REDACTED ]");
+            errors.assertArgument(false, "invalid JSON wallet", "json", "[ REDACTED ]");
         }
         return Wallet.#fromAccount(account);
     }
@@ -148,7 +168,7 @@ class Wallet extends base_wallet_js_1.BaseWallet {
      *  If there is no crytographic random source, this will throw.
      */
     static createRandom(prefix, provider) {
-        const wallet = hdwallet_js_1.HDNodeWallet.createRandom(prefix, undefined, undefined, undefined);
+        const wallet = hdwallet.HDNodeWallet.createRandom(prefix, undefined, undefined, undefined);
         if (provider) {
             return wallet.connect(provider);
         }
@@ -158,7 +178,7 @@ class Wallet extends base_wallet_js_1.BaseWallet {
      *  Creates a [[HDNodeWallet]] for %%phrase%%.
      */
     static fromPhrase({ phrase, prefix, provider, password, }) {
-        const wallet = hdwallet_js_1.HDNodeWallet.fromPhrase({
+        const wallet = hdwallet.HDNodeWallet.fromPhrase({
             phrase,
             prefix,
             password,
@@ -169,10 +189,10 @@ class Wallet extends base_wallet_js_1.BaseWallet {
         return wallet;
     }
     static fromSeed({ seed, prefix, provider, path, }) {
-        const wallet = hdwallet_js_1.HDNodeWallet.fromSeed({
+        const wallet = hdwallet.HDNodeWallet.fromSeed({
             seed,
             prefix,
-            path: path || hdwallet_js_1.defaultPath,
+            path: path || hdwallet.defaultPath,
         });
         if (provider) {
             return wallet.connect(provider);
@@ -180,5 +200,6 @@ class Wallet extends base_wallet_js_1.BaseWallet {
         return wallet;
     }
 }
+
 exports.Wallet = Wallet;
 //# sourceMappingURL=wallet.js.map

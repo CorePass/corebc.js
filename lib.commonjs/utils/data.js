@@ -1,15 +1,15 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.hexConcat = exports.arrayify = exports.stripZeros = exports.zeroPadBytes = exports.zeroPadValue = exports.stripZerosLeft = exports.dataSlice = exports.dataLength = exports.hexDataLength = exports.hexDataSlice = exports.concat = exports.hexlify = exports.isBytesLike = exports.isHexString = exports.getBytesCopy = exports.getBytes = exports.isBytes = void 0;
+'use strict';
+
+var logger$1 = require('../logger/logger.js');
+var errors = require('./errors.js');
+
 /**
  *  Some data helpers.
  *
  *
  *  @_subsection api/utils:Data Helpers  [about-data]
  */
-const logger_js_1 = require("../logger/logger.js");
-const errors_js_1 = require("./errors.js");
-const logger = new logger_js_1.Logger("utils/data/0.0.1");
+const logger = new logger$1.Logger("utils/data/0.0.1");
 function isHexable(value) {
     return !!value.toHexString;
 }
@@ -37,7 +37,6 @@ function isBytes(value) {
     }
     return true;
 }
-exports.isBytes = isBytes;
 function _getBytes(value, name, copy) {
     if (value instanceof Uint8Array) {
         if (copy) {
@@ -54,7 +53,7 @@ function _getBytes(value, name, copy) {
         }
         return result;
     }
-    (0, errors_js_1.assertArgument)(false, "invalid BytesLike value", name || "value", value);
+    errors.assertArgument(false, "invalid BytesLike value", name || "value", value);
 }
 /**
  *  Get a typed Uint8Array for %%value%%. If already a Uint8Array
@@ -66,7 +65,6 @@ function _getBytes(value, name, copy) {
 function getBytes(value, name) {
     return _getBytes(value, name, false);
 }
-exports.getBytes = getBytes;
 /**
  *  Get a typed Uint8Array for %%value%%, creating a copy if necessary
  *  to prevent any modifications of the returned value from being
@@ -77,7 +75,6 @@ exports.getBytes = getBytes;
 function getBytesCopy(value, name) {
     return _getBytes(value, name, true);
 }
-exports.getBytesCopy = getBytesCopy;
 /**
  *  Returns true if %%value%% is a valid [[HexString]].
  *
@@ -97,7 +94,6 @@ function isHexString(value, length) {
     }
     return true;
 }
-exports.isHexString = isHexString;
 /**
  *  Returns true if %%value%% is a valid representation of arbitrary
  *  data (i.e. a valid [[DataHexString]] or a Uint8Array).
@@ -105,7 +101,6 @@ exports.isHexString = isHexString;
 function isBytesLike(value) {
     return isHexString(value, true) || value instanceof Uint8Array;
 }
-exports.isBytesLike = isBytesLike;
 const HexCharacters = "0123456789abcdef";
 /**
  *  Returns a [[DataHexString]] representation of %%data%%.
@@ -178,7 +173,6 @@ function hexlify(value, options) {
     }
     return logger.throwArgumentError("invalid hexlify value", "value", value);
 }
-exports.hexlify = hexlify;
 /**
  *  Returns a [[DataHexString]] by concatenating all values
  *  within %%data%%.
@@ -186,7 +180,6 @@ exports.hexlify = hexlify;
 function concat(items) {
     return "0x" + items.map((d) => hexlify(d).substring(2)).join("");
 }
-exports.concat = concat;
 function hexDataSlice(data, offset, endOffset) {
     if (typeof data !== "string") {
         data = hexlify(data);
@@ -200,7 +193,6 @@ function hexDataSlice(data, offset, endOffset) {
     }
     return "0x" + data.substring(offset);
 }
-exports.hexDataSlice = hexDataSlice;
 function hexDataLength(data) {
     if (typeof data !== "string") {
         data = hexlify(data);
@@ -210,7 +202,6 @@ function hexDataLength(data) {
     }
     return (data.length - 2) / 2;
 }
-exports.hexDataLength = hexDataLength;
 /**
  *  Returns the length of %%data%%, in bytes.
  */
@@ -220,7 +211,6 @@ function dataLength(data) {
     }
     return getBytes(data).length;
 }
-exports.dataLength = dataLength;
 /**
  *  Returns a [[DataHexString]] by slicing %%data%% from the %%start%%
  *  offset to the %%end%% offset.
@@ -230,7 +220,7 @@ exports.dataLength = dataLength;
 function dataSlice(data, start, end) {
     const bytes = getBytes(data);
     if (end != null && end > bytes.length) {
-        (0, errors_js_1.assert)(false, "cannot slice beyond data bounds", "BUFFER_OVERRUN", {
+        errors.assert(false, "cannot slice beyond data bounds", "BUFFER_OVERRUN", {
             buffer: bytes,
             length: bytes.length,
             offset: end,
@@ -238,7 +228,6 @@ function dataSlice(data, start, end) {
     }
     return hexlify(bytes.slice(start == null ? 0 : start, end == null ? bytes.length : end));
 }
-exports.dataSlice = dataSlice;
 /**
  *  Return the [[DataHexString]] result by stripping all **leading**
  ** zero bytes from %%data%%.
@@ -250,10 +239,9 @@ function stripZerosLeft(data) {
     }
     return "0x" + bytes;
 }
-exports.stripZerosLeft = stripZerosLeft;
 function zeroPad(data, length, left) {
     const bytes = getBytes(data);
-    (0, errors_js_1.assert)(length >= bytes.length, "padding exceeds data length", "BUFFER_OVERRUN", {
+    errors.assert(length >= bytes.length, "padding exceeds data length", "BUFFER_OVERRUN", {
         buffer: new Uint8Array(bytes),
         length: length,
         offset: length + 1,
@@ -281,7 +269,6 @@ function zeroPad(data, length, left) {
 function zeroPadValue(data, length) {
     return zeroPad(data, length, true);
 }
-exports.zeroPadValue = zeroPadValue;
 /**
  *  Return the [[DataHexString]] of %%data%% padded on the **right**
  *  to %%length%% bytes.
@@ -295,7 +282,6 @@ exports.zeroPadValue = zeroPadValue;
 function zeroPadBytes(data, length) {
     return zeroPad(data, length, false);
 }
-exports.zeroPadBytes = zeroPadBytes;
 function stripZeros(value) {
     let result = arrayify(value);
     if (result.length === 0) {
@@ -312,7 +298,6 @@ function stripZeros(value) {
     }
     return result;
 }
-exports.stripZeros = stripZeros;
 function arrayify(value, options) {
     if (!options) {
         options = {};
@@ -328,7 +313,7 @@ function arrayify(value, options) {
         if (result.length === 0) {
             result.push(0);
         }
-        return addSlice(new Uint8Array(result));
+        return new Uint8Array(result);
     }
     if (options.allowMissingPrefix &&
         typeof value === "string" &&
@@ -356,24 +341,12 @@ function arrayify(value, options) {
             // @ts-ignore
             result.push(parseInt(hex.substring(i, i + 2), 16));
         }
-        return addSlice(new Uint8Array(result));
+        return new Uint8Array(result);
     }
     if (isBytes(value)) {
-        return addSlice(new Uint8Array(value));
+        return new Uint8Array(value);
     }
     return logger.throwArgumentError("invalid arrayify value", "value", value);
-}
-exports.arrayify = arrayify;
-function addSlice(array) {
-    // @ts-ignore
-    if (array.slice) {
-        return array;
-    }
-    array.slice = function () {
-        const args = Array.prototype.slice.call(arguments);
-        return addSlice(new Uint8Array(Array.prototype.slice.apply(array, args)));
-    };
-    return array;
 }
 function hexConcat(items) {
     let result = "0x";
@@ -382,5 +355,22 @@ function hexConcat(items) {
     });
     return result;
 }
+
+exports.arrayify = arrayify;
+exports.concat = concat;
+exports.dataLength = dataLength;
+exports.dataSlice = dataSlice;
+exports.getBytes = getBytes;
+exports.getBytesCopy = getBytesCopy;
 exports.hexConcat = hexConcat;
+exports.hexDataLength = hexDataLength;
+exports.hexDataSlice = hexDataSlice;
+exports.hexlify = hexlify;
+exports.isBytes = isBytes;
+exports.isBytesLike = isBytesLike;
+exports.isHexString = isHexString;
+exports.stripZeros = stripZeros;
+exports.stripZerosLeft = stripZerosLeft;
+exports.zeroPadBytes = zeroPadBytes;
+exports.zeroPadValue = zeroPadValue;
 //# sourceMappingURL=data.js.map

@@ -1,9 +1,30 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.solidityPackedSha256 = exports.solidityPacked = void 0;
-const index_js_1 = require("../address/index.js");
-const index_js_2 = require("../crypto/index.js");
-const index_js_3 = require("../utils/index.js");
+'use strict';
+
+var index = require('../address/index.js');
+require('../crypto/hmac.js');
+require('../crypto/ripemd160.js');
+require('../crypto/pbkdf2.js');
+require('../crypto/random.js');
+require('../crypto/scrypt.js');
+var sha3 = require('../crypto/sha3.js');
+require('bcrypto/lib/ed448.js');
+require('buffer');
+require('bcrypto/lib/pbkdf2.js');
+require('bcrypto/lib/sha3-512.js');
+require('crypto');
+require('../crypto/keccak.js');
+require('../utils/base58.js');
+var data = require('../utils/data.js');
+var errors = require('../utils/errors.js');
+require('../logger/logger.js');
+var utf8 = require('../utils/utf8.js');
+require('http');
+require('https');
+require('zlib');
+require('../utils/fixednumber.js');
+var maths = require('../utils/maths.js');
+require('../crypto/signature.js');
+
 const regexBytes = new RegExp("^bytes([0-9]+)$");
 const regexNumber = new RegExp("^(u?int)([0-9]*)$");
 const regexArray = new RegExp("^(.*)\\[([0-9]*)\\]$");
@@ -11,25 +32,25 @@ function _pack(type, value, isArray) {
     switch (type) {
         case "address":
             if (isArray) {
-                return (0, index_js_3.getBytes)((0, index_js_3.zeroPadValue)(value, 32));
+                return data.getBytes(data.zeroPadValue(value, 32));
             }
-            return (0, index_js_3.getBytes)((0, index_js_1.getAddress)(value));
+            return data.getBytes(index.getAddress(value));
         case "string":
-            return (0, index_js_3.toUtf8Bytes)(value);
+            return utf8.toUtf8Bytes(value);
         case "bytes":
-            return (0, index_js_3.getBytes)(value);
+            return data.getBytes(value);
         case "bool":
             value = !!value ? "0x01" : "0x00";
             if (isArray) {
-                return (0, index_js_3.getBytes)((0, index_js_3.zeroPadValue)(value, 32));
+                return data.getBytes(data.zeroPadValue(value, 32));
             }
-            return (0, index_js_3.getBytes)(value);
+            return data.getBytes(value);
     }
     let match = type.match(regexNumber);
     if (match) {
         let signed = match[1] === "int";
         let size = parseInt(match[2] || "256");
-        (0, index_js_3.assertArgument)((!match[2] || match[2] === String(size)) &&
+        errors.assertArgument((!match[2] || match[2] === String(size)) &&
             size % 8 === 0 &&
             size !== 0 &&
             size <= 256, "invalid number type", "type", type);
@@ -37,17 +58,17 @@ function _pack(type, value, isArray) {
             size = 256;
         }
         if (signed) {
-            value = (0, index_js_3.toTwos)(value, size);
+            value = maths.toTwos(value, size);
         }
-        return (0, index_js_3.getBytes)((0, index_js_3.zeroPadValue)((0, index_js_3.toBeArray)(value), size / 8));
+        return data.getBytes(data.zeroPadValue(maths.toBeArray(value), size / 8));
     }
     match = type.match(regexBytes);
     if (match) {
         const size = parseInt(match[1]);
-        (0, index_js_3.assertArgument)(String(size) === match[1] && size !== 0 && size <= 32, "invalid bytes type", "type", type);
-        (0, index_js_3.assertArgument)((0, index_js_3.dataLength)(value) === size, `invalid value for ${type}`, "value", value);
+        errors.assertArgument(String(size) === match[1] && size !== 0 && size <= 32, "invalid bytes type", "type", type);
+        errors.assertArgument(data.dataLength(value) === size, `invalid value for ${type}`, "value", value);
         if (isArray) {
-            return (0, index_js_3.getBytes)((0, index_js_3.zeroPadBytes)(value, 32));
+            return data.getBytes(data.zeroPadBytes(value, 32));
         }
         return value;
     }
@@ -55,14 +76,14 @@ function _pack(type, value, isArray) {
     if (match && Array.isArray(value)) {
         const baseType = match[1];
         const count = parseInt(match[2] || String(value.length));
-        (0, index_js_3.assertArgument)(count === value.length, `invalid array length for ${type}`, "value", value);
+        errors.assertArgument(count === value.length, `invalid array length for ${type}`, "value", value);
         const result = [];
         value.forEach(function (value) {
             result.push(_pack(baseType, value, true));
         });
-        return (0, index_js_3.getBytes)((0, index_js_3.concat)(result));
+        return data.getBytes(data.concat(result));
     }
-    (0, index_js_3.assertArgument)(false, "invalid type", "type", type);
+    errors.assertArgument(false, "invalid type", "type", type);
 }
 // @TODO: Array Enum
 /**
@@ -75,14 +96,13 @@ function _pack(type, value, isArray) {
  *       //_result:
  */
 function solidityPacked(types, values) {
-    (0, index_js_3.assertArgument)(types.length === values.length, "wrong number of values; expected ${ types.length }", "values", values);
+    errors.assertArgument(types.length === values.length, "wrong number of values; expected ${ types.length }", "values", values);
     const tight = [];
     types.forEach(function (type, index) {
         tight.push(_pack(type, values[index]));
     });
-    return (0, index_js_3.hexlify)((0, index_js_3.concat)(tight));
+    return data.hexlify(data.concat(tight));
 }
-exports.solidityPacked = solidityPacked;
 /**
  *   Computes the [[link-solc-packed]] [[sha256]] hash of %%values%%
  *   respectively to their %%types%%.
@@ -93,7 +113,9 @@ exports.solidityPacked = solidityPacked;
  *       //_result:
  */
 function solidityPackedSha256(types, values) {
-    return (0, index_js_2.sha256)(solidityPacked(types, values));
+    return sha3.sha256(solidityPacked(types, values));
 }
+
+exports.solidityPacked = solidityPacked;
 exports.solidityPackedSha256 = solidityPackedSha256;
 //# sourceMappingURL=solidity.js.map

@@ -1,4 +1,4 @@
-import { ripemd160 as noble_ripemd160 } from "@noble/hashes/ripemd160";
+import { ripemd160 as noble_ripemd160 } from "@noble/hashes/legacy.js";
 import { getBytes, hexlify } from "../utils/index.js";
 let locked = false;
 const _ripemd160 = function (data) {

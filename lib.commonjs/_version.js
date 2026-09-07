@@ -1,9 +1,7 @@
-"use strict";
-/* Do NOT modify this file; see /src.ts/_admin/update-version.ts */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.version = void 0;
-/**
- *  The current version of corebc.
- */
-exports.version = "6.4.0";
+'use strict';
+
+/** The current version of corebc; keep in sync with package.json. */
+const version = "0.4.1";
+
+exports.version = version;
 //# sourceMappingURL=_version.js.map

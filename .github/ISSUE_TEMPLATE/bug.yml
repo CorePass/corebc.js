@@ -1,63 +1,46 @@
-name: Report Bug 🪲
-description: Create a bug report
-labels:
-  - bug
+name: Bug report
+description: Report a reproducible corebc.js problem
+labels: [bug]
 body:
   - type: markdown
     attributes:
-      value: |
-        Please, provide as much details as possible to make proper evaluation and in the end resolve the bug report faster.
-
-  - type: markdown
-    attributes:
-      value: |
-        Software specific details.
-
+      value: Never include private keys, seed phrases, wallet passwords, or RPC credentials.
   - type: input
-    id: os
+    id: version
     attributes:
-      label: OS and version
-      description: Name and version of OS used.
-      placeholder: OS
+      label: corebc version
+      placeholder: 0.4.1 or commit hash
     validations:
       required: true
-
-  - type: textarea
-    id: bug
+  - type: input
+    id: environment
     attributes:
-      label: Bug
-      description: Describe the Bug.
-      placeholder: Bug description
+      label: Runtime and operating system
+      description: Node.js or browser version, OS, and bundler if applicable.
     validations:
       required: true
-
+  - type: dropdown
+    id: format
+    attributes:
+      label: Package format
+      options: [ESM, CommonJS, Browser bundle]
   - type: textarea
     id: reproduce
     attributes:
-      label: Reproduce Bug
-      description: Steps to reproduce the behavior.
-      placeholder: 1. Step 1
+      label: Minimal reproduction
+      description: Include runnable code, steps, network ID, and CIP number when relevant. Use disposable test keys only.
     validations:
       required: true
-
   - type: textarea
     id: expected
     attributes:
       label: Expected behavior
-      description: Describe the result you are expecting.
-      placeholder: Result
     validations:
       required: true
-
-  - type: input
-    id: hash
-    attributes:
-      label: Commit hash
-      description: Commit hash if known.
-      placeholder: baf2aab0128f07262b564214ec70fc07befc6bb3
-
   - type: textarea
-    id: additional
+    id: actual
     attributes:
-      label: Additional context
-      description: Please, place additional content or screenshots.
+      label: Actual behavior and error output
+      description: Remove secrets and identifying information from logs.
+    validations:
+      required: true

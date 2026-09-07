@@ -1,7 +1,15 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.TransactionResponse = exports.TransactionReceipt = exports.Log = exports.Block = exports.copyRequest = exports.FeeData = void 0;
-const index_js_1 = require("../utils/index.js");
+'use strict';
+
+require('../utils/base58.js');
+var data = require('../utils/data.js');
+var errors = require('../utils/errors.js');
+var properties = require('../utils/properties.js');
+require('http');
+require('https');
+require('zlib');
+require('../utils/fixednumber.js');
+var maths = require('../utils/maths.js');
+
 const BN_0 = BigInt(0);
 // -----------------------
 function getValue(value) {
@@ -27,7 +35,7 @@ class FeeData {
      */
     energyPrice;
     constructor(energyPrice) {
-        (0, index_js_1.defineProperties)(this, {
+        properties.defineProperties(this, {
             energyPrice: getValue(energyPrice),
         });
     }
@@ -42,7 +50,6 @@ class FeeData {
         };
     }
 }
-exports.FeeData = FeeData;
 function copyRequest(req) {
     const result = {};
     // These could be addresses, ENS names or Addressables
@@ -53,21 +60,21 @@ function copyRequest(req) {
         result.from = req.from;
     }
     if (req.data) {
-        result.data = (0, index_js_1.hexlify)(req.data);
+        result.data = data.hexlify(req.data);
     }
     const bigIntKeys = "networkId,energyLimit,energyPrice,value".split(/,/);
     for (const key of bigIntKeys) {
         if (!(key in req) || req[key] == null) {
             continue;
         }
-        result[key] = (0, index_js_1.getBigInt)(req[key], `request.${key}`);
+        result[key] = maths.getBigInt(req[key], `request.${key}`);
     }
     const numberKeys = "type,nonce".split(/,/);
     for (const key of numberKeys) {
         if (!(key in req) || req[key] == null) {
             continue;
         }
-        result[key] = (0, index_js_1.getNumber)(req[key], `request.${key}`);
+        result[key] = maths.getNumber(req[key], `request.${key}`);
     }
     if ("blockTag" in req) {
         result.blockTag = req.blockTag;
@@ -80,7 +87,6 @@ function copyRequest(req) {
     }
     return result;
 }
-exports.copyRequest = copyRequest;
 /**
  *  A **Block** represents the data associated with a full block on
  *  Core.
@@ -165,7 +171,7 @@ class Block {
             }
             return tx;
         });
-        (0, index_js_1.defineProperties)(this, {
+        properties.defineProperties(this, {
             provider,
             hash: getValue(block.hash),
             number: block.number,
@@ -203,7 +209,7 @@ class Block {
             return [];
         }
         // Make sure we prefetched the transactions
-        (0, index_js_1.assert)(typeof txs[0] === "object", "transactions were not prefetched with block request", "UNSUPPORTED_OPERATION", {
+        errors.assert(typeof txs[0] === "object", "transactions were not prefetched with block request", "UNSUPPORTED_OPERATION", {
             operation: "transactionResponses()",
         });
         return txs;
@@ -308,7 +314,7 @@ class Block {
                 return tx;
             }
         }
-        (0, index_js_1.assertArgument)(false, "no matching transaction", "indexOrHash", indexOrHash);
+        errors.assertArgument(false, "no matching transaction", "indexOrHash", indexOrHash);
     }
     /**
      *  Has this block been mined.
@@ -332,7 +338,6 @@ class Block {
         return createOrphanedBlockFilter(this);
     }
 }
-exports.Block = Block;
 //////////////////////
 // Log
 class Log {
@@ -349,7 +354,7 @@ class Log {
     constructor(log, provider) {
         this.provider = provider;
         const topics = Object.freeze(log.topics.slice());
-        (0, index_js_1.defineProperties)(this, {
+        properties.defineProperties(this, {
             transactionHash: log.transactionHash,
             blockHash: log.blockHash,
             blockNumber: log.blockNumber,
@@ -378,24 +383,23 @@ class Log {
     }
     async getBlock() {
         const block = await this.provider.getBlock(this.blockHash);
-        (0, index_js_1.assert)(!!block, "failed to find transaction", "UNKNOWN_ERROR", {});
+        errors.assert(!!block, "failed to find transaction", "UNKNOWN_ERROR", {});
         return block;
     }
     async getTransaction() {
         const tx = await this.provider.getTransaction(this.transactionHash);
-        (0, index_js_1.assert)(!!tx, "failed to find transaction", "UNKNOWN_ERROR", {});
+        errors.assert(!!tx, "failed to find transaction", "UNKNOWN_ERROR", {});
         return tx;
     }
     async getTransactionReceipt() {
         const receipt = await this.provider.getTransactionReceipt(this.transactionHash);
-        (0, index_js_1.assert)(!!receipt, "failed to find transaction receipt", "UNKNOWN_ERROR", {});
+        errors.assert(!!receipt, "failed to find transaction receipt", "UNKNOWN_ERROR", {});
         return receipt;
     }
     removedEvent() {
         return createRemovedLogFilter(this);
     }
 }
-exports.Log = Log;
 //////////////////////
 // Transaction Receipt
 /*
@@ -433,7 +437,7 @@ class TransactionReceipt {
         this.#logs = Object.freeze(tx.logs.map((log) => {
             return new Log(log, provider);
         }));
-        (0, index_js_1.defineProperties)(this, {
+        properties.defineProperties(this, {
             provider,
             to: tx.to,
             from: tx.from,
@@ -517,11 +521,10 @@ class TransactionReceipt {
         return createRemovedTransactionFilter(this);
     }
     reorderedEvent(other) {
-        (0, index_js_1.assert)(!other || other.isMined(), "unmined 'other' transction cannot be orphaned", "UNSUPPORTED_OPERATION", { operation: "reorderedEvent(other)" });
+        errors.assert(!other || other.isMined(), "unmined 'other' transction cannot be orphaned", "UNSUPPORTED_OPERATION", { operation: "reorderedEvent(other)" });
         return createReorderedTransactionFilter(this, other);
     }
 }
-exports.TransactionReceipt = TransactionReceipt;
 /*
 export type ReplacementDetectionSetup = {
     to: string;
@@ -716,7 +719,7 @@ class TransactionResponse {
             if (stopScanning) {
                 return null;
             }
-            const { blockNumber, nonce } = await (0, index_js_1.resolveProperties)({
+            const { blockNumber, nonce } = await properties.resolveProperties({
                 blockNumber: this.provider.getBlockNumber(),
                 nonce: this.provider.getTransactionCount(this.from),
             });
@@ -787,7 +790,7 @@ class TransactionResponse {
                             tx.value === BN_0) {
                             reason = "cancelled";
                         }
-                        (0, index_js_1.assert)(false, "transaction was replaced", "TRANSACTION_REPLACED", {
+                        errors.assert(false, "transaction was replaced", "TRANSACTION_REPLACED", {
                             cancelled: reason === "replaced" || reason === "cancelled",
                             reason,
                             replacement: tx.replaceableTransaction(startBlock),
@@ -828,7 +831,7 @@ class TransactionResponse {
             if (timeout > 0) {
                 const timer = setTimeout(() => {
                     cancel();
-                    reject((0, index_js_1.makeError)("wait for transaction timeout", "TIMEOUT"));
+                    reject(errors.makeError("wait for transaction timeout", "TIMEOUT"));
                 }, timeout);
                 cancellers.push(() => {
                     clearTimeout(timer);
@@ -854,7 +857,7 @@ class TransactionResponse {
                     }
                     catch (error) {
                         // We were replaced (with enough confirms); re-throw the error
-                        if ((0, index_js_1.isError)(error, "TRANSACTION_REPLACED")) {
+                        if (errors.isError(error, "TRANSACTION_REPLACED")) {
                             cancel();
                             reject(error);
                             return;
@@ -902,7 +905,7 @@ class TransactionResponse {
      *  that evict this transaction.
      */
     removedEvent() {
-        (0, index_js_1.assert)(this.isMined(), "unmined transaction canot be orphaned", "UNSUPPORTED_OPERATION", { operation: "removeEvent()" });
+        errors.assert(this.isMined(), "unmined transaction canot be orphaned", "UNSUPPORTED_OPERATION", { operation: "removeEvent()" });
         return createRemovedTransactionFilter(this);
     }
     /**
@@ -910,8 +913,8 @@ class TransactionResponse {
      *  that re-order this event against %%other%%.
      */
     reorderedEvent(other) {
-        (0, index_js_1.assert)(this.isMined(), "unmined transaction canot be orphaned", "UNSUPPORTED_OPERATION", { operation: "removeEvent()" });
-        (0, index_js_1.assert)(!other || other.isMined(), "unmined 'other' transaction canot be orphaned", "UNSUPPORTED_OPERATION", { operation: "removeEvent()" });
+        errors.assert(this.isMined(), "unmined transaction canot be orphaned", "UNSUPPORTED_OPERATION", { operation: "removeEvent()" });
+        errors.assert(!other || other.isMined(), "unmined 'other' transaction canot be orphaned", "UNSUPPORTED_OPERATION", { operation: "removeEvent()" });
         return createReorderedTransactionFilter(this, other);
     }
     /**
@@ -924,13 +927,12 @@ class TransactionResponse {
      *  have devastating performance consequences if used incorrectly.
      */
     replaceableTransaction(startBlock) {
-        (0, index_js_1.assertArgument)(Number.isInteger(startBlock) && startBlock >= 0, "invalid startBlock", "startBlock", startBlock);
+        errors.assertArgument(Number.isInteger(startBlock) && startBlock >= 0, "invalid startBlock", "startBlock", startBlock);
         const tx = new TransactionResponse(this, this.provider);
         tx.#startBlock = startBlock;
         return tx;
     }
 }
-exports.TransactionResponse = TransactionResponse;
 function createOrphanedBlockFilter(block) {
     return { orphan: "drop-block", hash: block.hash, number: block.number };
 }
@@ -954,4 +956,11 @@ function createRemovedLogFilter(log) {
         },
     };
 }
+
+exports.Block = Block;
+exports.FeeData = FeeData;
+exports.Log = Log;
+exports.TransactionReceipt = TransactionReceipt;
+exports.TransactionResponse = TransactionResponse;
+exports.copyRequest = copyRequest;
 //# sourceMappingURL=provider.js.map

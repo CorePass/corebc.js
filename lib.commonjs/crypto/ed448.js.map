@@ -1,1 +1,1 @@
-{"version":3,"file":"ed448.js","sourceRoot":"","sources":["../../src.ts/crypto/ed448.ts"],"names":[],"mappings":"AAAA,YAAY,CAAC;;;AAEb,aAAa;AACb,4EAAyC;AAEzC,kBAAe,kBAAK,CAAC"}
+{"version":3,"file":"ed448.js","sources":["../../lib.esm/crypto/ed448.js"],"sourcesContent":["// bcrypto does not ship TypeScript declarations.\n// @ts-ignore\nimport backend from \"bcrypto/lib/ed448.js\";\nconst ed448 = backend;\nexport default ed448;\n//# sourceMappingURL=ed448.js.map"],"names":[],"mappings":";;;;;;AAAA;AACA;AAEK,MAAC,KAAK,GAAG;;"}

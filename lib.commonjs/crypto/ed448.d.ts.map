@@ -1,1 +1,1 @@
-{"version":3,"file":"ed448.d.ts","sourceRoot":"","sources":["../../src.ts/crypto/ed448.ts"],"names":[],"mappings":"AAGA,OAAO,KAAK,MAAM,sBAAsB,CAAC;AAEzC,eAAe,KAAK,CAAC"}
+{"version":3,"file":"ed448.d.ts","sourceRoot":"","sources":["../../src.ts/crypto/ed448.ts"],"names":[],"mappings":"AAGA,OAAO,KAAK,EAAE,YAAY,EAAE,MAAM,kBAAkB,CAAC;AACrD,QAAA,MAAM,KAAK,EAAE,YAAsB,CAAC;eACrB,KAAK"}

@@ -1,12 +1,36 @@
-"use strict";
+'use strict';
+
+var id = require('../hash/id.js');
+require('../constants/numbers.js');
+require('../address/index.js');
+require('../utils/base58.js');
+require('../logger/logger.js');
+var errors = require('../utils/errors.js');
+require('http');
+require('https');
+require('zlib');
+require('../utils/fixednumber.js');
+require('../utils/maths.js');
+require('../crypto/hmac.js');
+require('../crypto/ripemd160.js');
+require('../crypto/pbkdf2.js');
+require('../crypto/random.js');
+require('../crypto/scrypt.js');
+require('../crypto/sha3.js');
+require('bcrypto/lib/ed448.js');
+require('buffer');
+require('bcrypto/lib/pbkdf2.js');
+require('bcrypto/lib/sha3-512.js');
+require('crypto');
+require('../crypto/keccak.js');
+require('../crypto/signature.js');
+require('../transaction/transaction.js');
+require('../hash/typed-data.js');
+var decodeOwl = require('./decode-owl.js');
+var wordlist = require('./wordlist.js');
+
 // Use the encode-latin.js script to create the necessary
 // data files to be consumed by this class
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.WordlistOwl = void 0;
-const index_js_1 = require("../hash/index.js");
-const index_js_2 = require("../utils/index.js");
-const decode_owl_js_1 = require("./decode-owl.js");
-const wordlist_js_1 = require("./wordlist.js");
 /**
  *  An OWL format Wordlist is an encoding method that exploits
  *  the general locality of alphabetically sorted words to
@@ -19,7 +43,7 @@ const wordlist_js_1 = require("./wordlist.js");
  *  If necessary, there are tools within the ``generation/`` folder
  *  to create these necessary data.
  */
-class WordlistOwl extends wordlist_js_1.Wordlist {
+class WordlistOwl extends wordlist.Wordlist {
     #data;
     #checksum;
     /**
@@ -36,14 +60,14 @@ class WordlistOwl extends wordlist_js_1.Wordlist {
         return this.#data;
     }
     _decodeWords() {
-        return (0, decode_owl_js_1.decodeOwl)(this.#data);
+        return decodeOwl.decodeOwl(this.#data);
     }
     #words;
     #loadWords() {
         if (this.#words == null) {
             const words = this._decodeWords();
             // Verify the computed list matches the official list
-            const checksum = (0, index_js_1.id)(words.join("\n") + "\n", true);
+            const checksum = id.id(words.join("\n") + "\n", true);
             /* c8 ignore start */
             if (checksum !== this.#checksum) {
                 throw new Error(`BIP39 Wordlist for ${this.locale} FffffAILED`);
@@ -55,12 +79,13 @@ class WordlistOwl extends wordlist_js_1.Wordlist {
     }
     getWord(index) {
         const words = this.#loadWords();
-        (0, index_js_2.assertArgument)(index >= 0 && index < words.length, `invalid word index: ${index}`, "index", index);
+        errors.assertArgument(index >= 0 && index < words.length, `invalid word index: ${index}`, "index", index);
         return words[index];
     }
     getWordIndex(word) {
         return this.#loadWords().indexOf(word);
     }
 }
+
 exports.WordlistOwl = WordlistOwl;
 //# sourceMappingURL=wordlist-owl.js.map

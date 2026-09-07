@@ -1,128 +1,153 @@
 {
-  "name": "corebc",
-  "version": "0.4.1",
-  "author": "CorePass",
-  "description": "A complete and compact CoreBC library, for Dapps, wallets and any other tools.",
-  "browser": {
-    "./lib.esm/crypto/crypto.js": "./lib.esm/crypto/crypto-browser.js",
-    "./lib.esm/providers/provider-ipcsocket.js": "./lib.esm/providers/provider-ipcsocket-browser.js",
-    "./lib.esm/providers/ws.js": "./lib.esm/providers/ws-browser.js",
-    "./lib.esm/utils/base64.js": "./lib.esm/utils/base64-browser.js",
-    "./lib.esm/utils/geturl.js": "./lib.esm/utils/geturl-browser.js",
-    "./lib.esm/crypto/ed448goldilock.js": "./lib.esm/crypto/ed448goldilock-browser.js",
-    "./src.ts/crypto/ed448goldilock.ts": "./src.ts/crypto/ed448goldilock-browser.ts",
-    "./lib.esm/wordlists/wordlists.js": "./lib.esm/wordlists/wordlists-browser.js"
-  },
-  "dependencies": {
-    "@noble/hashes": "1.3.2",
-    "@noble/secp256k1": "2.0.0",
-    "@types/node": "20.6.4",
-    "aes-js": "3.1.2",
-    "bcrypto": "^5.4.0",
-    "bn.js": "^5.2.1",
-    "buffer": "^6.0.3",
-    "tslib": "2.6.2",
-    "utf8": "^3.0.0",
-    "ws": "8.14.2"
-  },
-  "devDependencies": {
-    "@rollup/plugin-node-resolve": "15.2.3",
-    "@types/bn.js": "^5.1.2",
-    "@types/mocha": "10.0.2",
-    "@types/semver": "7.5.3",
-    "@types/utf8": "^3.0.1",
-    "c8": "8.0.1",
-    "mocha": "10.2.0",
-    "npm-run-all": "^4.1.5",
-    "prettier": "^3.0.3",
-    "rollup": "4.0.2",
-    "semver": "7.5.4",
-    "typescript": "5.2.2",
-    "uglify-js": "3.17.4"
-  },
-  "engines": {
-    "node": ">=14.0.0"
-  },
-  "exports": {
-    ".": {
-      "import": "./lib.esm/index.js",
-      "default": "./lib.commonjs/index.js"
-    },
-    "./abi": {
-      "import": "./lib.esm/abi/index.js",
-      "default": "./lib.commonjs/abi/index.js"
-    },
-    "./address": {
-      "import": "./lib.esm/address/index.js",
-      "default": "./lib.commonjs/address/index.js"
-    },
-    "./constants": {
-      "import": "./lib.esm/constants/index.js",
-      "default": "./lib.commonjs/constants/index.js"
-    },
-    "./contract": {
-      "import": "./lib.esm/contract/index.js",
-      "default": "./lib.commonjs/contract/index.js"
-    },
-    "./crypto": {
-      "import": "./lib.esm/crypto/index.js",
-      "default": "./lib.commonjs/crypto/index.js"
-    },
-    "./hash": {
-      "import": "./lib.esm/hash/index.js",
-      "default": "./lib.commonjs/hash/index.js"
-    },
-    "./providers": {
-      "import": "./lib.esm/providers/index.js",
-      "default": "./lib.commonjs/providers/index.js"
-    },
-    "./transaction": {
-      "import": "./lib.esm/transaction/index.js",
-      "default": "./lib.commonjs/transaction/index.js"
-    },
-    "./utils": {
-      "import": "./lib.esm/utils/index.js",
-      "default": "./lib.commonjs/utils/index.js"
-    },
-    "./wallet": {
-      "import": "./lib.esm/wallet/index.js",
-      "default": "./lib.commonjs/wallet/index.js"
-    },
-    "./wordlists": {
-      "import": "./lib.esm/wordlists/index.js",
-      "default": "./lib.commonjs/wordlists/index.js"
-    }
-  },
-  "license": "CORE",
-  "main": "./lib.commonjs/index.js",
-  "module": "./lib.esm/index.js",
-  "publishConfig": {
-    "access": "public",
-    "tag": "latest"
-  },
-  "scripts": {
-    "_build-dist": "rollup -c && uglifyjs ./dist/corebc.js -o ./dist/corebc.min.js && uglifyjs ./dist/corebc.umd.js -o ./dist/corebc.umd.min.js && uglifyjs ./dist/wordlists-extra.js -o ./dist/wordlists-extra.min.js",
-    "_dist-stats": "gzip -k9f -S '.gz' ./dist/corebc.min.js && gzip -k9f -S '.gz' ./dist/corebc.umd.min.js && gzip -k9f -S '.gz' ./dist/wordlists-extra.min.js && du -hs ./dist/*.gz && echo '' && du -hs ./dist/*.js",
-    "auto-build": "npm run build -- -w",
-    "build": "tsc --project tsconfig.esm.json",
-    "build-all": "npm run build && npm run build-commonjs && npm run build-dist && npm run build-types",
-    "build-clean": "npm run clean && npm run build && node lib.esm/_admin/update-version.js && node lib.esm/_admin/update-changelog.js && npm run build-all && npm run _build-dist && npm run _dist-stats",
-    "build-commonjs": "tsc --project tsconfig.commonjs.json",
-    "build-dist": "npm run build && npm run _build-dist && npm run _dist-stats",
-    "build-types": "tsc --project tsconfig.types.json",
-    "clean": "rm -rf dist lib.esm lib.commonjs types && cp -r misc/basedirs/* .",
-    "clean-test": "npm run clean  && npm run build && npm run test",
-    "format": "run-p format:*",
-    "format:prettier": "run-s \" lint:prettier --write \"",
-    "lint": "run-p lint:*",
-    "lint:prettier": "prettier \"src.ts/**/*.(md|json|yml|ts|tsx|html|css|js)\" --ignore-path  .gitignore --check",
-    "stats": "echo 'Dependencies' && npm ls --all --omit=dev",
-    "test": "npm run test-esm",
-    "test-commonjs": "mocha  ./lib.commonjs/_tests/test-*.js",
-    "test-coverage": "c8 -o output -r lcov -r text mocha --no-colo ./lib.esm/_tests/test-*.js | tee output/summary.txt",
-    "test-esm": "mocha  ./lib.esm/_tests/test-*.js"
-  },
-  "sideEffects": false,
-  "type": "module",
-  "types": "./types/index.d.ts"
+	"name": "corebc",
+	"version": "0.4.1",
+	"author": "CorePass",
+	"description": "A complete and compact CoreBC library, for Dapps, wallets and any other tools.",
+	"browser": {
+		"./lib.esm/crypto/crypto.js": "./lib.esm/crypto/crypto-browser.js",
+		"./lib.esm/providers/provider-ipcsocket.js": "./lib.esm/providers/provider-ipcsocket-browser.js",
+		"./lib.esm/providers/ws.js": "./lib.esm/providers/ws-browser.js",
+		"./lib.esm/utils/base64.js": "./lib.esm/utils/base64-browser.js",
+		"./lib.esm/utils/geturl.js": "./lib.esm/utils/geturl-browser.js",
+		"./lib.esm/crypto/ed448goldilock.js": "./lib.esm/crypto/ed448goldilock-browser.js",
+		"./src.ts/crypto/ed448goldilock.ts": "./src.ts/crypto/ed448goldilock-browser.ts",
+		"./lib.esm/wordlists/wordlists.js": "./lib.esm/wordlists/wordlists-browser.js"
+	},
+	"dependencies": {
+		"@noble/hashes": "2.4.0",
+		"@types/node": "26.4.1",
+		"aes-js": "3.1.2",
+		"bcrypto": "^5.5.2",
+		"bn.js": "^5.2.5",
+		"buffer": "^6.0.3",
+		"tslib": "2.8.1",
+		"utf8": "^3.0.0",
+		"ws": "8.21.3"
+	},
+	"devDependencies": {
+		"@rollup/plugin-commonjs": "^29.0.0",
+		"@rollup/plugin-inject": "^5.0.5",
+		"@rollup/plugin-node-resolve": "16.0.3",
+		"@types/bn.js": "^5.2.0",
+		"@types/mocha": "10.0.10",
+		"@types/semver": "7.8.0",
+		"@types/utf8": "^3.0.3",
+		"c8": "12.0.0",
+		"mocha": "12.0.0",
+		"prettier": "^3.9.6",
+		"rollup": "4.63.1",
+		"semver": "7.8.5",
+		"typescript": "7.0.2",
+		"uglify-js": "3.19.3"
+	},
+	"engines": {
+		"node": ">=22.12.0"
+	},
+	"exports": {
+		".": {
+			"import": "./lib.esm/index.js",
+			"default": "./lib.commonjs/index.js"
+		},
+		"./abi": {
+			"import": "./lib.esm/abi/index.js",
+			"default": "./lib.commonjs/abi/index.js"
+		},
+		"./address": {
+			"import": "./lib.esm/address/index.js",
+			"default": "./lib.commonjs/address/index.js"
+		},
+		"./constants": {
+			"import": "./lib.esm/constants/index.js",
+			"default": "./lib.commonjs/constants/index.js"
+		},
+		"./contract": {
+			"import": "./lib.esm/contract/index.js",
+			"default": "./lib.commonjs/contract/index.js"
+		},
+		"./crypto": {
+			"import": "./lib.esm/crypto/index.js",
+			"default": "./lib.commonjs/crypto/index.js"
+		},
+		"./hash": {
+			"import": "./lib.esm/hash/index.js",
+			"default": "./lib.commonjs/hash/index.js"
+		},
+		"./providers": {
+			"import": "./lib.esm/providers/index.js",
+			"default": "./lib.commonjs/providers/index.js"
+		},
+		"./transaction": {
+			"import": "./lib.esm/transaction/index.js",
+			"default": "./lib.commonjs/transaction/index.js"
+		},
+		"./utils": {
+			"import": "./lib.esm/utils/index.js",
+			"default": "./lib.commonjs/utils/index.js"
+		},
+		"./wallet": {
+			"import": "./lib.esm/wallet/index.js",
+			"default": "./lib.commonjs/wallet/index.js"
+		},
+		"./wordlists": {
+			"import": "./lib.esm/wordlists/index.js",
+			"default": "./lib.commonjs/wordlists/index.js"
+		},
+		"./cip": {
+			"import": "./lib.esm/cip/index.js",
+			"default": "./lib.commonjs/cip/index.js"
+		},
+		"./ipfs": {
+			"import": "./lib.esm/ipfs/index.js",
+			"default": "./lib.commonjs/ipfs/index.js"
+		}
+	},
+	"license": "CORE",
+	"main": "./lib.commonjs/index.js",
+	"module": "./lib.esm/index.js",
+	"publishConfig": {
+		"access": "public",
+		"tag": "latest"
+	},
+	"scripts": {
+		"_build-dist": "rollup -c && uglifyjs ./dist/corebc.js -o ./dist/corebc.min.js && uglifyjs ./dist/corebc.umd.js -o ./dist/corebc.umd.min.js && uglifyjs ./dist/wordlists-extra.js -o ./dist/wordlists-extra.min.js",
+		"_dist-stats": "gzip -k9f -S '.gz' ./dist/corebc.min.js && gzip -k9f -S '.gz' ./dist/corebc.umd.min.js && gzip -k9f -S '.gz' ./dist/wordlists-extra.min.js && du -hs ./dist/*.gz && echo '' && du -hs ./dist/*.js",
+		"auto-build": "npm run build -- -w",
+		"build": "node scripts/prepare-build.mjs && tsc --project tsconfig.esm.json",
+		"build-all": "npm run build && npm run build-commonjs && npm run _build-dist && npm run build-types",
+		"build-clean": "npm run clean && npm run build-all",
+		"build-commonjs": "node scripts/build-commonjs.mjs",
+		"build-dist": "npm run build && npm run _build-dist && npm run _dist-stats",
+		"build-types": "tsc --project tsconfig.types.json",
+		"clean": "node scripts/clean.mjs",
+		"clean-test": "npm run clean && npm run build-all && npm test",
+		"format": "prettier --write src.ts scripts package.json tsconfig*.json rollup.config.mjs .github README.md CONTRIBUTING.md CHANGELOG.md HEALTH.md .prettierrc.json",
+		"lint": "prettier --check src.ts scripts package.json tsconfig*.json rollup.config.mjs .github README.md CONTRIBUTING.md CHANGELOG.md HEALTH.md .prettierrc.json",
+		"stats": "echo 'Dependencies' && npm ls --all --omit=dev",
+		"test": "npm run test-esm && npm run test-commonjs",
+		"test-commonjs": "mocha  ./lib.commonjs/_tests/test-*.js",
+		"test-coverage": "c8 -o output -r lcov -r text npm run test-esm",
+		"test-esm": "mocha  ./lib.esm/_tests/test-*.js",
+		"check": "npm run build-all && npm run lint && npm test && npm run test-package",
+		"test-package": "node scripts/test-package.mjs",
+		"prepack": "npm run build-all"
+	},
+	"sideEffects": false,
+	"type": "module",
+	"types": "./types/index.d.ts",
+	"files": [
+		"lib.esm",
+		"lib.commonjs",
+		"types",
+		"dist",
+		"src.ts",
+		"!**/_admin/**",
+		"!**/_tests/**"
+	],
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/CorePass/corebc.js.git"
+	},
+	"bugs": {
+		"url": "https://github.com/CorePass/corebc.js/issues"
+	}
 }

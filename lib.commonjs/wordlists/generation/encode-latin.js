@@ -1,4 +1,10 @@
-"use strict";
+'use strict';
+
+var fs = require('fs');
+var id = require('../../hash/id.js');
+var decodeOwl = require('../decode-owl.js');
+var decodeOwla = require('../decode-owla.js');
+
 // OWL Data Format
 //
 // The Official WordList data format exported by this encoder
@@ -57,13 +63,6 @@
 // The base-64 set used has all number replaced with their
 // shifted-counterparts to prevent comflicting with the numbers used in
 // the fold operation to indicate the number of ";".
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.encodeOwl = exports.extractAccents = exports.BitWriter = void 0;
-const tslib_1 = require("tslib");
-const fs_1 = tslib_1.__importDefault(require("fs"));
-const id_js_1 = require("../../hash/id.js");
-const decode_owl_js_1 = require("../decode-owl.js");
-const decode_owla_js_1 = require("../decode-owla.js");
 const subsChrs = " !#$%&'()*+,-./<=>?@[]^_`{|}~";
 const Word = /^[a-z'`]*$/i;
 function fold(words, sep) {
@@ -178,7 +177,6 @@ class BitWriter {
         return result;
     }
 }
-exports.BitWriter = BitWriter;
 function sorted(text) {
     const letters = text.split("");
     letters.sort();
@@ -273,7 +271,6 @@ function extractAccents(words) {
     });
     return { accents, words };
 }
-exports.extractAccents = extractAccents;
 // Encode Official WordList
 function encodeOwl(words) {
     // Fold the sorted words by indicating delta for the first 2 letters
@@ -319,7 +316,6 @@ function encodeOwl(words) {
     }
     return { data, subs };
 }
-exports.encodeOwl = encodeOwl;
 // Returns either:
 //  - OWL data for accent-free latin-1: { data, accentds: "" }
 //  - OWLA data for accented latin-1: { data, accents }
@@ -337,28 +333,32 @@ function encodeWords(_words) {
     };
 }
 // CLI
-const content = fs_1.default.readFileSync(process.argv[2]).toString();
+const content = fs.readFileSync(process.argv[2]).toString();
 const words = content.split("\n").filter(Boolean);
 const { data, accents } = encodeWords(words);
 if (accents) {
-    const rec = (0, decode_owla_js_1.decodeOwlA)(data, accents);
+    const rec = decodeOwla.decodeOwlA(data, accents);
     console.log("DATA:     ", JSON.stringify(data));
     console.log("ACCENTS:  ", JSON.stringify(accents));
     console.log("LENGTH:   ", data.length);
-    console.log("CHECKSUM: ", (0, id_js_1.id)(content));
+    console.log("CHECKSUM: ", id.id(content));
     console.log("RATIO:    ", Math.trunc((100 * data.length) / content.length) + "%");
     if (rec.join("\n") !== words.join("\n")) {
         throw new Error("no match!");
     }
 }
 else {
-    const rec = (0, decode_owl_js_1.decodeOwl)(data);
+    const rec = decodeOwl.decodeOwl(data);
     console.log("DATA:     ", JSON.stringify(data));
     console.log("LENGTH:   ", data.length);
-    console.log("CHECKSUM: ", (0, id_js_1.id)(content));
+    console.log("CHECKSUM: ", id.id(content));
     console.log("RATIO:    ", Math.trunc((100 * data.length) / content.length) + "%");
     if (rec.join("\n") !== words.join("\n")) {
         throw new Error("no match!");
     }
 }
+
+exports.BitWriter = BitWriter;
+exports.encodeOwl = encodeOwl;
+exports.extractAccents = extractAccents;
 //# sourceMappingURL=encode-latin.js.map

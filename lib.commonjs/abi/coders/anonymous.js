@@ -1,13 +1,13 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.AnonymousCoder = void 0;
-const abstract_coder_js_1 = require("./abstract-coder.js");
+'use strict';
+
+var abstractCoder = require('./abstract-coder.js');
+
 /**
  *  Clones the functionality of an existing Coder, but without a localName
  *
  *  @_ignore
  */
-class AnonymousCoder extends abstract_coder_js_1.Coder {
+class AnonymousCoder extends abstractCoder.Coder {
     coder;
     constructor(coder) {
         super(coder.name, coder.type, "_", coder.dynamic);
@@ -23,5 +23,6 @@ class AnonymousCoder extends abstract_coder_js_1.Coder {
         return this.coder.decode(reader);
     }
 }
+
 exports.AnonymousCoder = AnonymousCoder;
 //# sourceMappingURL=anonymous.js.map

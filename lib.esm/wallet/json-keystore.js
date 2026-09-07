@@ -10,7 +10,7 @@
  */
 // @ts-ignore
 import pkg from "aes-js";
-const { CTR } = pkg;
+const { Counter, ModeOfOperation: { ctr: CTR }, } = pkg;
 import { getAddress } from "../address/index.js";
 import { pbkdf2, randomBytes, scrypt, scryptSync, sha256, } from "../crypto/index.js";
 import { concat, getBytes, hexlify, uuidV4, assert, assertArgument, } from "../utils/index.js";
@@ -36,7 +36,7 @@ function decrypt(data, key, ciphertext) {
     const cipher = spelunk(data, "crypto.cipher:string");
     if (cipher === "aes-128-ctr") {
         const iv = spelunk(data, "crypto.cipherparams.iv:data!");
-        const aesCtr = new CTR(key, iv);
+        const aesCtr = new CTR(key, new Counter(iv));
         return hexlify(aesCtr.decrypt(ciphertext));
     }
     assert(false, "unsupported cipher", "UNSUPPORTED_OPERATION", {
@@ -47,7 +47,16 @@ function getAccount(data, _key) {
     const key = getBytes(_key);
     const ciphertext = spelunk(data, "crypto.ciphertext:data!");
     const computedMAC = hexlify(sha256(concat([key.slice(16, 32), ciphertext]))).substring(2);
-    assertArgument(computedMAC === spelunk(data, "crypto.mac:string!").toLowerCase(), "incorrect password", "password", "[ REDACTED ]");
+    const expectedMAC = spelunk(data, "crypto.mac:string!");
+    let difference = 0;
+    const validMAC = /^[0-9a-f]{64}$/i.test(expectedMAC);
+    if (validMAC) {
+        const actual = getBytes("0x" + computedMAC);
+        const expected = getBytes("0x" + expectedMAC);
+        for (let i = 0; i < actual.length; i++)
+            difference |= actual[i] ^ expected[i];
+    }
+    assertArgument(validMAC && difference === 0, "incorrect password", "password", "[REDACTED]");
     const privateKey = decrypt(data, key.slice(0, 16), ciphertext);
     const address = getAddress(data.address);
     const prefix = extractPrefix(address);
@@ -68,7 +77,7 @@ function getAccount(data, _key) {
         const mnemonicKey = key.slice(32, 64);
         const mnemonicCiphertext = spelunk(data, "x-corebc.mnemonicCiphertext:data!");
         const mnemonicIv = spelunk(data, "x-corebc.mnemonicCounter:data!");
-        const mnemonicAesCtr = new CTR(mnemonicKey, mnemonicIv);
+        const mnemonicAesCtr = new CTR(mnemonicKey, new Counter(mnemonicIv));
         account.mnemonic = {
             path: spelunk(data, "x-corebc.path:string") || defaultPath,
             locale: spelunk(data, "x-corebc.locale:string") || "en",
@@ -76,6 +85,16 @@ function getAccount(data, _key) {
         };
     }
     return account;
+}
+// Match Core Web3Dart's wallet KDF resource limits.
+function validateScrypt(N, r, p) {
+    assertArgument(Number.isSafeInteger(N) && N > 1 && N <= 1048576 && (N & (N - 1)) === 0, "unsafe scrypt N", "kdf.N", N);
+    assertArgument(Number.isSafeInteger(r) &&
+        Number.isSafeInteger(p) &&
+        r > 0 &&
+        p > 0 &&
+        r * p <= 1048576 &&
+        128 * N * r <= 256 * 1024 * 1024, "unsafe scrypt work or memory requirement", "kdf", { N, r, p });
 }
 function getDecryptKdfParams(data) {
     const kdf = spelunk(data, "crypto.kdf:string");
@@ -85,9 +104,7 @@ function getDecryptKdfParams(data) {
             const N = spelunk(data, "crypto.kdfparams.n:int!");
             const r = spelunk(data, "crypto.kdfparams.r:int!");
             const p = spelunk(data, "crypto.kdfparams.p:int!");
-            // Make sure N is a power of 2
-            assertArgument(N > 0 && (N & (N - 1)) === 0, "invalid kdf.N", "kdf.N", N);
-            assertArgument(r > 0 && p > 0, "invalid kdf", "kdf", kdf);
+            validateScrypt(N, r, p);
             const dkLen = spelunk(data, "crypto.kdfparams.dklen:int!");
             assertArgument(dkLen === 32, "invalid kdf.dklen", "kdf.dflen", dkLen);
             return { name: "scrypt", salt, N, r, p, dkLen: 64 };
@@ -96,11 +113,18 @@ function getDecryptKdfParams(data) {
             const salt = spelunk(data, "crypto.kdfparams.salt:data!");
             const prf = spelunk(data, "crypto.kdfparams.prf:string!");
             const algorithm = prf.split("-").pop();
-            assertArgument(algorithm === "sha256" || algorithm === "sha512", "invalid kdf.pdf", "kdf.pdf", prf);
+            assertArgument(prf === "hmac-sha256" || prf === "hmac-sha512", "invalid kdf.pdf", "kdf.pdf", prf);
             const count = spelunk(data, "crypto.kdfparams.c:int!");
+            assertArgument(Number.isSafeInteger(count) && count > 0 && count <= 10_000_000, "unsafe PBKDF2 iteration count", "kdf.c", count);
             const dkLen = spelunk(data, "crypto.kdfparams.dklen:int!");
             assertArgument(dkLen === 32, "invalid kdf.dklen", "kdf.dklen", dkLen);
-            return { name: "pbkdf2", salt, count, dkLen, algorithm };
+            return {
+                name: "pbkdf2",
+                salt,
+                count,
+                dkLen,
+                algorithm: algorithm,
+            };
         }
     }
     assertArgument(false, "unsupported key-derivation function", "kdf", kdf);
@@ -183,22 +207,17 @@ function getEncryptKdfParams(options) {
     // Override the scrypt password-based key derivation function parameters
     let N = 1 << 17, r = 8, p = 1;
     if (options.scrypt) {
-        if (options.scrypt.N) {
+        if (options.scrypt.N != null) {
             N = options.scrypt.N;
         }
-        if (options.scrypt.r) {
+        if (options.scrypt.r != null) {
             r = options.scrypt.r;
         }
-        if (options.scrypt.p) {
+        if (options.scrypt.p != null) {
             p = options.scrypt.p;
         }
     }
-    assertArgument(typeof N === "number" &&
-        N > 0 &&
-        Number.isSafeInteger(N) &&
-        (BigInt(N) & BigInt(N - 1)) === BigInt(0), "invalid scrypt N parameter", "options.N", N);
-    assertArgument(typeof r === "number" && r > 0 && Number.isSafeInteger(r), "invalid scrypt r parameter", "options.r", r);
-    assertArgument(typeof p === "number" && p > 0 && Number.isSafeInteger(p), "invalid scrypt p parameter", "options.p", p);
+    validateScrypt(N, r, p);
     return { name: "scrypt", dkLen: 32, salt, N, r, p };
 }
 function _encryptKeystore(key, kdf, account, options) {
@@ -217,7 +236,7 @@ function _encryptKeystore(key, kdf, account, options) {
     const derivedKey = key.slice(0, 16);
     const macPrefix = key.slice(16, 32);
     // Encrypt the private key
-    const aesCtr = new CTR(derivedKey, iv);
+    const aesCtr = new CTR(derivedKey, new Counter(iv));
     const ciphertext = getBytes(aesCtr.encrypt(privateKey));
     // Compute the message authentication code, used to check the password
     const mac = sha256(concat([macPrefix, ciphertext]));
@@ -250,7 +269,7 @@ function _encryptKeystore(key, kdf, account, options) {
         const mnemonicKey = key.slice(32, 64);
         const entropy = getBytes(account.mnemonic.entropy, "account.mnemonic.entropy");
         const mnemonicIv = randomBytes(16);
-        const mnemonicAesCtr = new CTR(mnemonicKey, mnemonicIv);
+        const mnemonicAesCtr = new CTR(mnemonicKey, new Counter(mnemonicIv));
         const mnemonicCiphertext = getBytes(mnemonicAesCtr.encrypt(entropy));
         const now = new Date();
         const timestamp = now.getUTCFullYear() +

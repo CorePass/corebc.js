@@ -23,4 +23,6 @@ export type { Provider, Signer, AbstractProviderPlugin, BlockParams, BlockTag, C
 export type { AccessList, AccessListish, AccessListEntry, TransactionLike, } from "./transaction/index.js";
 export type { BytesLike, BigNumberish, Numeric, ErrorCode, FixedFormat, Utf8ErrorFunc, UnicodeNormalizationForm, Utf8ErrorReason, RlpStructuredData, GetUrlResponse, FetchPreflightFunc, FetchProcessFunc, FetchRetryFunc, FetchGatewayFunc, FetchGetUrlFunc, CoreBCError, UnknownError, NotImplementedError, UnsupportedOperationError, NetworkError, ServerError, TimeoutError, BadDataError, CancelledError, BufferOverrunError, NumericFaultError, InvalidArgumentError, MissingArgumentError, UnexpectedArgumentError, CallExceptionError, InsufficientFundsError, NonceExpiredError, OffchainFaultError, ReplacementUnderpricedError, TransactionReplacedError, UnconfiguredNameError, ActionRejectedError, CodedCoreBCError, CallExceptionAction, CallExceptionTransaction, EventEmitterable, Listener, } from "./utils/index.js";
 export type { CrowdsaleAccount, KeystoreAccount, EncryptOptions, } from "./wallet/index.js";
+export * from "./cip/index.js";
+export * from "./ipfs/index.js";
 //# sourceMappingURL=corebc.d.ts.map

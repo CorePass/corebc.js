@@ -1,8 +1,9 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.IpcSocketProvider = void 0;
-const net_1 = require("net");
-const provider_socket_js_1 = require("./provider-socket.js");
+'use strict';
+
+var net = require('net');
+var providerSocket = require('./provider-socket.js');
+
+/// <reference types="node" preserve="true" />
 // @TODO: Is this sufficient? Is this robust? Will newlines occur between
 // all payloads and only between payloads?
 function splitBuffer(data) {
@@ -18,14 +19,14 @@ function splitBuffer(data) {
     }
     return { messages, remaining: data.subarray(lastStart) };
 }
-class IpcSocketProvider extends provider_socket_js_1.SocketProvider {
+class IpcSocketProvider extends providerSocket.SocketProvider {
     #socket;
     get socket() {
         return this.#socket;
     }
     constructor(path, network) {
         super(network);
-        this.#socket = (0, net_1.connect)(path);
+        this.#socket = net.connect(path);
         this.socket.on("ready", async () => {
             try {
                 await this._start();
@@ -37,7 +38,10 @@ class IpcSocketProvider extends provider_socket_js_1.SocketProvider {
         });
         let response = Buffer.alloc(0);
         this.socket.on("data", (data) => {
-            response = Buffer.concat([response, data]);
+            response = Buffer.concat([
+                response,
+                typeof data === "string" ? Buffer.from(data) : data,
+            ]);
             const { messages, remaining } = splitBuffer(response);
             messages.forEach((message) => {
                 this._processMessage(message);
@@ -59,5 +63,6 @@ class IpcSocketProvider extends provider_socket_js_1.SocketProvider {
         this.socket.write(message);
     }
 }
+
 exports.IpcSocketProvider = IpcSocketProvider;
 //# sourceMappingURL=provider-ipcsocket.js.map

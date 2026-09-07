@@ -1,9 +1,9 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.WebSocketProvider = void 0;
-const ws_js_1 = require("./ws.js"); /*-browser*/
-const provider_socket_js_1 = require("./provider-socket.js");
-class WebSocketProvider extends provider_socket_js_1.SocketProvider {
+'use strict';
+
+var ws = require('ws');
+var providerSocket = require('./provider-socket.js');
+
+class WebSocketProvider extends providerSocket.SocketProvider {
     #connect;
     #websocket;
     get websocket() {
@@ -16,7 +16,7 @@ class WebSocketProvider extends provider_socket_js_1.SocketProvider {
         super(network);
         if (typeof url === "string") {
             this.#connect = () => {
-                return new ws_js_1.WebSocket(url);
+                return new ws.WebSocket(url);
             };
             this.#websocket = this.#connect();
         }
@@ -42,20 +42,20 @@ class WebSocketProvider extends provider_socket_js_1.SocketProvider {
             this._processMessage(message.data);
         };
         /*
-            this.websocket.onclose = (event) => {
-                // @TODO: What event.code should we reconnect on?
-                const reconnect = false;
-                if (reconnect) {
-                    this.pause(true);
-                    if (this.#connect) {
-                        this.#websocket = this.#connect();
-                        this.#websocket.onopen = ...
-                        // @TODO: this requires the super class to rebroadcast; move it there
-                    }
-                    this._reconnect();
+        this.websocket.onclose = (event) => {
+            // @TODO: What event.code should we reconnect on?
+            const reconnect = false;
+            if (reconnect) {
+                this.pause(true);
+                if (this.#connect) {
+                    this.#websocket = this.#connect();
+                    this.#websocket.onopen = ...
+                    // @TODO: this requires the super class to rebroadcast; move it there
                 }
-            };
-    */
+                this._reconnect();
+            }
+        };
+*/
     }
     async _write(message) {
         this.websocket.send(message);
@@ -68,5 +68,6 @@ class WebSocketProvider extends provider_socket_js_1.SocketProvider {
         super.destroy();
     }
 }
+
 exports.WebSocketProvider = WebSocketProvider;
 //# sourceMappingURL=provider-websocket.js.map

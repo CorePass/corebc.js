@@ -1,4 +1,16 @@
-"use strict";
+'use strict';
+
+require('../utils/base58.js');
+require('../logger/logger.js');
+var errors = require('../utils/errors.js');
+var properties = require('../utils/properties.js');
+var fetch = require('../utils/fetch.js');
+require('../utils/fixednumber.js');
+require('../utils/maths.js');
+var community = require('./community.js');
+var network = require('./network.js');
+var providerJsonrpc = require('./provider-jsonrpc.js');
+
 /**
  *  [[link-quicknode]] provides a third-party service for connecting to
  *  various blockchains over JSON-RPC.
@@ -16,12 +28,6 @@
  *
  *  @_subsection: api/providers/thirdparty:QuickNode  [providers-quicknode]
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.QuickNodeProvider = void 0;
-const index_js_1 = require("../utils/index.js");
-const community_js_1 = require("./community.js");
-const network_js_1 = require("./network.js");
-const provider_jsonrpc_js_1 = require("./provider-jsonrpc.js");
 const defaultToken = "919b412a057b5e9c9b6dce193c5a60242d6efadb";
 function getHost(name) {
     switch (name) {
@@ -40,7 +46,7 @@ function getHost(name) {
         case "optimism-goerli":
             return "corebc.optimism-goerli.quiknode.pro";
     }
-    (0, index_js_1.assertArgument)(false, "unsupported network", "network", name);
+    errors.assertArgument(false, "unsupported network", "network", name);
 }
 /**
  *  The **QuickNodeProvider** connects to the [[link-quicknode]]
@@ -51,7 +57,7 @@ function getHost(name) {
  *  gain access to an increased rate-limit, it is highly
  *  recommended to [sign up here](link-quicknode).
  */
-class QuickNodeProvider extends provider_jsonrpc_js_1.JsonRpcProvider {
+class QuickNodeProvider extends providerJsonrpc.JsonRpcProvider {
     /**
      *  The API token.
      */
@@ -63,13 +69,13 @@ class QuickNodeProvider extends provider_jsonrpc_js_1.JsonRpcProvider {
         if (_network == null) {
             _network = "mainnet";
         }
-        const network = network_js_1.Network.from(_network);
+        const network$1 = network.Network.from(_network);
         if (token == null) {
             token = defaultToken;
         }
-        const request = QuickNodeProvider.getRequest(network, token);
-        super(request, network, { staticNetwork: network });
-        (0, index_js_1.defineProperties)(this, { token });
+        const request = QuickNodeProvider.getRequest(network$1, token);
+        super(request, network$1, { staticNetwork: network$1 });
+        properties.defineProperties(this, { token });
     }
     _getProvider(networkId) {
         try {
@@ -89,17 +95,18 @@ class QuickNodeProvider extends provider_jsonrpc_js_1.JsonRpcProvider {
         if (token == null) {
             token = defaultToken;
         }
-        const request = new index_js_1.FetchRequest(`https:/\/${getHost(network.name)}/${token}`);
+        const request = new fetch.FetchRequest(`https:/\/${getHost(network.name)}/${token}`);
         request.allowGzip = true;
         //if (projectSecret) { request.setCredentials("", projectSecret); }
         if (token === defaultToken) {
             request.retryFunc = async (request, response, attempt) => {
-                (0, community_js_1.showThrottleMessage)("QuickNodeProvider");
+                community.showThrottleMessage("QuickNodeProvider");
                 return true;
             };
         }
         return request;
     }
 }
+
 exports.QuickNodeProvider = QuickNodeProvider;
 //# sourceMappingURL=provider-quicknode.js.map

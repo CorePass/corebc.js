@@ -1,16 +1,25 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractEventPayload = exports.ContractUnknownEventPayload = exports.ContractTransactionResponse = exports.ContractTransactionReceipt = exports.EventLog = void 0;
-const provider_js_1 = require("../providers/provider.js");
-const index_js_1 = require("../utils/index.js");
-class EventLog extends provider_js_1.Log {
+'use strict';
+
+var provider = require('../providers/provider.js');
+require('../utils/base58.js');
+require('../logger/logger.js');
+require('../utils/errors.js');
+var events = require('../utils/events.js');
+var properties = require('../utils/properties.js');
+require('http');
+require('https');
+require('zlib');
+require('../utils/fixednumber.js');
+require('../utils/maths.js');
+
+class EventLog extends provider.Log {
     interface;
     fragment;
     args;
     constructor(log, iface, fragment) {
         super(log, log.provider);
         const args = iface.decodeEventLog(fragment, log.data, log.topics);
-        (0, index_js_1.defineProperties)(this, { args, fragment, interface: iface });
+        properties.defineProperties(this, { args, fragment, interface: iface });
     }
     get eventName() {
         return this.fragment.name;
@@ -19,8 +28,7 @@ class EventLog extends provider_js_1.Log {
         return this.fragment.format();
     }
 }
-exports.EventLog = EventLog;
-class ContractTransactionReceipt extends provider_js_1.TransactionReceipt {
+class ContractTransactionReceipt extends provider.TransactionReceipt {
     #iface;
     constructor(iface, provider, tx) {
         super(tx, provider);
@@ -40,8 +48,7 @@ class ContractTransactionReceipt extends provider_js_1.TransactionReceipt {
         });
     }
 }
-exports.ContractTransactionReceipt = ContractTransactionReceipt;
-class ContractTransactionResponse extends provider_js_1.TransactionResponse {
+class ContractTransactionResponse extends provider.TransactionResponse {
     #iface;
     constructor(iface, provider, tx) {
         super(tx, provider);
@@ -55,12 +62,11 @@ class ContractTransactionResponse extends provider_js_1.TransactionResponse {
         return new ContractTransactionReceipt(this.#iface, this.provider, receipt);
     }
 }
-exports.ContractTransactionResponse = ContractTransactionResponse;
-class ContractUnknownEventPayload extends index_js_1.EventPayload {
+class ContractUnknownEventPayload extends events.EventPayload {
     log;
     constructor(contract, listener, filter, log) {
         super(contract, listener, filter);
-        (0, index_js_1.defineProperties)(this, { log });
+        properties.defineProperties(this, { log });
     }
     async getBlock() {
         return await this.log.getBlock();
@@ -72,12 +78,11 @@ class ContractUnknownEventPayload extends index_js_1.EventPayload {
         return await this.log.getTransactionReceipt();
     }
 }
-exports.ContractUnknownEventPayload = ContractUnknownEventPayload;
 class ContractEventPayload extends ContractUnknownEventPayload {
     constructor(contract, listener, filter, fragment, _log) {
         super(contract, listener, filter, new EventLog(_log, contract.interface, fragment));
         const args = contract.interface.decodeEventLog(fragment, this.log.data, this.log.topics);
-        (0, index_js_1.defineProperties)(this, { args, fragment });
+        properties.defineProperties(this, { args, fragment });
     }
     get eventName() {
         return this.fragment.name;
@@ -86,5 +91,10 @@ class ContractEventPayload extends ContractUnknownEventPayload {
         return this.fragment.format();
     }
 }
+
 exports.ContractEventPayload = ContractEventPayload;
+exports.ContractTransactionReceipt = ContractTransactionReceipt;
+exports.ContractTransactionResponse = ContractTransactionResponse;
+exports.ContractUnknownEventPayload = ContractUnknownEventPayload;
+exports.EventLog = EventLog;
 //# sourceMappingURL=wrappers.js.map

@@ -1,12 +1,20 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Reader = exports.Writer = exports.Coder = exports.checkResultErrors = exports.Result = exports.WordSize = void 0;
-const index_js_1 = require("../../utils/index.js");
+'use strict';
+
+require('../../utils/base58.js');
+var data = require('../../utils/data.js');
+var errors = require('../../utils/errors.js');
+var properties = require('../../utils/properties.js');
+require('http');
+require('https');
+require('zlib');
+require('../../utils/fixednumber.js');
+var maths = require('../../utils/maths.js');
+
 /**
  * @_ignore:
  */
-exports.WordSize = 32;
-const Padding = new Uint8Array(exports.WordSize);
+const WordSize = 32;
+const Padding = new Uint8Array(WordSize);
 // Properties used to immediate pass through to the underlying object
 // - `then` is used to detect if an object is a Promise for await
 const passProperties = ["then"];
@@ -76,7 +84,7 @@ class Result extends Array {
                 if (typeof prop === "string") {
                     // Index accessor
                     if (prop.match(/^[0-9]+$/)) {
-                        const index = (0, index_js_1.getNumber)(prop, "%index");
+                        const index = maths.getNumber(prop, "%index");
                         if (index < 0 || index >= this.length) {
                             throw new RangeError("out of result range");
                         }
@@ -133,7 +141,7 @@ class Result extends Array {
      */
     toObject() {
         return this.#names.reduce((accum, name, index) => {
-            (0, index_js_1.assert)(name != null, "value at index ${ index } unnamed", "UNSUPPORTED_OPERATION", {
+            errors.assert(name != null, "value at index ${ index } unnamed", "UNSUPPORTED_OPERATION", {
                 operation: "toObject()",
             });
             // Add values for names that don't conflict
@@ -219,7 +227,6 @@ class Result extends Array {
         return new Result(_guard, items, keys);
     }
 }
-exports.Result = Result;
 /**
  *  Returns all errors found in a [[Result]].
  *
@@ -254,16 +261,15 @@ function checkResultErrors(result) {
     checkErrors([], result);
     return errors;
 }
-exports.checkResultErrors = checkResultErrors;
 function getValue(value) {
-    let bytes = (0, index_js_1.toBeArray)(value);
-    (0, index_js_1.assert)(bytes.length <= exports.WordSize, "value out-of-bounds", "BUFFER_OVERRUN", {
+    let bytes = maths.toBeArray(value);
+    errors.assert(bytes.length <= WordSize, "value out-of-bounds", "BUFFER_OVERRUN", {
         buffer: bytes,
-        length: exports.WordSize,
+        length: WordSize,
         offset: bytes.length,
     });
-    if (bytes.length !== exports.WordSize) {
-        bytes = (0, index_js_1.getBytesCopy)((0, index_js_1.concat)([Padding.slice(bytes.length % exports.WordSize), bytes]));
+    if (bytes.length !== WordSize) {
+        bytes = data.getBytesCopy(data.concat([Padding.slice(bytes.length % WordSize), bytes]));
     }
     return bytes;
 }
@@ -285,7 +291,7 @@ class Coder {
     //  - Not Dynamic: address, uint256, boolean[3], tuple(address, uint8)
     dynamic;
     constructor(name, type, localName, dynamic) {
-        (0, index_js_1.defineProperties)(this, { name, type, localName, dynamic }, {
+        properties.defineProperties(this, { name, type, localName, dynamic }, {
             name: "string",
             type: "string",
             localName: "string",
@@ -293,10 +299,9 @@ class Coder {
         });
     }
     _throwError(message, value) {
-        (0, index_js_1.assertArgument)(false, message, this.localName, value);
+        errors.assertArgument(false, message, this.localName, value);
     }
 }
-exports.Coder = Coder;
 /**
  *  @_ignore
  */
@@ -309,7 +314,7 @@ class Writer {
         this.#dataLength = 0;
     }
     get data() {
-        return (0, index_js_1.concat)(this.#data);
+        return data.concat(this.#data);
     }
     get length() {
         return this.#dataLength;
@@ -320,14 +325,14 @@ class Writer {
         return data.length;
     }
     appendWriter(writer) {
-        return this.#writeData((0, index_js_1.getBytesCopy)(writer.data));
+        return this.#writeData(data.getBytesCopy(writer.data));
     }
     // Arrayish item; pad on the right to *nearest* WordSize
     writeBytes(value) {
-        let bytes = (0, index_js_1.getBytesCopy)(value);
-        const paddingOffset = bytes.length % exports.WordSize;
+        let bytes = data.getBytesCopy(value);
+        const paddingOffset = bytes.length % WordSize;
         if (paddingOffset) {
-            bytes = (0, index_js_1.getBytesCopy)((0, index_js_1.concat)([bytes, Padding.slice(paddingOffset)]));
+            bytes = data.getBytesCopy(data.concat([bytes, Padding.slice(paddingOffset)]));
         }
         return this.#writeData(bytes);
     }
@@ -340,13 +345,12 @@ class Writer {
     writeUpdatableValue() {
         const offset = this.#data.length;
         this.#data.push(Padding);
-        this.#dataLength += exports.WordSize;
+        this.#dataLength += WordSize;
         return (value) => {
             this.#data[offset] = getValue(value);
         };
     }
 }
-exports.Writer = Writer;
 /**
  *  @_ignore
  */
@@ -358,13 +362,13 @@ class Reader {
     allowLoose;
     #data;
     #offset;
-    constructor(data, allowLoose) {
-        (0, index_js_1.defineProperties)(this, { allowLoose: !!allowLoose });
-        this.#data = (0, index_js_1.getBytesCopy)(data);
+    constructor(data$1, allowLoose) {
+        properties.defineProperties(this, { allowLoose: !!allowLoose });
+        this.#data = data.getBytesCopy(data$1);
         this.#offset = 0;
     }
     get data() {
-        return (0, index_js_1.hexlify)(this.#data);
+        return data.hexlify(this.#data);
     }
     get dataLength() {
         return this.#data.length;
@@ -376,7 +380,7 @@ class Reader {
         return new Uint8Array(this.#data);
     }
     #peekBytes(offset, length, loose) {
-        let alignedLength = Math.ceil(length / exports.WordSize) * exports.WordSize;
+        let alignedLength = Math.ceil(length / WordSize) * WordSize;
         if (this.#offset + alignedLength > this.#data.length) {
             if (this.allowLoose &&
                 loose &&
@@ -384,8 +388,8 @@ class Reader {
                 alignedLength = length;
             }
             else {
-                (0, index_js_1.assert)(false, "data out-of-bounds", "BUFFER_OVERRUN", {
-                    buffer: (0, index_js_1.getBytesCopy)(this.#data),
+                errors.assert(false, "data out-of-bounds", "BUFFER_OVERRUN", {
+                    buffer: data.getBytesCopy(this.#data),
                     length: this.#data.length,
                     offset: this.#offset + alignedLength,
                 });
@@ -406,11 +410,17 @@ class Reader {
     }
     // Read a numeric values
     readValue() {
-        return (0, index_js_1.toBigInt)(this.readBytes(exports.WordSize));
+        return maths.toBigInt(this.readBytes(WordSize));
     }
     readIndex() {
-        return (0, index_js_1.toNumber)(this.readBytes(exports.WordSize));
+        return maths.toNumber(this.readBytes(WordSize));
     }
 }
+
+exports.Coder = Coder;
 exports.Reader = Reader;
+exports.Result = Result;
+exports.WordSize = WordSize;
+exports.Writer = Writer;
+exports.checkResultErrors = checkResultErrors;
 //# sourceMappingURL=abstract-coder.js.map

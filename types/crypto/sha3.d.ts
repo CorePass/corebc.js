@@ -1,6 +1,8 @@
 import { BytesLike } from "../utils/data.js";
+declare const _sha256: (data: Uint8Array) => string;
+declare const _sha512: (data: Uint8Array) => string;
 /**
- *  Compute the cryptographic SHA2-256 hash of %%data%%.
+ *  Compute the cryptographic SHA3-256 hash of %%data%%.
  *
  *  @_docloc: api/crypto:Hash Functions
  *  @returns DataHexstring
@@ -23,14 +25,14 @@ export declare enum SupportedAlgorithm {
 export declare function ripemd160(data: BytesLike): string;
 export declare function sha256(data: BytesLike): string;
 export declare namespace sha256 {
-    var _: (data: Uint8Array) => string;
-    var lock: () => void;
-    var register: (func: (data: Uint8Array) => BytesLike) => void;
+    export { _sha256 as _ };
+    export var lock: () => void;
+    export var register: (func: (data: Uint8Array) => BytesLike) => void;
 }
 export declare function legacySha256(data: BytesLike): string;
 export declare function computeHmac(algorithm: SupportedAlgorithm, key: BytesLike, data: BytesLike): string;
 /**
- *  Compute the cryptographic SHA2-512 hash of %%data%%.
+ *  Compute the cryptographic SHA3-512 hash of %%data%%.
  *
  *  @_docloc: api/crypto:Hash Functions
  *  @returns DataHexstring
@@ -47,8 +49,9 @@ export declare function computeHmac(algorithm: SupportedAlgorithm, key: BytesLik
  */
 export declare function sha512(data: BytesLike): string;
 export declare namespace sha512 {
-    var _: (data: Uint8Array) => string;
-    var lock: () => void;
-    var register: (func: (data: Uint8Array) => BytesLike) => void;
+    export { _sha512 as _ };
+    export var lock: () => void;
+    export var register: (func: (data: Uint8Array) => BytesLike) => void;
 }
+export {};
 //# sourceMappingURL=sha3.d.ts.map

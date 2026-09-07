@@ -1,43 +1,64 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.VoidSigner = exports.AbstractSigner = void 0;
+'use strict';
+
+var checks = require('../address/checks.js');
+var index = require('../address/index.js');
+require('../utils/base58.js');
+require('../logger/logger.js');
+var errors = require('../utils/errors.js');
+var properties = require('../utils/properties.js');
+require('http');
+require('https');
+require('zlib');
+require('../utils/fixednumber.js');
+var maths = require('../utils/maths.js');
+require('../crypto/hmac.js');
+require('../crypto/ripemd160.js');
+require('../crypto/pbkdf2.js');
+require('../crypto/random.js');
+require('../crypto/scrypt.js');
+require('../crypto/sha3.js');
+require('bcrypto/lib/ed448.js');
+require('buffer');
+require('bcrypto/lib/pbkdf2.js');
+require('bcrypto/lib/sha3-512.js');
+require('crypto');
+require('../crypto/keccak.js');
+require('../crypto/signature.js');
+var transaction = require('../transaction/transaction.js');
+var provider = require('./provider.js');
+
 /**
  *  About Abstract Signer and subclassing
  *
  *  @_section: api/providers/abstract-signer: Subclassing Signer [abstract-signer]
  */
-const checks_js_1 = require("../address/checks.js");
-const index_js_1 = require("../address/index.js");
-const index_js_2 = require("../transaction/index.js");
-const index_js_3 = require("../utils/index.js");
-const provider_js_1 = require("./provider.js");
 function checkProvider(signer, operation) {
     if (signer.provider) {
         return signer.provider;
     }
-    (0, index_js_3.assert)(false, "missing provider", "UNSUPPORTED_OPERATION", { operation });
+    errors.assert(false, "missing provider", "UNSUPPORTED_OPERATION", { operation });
 }
 async function populate(signer, tx) {
-    let pop = (0, provider_js_1.copyRequest)(tx);
+    let pop = provider.copyRequest(tx);
     if (pop.to != null) {
-        pop.to = (0, checks_js_1.resolveAddress)(pop.to);
+        pop.to = checks.resolveAddress(pop.to);
     }
     if (pop.from != null) {
         const from = pop.from;
-        pop.from = Promise.all([signer.getAddress(), (0, checks_js_1.resolveAddress)(from)]).then(([address, from]) => {
-            (0, index_js_3.assertArgument)(address.toLowerCase() === from.toLowerCase(), "transaction from mismatch", "tx.from", from);
+        pop.from = Promise.all([signer.getAddress(), checks.resolveAddress(from)]).then(([address, from]) => {
+            errors.assertArgument(address.toLowerCase() === from.toLowerCase(), "transaction from mismatch", "tx.from", from);
             return address;
         });
     }
     else {
         pop.from = signer.getAddress();
     }
-    return await (0, index_js_3.resolveProperties)(pop);
+    return await properties.resolveProperties(pop);
 }
 class AbstractSigner {
     provider;
     constructor(provider) {
-        (0, index_js_3.defineProperties)(this, { provider: provider || null });
+        properties.defineProperties(this, { provider: provider || null });
     }
     async getNonce(blockTag) {
         return checkProvider(this, "getTransactionCount").getTransactionCount(await this.getAddress(), blockTag);
@@ -58,8 +79,8 @@ class AbstractSigner {
         // Populate the chain ID
         const network = await this.provider.getNetwork();
         if (pop.networkId != null) {
-            const networkId = (0, index_js_3.getBigInt)(pop.networkId);
-            (0, index_js_3.assertArgument)(networkId === network.networkId, "transaction networkId mismatch", "tx.networkId", tx.networkId);
+            const networkId = maths.getBigInt(pop.networkId);
+            errors.assertArgument(networkId === network.networkId, "transaction networkId mismatch", "tx.networkId", tx.networkId);
         }
         else {
             pop.networkId = network.networkId;
@@ -76,13 +97,13 @@ class AbstractSigner {
         }
         else {
             // getFeeData has failed us.
-            (0, index_js_3.assert)(false, "failed to get consistent fee data", "UNSUPPORTED_OPERATION", {
+            errors.assert(false, "failed to get consistent fee data", "UNSUPPORTED_OPERATION", {
                 operation: "signer.getFeeData",
             });
         }
         //@TOOD: Don't await all over the place; save them up for
         // the end for better batching
-        return await (0, index_js_3.resolveProperties)(pop);
+        return await properties.resolveProperties(pop);
     }
     async estimateEnergy(tx) {
         return checkProvider(this, "estimateEnergy").estimateEnergy(await this.populateCall(tx));
@@ -91,22 +112,21 @@ class AbstractSigner {
         return checkProvider(this, "call").call(await this.populateCall(tx));
     }
     async resolveName(name) {
-        return (0, index_js_1.getAddress)(name);
+        return index.getAddress(name);
     }
     async sendTransaction(tx) {
         const provider = checkProvider(this, "sendTransaction");
         const pop = await this.populateTransaction(tx);
         delete pop.from;
-        const txObj = index_js_2.Transaction.from(pop);
+        const txObj = transaction.Transaction.from(pop);
         return await provider.broadcastTransaction(await this.signTransaction(txObj));
     }
 }
-exports.AbstractSigner = AbstractSigner;
 class VoidSigner extends AbstractSigner {
     address;
     constructor(address, provider) {
         super(provider);
-        (0, index_js_3.defineProperties)(this, { address });
+        properties.defineProperties(this, { address });
     }
     async getAddress() {
         return this.address;
@@ -115,7 +135,7 @@ class VoidSigner extends AbstractSigner {
         return new VoidSigner(this.address, provider);
     }
     #throwUnsupported(suffix, operation) {
-        (0, index_js_3.assert)(false, `VoidSigner cannot sign ${suffix}`, "UNSUPPORTED_OPERATION", {
+        errors.assert(false, `VoidSigner cannot sign ${suffix}`, "UNSUPPORTED_OPERATION", {
             operation,
         });
     }
@@ -129,5 +149,7 @@ class VoidSigner extends AbstractSigner {
         this.#throwUnsupported("typed-data", "signTypedData");
     }
 }
+
+exports.AbstractSigner = AbstractSigner;
 exports.VoidSigner = VoidSigner;
 //# sourceMappingURL=abstract-signer.js.map

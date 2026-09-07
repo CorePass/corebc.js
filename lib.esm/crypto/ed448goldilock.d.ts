@@ -1,6 +1,7 @@
+import { Buffer } from "buffer";
 export declare class Ed448Goldilock {
-    static _channel: any;
-    static generatePrivateKey(): any;
+    static _channel: import("./ed448-types.js").Ed448Backend;
+    static generatePrivateKey(): Buffer<ArrayBufferLike>;
     static getPublicKeyFromPrivateKey(privateKey: string): string;
     static signWithPrivateKey(privateKey: string, msg: string): string;
     static signWithPrivateKeyNConcatPubkey(privateKey: string, msg: string): string;

@@ -1,12 +1,20 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.PossiblyPrunedTransactionPlugin = exports.CheckQualifiedPlugin = exports.PluginIdFallbackProvider = void 0;
-const index_js_1 = require("../utils/index.js");
-exports.PluginIdFallbackProvider = "org.corebc.plugins.provider.QualifiedPlugin";
+'use strict';
+
+require('../utils/base58.js');
+require('../logger/logger.js');
+require('../utils/errors.js');
+var properties = require('../utils/properties.js');
+require('http');
+require('https');
+require('zlib');
+require('../utils/fixednumber.js');
+require('../utils/maths.js');
+
+const PluginIdFallbackProvider = "org.corebc.plugins.provider.QualifiedPlugin";
 class CheckQualifiedPlugin {
     constructor() {
-        (0, index_js_1.defineProperties)(this, {
-            name: exports.PluginIdFallbackProvider,
+        properties.defineProperties(this, {
+            name: PluginIdFallbackProvider,
         });
     }
     connect(provider) {
@@ -18,7 +26,6 @@ class CheckQualifiedPlugin {
         return true;
     }
 }
-exports.CheckQualifiedPlugin = CheckQualifiedPlugin;
 class PossiblyPrunedTransactionPlugin extends CheckQualifiedPlugin {
     isQualified(action, result) {
         if (action.method === "getTransaction" ||
@@ -30,5 +37,8 @@ class PossiblyPrunedTransactionPlugin extends CheckQualifiedPlugin {
         return super.isQualified(action, result);
     }
 }
+
+exports.CheckQualifiedPlugin = CheckQualifiedPlugin;
+exports.PluginIdFallbackProvider = PluginIdFallbackProvider;
 exports.PossiblyPrunedTransactionPlugin = PossiblyPrunedTransactionPlugin;
 //# sourceMappingURL=plugin-fallback.js.map

@@ -1,10 +1,18 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Mnemonic = void 0;
-const index_js_1 = require("../utils/index.js");
-const lang_en_js_1 = require("../wordlists/lang-en.js");
-const sha3_js_1 = require("../crypto/sha3.js");
-const mnemonicToSeed_js_1 = require("./mnemonicToSeed.js");
+'use strict';
+
+require('../utils/base58.js');
+var data = require('../utils/data.js');
+var errors = require('../utils/errors.js');
+var properties = require('../utils/properties.js');
+require('http');
+require('https');
+require('zlib');
+require('../utils/fixednumber.js');
+require('../utils/maths.js');
+var langEn = require('../wordlists/lang-en.js');
+var sha3 = require('../crypto/sha3.js');
+var mnemonicToSeed = require('./mnemonicToSeed.js');
+
 // Returns a byte with the MSB bits set
 function getUpperMask(bits) {
     return (((1 << bits) - 1) << (8 - bits)) & 0xff;
@@ -14,17 +22,17 @@ function getLowerMask(bits) {
     return ((1 << bits) - 1) & 0xff;
 }
 function mnemonicToEntropy(mnemonic, wordlist) {
-    (0, index_js_1.assertNormalize)("NFKD");
+    errors.assertNormalize("NFKD");
     if (wordlist == null) {
-        wordlist = lang_en_js_1.LangEn.wordlist();
+        wordlist = langEn.LangEn.wordlist();
     }
     const words = wordlist.split(mnemonic);
-    (0, index_js_1.assertArgument)(words.length % 3 === 0 && words.length >= 12 && words.length <= 24, "invalid mnemonic length", "mnemonic", "[ REDACTED ]");
+    errors.assertArgument(words.length % 3 === 0 && words.length >= 12 && words.length <= 24, "invalid mnemonic length", "mnemonic", "[ REDACTED ]");
     const entropy = new Uint8Array(Math.ceil((11 * words.length) / 8));
     let offset = 0;
     for (let i = 0; i < words.length; i++) {
         let index = wordlist.getWordIndex(words[i].normalize("NFKD"));
-        (0, index_js_1.assertArgument)(index >= 0, `invalid mnemonic word at index ${i}`, "mnemonic", "[ REDACTED ]");
+        errors.assertArgument(index >= 0, `invalid mnemonic word at index ${i}`, "mnemonic", "[ REDACTED ]");
         for (let bit = 0; bit < 11; bit++) {
             if (index & (1 << (10 - bit))) {
                 entropy[offset >> 3] |= 1 << (7 - (offset % 8));
@@ -35,14 +43,14 @@ function mnemonicToEntropy(mnemonic, wordlist) {
     const entropyBits = (32 * words.length) / 3;
     const checksumBits = words.length / 3;
     const checksumMask = getUpperMask(checksumBits);
-    const checksum = (0, index_js_1.getBytes)((0, sha3_js_1.legacySha256)(entropy.slice(0, entropyBits / 8)))[0] & checksumMask;
-    (0, index_js_1.assertArgument)(checksum === (entropy[entropy.length - 1] & checksumMask), "invalid mnemonic checksum", "mnemonic", "[ REDACTED ]");
-    return (0, index_js_1.hexlify)(entropy.slice(0, entropyBits / 8));
+    const checksum = data.getBytes(sha3.legacySha256(entropy.slice(0, entropyBits / 8)))[0] & checksumMask;
+    errors.assertArgument(checksum === (entropy[entropy.length - 1] & checksumMask), "invalid mnemonic checksum", "mnemonic", "[ REDACTED ]");
+    return data.hexlify(entropy.slice(0, entropyBits / 8));
 }
 function entropyToMnemonic(entropy, wordlist) {
-    (0, index_js_1.assertArgument)(entropy.length % 4 === 0 && entropy.length >= 16 && entropy.length <= 32, "invalid entropy size", "entropy", "[ REDACTED ]");
+    errors.assertArgument(entropy.length % 4 === 0 && entropy.length >= 16 && entropy.length <= 32, "invalid entropy size", "entropy", "[ REDACTED ]");
     if (wordlist == null) {
-        wordlist = lang_en_js_1.LangEn.wordlist();
+        wordlist = langEn.LangEn.wordlist();
     }
     const indices = [0];
     let remainingBits = 11;
@@ -64,7 +72,7 @@ function entropyToMnemonic(entropy, wordlist) {
     }
     // Compute the checksum bits
     const checksumBits = entropy.length / 4;
-    const checksum = parseInt((0, sha3_js_1.legacySha256)(entropy).substring(2, 4), 16) &
+    const checksum = parseInt(sha3.legacySha256(entropy).substring(2, 4), 16) &
         getUpperMask(checksumBits);
     // Shift the checksum into the word indices
     indices[indices.length - 1] <<= checksumBits;
@@ -104,16 +112,16 @@ class Mnemonic {
             password = "";
         }
         if (wordlist == null) {
-            wordlist = lang_en_js_1.LangEn.wordlist();
+            wordlist = langEn.LangEn.wordlist();
         }
-        (0, index_js_1.assertPrivate)(guard, _guard, "Mnemonic");
-        (0, index_js_1.defineProperties)(this, { phrase, password, wordlist, entropy });
+        errors.assertPrivate(guard, _guard, "Mnemonic");
+        properties.defineProperties(this, { phrase, password, wordlist, entropy });
     }
     /**
      *  Returns the seed for the mnemonic.
      */
     computeSeed() {
-        return (0, mnemonicToSeed_js_1.mnemonicToSeed)(this.phrase, this.password);
+        return mnemonicToSeed.mnemonicToSeed(this.phrase, this.password);
     }
     /**
      *  Creates a new Mnemonic for the %%phrase%%.
@@ -124,7 +132,7 @@ class Mnemonic {
     static fromPhrase({ phrase, password, wordlist, }) {
         // Normalize the case and space; throws if invalid
         const entropy = mnemonicToEntropy(phrase, wordlist);
-        phrase = entropyToMnemonic((0, index_js_1.getBytes)(entropy), wordlist);
+        phrase = entropyToMnemonic(data.getBytes(entropy), wordlist);
         return new Mnemonic(_guard, entropy, phrase, password, wordlist);
     }
     /**
@@ -134,15 +142,15 @@ class Mnemonic {
      *  wordlist is the [English wordlists](LangEn).
      */
     static fromEntropy(_entropy, password, wordlist) {
-        const entropy = (0, index_js_1.getBytes)(_entropy, "entropy");
+        const entropy = data.getBytes(_entropy, "entropy");
         const phrase = entropyToMnemonic(entropy, wordlist);
-        return new Mnemonic(_guard, (0, index_js_1.hexlify)(entropy), phrase, password, wordlist);
+        return new Mnemonic(_guard, data.hexlify(entropy), phrase, password, wordlist);
     }
     /**
      *  Returns the phrase for %%mnemonic%%.
      */
     static entropyToPhrase(_entropy, wordlist) {
-        const entropy = (0, index_js_1.getBytes)(_entropy, "entropy");
+        const entropy = data.getBytes(_entropy, "entropy");
         return entropyToMnemonic(entropy, wordlist);
     }
     /**
@@ -166,5 +174,6 @@ class Mnemonic {
         return false;
     }
 }
+
 exports.Mnemonic = Mnemonic;
 //# sourceMappingURL=mnemonic.js.map

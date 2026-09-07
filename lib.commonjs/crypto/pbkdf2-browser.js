@@ -1,7 +1,10 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const tslib_1 = require("tslib");
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+var pbkdf2 = require('bcrypto/lib/pbkdf2-browser.js');
+
 // @ts-ignore
-const pbkdf2_browser_js_1 = tslib_1.__importDefault(require("bcrypto/lib/pbkdf2-browser.js"));
-exports.default = pbkdf2_browser_js_1.default;
+
+exports.default = pbkdf2;
 //# sourceMappingURL=pbkdf2-browser.js.map

@@ -1,15 +1,21 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.AlchemyProvider = void 0;
+'use strict';
+
+require('../utils/base58.js');
+require('../logger/logger.js');
+var errors = require('../utils/errors.js');
+var properties = require('../utils/properties.js');
+var fetch = require('../utils/fetch.js');
+require('../utils/fixednumber.js');
+require('../utils/maths.js');
+var community = require('./community.js');
+var network = require('./network.js');
+var providerJsonrpc = require('./provider-jsonrpc.js');
+
 /**
  *  About Alchemy
  *
  *  @_subsection: api/providers/thirdparty:Alchemy  [providers-alchemy]
  */
-const index_js_1 = require("../utils/index.js");
-const community_js_1 = require("./community.js");
-const network_js_1 = require("./network.js");
-const provider_jsonrpc_js_1 = require("./provider-jsonrpc.js");
 const defaultApiKey = "_gg7wSSi0KMBsdKnGVfHDueq6xMB9EkC";
 function getHost(name) {
     switch (name) {
@@ -32,7 +38,7 @@ function getHost(name) {
         case "optimism-goerli":
             return "opt-goerli.g.alchemy.com";
     }
-    (0, index_js_1.assertArgument)(false, "unsupported network", "network", name);
+    errors.assertArgument(false, "unsupported network", "network", name);
 }
 /**
  *  The **AlchemyProvider** connects to the [[link-alchemy]]
@@ -45,19 +51,19 @@ function getHost(name) {
  *
  *  @_docloc: api/providers/thirdparty
  */
-class AlchemyProvider extends provider_jsonrpc_js_1.JsonRpcProvider {
+class AlchemyProvider extends providerJsonrpc.JsonRpcProvider {
     apiKey;
     constructor(_network, apiKey) {
         if (_network == null) {
             _network = "mainnet";
         }
-        const network = network_js_1.Network.from(_network);
+        const network$1 = network.Network.from(_network);
         if (apiKey == null) {
             apiKey = defaultApiKey;
         }
-        const request = AlchemyProvider.getRequest(network, apiKey);
-        super(request, network, { staticNetwork: network });
-        (0, index_js_1.defineProperties)(this, { apiKey });
+        const request = AlchemyProvider.getRequest(network$1, apiKey);
+        super(request, network$1, { staticNetwork: network$1 });
+        properties.defineProperties(this, { apiKey });
     }
     _getProvider(networkId) {
         try {
@@ -69,7 +75,7 @@ class AlchemyProvider extends provider_jsonrpc_js_1.JsonRpcProvider {
     async _perform(req) {
         // https://docs.alchemy.com/reference/trace-transaction
         if (req.method === "getTransactionResult") {
-            const { trace, tx } = await (0, index_js_1.resolveProperties)({
+            const { trace, tx } = await properties.resolveProperties({
                 trace: this.send("trace_transaction", [req.hash]),
                 tx: this.getTransaction(req.hash),
             });
@@ -84,7 +90,7 @@ class AlchemyProvider extends provider_jsonrpc_js_1.JsonRpcProvider {
             }
             catch (error) { }
             if (data) {
-                (0, index_js_1.assert)(!error, "an error occurred during transaction executions", "CALL_EXCEPTION", {
+                errors.assert(!error, "an error occurred during transaction executions", "CALL_EXCEPTION", {
                     action: "getTransactionResult",
                     data,
                     reason: null,
@@ -94,7 +100,7 @@ class AlchemyProvider extends provider_jsonrpc_js_1.JsonRpcProvider {
                 });
                 return data;
             }
-            (0, index_js_1.assert)(false, "could not parse trace result", "BAD_DATA", {
+            errors.assert(false, "could not parse trace result", "BAD_DATA", {
                 value: trace,
             });
         }
@@ -107,16 +113,17 @@ class AlchemyProvider extends provider_jsonrpc_js_1.JsonRpcProvider {
         if (apiKey == null) {
             apiKey = defaultApiKey;
         }
-        const request = new index_js_1.FetchRequest(`https:/\/${getHost(network.name)}/v2/${apiKey}`);
+        const request = new fetch.FetchRequest(`https:/\/${getHost(network.name)}/v2/${apiKey}`);
         request.allowGzip = true;
         if (apiKey === defaultApiKey) {
             request.retryFunc = async (request, response, attempt) => {
-                (0, community_js_1.showThrottleMessage)("alchemy");
+                community.showThrottleMessage("alchemy");
                 return true;
             };
         }
         return request;
     }
 }
+
 exports.AlchemyProvider = AlchemyProvider;
 //# sourceMappingURL=provider-alchemy.js.map

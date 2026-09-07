@@ -1,13 +1,20 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Network = void 0;
+'use strict';
+
+require('../utils/base58.js');
+require('../logger/logger.js');
+var errors = require('../utils/errors.js');
+require('http');
+require('https');
+require('zlib');
+require('../utils/fixednumber.js');
+var maths = require('../utils/maths.js');
+var pluginsNetwork = require('./plugins-network.js');
+
 /**
  *  About networks
  *
  *  @_subsection: api/providers:Networks  [networks]
  */
-const index_js_1 = require("../utils/index.js");
-const plugins_network_js_1 = require("./plugins-network.js");
 /* * * *
 // Networks which operation against an L2 can use this plugin to
 // specify how to access L1, for the purpose of resolving ENS,
@@ -26,7 +33,7 @@ class Network {
     #plugins;
     constructor(name, networkId) {
         this.#name = name;
-        this.#networkId = (0, index_js_1.getBigInt)(networkId);
+        this.#networkId = maths.getBigInt(networkId);
         this.#plugins = new Map();
     }
     toJSON() {
@@ -51,7 +58,7 @@ class Network {
         return this.#networkId;
     }
     set networkId(value) {
-        this.#networkId = (0, index_js_1.getBigInt)(value, "networkId");
+        this.#networkId = maths.getBigInt(value, "networkId");
     }
     /**
      *  Returns true if %%other%% matches this network. Any chain ID
@@ -66,14 +73,14 @@ class Network {
         }
         if (typeof other === "string") {
             try {
-                return this.networkId === (0, index_js_1.getBigInt)(other);
+                return this.networkId === maths.getBigInt(other);
             }
             catch (error) { }
             return this.name === other;
         }
         if (typeof other === "number" || typeof other === "bigint") {
             try {
-                return this.networkId === (0, index_js_1.getBigInt)(other);
+                return this.networkId === maths.getBigInt(other);
             }
             catch (error) { }
             return false;
@@ -81,7 +88,7 @@ class Network {
         if (typeof other === "object") {
             if (other.networkId != null) {
                 try {
-                    return this.networkId === (0, index_js_1.getBigInt)(other.networkId);
+                    return this.networkId === maths.getBigInt(other.networkId);
                 }
                 catch (error) { }
                 return false;
@@ -142,7 +149,7 @@ class Network {
      *  values.
      */
     computeIntrinsicEnergy(tx) {
-        const costs = this.getPlugin("org.corebc.plugins.network.EnergyCost") || new plugins_network_js_1.EnergyCostPlugin();
+        const costs = this.getPlugin("org.corebc.plugins.network.EnergyCost") || new pluginsNetwork.EnergyCostPlugin();
         let energy = costs.txBase;
         if (tx.to == null) {
             energy += costs.txCreate;
@@ -180,7 +187,7 @@ class Network {
             if (typeof network === "bigint") {
                 return new Network("unknown", network);
             }
-            (0, index_js_1.assertArgument)(false, "unknown network", "network", network);
+            errors.assertArgument(false, "unknown network", "network", network);
         }
         // Clonable with network-like abilities
         if (typeof network.clone === "function") {
@@ -191,7 +198,7 @@ class Network {
         }
         // Networkish
         if (typeof network === "object") {
-            (0, index_js_1.assertArgument)(typeof network.name === "string" &&
+            errors.assertArgument(typeof network.name === "string" &&
                 typeof network.networkId === "number", "invalid network object name or networkId", "network", network);
             const custom = new Network(network.name, network.networkId);
             //if ((<any>network).layerOneConnection) {
@@ -199,7 +206,7 @@ class Network {
             //}
             return custom;
         }
-        (0, index_js_1.assertArgument)(false, "invalid network", "network", network);
+        errors.assertArgument(false, "invalid network", "network", network);
     }
     /**
      *  Register %%nameOrnetworkId%% with a function which returns
@@ -211,12 +218,11 @@ class Network {
         }
         const existing = Networks.get(nameOrnetworkId);
         if (existing) {
-            (0, index_js_1.assertArgument)(false, `conflicting network for ${JSON.stringify(existing.name)}`, "nameOrnetworkId", nameOrnetworkId);
+            errors.assertArgument(false, `conflicting network for ${JSON.stringify(existing.name)}`, "nameOrnetworkId", nameOrnetworkId);
         }
         Networks.set(nameOrnetworkId, networkFunc);
     }
 }
-exports.Network = Network;
 // See: https://chainlist.org
 let injected = false;
 function injectCommonNetworks() {
@@ -228,7 +234,7 @@ function injectCommonNetworks() {
     function registerEth(name, networkId, options) {
         const func = function () {
             const network = new Network(name, networkId);
-            network.attachPlugin(new plugins_network_js_1.EnergyCostPlugin());
+            network.attachPlugin(new pluginsNetwork.EnergyCostPlugin());
             return network;
         };
         // Register the network by name and chain ID
@@ -240,14 +246,16 @@ function injectCommonNetworks() {
             });
         }
     }
-    registerEth("mainnet", 1, { ensNetwork: 1, altNames: ["homestead"] });
-    registerEth("ropsten", 3, { ensNetwork: 3 });
-    registerEth("rinkeby", 4, { ensNetwork: 4 });
-    registerEth("goerli", 5, { ensNetwork: 5 });
-    registerEth("kovan", 42, { ensNetwork: 42 });
+    registerEth("mainnet", 1, { altNames: ["homestead"] });
+    registerEth("ropsten", 3, { });
+    registerEth("rinkeby", 4, { });
+    registerEth("goerli", 5, { });
+    registerEth("kovan", 42, { });
     registerEth("sepolia", 11155111, {});
     registerEth("classic", 61, {});
     registerEth("classicKotti", 6, {});
-    registerEth("xdai", 100, { ensNetwork: 1 });
+    registerEth("xdai", 100, { });
 }
+
+exports.Network = Network;
 //# sourceMappingURL=network.js.map

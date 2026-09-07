@@ -1,6 +1,9 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.parseXCB = exports.formatXCB = exports.parseUnits = exports.trimDecimals = exports.scientificToDecimal = exports.formatUnits = void 0;
+'use strict';
+
+var errors = require('./errors.js');
+var fixednumber = require('./fixednumber.js');
+var maths = require('./maths.js');
+
 /**
  *  Most interactions with Core requires integer values, which use
  *  the smallest magnitude unit.
@@ -22,9 +25,6 @@ exports.parseXCB = exports.formatXCB = exports.parseUnits = exports.trimDecimals
  *
  *  @_subsection api/utils:Unit Conversion  [about-units]
  */
-const errors_js_1 = require("./errors.js");
-const fixednumber_js_1 = require("./fixednumber.js");
-const maths_js_1 = require("./maths.js");
 const names = [
     ///Ore, the smallest and atomic amount of Core
     "ore",
@@ -50,15 +50,14 @@ function formatUnits(value, unit) {
     let decimals = 18;
     if (typeof unit === "string") {
         const index = names.indexOf(unit);
-        (0, errors_js_1.assertArgument)(index >= 0, "invalid unit", "unit", unit);
+        errors.assertArgument(index >= 0, "invalid unit", "unit", unit);
         decimals = 3 * index;
     }
     else if (unit != null) {
-        decimals = (0, maths_js_1.getNumber)(unit, "unit");
+        decimals = maths.getNumber(unit, "unit");
     }
-    return fixednumber_js_1.FixedNumber.fromValue(value, decimals, { decimals }).toString();
+    return fixednumber.FixedNumber.fromValue(value, decimals, { decimals }).toString();
 }
-exports.formatUnits = formatUnits;
 /**
  *  Converts the //decimal string// %%value%% to a BigInt, assuming
  *  %%unit%% decimal places. The %%unit%% may the number of decimal places
@@ -113,7 +112,6 @@ const scientificToDecimal = (num) => {
     // @ts-ignore
     return nsign < 0 ? "-" + num : num;
 };
-exports.scientificToDecimal = scientificToDecimal;
 const trimDecimals = (n, decimals = 18) => {
     n += "";
     if (n.indexOf(".") === -1)
@@ -122,33 +120,30 @@ const trimDecimals = (n, decimals = 18) => {
     const fraction = arr[1].substr(0, decimals);
     return arr[0] + "." + fraction;
 };
-exports.trimDecimals = trimDecimals;
 function parseUnits(value, unit) {
-    (0, errors_js_1.assertArgument)(typeof value === "string", "value must be a string", "value", value);
+    errors.assertArgument(typeof value === "string", "value must be a string", "value", value);
     if (value.includes("e")) {
-        value = (0, exports.scientificToDecimal)(value).toString();
+        value = scientificToDecimal(value).toString();
     }
     let decimals = 18;
     if (typeof unit === "string") {
         const index = names.indexOf(unit);
-        (0, errors_js_1.assertArgument)(index >= 0, "invalid unit", "unit", unit);
+        errors.assertArgument(index >= 0, "invalid unit", "unit", unit);
         decimals = 3 * index;
-        value = (0, exports.trimDecimals)(value, decimals);
+        value = trimDecimals(value, decimals);
     }
     else if (unit != null) {
-        decimals = (0, maths_js_1.getNumber)(unit, "unit");
-        value = (0, exports.trimDecimals)(value, decimals);
+        decimals = maths.getNumber(unit, "unit");
+        value = trimDecimals(value, decimals);
     }
-    return fixednumber_js_1.FixedNumber.fromString(value, { decimals }).value;
+    return fixednumber.FixedNumber.fromString(value, { decimals }).value;
 }
-exports.parseUnits = parseUnits;
 /**
  *  Converts %%value%% into a //decimal string// using 18 decimal places.
  */
 function formatXCB(ore) {
     return formatUnits(ore, 18);
 }
-exports.formatXCB = formatXCB;
 /**
  *  Converts the //decimal string// %%xcb%% to a BigInt, using 18
  *  decimal places.
@@ -156,5 +151,11 @@ exports.formatXCB = formatXCB;
 function parseXCB(xcb) {
     return parseUnits(xcb, 18);
 }
+
+exports.formatUnits = formatUnits;
+exports.formatXCB = formatXCB;
+exports.parseUnits = parseUnits;
 exports.parseXCB = parseXCB;
+exports.scientificToDecimal = scientificToDecimal;
+exports.trimDecimals = trimDecimals;
 //# sourceMappingURL=units.js.map

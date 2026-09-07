@@ -1,4 +1,4 @@
-import { scrypt as _nobleSync, scryptAsync as _nobleAsync, } from "@noble/hashes/scrypt";
+import { scrypt as _nobleSync, scryptAsync as _nobleAsync, } from "@noble/hashes/scrypt.js";
 import { getBytes, hexlify as H } from "../utils/index.js";
 let lockedSync = false, lockedAsync = false;
 const _scryptAsync = async function (passwd, salt, N, r, p, dkLen, onProgress) {

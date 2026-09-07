@@ -3,27 +3,13 @@ import { arrayify, getBytes, hexlify } from "../utils/data.js";
 import { createHash, createHmac } from "./crypto.js";
 import { Buffer } from "buffer";
 const logger = new Logger("sha3/0.0.1");
-const _sha256 = function (data) {
-    let v = "0x" +
-        createHash("sha3-256")
-            .update(Buffer.from(arrayify(data)))
-            .digest("hex");
-    return v;
-};
-const _sha512 = function (data) {
-    let v = "0x" +
-        createHash("sha3-512")
-            .update(Buffer.from(arrayify(data)))
-            .digest("hex");
-    return v;
-};
-// @ts-ignore
+const _sha256 = (data) => hexlify(createHash("sha3-256").update(data).digest());
+const _sha512 = (data) => hexlify(createHash("sha3-512").update(data).digest());
 let __sha256 = _sha256;
-// @ts-ignore
 let __sha512 = _sha512;
 let locked256 = false, locked512 = false;
 /**
- *  Compute the cryptographic SHA2-256 hash of %%data%%.
+ *  Compute the cryptographic SHA3-256 hash of %%data%%.
  *
  *  @_docloc: api/crypto:Hash Functions
  *  @returns DataHexstring
@@ -45,27 +31,10 @@ export var SupportedAlgorithm;
     SupportedAlgorithm["sha512"] = "sha512";
 })(SupportedAlgorithm || (SupportedAlgorithm = {}));
 export function ripemd160(data) {
-    let createdHash = "0x" +
-        createHash("ripemd160")
-            .update(Buffer.from(arrayify(data)))
-            .digest("hex");
-    const v = "0x" + createdHash;
-    if (typeof createdHash !== "string") {
-        createdHash = hexlify(createdHash);
-        return createdHash;
-    }
-    return v;
+    return hexlify(createHash("ripemd160").update(getBytes(data)).digest());
 }
 export function sha256(data) {
-    let createdHash = createHash("sha3-256")
-        .update(Buffer.from(arrayify(data)))
-        .digest("hex");
-    const v = "0x" + createdHash;
-    if (typeof createdHash !== "string") {
-        createdHash = hexlify(createdHash);
-        return createdHash;
-    }
-    return v;
+    return hexlify(__sha256(getBytes(data)));
 }
 export function legacySha256(data) {
     const _data = getBytes(data, "data");
@@ -76,10 +45,10 @@ export function computeHmac(algorithm, key, data) {
     const d = Buffer.from(arrayify(data));
     const k = Buffer.from(arrayify(key));
     if (algorithm === SupportedAlgorithm.sha256) {
-        return "0x" + createHmac("sha3-256", k).update(d).digest("hex");
+        return hexlify(createHmac("sha3-256", k).update(d).digest());
     }
     else if (algorithm === SupportedAlgorithm.sha512) {
-        return "0x" + createHmac("sha3-512", k).update(d).digest("hex");
+        return hexlify(createHmac("sha3-512", k).update(d).digest());
     }
     logger.throwError("unsupported algorithm - " + algorithm, Logger.errors.UNSUPPORTED_OPERATION, {
         operation: "computeHmac",
@@ -99,7 +68,7 @@ sha256.register = function (func) {
 };
 Object.freeze(sha256);
 /**
- *  Compute the cryptographic SHA2-512 hash of %%data%%.
+ *  Compute the cryptographic SHA3-512 hash of %%data%%.
  *
  *  @_docloc: api/crypto:Hash Functions
  *  @returns DataHexstring
@@ -115,15 +84,7 @@ Object.freeze(sha256);
  *    //_result:
  */
 export function sha512(data) {
-    let createdHash = createHash("sha3-512")
-        .update(Buffer.from(arrayify(data)))
-        .digest("hex");
-    const v = "0x" + createdHash;
-    if (typeof createdHash !== "string") {
-        createdHash = hexlify(createdHash);
-        return createdHash;
-    }
-    return v;
+    return hexlify(__sha512(getBytes(data)));
 }
 sha512._ = _sha512;
 sha512.lock = function () {
@@ -135,5 +96,5 @@ sha512.register = function (func) {
     }
     __sha512 = func;
 };
-Object.freeze(sha256);
+Object.freeze(sha512);
 //# sourceMappingURL=sha3.js.map

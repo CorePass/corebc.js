@@ -1,13 +1,13 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.checkProperties = exports.defineProperties = exports.resolveProperties = void 0;
-const logger_js_1 = require("../logger/logger.js");
+'use strict';
+
+var logger$1 = require('../logger/logger.js');
+
 /**
  *  Property helper functions.
  *
  *  @_subsection api/utils:Properties  [about-properties]
  */
-const logger = new logger_js_1.Logger("utils/properties/0.0.1");
+const logger = new logger$1.Logger("utils/properties/0.0.1");
 function checkType(value, type, name) {
     const types = type.split("|").map((t) => t.trim());
     for (let i = 0; i < types.length; i++) {
@@ -41,7 +41,6 @@ async function resolveProperties(value) {
         return accum;
     }, {});
 }
-exports.resolveProperties = resolveProperties;
 /**
  *  Assigns the %%values%% to %%target%% as read-only values.
  *
@@ -61,7 +60,6 @@ function defineProperties(target, values, types) {
         });
     }
 }
-exports.defineProperties = defineProperties;
 function checkProperties(object, properties) {
     if (!object || typeof object !== "object") {
         logger.throwArgumentError("invalid object", "object", object);
@@ -72,5 +70,8 @@ function checkProperties(object, properties) {
         }
     });
 }
+
 exports.checkProperties = checkProperties;
+exports.defineProperties = defineProperties;
+exports.resolveProperties = resolveProperties;
 //# sourceMappingURL=properties.js.map

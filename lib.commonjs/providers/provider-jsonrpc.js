@@ -1,23 +1,47 @@
-"use strict";
+'use strict';
+
+var abiCoder = require('../abi/abi-coder.js');
+require('../utils/base58.js');
+var data = require('../utils/data.js');
+var errors = require('../utils/errors.js');
+var properties = require('../utils/properties.js');
+var fetch = require('../utils/fetch.js');
+require('../utils/fixednumber.js');
+var maths = require('../utils/maths.js');
+var utf8 = require('../utils/utf8.js');
+require('../abi/fragments.js');
+require('../crypto/keccak.js');
+require('../crypto/sha3.js');
+require('../constants/numbers.js');
+var index = require('../address/index.js');
+require('../crypto/hmac.js');
+require('../crypto/ripemd160.js');
+require('../crypto/pbkdf2.js');
+require('../crypto/random.js');
+require('../crypto/scrypt.js');
+require('bcrypto/lib/ed448.js');
+require('buffer');
+require('bcrypto/lib/pbkdf2.js');
+require('bcrypto/lib/sha3-512.js');
+require('crypto');
+require('../logger/logger.js');
+require('../crypto/signature.js');
+require('../transaction/transaction.js');
+var typedData = require('../hash/typed-data.js');
+var abstractProvider = require('./abstract-provider.js');
+var abstractSigner = require('./abstract-signer.js');
+var network = require('./network.js');
+var subscriberFilterid = require('./subscriber-filterid.js');
+var subscriberPolling = require('./subscriber-polling.js');
+var checks = require('../address/checks.js');
+
 /**
  *  About JSON-RPC...
  *
  * @_section: api/providers/jsonrpc:JSON-RPC Provider  [about-jsonrpcProvider]
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.JsonRpcProvider = exports.JsonRpcApiPollingProvider = exports.JsonRpcApiProvider = exports.JsonRpcSigner = void 0;
 // @TODO:
 // - Add the batching API
-const index_js_1 = require("../abi/index.js");
-const index_js_2 = require("../address/index.js");
-const index_js_3 = require("../hash/index.js");
-const index_js_4 = require("../utils/index.js");
-const abstract_provider_js_1 = require("./abstract-provider.js");
-const abstract_signer_js_1 = require("./abstract-signer.js");
-const network_js_1 = require("./network.js");
-const subscriber_filterid_js_1 = require("./subscriber-filterid.js");
-const subscriber_polling_js_1 = require("./subscriber-polling.js");
-const checks_js_1 = require("../address/checks.js");
 const Primitive = "bigint,boolean,function,number,string,symbol".split(/,/g);
 //const Methods = "getAddress,then".split(/,/g);
 function deepCopy(value) {
@@ -56,20 +80,20 @@ function isPollable(value) {
 const defaultOptions = {
     polling: false,
     staticNetwork: null,
-    batchStallTime: 10,
-    batchMaxSize: 1 << 20,
+    batchStallTime: 10, // 10ms
+    batchMaxSize: 1 << 20, // 1Mb
     batchMaxCount: 100, // 100 requests
 };
 // @TODO: Unchecked Signers
-class JsonRpcSigner extends abstract_signer_js_1.AbstractSigner {
+class JsonRpcSigner extends abstractSigner.AbstractSigner {
     address;
     constructor(provider, address) {
         super(provider);
-        address = (0, index_js_2.getAddress)(address);
-        (0, index_js_4.defineProperties)(this, { address });
+        address = index.getAddress(address);
+        properties.defineProperties(this, { address });
     }
     connect(provider) {
-        (0, index_js_4.assert)(false, "cannot reconnect JsonRpcSigner", "UNSUPPORTED_OPERATION", {
+        errors.assert(false, "cannot reconnect JsonRpcSigner", "UNSUPPORTED_OPERATION", {
             operation: "signer.connect",
         });
     }
@@ -89,8 +113,8 @@ class JsonRpcSigner extends abstract_signer_js_1.AbstractSigner {
         if (tx.from) {
             const _from = tx.from;
             promises.push((async () => {
-                const from = await (0, checks_js_1.resolveAddress)(_from);
-                (0, index_js_4.assertArgument)(from != null && from.toLowerCase() === this.address.toLowerCase(), "from address mismatch", "transaction", _tx);
+                const from = await checks.resolveAddress(_from);
+                errors.assertArgument(from != null && from.toLowerCase() === this.address.toLowerCase(), "from address mismatch", "transaction", _tx);
                 tx.from = from;
             })());
         }
@@ -112,7 +136,7 @@ class JsonRpcSigner extends abstract_signer_js_1.AbstractSigner {
         if (tx.to != null) {
             const _to = tx.to;
             promises.push((async () => {
-                tx.to = await (0, checks_js_1.resolveAddress)(_to);
+                tx.to = await checks.resolveAddress(_to);
             })());
         }
         // Wait until all of our properties are filled in
@@ -151,8 +175,8 @@ class JsonRpcSigner extends abstract_signer_js_1.AbstractSigner {
         const tx = deepCopy(_tx);
         // Make sure the from matches the sender
         if (tx.from) {
-            const from = await (0, checks_js_1.resolveAddress)(tx.from);
-            (0, index_js_4.assertArgument)(from != null && from.toLowerCase() === this.address.toLowerCase(), "from address mismatch", "transaction", _tx);
+            const from = await checks.resolveAddress(tx.from);
+            errors.assertArgument(from != null && from.toLowerCase() === this.address.toLowerCase(), "from address mismatch", "transaction", _tx);
             tx.from = from;
         }
         else {
@@ -162,23 +186,23 @@ class JsonRpcSigner extends abstract_signer_js_1.AbstractSigner {
         return await this.provider.send("xcb_signTransaction", [hexTx]);
     }
     async signMessage(_message) {
-        const message = typeof _message === "string" ? (0, index_js_4.toUtf8Bytes)(_message) : _message;
+        const message = typeof _message === "string" ? utf8.toUtf8Bytes(_message) : _message;
         return await this.provider.send("personal_sign", [
-            (0, index_js_4.hexlify)(message),
+            data.hexlify(message),
             this.address.toLowerCase(),
         ]);
     }
     async signTypedData(domain, types, _value) {
         const value = deepCopy(_value);
         // Populate any ENS names (in-place)
-        const populated = await index_js_3.TypedDataEncoder.resolveNames(domain, types, value, async (value) => {
-            const address = await (0, checks_js_1.resolveAddress)(value);
-            (0, index_js_4.assertArgument)(address != null, "TypedData does not support null address", "value", value);
+        const populated = await typedData.TypedDataEncoder.resolveNames(domain, types, value, async (value) => {
+            const address = await checks.resolveAddress(value);
+            errors.assertArgument(address != null, "TypedData does not support null address", "value", value);
             return address;
         });
         return await this.provider.send("xcb_signTypedData_v4", [
             this.address.toLowerCase(),
-            JSON.stringify(index_js_3.TypedDataEncoder.getPayload(populated.domain, types, populated.value)),
+            JSON.stringify(typedData.TypedDataEncoder.getPayload(populated.domain, types, populated.value)),
         ]);
     }
     async unlock(password) {
@@ -189,14 +213,13 @@ class JsonRpcSigner extends abstract_signer_js_1.AbstractSigner {
         ]);
     }
     async _legacySignMessage(_message) {
-        const message = typeof _message === "string" ? (0, index_js_4.toUtf8Bytes)(_message) : _message;
+        const message = typeof _message === "string" ? utf8.toUtf8Bytes(_message) : _message;
         return await this.provider.send("xcb_sign", [
             this.address.toLowerCase(),
-            (0, index_js_4.hexlify)(message),
+            data.hexlify(message),
         ]);
     }
 }
-exports.JsonRpcSigner = JsonRpcSigner;
 /**
  *  The JsonRpcApiProvider is an abstract class and **MUST** be
  *  sub-classed.
@@ -207,7 +230,7 @@ exports.JsonRpcSigner = JsonRpcSigner;
  *  - a sub-class MUST override _send
  *  - a sub-class MUST call the `_start()` method once connected
  */
-class JsonRpcApiProvider extends abstract_provider_js_1.AbstractProvider {
+class JsonRpcApiProvider extends abstractProvider.AbstractProvider {
     #options;
     // The next ID to use for the JSON-RPC ID field
     #nextId;
@@ -257,7 +280,7 @@ class JsonRpcApiProvider extends abstract_provider_js_1.AbstractProvider {
                             const resp = result.filter((r) => r.id === payload.id)[0];
                             // No result; the node failed us in unexpected ways
                             if (resp == null) {
-                                return reject((0, index_js_4.makeError)("no response from server", "BAD_DATA", {
+                                return reject(errors.makeError("no response from server", "BAD_DATA", {
                                     value: result,
                                     info: { payload },
                                 }));
@@ -298,7 +321,7 @@ class JsonRpcApiProvider extends abstract_provider_js_1.AbstractProvider {
         // Make sure any static network is compatbile with the provided netwrok
         const staticNetwork = this._getOption("staticNetwork");
         if (staticNetwork) {
-            (0, index_js_4.assertArgument)(network == null || staticNetwork.matches(network), "staticNetwork MUST match network object", "options", options);
+            errors.assertArgument(network == null || staticNetwork.matches(network), "staticNetwork MUST match network object", "options", options);
             this.#network = staticNetwork;
         }
     }
@@ -315,16 +338,16 @@ class JsonRpcApiProvider extends abstract_provider_js_1.AbstractProvider {
      *  is detected, and if it has changed, the call will reject.
      */
     get _network() {
-        (0, index_js_4.assert)(this.#network, "network is not available yet", "NETWORK_ERROR");
+        errors.assert(this.#network, "network is not available yet", "NETWORK_ERROR");
         return this.#network;
     }
     /*
-       {
-          assert(false, "sub-classes must override _send", "UNSUPPORTED_OPERATION", {
-              operation: "jsonRpcApiProvider._send"
-          });
-      }
-      */
+     {
+        assert(false, "sub-classes must override _send", "UNSUPPORTED_OPERATION", {
+            operation: "jsonRpcApiProvider._send"
+        });
+    }
+    */
     /**
      *  Resolves to the non-normalized value by performing %%req%%.
      *
@@ -346,13 +369,13 @@ class JsonRpcApiProvider extends abstract_provider_js_1.AbstractProvider {
      *  _send primitive must be used instead.
      */
     async _detectNetwork() {
-        const network = this._getOption("staticNetwork");
-        if (network) {
-            return network;
+        const network$1 = this._getOption("staticNetwork");
+        if (network$1) {
+            return network$1;
         }
         // If we are ready, use ``send``, which enabled requests to be batched
         if (this.ready) {
-            return network_js_1.Network.from((0, index_js_4.getBigInt)(await this.send("xcb_networkId", [])));
+            return network.Network.from(maths.getBigInt(await this.send("xcb_networkId", [])));
         }
         // We are not ready yet; use the primitive _send
         const payload = {
@@ -372,7 +395,7 @@ class JsonRpcApiProvider extends abstract_provider_js_1.AbstractProvider {
         }
         this.emit("debug", { action: "receiveRpcResult", result });
         if ("result" in result) {
-            return network_js_1.Network.from((0, index_js_4.getBigInt)(result.result));
+            return network.Network.from(maths.getBigInt(result.result));
         }
         throw this.getRpcError(payload, result);
     }
@@ -424,18 +447,18 @@ class JsonRpcApiProvider extends abstract_provider_js_1.AbstractProvider {
     _getSubscriber(sub) {
         // Pending Filters aren't availble via polling
         if (sub.type === "pending") {
-            return new subscriber_filterid_js_1.FilterIdPendingSubscriber(this);
+            return new subscriberFilterid.FilterIdPendingSubscriber(this);
         }
         if (sub.type === "event") {
             if (this._getOption("polling")) {
-                return new subscriber_polling_js_1.PollingEventSubscriber(this, sub.filter);
+                return new subscriberPolling.PollingEventSubscriber(this, sub.filter);
             }
-            return new subscriber_filterid_js_1.FilterIdEventSubscriber(this, sub.filter);
+            return new subscriberFilterid.FilterIdEventSubscriber(this, sub.filter);
         }
         // Orphaned Logs are handled automatically, by the filter, since
         // logs with removed are emitted by it
         if (sub.type === "orphan" && sub.filter.orphan === "drop-log") {
-            return new abstract_provider_js_1.UnmanagedSubscriber("orphan");
+            return new abstractProvider.UnmanagedSubscriber("orphan");
         }
         return super._getSubscriber(sub);
     }
@@ -468,14 +491,14 @@ class JsonRpcApiProvider extends abstract_provider_js_1.AbstractProvider {
             if (key === "energyLimit") {
                 dstKey = "energy";
             }
-            result[dstKey] = (0, index_js_4.toQuantity)((0, index_js_4.getBigInt)(tx[key], `tx.${key}`));
+            result[dstKey] = maths.toQuantity(maths.getBigInt(tx[key], `tx.${key}`));
         });
         // Make sure addresses and data are lowercase
         ["from", "to", "data"].forEach((key) => {
             if (tx[key] == null) {
                 return;
             }
-            result[key] = (0, index_js_4.hexlify)(tx[key]);
+            result[key] = data.hexlify(tx[key]);
         });
         return result;
     }
@@ -581,7 +604,7 @@ class JsonRpcApiProvider extends abstract_provider_js_1.AbstractProvider {
         if (method === "xcb_estimateEnergy" && error.message) {
             const msg = error.message;
             if (!msg.match(/revert/i) && msg.match(/insufficient funds/i)) {
-                return (0, index_js_4.makeError)("insufficient funds", "INSUFFICIENT_FUNDS", {
+                return errors.makeError("insufficient funds", "INSUFFICIENT_FUNDS", {
                     transaction: payload.params[0],
                     info: { payload, error },
                 });
@@ -589,7 +612,7 @@ class JsonRpcApiProvider extends abstract_provider_js_1.AbstractProvider {
         }
         if (method === "xcb_call" || method === "xcb_estimateEnergy") {
             const result = spelunkData(error);
-            const e = index_js_1.AbiCoder.getBuiltinCallException(method === "xcb_call" ? "call" : "estimateEnergy", payload.params[0], result ? result.data : null);
+            const e = abiCoder.AbiCoder.getBuiltinCallException(method === "xcb_call" ? "call" : "estimateEnergy", payload.params[0], result ? result.data : null);
             e.info = { error, payload };
             return e;
         }
@@ -607,7 +630,7 @@ class JsonRpcApiProvider extends abstract_provider_js_1.AbstractProvider {
                 xcb_requestAccounts: "requestAccess",
                 wallet_requestAccounts: "requestAccess",
             };
-            return (0, index_js_4.makeError)(`user rejected action`, "ACTION_REJECTED", {
+            return errors.makeError(`user rejected action`, "ACTION_REJECTED", {
                 action: actionMap[method] || "unknown",
                 reason: "rejected",
                 info: { payload, error },
@@ -617,13 +640,13 @@ class JsonRpcApiProvider extends abstract_provider_js_1.AbstractProvider {
             method === "xcb_sendTransaction") {
             const transaction = payload.params[0];
             if (message.match(/insufficient funds|base fee exceeds energy limit/i)) {
-                return (0, index_js_4.makeError)("insufficient funds for intrinsic transaction cost", "INSUFFICIENT_FUNDS", {
+                return errors.makeError("insufficient funds for intrinsic transaction cost", "INSUFFICIENT_FUNDS", {
                     transaction,
                     info: { error },
                 });
             }
             if (message.match(/nonce/i) && message.match(/too low/i)) {
-                return (0, index_js_4.makeError)("nonce has already been used", "NONCE_EXPIRED", {
+                return errors.makeError("nonce has already been used", "NONCE_EXPIRED", {
                     transaction,
                     info: { error },
                 });
@@ -631,25 +654,25 @@ class JsonRpcApiProvider extends abstract_provider_js_1.AbstractProvider {
             // "replacement transaction underpriced"
             if (message.match(/replacement transaction/i) &&
                 message.match(/underpriced/i)) {
-                return (0, index_js_4.makeError)("replacement fee too low", "REPLACEMENT_UNDERPRICED", {
+                return errors.makeError("replacement fee too low", "REPLACEMENT_UNDERPRICED", {
                     transaction,
                     info: { error },
                 });
             }
             if (message.match(/only replay-protected/i)) {
-                return (0, index_js_4.makeError)("legacy pre-eip-155 transactions not supported", "UNSUPPORTED_OPERATION", {
+                return errors.makeError("legacy pre-eip-155 transactions not supported", "UNSUPPORTED_OPERATION", {
                     operation: method,
                     info: { transaction, info: { error } },
                 });
             }
         }
         if (message.match(/the method .* does not exist/i)) {
-            return (0, index_js_4.makeError)("unsupported operation", "UNSUPPORTED_OPERATION", {
+            return errors.makeError("unsupported operation", "UNSUPPORTED_OPERATION", {
                 operation: payload.method,
                 info: { error },
             });
         }
-        return (0, index_js_4.makeError)("could not coalesce error", "UNKNOWN_ERROR", { error });
+        return errors.makeError("could not coalesce error", "UNKNOWN_ERROR", { error });
     }
     /**
      *  Requests the %%method%% with %%params%% via the JSON-RPC protocol
@@ -703,14 +726,14 @@ class JsonRpcApiProvider extends abstract_provider_js_1.AbstractProvider {
             }
             return new JsonRpcSigner(this, accounts[address]);
         }
-        const { accounts } = await (0, index_js_4.resolveProperties)({
+        const { accounts } = await properties.resolveProperties({
             network: this.getNetwork(),
             accounts: accountsPromise,
         });
         // Account address
-        address = (0, index_js_2.getAddress)(address);
+        address = index.getAddress(address);
         for (const account of accounts) {
-            if ((0, index_js_2.getAddress)(account) === address) {
+            if (index.getAddress(account) === address) {
                 return new JsonRpcSigner(this, address);
             }
         }
@@ -721,7 +744,6 @@ class JsonRpcApiProvider extends abstract_provider_js_1.AbstractProvider {
         return accounts.map((a) => new JsonRpcSigner(this, a));
     }
 }
-exports.JsonRpcApiProvider = JsonRpcApiProvider;
 class JsonRpcApiPollingProvider extends JsonRpcApiProvider {
     #pollingInterval;
     constructor(network, options) {
@@ -753,7 +775,6 @@ class JsonRpcApiPollingProvider extends JsonRpcApiProvider {
         });
     }
 }
-exports.JsonRpcApiPollingProvider = JsonRpcApiPollingProvider;
 /**
  *  The JsonRpcProvider is one of the most common Providers,
  *  which performs all operations over HTTP (or HTTPS) requests.
@@ -770,7 +791,7 @@ class JsonRpcProvider extends JsonRpcApiPollingProvider {
         }
         super(network, options);
         if (typeof url === "string") {
-            this.#connect = new index_js_4.FetchRequest(url);
+            this.#connect = new fetch.FetchRequest(url);
         }
         else {
             this.#connect = url.clone();
@@ -800,7 +821,6 @@ class JsonRpcProvider extends JsonRpcApiPollingProvider {
         return resp;
     }
 }
-exports.JsonRpcProvider = JsonRpcProvider;
 function spelunkData(value) {
     if (value == null) {
         return null;
@@ -808,7 +828,7 @@ function spelunkData(value) {
     // These *are* the droids we're looking for.
     if (typeof value.message === "string" &&
         value.message.match("reverted") &&
-        (0, index_js_4.isHexString)(value.data)) {
+        data.isHexString(value.data)) {
         return { message: value.message, data: value.data };
     }
     // Spelunk further...
@@ -857,4 +877,9 @@ function spelunkMessage(value) {
     _spelunkMessage(value, result);
     return result;
 }
+
+exports.JsonRpcApiPollingProvider = JsonRpcApiPollingProvider;
+exports.JsonRpcApiProvider = JsonRpcApiProvider;
+exports.JsonRpcProvider = JsonRpcProvider;
+exports.JsonRpcSigner = JsonRpcSigner;
 //# sourceMappingURL=provider-jsonrpc.js.map

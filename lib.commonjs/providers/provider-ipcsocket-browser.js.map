@@ -1,1 +1,1 @@
-{"version":3,"file":"provider-ipcsocket-browser.js","sourceRoot":"","sources":["../../src.ts/providers/provider-ipcsocket-browser.ts"],"names":[],"mappings":";;;AAAA,MAAM,iBAAiB,GAAG,SAAS,CAAC;AAE3B,8CAAiB"}
+{"version":3,"file":"provider-ipcsocket-browser.js","sources":["../../lib.esm/providers/provider-ipcsocket-browser.js"],"sourcesContent":["const IpcSocketProvider = undefined;\nexport { IpcSocketProvider };\n//# sourceMappingURL=provider-ipcsocket-browser.js.map"],"names":[],"mappings":";;AAAK,MAAC,iBAAiB,GAAG;;"}

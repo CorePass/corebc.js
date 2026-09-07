@@ -8,7 +8,7 @@ import type { EventFilter } from "./provider.js";
 import type { JsonRpcApiProvider } from "./provider-jsonrpc.js";
 
 function copy(obj: any): any {
-  return JSON.parse(JSON.stringify(obj));
+	return JSON.parse(JSON.stringify(obj));
 }
 
 /**
@@ -22,134 +22,134 @@ function copy(obj: any): any {
  *  @_docloc: api/providers/abstract-provider
  */
 export class FilterIdSubscriber implements Subscriber {
-  #provider: JsonRpcApiProvider;
+	#provider: JsonRpcApiProvider;
 
-  #filterIdPromise: null | Promise<string>;
-  #poller: (b: number) => Promise<void>;
+	#filterIdPromise: null | Promise<string>;
+	#poller: (b: number) => Promise<void>;
 
-  #running: boolean;
+	#running: boolean;
 
-  #network: null | Network;
+	#network: null | Network;
 
-  #hault: boolean;
+	#hault: boolean;
 
-  constructor(provider: JsonRpcApiProvider) {
-    this.#provider = provider;
+	constructor(provider: JsonRpcApiProvider) {
+		this.#provider = provider;
 
-    this.#filterIdPromise = null;
-    this.#poller = this.#poll.bind(this);
+		this.#filterIdPromise = null;
+		this.#poller = this.#poll.bind(this);
 
-    this.#running = false;
+		this.#running = false;
 
-    this.#network = null;
+		this.#network = null;
 
-    this.#hault = false;
-  }
+		this.#hault = false;
+	}
 
-  _subscribe(provider: JsonRpcApiProvider): Promise<string> {
-    throw new Error("subclasses must override this");
-  }
+	_subscribe(provider: JsonRpcApiProvider): Promise<string> {
+		throw new Error("subclasses must override this");
+	}
 
-  _emitResults(provider: AbstractProvider, result: Array<any>): Promise<void> {
-    throw new Error("subclasses must override this");
-  }
+	_emitResults(provider: AbstractProvider, result: Array<any>): Promise<void> {
+		throw new Error("subclasses must override this");
+	}
 
-  _recover(provider: AbstractProvider): Subscriber {
-    throw new Error("subclasses must override this");
-  }
+	_recover(provider: AbstractProvider): Subscriber {
+		throw new Error("subclasses must override this");
+	}
 
-  async #poll(blockNumber: number): Promise<void> {
-    try {
-      // Subscribe if necessary
-      if (this.#filterIdPromise == null) {
-        this.#filterIdPromise = this._subscribe(this.#provider);
-      }
+	async #poll(blockNumber: number): Promise<void> {
+		try {
+			// Subscribe if necessary
+			if (this.#filterIdPromise == null) {
+				this.#filterIdPromise = this._subscribe(this.#provider);
+			}
 
-      // Get the Filter ID
-      let filterId: null | string = null;
-      try {
-        filterId = await this.#filterIdPromise;
-      } catch (error) {
-        if (
-          !isError(error, "UNSUPPORTED_OPERATION") ||
-          error.operation !== "xcb_newFilter"
-        ) {
-          throw error;
-        }
-      }
+			// Get the Filter ID
+			let filterId: null | string = null;
+			try {
+				filterId = await this.#filterIdPromise;
+			} catch (error) {
+				if (
+					!isError(error, "UNSUPPORTED_OPERATION") ||
+					error.operation !== "xcb_newFilter"
+				) {
+					throw error;
+				}
+			}
 
-      // The backend does not support Filter ID; downgrade to
-      // polling
-      if (filterId == null) {
-        this.#filterIdPromise = null;
-        this.#provider._recoverSubscriber(this, this._recover(this.#provider));
-        return;
-      }
+			// The backend does not support Filter ID; downgrade to
+			// polling
+			if (filterId == null) {
+				this.#filterIdPromise = null;
+				this.#provider._recoverSubscriber(this, this._recover(this.#provider));
+				return;
+			}
 
-      const network = await this.#provider.getNetwork();
-      if (!this.#network) {
-        this.#network = network;
-      }
+			const network = await this.#provider.getNetwork();
+			if (!this.#network) {
+				this.#network = network;
+			}
 
-      if ((this.#network as Network).networkId !== network.networkId) {
-        throw new Error("chaid changed");
-      }
+			if ((this.#network as Network).networkId !== network.networkId) {
+				throw new Error("chaid changed");
+			}
 
-      if (this.#hault) {
-        return;
-      }
+			if (this.#hault) {
+				return;
+			}
 
-      const result = await this.#provider.send("xcb_getFilterChanges", [
-        filterId,
-      ]);
-      await this._emitResults(this.#provider, result);
-    } catch (error) {
-      console.log("@TODO", error);
-    }
+			const result = await this.#provider.send("xcb_getFilterChanges", [
+				filterId,
+			]);
+			await this._emitResults(this.#provider, result);
+		} catch (error) {
+			console.log("@TODO", error);
+		}
 
-    this.#provider.once("block", this.#poller);
-  }
+		this.#provider.once("block", this.#poller);
+	}
 
-  #teardown(): void {
-    const filterIdPromise = this.#filterIdPromise;
-    if (filterIdPromise) {
-      this.#filterIdPromise = null;
-      filterIdPromise.then((filterId) => {
-        this.#provider.send("xcb_uninstallFilter", [filterId]);
-      });
-    }
-  }
+	#teardown(): void {
+		const filterIdPromise = this.#filterIdPromise;
+		if (filterIdPromise) {
+			this.#filterIdPromise = null;
+			filterIdPromise.then((filterId) => {
+				this.#provider.send("xcb_uninstallFilter", [filterId]);
+			});
+		}
+	}
 
-  start(): void {
-    if (this.#running) {
-      return;
-    }
-    this.#running = true;
+	start(): void {
+		if (this.#running) {
+			return;
+		}
+		this.#running = true;
 
-    this.#poll(-2);
-  }
+		this.#poll(-2);
+	}
 
-  stop(): void {
-    if (!this.#running) {
-      return;
-    }
-    this.#running = false;
+	stop(): void {
+		if (!this.#running) {
+			return;
+		}
+		this.#running = false;
 
-    this.#hault = true;
-    this.#teardown();
-    this.#provider.off("block", this.#poller);
-  }
+		this.#hault = true;
+		this.#teardown();
+		this.#provider.off("block", this.#poller);
+	}
 
-  pause(dropWhilePaused?: boolean): void {
-    if (dropWhilePaused) {
-      this.#teardown();
-    }
-    this.#provider.off("block", this.#poller);
-  }
+	pause(dropWhilePaused?: boolean): void {
+		if (dropWhilePaused) {
+			this.#teardown();
+		}
+		this.#provider.off("block", this.#poller);
+	}
 
-  resume(): void {
-    this.start();
-  }
+	resume(): void {
+		this.start();
+	}
 }
 
 /**
@@ -158,30 +158,30 @@ export class FilterIdSubscriber implements Subscriber {
  *  @_docloc: api/providers/abstract-provider
  */
 export class FilterIdEventSubscriber extends FilterIdSubscriber {
-  #event: EventFilter;
+	#event: EventFilter;
 
-  constructor(provider: JsonRpcApiProvider, filter: EventFilter) {
-    super(provider);
-    this.#event = copy(filter);
-  }
+	constructor(provider: JsonRpcApiProvider, filter: EventFilter) {
+		super(provider);
+		this.#event = copy(filter);
+	}
 
-  _recover(provider: AbstractProvider): Subscriber {
-    return new PollingEventSubscriber(provider, this.#event);
-  }
+	_recover(provider: AbstractProvider): Subscriber {
+		return new PollingEventSubscriber(provider, this.#event);
+	}
 
-  async _subscribe(provider: JsonRpcApiProvider): Promise<string> {
-    const filterId = await provider.send("xcb_newFilter", [this.#event]);
-    return filterId;
-  }
+	async _subscribe(provider: JsonRpcApiProvider): Promise<string> {
+		const filterId = await provider.send("xcb_newFilter", [this.#event]);
+		return filterId;
+	}
 
-  async _emitResults(
-    provider: JsonRpcApiProvider,
-    results: Array<any>,
-  ): Promise<void> {
-    for (const result of results) {
-      provider.emit(this.#event, provider._wrapLog(result, provider._network));
-    }
-  }
+	async _emitResults(
+		provider: JsonRpcApiProvider,
+		results: Array<any>,
+	): Promise<void> {
+		for (const result of results) {
+			provider.emit(this.#event, provider._wrapLog(result, provider._network));
+		}
+	}
 }
 
 /**
@@ -190,16 +190,16 @@ export class FilterIdEventSubscriber extends FilterIdSubscriber {
  *  @_docloc: api/providers/abstract-provider
  */
 export class FilterIdPendingSubscriber extends FilterIdSubscriber {
-  async _subscribe(provider: JsonRpcApiProvider): Promise<string> {
-    return await provider.send("xcb_newPendingTransactionFilter", []);
-  }
+	async _subscribe(provider: JsonRpcApiProvider): Promise<string> {
+		return await provider.send("xcb_newPendingTransactionFilter", []);
+	}
 
-  async _emitResults(
-    provider: JsonRpcApiProvider,
-    results: Array<any>,
-  ): Promise<void> {
-    for (const result of results) {
-      provider.emit("pending", result);
-    }
-  }
+	async _emitResults(
+		provider: JsonRpcApiProvider,
+		results: Array<any>,
+	): Promise<void> {
+		for (const result of results) {
+			provider.emit("pending", result);
+		}
+	}
 }

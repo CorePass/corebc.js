@@ -15,13 +15,13 @@ import type { BytesLike } from "../utils/index.js";
 let locked = false;
 
 const _pbkdf2 = function (
-  password: Uint8Array,
-  salt: Uint8Array,
-  iterations: number,
-  keylen: number,
-  algo: "sha256" | "sha512",
+	password: Uint8Array,
+	salt: Uint8Array,
+	iterations: number,
+	keylen: number,
+	algo: "sha256" | "sha512",
 ): BytesLike {
-  return pbkdf2Sync(password, salt, iterations, keylen, algo);
+	return pbkdf2Sync(password, salt, iterations, keylen, algo);
 };
 
 let __pbkdf2 = _pbkdf2;
@@ -47,32 +47,32 @@ let __pbkdf2 = _pbkdf2;
  *    //_result:
  */
 export function pbkdf2(
-  _password: BytesLike,
-  _salt: BytesLike,
-  iterations: number,
-  keylen: number,
-  algo: "sha256" | "sha512",
+	_password: BytesLike,
+	_salt: BytesLike,
+	iterations: number,
+	keylen: number,
+	algo: "sha256" | "sha512",
 ): string {
-  const password = getBytes(_password, "password");
-  const salt = getBytes(_salt, "salt");
-  return hexlify(__pbkdf2(password, salt, iterations, keylen, algo));
+	const password = getBytes(_password, "password");
+	const salt = getBytes(_salt, "salt");
+	return hexlify(__pbkdf2(password, salt, iterations, keylen, algo));
 }
 pbkdf2._ = _pbkdf2;
 pbkdf2.lock = function (): void {
-  locked = true;
+	locked = true;
 };
 pbkdf2.register = function (
-  func: (
-    password: Uint8Array,
-    salt: Uint8Array,
-    iterations: number,
-    keylen: number,
-    algo: "sha256" | "sha512",
-  ) => BytesLike,
+	func: (
+		password: Uint8Array,
+		salt: Uint8Array,
+		iterations: number,
+		keylen: number,
+		algo: "sha256" | "sha512",
+	) => BytesLike,
 ) {
-  if (locked) {
-    throw new Error("pbkdf2 is locked");
-  }
-  __pbkdf2 = func;
+	if (locked) {
+		throw new Error("pbkdf2 is locked");
+	}
+	__pbkdf2 = func;
 };
 Object.freeze(pbkdf2);

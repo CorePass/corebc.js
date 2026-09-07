@@ -1,47 +1,46 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.computeHmac = exports.sha512 = exports.sha256 = exports.ripemd160 = void 0;
-const tslib_1 = require("tslib");
-// @ts-ignore
-const ripemd160_browser_1 = tslib_1.__importDefault(require("bcrypto/lib/ripemd160-browser"));
-// @ts-ignore
-const sha3_browser_js_1 = tslib_1.__importDefault(require("bcrypto/lib/sha3-browser.js"));
-const logger_js_1 = require("../logger/logger.js");
-const data_js_1 = require("../utils/data.js");
-const sha3_js_1 = require("./sha3.js");
-const logger = new logger_js_1.Logger("corebc-crypto/browser-sha3/0.0.1");
-function ripemd160(data) {
-    const d = Buffer.from((0, data_js_1.arrayify)(data));
-    const h = ripemd160_browser_1.default.digest(d);
-    return (0, data_js_1.hexlify)(h);
+'use strict';
+
+var buffer = require('buffer');
+var _ripemd160 = require('bcrypto/lib/ripemd160-browser');
+var sha3$1 = require('bcrypto/lib/sha3-browser.js');
+var logger$1 = require('../logger/logger.js');
+var data = require('../utils/data.js');
+var sha3 = require('./sha3.js');
+
+const logger = new logger$1.Logger("corebc-crypto/browser-sha3/0.0.1");
+function ripemd160(data$1) {
+    const d = buffer.Buffer.from(data.arrayify(data$1));
+    const h = _ripemd160.digest(d);
+    return data.hexlify(h);
 }
-exports.ripemd160 = ripemd160;
-function sha256(data) {
-    const d = Buffer.from((0, data_js_1.arrayify)(data));
-    const h = sha3_browser_js_1.default.digest(d, 256);
-    return (0, data_js_1.hexlify)(h);
+function sha256(data$1) {
+    const d = buffer.Buffer.from(data.arrayify(data$1));
+    const h = sha3$1.digest(d, 256);
+    return data.hexlify(h);
 }
-exports.sha256 = sha256;
-function sha512(data) {
-    const d = Buffer.from((0, data_js_1.arrayify)(data));
-    const h = sha3_browser_js_1.default.digest(d, 512);
-    return (0, data_js_1.hexlify)(h);
+function sha512(data$1) {
+    const d = buffer.Buffer.from(data.arrayify(data$1));
+    const h = sha3$1.digest(d, 512);
+    return data.hexlify(h);
 }
-exports.sha512 = sha512;
-function computeHmac(algorithm, key, data) {
-    const d = Buffer.from((0, data_js_1.arrayify)(data));
-    const k = Buffer.from((0, data_js_1.arrayify)(key));
-    if (algorithm === sha3_js_1.SupportedAlgorithm.sha256) {
-        return (0, data_js_1.hexlify)(sha3_browser_js_1.default.mac(d, k, 256));
+function computeHmac(algorithm, key, data$1) {
+    const d = buffer.Buffer.from(data.arrayify(data$1));
+    const k = buffer.Buffer.from(data.arrayify(key));
+    if (algorithm === sha3.SupportedAlgorithm.sha256) {
+        return data.hexlify(sha3$1.mac(d, k, 256));
     }
-    else if (algorithm === sha3_js_1.SupportedAlgorithm.sha512) {
-        return (0, data_js_1.hexlify)(sha3_browser_js_1.default.mac(d, k, 512));
+    else if (algorithm === sha3.SupportedAlgorithm.sha512) {
+        return data.hexlify(sha3$1.mac(d, k, 512));
     }
-    logger.throwError("unsupported algorithm - " + algorithm, logger_js_1.Logger.errors.UNSUPPORTED_OPERATION, {
+    logger.throwError("unsupported algorithm - " + algorithm, logger$1.Logger.errors.UNSUPPORTED_OPERATION, {
         operation: "computeHmac",
         algorithm: algorithm,
     });
     return "";
 }
+
 exports.computeHmac = computeHmac;
+exports.ripemd160 = ripemd160;
+exports.sha256 = sha256;
+exports.sha512 = sha512;
 //# sourceMappingURL=browser-sha3.js.map

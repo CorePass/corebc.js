@@ -1,11 +1,33 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.verifyTypedData = exports.TypedDataEncoder = void 0;
-const index_js_1 = require("../address/index.js");
-const index_js_2 = require("../transaction/index.js");
-const index_js_3 = require("../utils/index.js");
-const id_js_1 = require("./id.js");
-const index_js_4 = require("../crypto/index.js");
+'use strict';
+
+var index = require('../address/index.js');
+require('../utils/base58.js');
+var data = require('../utils/data.js');
+var errors = require('../utils/errors.js');
+var properties = require('../utils/properties.js');
+require('http');
+require('https');
+require('zlib');
+require('../utils/fixednumber.js');
+var maths = require('../utils/maths.js');
+var address = require('../transaction/address.js');
+require('../transaction/transaction.js');
+var id = require('./id.js');
+require('../crypto/hmac.js');
+require('../crypto/ripemd160.js');
+require('../crypto/pbkdf2.js');
+require('../crypto/random.js');
+require('../crypto/scrypt.js');
+var sha3 = require('../crypto/sha3.js');
+require('bcrypto/lib/ed448.js');
+require('buffer');
+require('bcrypto/lib/pbkdf2.js');
+require('bcrypto/lib/sha3-512.js');
+require('crypto');
+require('../crypto/keccak.js');
+require('../logger/logger.js');
+require('../crypto/signature.js');
+
 const padding = new Uint8Array(32);
 padding.fill(0);
 const BN__1 = BigInt(-1);
@@ -13,15 +35,15 @@ const BN_0 = BigInt(0);
 const BN_1 = BigInt(1);
 const BN_MAX_UINT256 = BigInt("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
 function hexPadRight(value) {
-    const bytes = (0, index_js_3.getBytes)(value);
+    const bytes = data.getBytes(value);
     const padOffset = bytes.length % 32;
     if (padOffset) {
-        return (0, index_js_3.concat)([bytes, padding.slice(padOffset)]);
+        return data.concat([bytes, padding.slice(padOffset)]);
     }
-    return (0, index_js_3.hexlify)(bytes);
+    return data.hexlify(bytes);
 }
-const hexTrue = (0, index_js_3.toBeHex)(BN_1, 32);
-const hexFalse = (0, index_js_3.toBeHex)(BN_0, 32);
+const hexTrue = maths.toBeHex(BN_1, 32);
+const hexFalse = maths.toBeHex(BN_0, 32);
 const domainFieldTypes = {
     name: "string",
     version: "string",
@@ -38,7 +60,7 @@ const domainFieldNames = [
 ];
 function checkString(key) {
     return function (value) {
-        (0, index_js_3.assertArgument)(typeof value === "string", `invalid domain value for ${JSON.stringify(key)}`, `domain.${key}`, value);
+        errors.assertArgument(typeof value === "string", `invalid domain value for ${JSON.stringify(key)}`, `domain.${key}`, value);
         return value;
     };
 }
@@ -46,24 +68,24 @@ const domainChecks = {
     name: checkString("name"),
     version: checkString("version"),
     networkId: function (_value) {
-        const value = (0, index_js_3.getBigInt)(_value, "domain.networkId");
-        (0, index_js_3.assertArgument)(value >= 0, "invalid chain ID", "domain.networkId", _value);
+        const value = maths.getBigInt(_value, "domain.networkId");
+        errors.assertArgument(value >= 0, "invalid chain ID", "domain.networkId", _value);
         if (Number.isSafeInteger(value)) {
             return Number(value);
         }
-        return (0, index_js_3.toQuantity)(value);
+        return maths.toQuantity(value);
     },
     verifyingContract: function (value) {
         try {
-            return (0, index_js_1.getAddress)(value).toLowerCase();
+            return index.getAddress(value).toLowerCase();
         }
         catch (error) { }
-        (0, index_js_3.assertArgument)(false, `invalid domain value "verifyingContract"`, "domain.verifyingContract", value);
+        errors.assertArgument(false, `invalid domain value "verifyingContract"`, "domain.verifyingContract", value);
     },
     salt: function (value) {
-        const bytes = (0, index_js_3.getBytes)(value, "domain.salt");
-        (0, index_js_3.assertArgument)(bytes.length === 32, `invalid domain value "salt"`, "domain.salt", value);
-        return (0, index_js_3.hexlify)(bytes);
+        const bytes = data.getBytes(value, "domain.salt");
+        errors.assertArgument(bytes.length === 32, `invalid domain value "salt"`, "domain.salt", value);
+        return data.hexlify(bytes);
     },
 };
 function getBaseEncoder(type) {
@@ -73,16 +95,16 @@ function getBaseEncoder(type) {
         if (match) {
             const signed = match[1] === "";
             const width = parseInt(match[2] || "256");
-            (0, index_js_3.assertArgument)(width % 8 === 0 &&
+            errors.assertArgument(width % 8 === 0 &&
                 width !== 0 &&
                 width <= 256 &&
                 (match[2] == null || match[2] === String(width)), "invalid numeric width", "type", type);
-            const boundsUpper = (0, index_js_3.mask)(BN_MAX_UINT256, signed ? width - 1 : width);
+            const boundsUpper = maths.mask(BN_MAX_UINT256, signed ? width - 1 : width);
             const boundsLower = signed ? (boundsUpper + BN_1) * BN__1 : BN_0;
             return function (_value) {
-                const value = (0, index_js_3.getBigInt)(_value, "value");
-                (0, index_js_3.assertArgument)(value >= boundsLower && value <= boundsUpper, `value out-of-bounds for ${type}`, "value", value);
-                return (0, index_js_3.toBeHex)(signed ? (0, index_js_3.toTwos)(value, 256) : value, 32);
+                const value = maths.getBigInt(_value, "value");
+                errors.assertArgument(value >= boundsLower && value <= boundsUpper, `value out-of-bounds for ${type}`, "value", value);
+                return maths.toBeHex(signed ? maths.toTwos(value, 256) : value, 32);
             };
         }
     }
@@ -91,10 +113,10 @@ function getBaseEncoder(type) {
         const match = type.match(/^bytes(\d+)$/);
         if (match) {
             const width = parseInt(match[1]);
-            (0, index_js_3.assertArgument)(width !== 0 && width <= 32 && match[1] === String(width), "invalid bytes width", "type", type);
+            errors.assertArgument(width !== 0 && width <= 32 && match[1] === String(width), "invalid bytes width", "type", type);
             return function (value) {
-                const bytes = (0, index_js_3.getBytes)(value);
-                (0, index_js_3.assertArgument)(bytes.length === width, `invalid length for ${type}`, "value", value);
+                const bytes = data.getBytes(value);
+                errors.assertArgument(bytes.length === width, `invalid length for ${type}`, "value", value);
                 return hexPadRight(value);
             };
         }
@@ -102,7 +124,7 @@ function getBaseEncoder(type) {
     switch (type) {
         case "address":
             return function (value) {
-                return (0, index_js_3.zeroPadValue)((0, index_js_1.getAddress)(value), 32);
+                return data.zeroPadValue(index.getAddress(value), 32);
             };
         case "bool":
             return function (value) {
@@ -110,11 +132,11 @@ function getBaseEncoder(type) {
             };
         case "bytes":
             return function (value) {
-                return (0, index_js_4.sha256)(value);
+                return sha3.sha256(value);
             };
         case "string":
             return function (value) {
-                return (0, id_js_1.id)(value);
+                return id.id(value);
             };
     }
     return null;
@@ -151,17 +173,17 @@ class TypedDataEncoder {
             const uniqueNames = new Set();
             for (const field of types[name]) {
                 // Check each field has a unique name
-                (0, index_js_3.assertArgument)(!uniqueNames.has(field.name), `duplicate variable name ${JSON.stringify(field.name)} in ${JSON.stringify(name)}`, "types", types);
+                errors.assertArgument(!uniqueNames.has(field.name), `duplicate variable name ${JSON.stringify(field.name)} in ${JSON.stringify(name)}`, "types", types);
                 uniqueNames.add(field.name);
                 // Get the base type (drop any array specifiers)
                 const baseType = field.type.match(/^([^\x5b]*)(\x5b|$)/)[1] || null;
-                (0, index_js_3.assertArgument)(baseType !== name, `circular type reference to ${JSON.stringify(baseType)}`, "types", types);
+                errors.assertArgument(baseType !== name, `circular type reference to ${JSON.stringify(baseType)}`, "types", types);
                 // Is this a base encoding type?
                 const encoder = getBaseEncoder(baseType);
                 if (encoder) {
                     continue;
                 }
-                (0, index_js_3.assertArgument)(parents.has(baseType), `unknown type ${JSON.stringify(baseType)}`, "types", types);
+                errors.assertArgument(parents.has(baseType), `unknown type ${JSON.stringify(baseType)}`, "types", types);
                 // Add linkage
                 parents.get(baseType).push(name);
                 links.get(name).add(baseType);
@@ -169,14 +191,14 @@ class TypedDataEncoder {
         }
         // Deduce the primary type
         const primaryTypes = Array.from(parents.keys()).filter((n) => parents.get(n).length === 0);
-        (0, index_js_3.assertArgument)(primaryTypes.length !== 0, "missing primary type", "types", types);
-        (0, index_js_3.assertArgument)(primaryTypes.length === 1, `ambiguous primary types or unused types: ${primaryTypes
+        errors.assertArgument(primaryTypes.length !== 0, "missing primary type", "types", types);
+        errors.assertArgument(primaryTypes.length === 1, `ambiguous primary types or unused types: ${primaryTypes
             .map((t) => JSON.stringify(t))
             .join(", ")}`, "types", types);
-        (0, index_js_3.defineProperties)(this, { primaryType: primaryTypes[0] });
+        properties.defineProperties(this, { primaryType: primaryTypes[0] });
         // Check for circular type references
         function checkCircular(type, found) {
-            (0, index_js_3.assertArgument)(!found.has(type), `circular type reference to ${JSON.stringify(type)}`, "types", types);
+            errors.assertArgument(!found.has(type), `circular type reference to ${JSON.stringify(type)}`, "types", types);
             found.add(type);
             for (const child of links.get(type)) {
                 if (!parents.has(child)) {
@@ -222,42 +244,42 @@ class TypedDataEncoder {
             const subtype = match[1];
             const subEncoder = this.getEncoder(subtype);
             return (value) => {
-                (0, index_js_3.assertArgument)(!match[3] || parseInt(match[3]) === value.length, `array length mismatch; expected length ${parseInt(match[3])}`, "value", value);
+                errors.assertArgument(!match[3] || parseInt(match[3]) === value.length, `array length mismatch; expected length ${parseInt(match[3])}`, "value", value);
                 let result = value.map(subEncoder);
                 if (this.#fullTypes.has(subtype)) {
-                    result = result.map(index_js_4.sha256);
+                    result = result.map(sha3.sha256);
                 }
-                return (0, index_js_4.sha256)((0, index_js_3.concat)(result));
+                return sha3.sha256(data.concat(result));
             };
         }
         // Struct
         const fields = this.types[type];
         if (fields) {
-            const encodedType = (0, id_js_1.id)(this.#fullTypes.get(type));
+            const encodedType = id.id(this.#fullTypes.get(type));
             return (value) => {
                 const values = fields.map(({ name, type }) => {
                     const result = this.getEncoder(type)(value[name]);
                     if (this.#fullTypes.has(type)) {
-                        return (0, index_js_4.sha256)(result);
+                        return sha3.sha256(result);
                     }
                     return result;
                 });
                 values.unshift(encodedType);
-                return (0, index_js_3.concat)(values);
+                return data.concat(values);
             };
         }
-        (0, index_js_3.assertArgument)(false, `unknown type: ${type}`, "type", type);
+        errors.assertArgument(false, `unknown type: ${type}`, "type", type);
     }
     encodeType(name) {
         const result = this.#fullTypes.get(name);
-        (0, index_js_3.assertArgument)(result, `unknown type: ${JSON.stringify(name)}`, "name", name);
+        errors.assertArgument(result, `unknown type: ${JSON.stringify(name)}`, "name", name);
         return result;
     }
     encodeData(type, value) {
         return this.getEncoder(type)(value);
     }
     hashStruct(name, value) {
-        return (0, index_js_4.sha256)(this.encodeData(name, value));
+        return sha3.sha256(this.encodeData(name, value));
     }
     encode(value) {
         return this.encodeData(this.primaryType, value);
@@ -276,7 +298,7 @@ class TypedDataEncoder {
         // Array
         const match = type.match(/^(.*)(\x5b(\d*)\x5d)$/);
         if (match) {
-            (0, index_js_3.assertArgument)(!match[3] || parseInt(match[3]) === value.length, `array length mismatch; expected length ${parseInt(match[3])}`, "value", value);
+            errors.assertArgument(!match[3] || parseInt(match[3]) === value.length, `array length mismatch; expected length ${parseInt(match[3])}`, "value", value);
             return value.map((v) => this._visit(match[1], v, callback));
         }
         // Struct
@@ -287,7 +309,7 @@ class TypedDataEncoder {
                 return accum;
             }, {});
         }
-        (0, index_js_3.assertArgument)(false, `unknown type: ${type}`, "type", type);
+        errors.assertArgument(false, `unknown type: ${type}`, "type", type);
     }
     visit(value, callback) {
         return this._visit(this.primaryType, value, callback);
@@ -308,7 +330,7 @@ class TypedDataEncoder {
                 continue;
             }
             const type = domainFieldTypes[name];
-            (0, index_js_3.assertArgument)(type, `invalid typed-data domain key: ${JSON.stringify(name)}`, "domain", domain);
+            errors.assertArgument(type, `invalid typed-data domain key: ${JSON.stringify(name)}`, "domain", domain);
             domainFields.push({ name, type });
         }
         domainFields.sort((a, b) => {
@@ -317,14 +339,14 @@ class TypedDataEncoder {
         return TypedDataEncoder.hashStruct("EIP712Domain", { EIP712Domain: domainFields }, domain);
     }
     static encode(domain, types, value) {
-        return (0, index_js_3.concat)([
+        return data.concat([
             "0x1901",
             TypedDataEncoder.hashDomain(domain),
             TypedDataEncoder.from(types).hash(value),
         ]);
     }
     static hash(domain, types, value) {
-        return (0, index_js_4.sha256)(TypedDataEncoder.encode(domain, types, value));
+        return sha3.sha256(TypedDataEncoder.encode(domain, types, value));
     }
     // Replaces all address types with ENS names with their looked up address
     static async resolveNames(domain, types, value, resolveName) {
@@ -340,14 +362,14 @@ class TypedDataEncoder {
         const ensCache = {};
         // Do we need to look up the domain's verifyingContract?
         if (domain.verifyingContract &&
-            !(0, index_js_3.isHexString)(domain.verifyingContract, 20)) {
+            !data.isHexString(domain.verifyingContract, 20)) {
             ensCache[domain.verifyingContract] = "0x";
         }
         // We are going to use the encoder to visit all the base values
         const encoder = TypedDataEncoder.from(types);
         // Get a list of all the addresses
         encoder.visit(value, (type, value) => {
-            if (type === "address" && !(0, index_js_3.isHexString)(value, 20)) {
+            if (type === "address" && !data.isHexString(value, 20)) {
                 ensCache[value] = "0x";
             }
             return value;
@@ -385,7 +407,7 @@ class TypedDataEncoder {
         });
         const encoder = TypedDataEncoder.from(types);
         const typesWithDomain = Object.assign({}, types);
-        (0, index_js_3.assertArgument)(typesWithDomain.EIP712Domain == null, "types must not contain EIP712Domain type", "types.EIP712Domain", types);
+        errors.assertArgument(typesWithDomain.EIP712Domain == null, "types must not contain EIP712Domain type", "types.EIP712Domain", types);
         typesWithDomain.EIP712Domain = domainTypes;
         // Validate the data structures and types
         encoder.encode(value);
@@ -396,11 +418,11 @@ class TypedDataEncoder {
             message: encoder.visit(value, (type, value) => {
                 // bytes
                 if (type.match(/^bytes(\d*)/)) {
-                    return (0, index_js_3.hexlify)((0, index_js_3.getBytes)(value));
+                    return data.hexlify(data.getBytes(value));
                 }
                 // uint or int
                 if (type.match(/^u?int/)) {
-                    return (0, index_js_3.getBigInt)(value).toString();
+                    return maths.getBigInt(value).toString();
                 }
                 switch (type) {
                     case "address":
@@ -408,20 +430,21 @@ class TypedDataEncoder {
                     case "bool":
                         return !!value;
                     case "string":
-                        (0, index_js_3.assertArgument)(typeof value === "string", "invalid string", "value", value);
+                        errors.assertArgument(typeof value === "string", "invalid string", "value", value);
                         return value;
                 }
-                (0, index_js_3.assertArgument)(false, "unsupported type", "type", type);
+                errors.assertArgument(false, "unsupported type", "type", type);
             }),
         };
     }
 }
-exports.TypedDataEncoder = TypedDataEncoder;
 /**
  *  Compute the address used to sign the typed data for the %%signature%%.
  */
 function verifyTypedData(domain, types, value, signature, prefix) {
-    return (0, index_js_2.recoverAddress)(TypedDataEncoder.hash(domain, types, value), signature, prefix);
+    return address.recoverAddress(TypedDataEncoder.hash(domain, types, value), signature, prefix);
 }
+
+exports.TypedDataEncoder = TypedDataEncoder;
 exports.verifyTypedData = verifyTypedData;
 //# sourceMappingURL=typed-data.js.map

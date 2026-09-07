@@ -3,7 +3,7 @@
  */
 // @ts-ignore
 import pkg from "aes-js";
-const { CBC, pkcs7Strip } = pkg;
+const { ModeOfOperation: { cbc: CBC }, padding: { pkcs7: { strip: pkcs7Strip }, }, } = pkg;
 import { getAddress } from "../address/index.js";
 import { pbkdf2 } from "../crypto/index.js";
 import { id } from "../hash/index.js";

@@ -1,4 +1,11 @@
-"use strict";
+'use strict';
+
+var bigNumber = require('../bigNumber/bigNumber.js');
+var rlp = require('../crypto/rlp.js');
+var sha3 = require('../crypto/sha3.js');
+var logger$1 = require('../logger/logger.js');
+var data = require('../utils/data.js');
+
 /**
  *  Addresses are a fundamental part of interacting with Core. They
  *  represent the gloabal identity of Externally Owned Accounts (accounts
@@ -13,15 +20,7 @@
  *
  *  @_section: api/address:Addresses  [about-addresses]
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.getContractAddress = exports.networkIdToPrefix = exports.calculateCheckSum = exports.getIcapAddress = exports.getAddress = void 0;
-null;
-const bigNumber_js_1 = require("../bigNumber/bigNumber.js");
-const rlp_js_1 = require("../crypto/rlp.js");
-const sha3_js_1 = require("../crypto/sha3.js");
-const logger_js_1 = require("../logger/logger.js");
-const data_js_1 = require("../utils/data.js");
-const logger = new logger_js_1.Logger("address/0.0.1");
+const logger = new logger$1.Logger("address/0.0.1");
 const precompiledAddresses = [
     "0000000000000000000000000000000000000000000000000000000000000000",
     "0000000000000000000000000000000000000000000000000000000000000001",
@@ -38,10 +37,10 @@ function removeHexPrefix(val) {
     return val.substring(0, 2) === "0x" ? val.substring(2) : val;
 }
 function calculateCheckSum(_address, _prefix) {
-    const address = (0, data_js_1.getBytes)("0x" + _address.replace("0x", ""));
-    const prefix = (0, data_js_1.getBytes)("0x" + _prefix.replace("0x", ""));
+    const address = data.getBytes("0x" + _address.replace("0x", ""));
+    const prefix = data.getBytes("0x" + _prefix.replace("0x", ""));
     const tmpConcated = new Uint8Array([...address, ...prefix]);
-    const hexedConcat = (0, data_js_1.hexlify)(tmpConcated).replace("0x", "") + "00";
+    const hexedConcat = data.hexlify(tmpConcated).replace("0x", "") + "00";
     const mods = Array.from(hexedConcat.toUpperCase(), (c) => {
         const charCode = c.charCodeAt(0);
         return charCode > 64 && charCode < 91
@@ -56,7 +55,6 @@ function calculateCheckSum(_address, _prefix) {
     const result = checkSum > 9 ? checkSum.toString() : "0" + checkSum.toString();
     return result;
 }
-exports.calculateCheckSum = calculateCheckSum;
 // See: https://en.wikipedia.org/wiki/International_Bank_Account_Number
 // Create lookup table
 const ibanLookup = {};
@@ -143,7 +141,6 @@ function getAddress(address) {
     }
     return "0x" + prefix + checksum + val;
 }
-exports.getAddress = getAddress;
 /**
  *  The [ICAP Address format](link-icap) format is an early checksum
  *  format which attempts to be compatible with the banking
@@ -170,7 +167,6 @@ function getIcapAddress(address) {
     }
     return "XE" + ibanChecksum("XE00" + base36) + base36;
 }
-exports.getIcapAddress = getIcapAddress;
 function networkIdToPrefix(networkId) {
     if (networkId == 1) {
         return "cb";
@@ -186,7 +182,6 @@ function networkIdToPrefix(networkId) {
         return "";
     }
 }
-exports.networkIdToPrefix = networkIdToPrefix;
 function getContractAddress(transaction) {
     let from = null;
     try {
@@ -195,11 +190,16 @@ function getContractAddress(transaction) {
     catch (error) {
         logger.throwArgumentError("missing from address", "transaction", transaction);
     }
-    const nonce = (0, data_js_1.stripZeros)((0, data_js_1.arrayify)(bigNumber_js_1.BigNumber.from(transaction.nonce).toHexString()));
-    const val = (0, data_js_1.hexDataSlice)((0, sha3_js_1.sha256)((0, rlp_js_1.encode)([from, nonce])), 12);
+    const nonce = data.stripZeros(data.arrayify(bigNumber.BigNumber.from(transaction.nonce).toHexString()));
+    const val = data.hexDataSlice(sha3.sha256(rlp.encode([from, nonce])), 12);
     const prefix = from.substring(2, 4);
     const checksum = calculateCheckSum(val, prefix);
     return "0x" + prefix + checksum + removeHexPrefix(val);
 }
+
+exports.calculateCheckSum = calculateCheckSum;
+exports.getAddress = getAddress;
 exports.getContractAddress = getContractAddress;
+exports.getIcapAddress = getIcapAddress;
+exports.networkIdToPrefix = networkIdToPrefix;
 //# sourceMappingURL=index.js.map

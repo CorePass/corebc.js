@@ -1,4 +1,5 @@
-"use strict";
+'use strict';
+
 /**
  *  There are many awesome community services that provide Core
  *  nodes both for developers just starting out and for large-scale
@@ -6,8 +7,6 @@
  *
  *  @_section: api/providers/thirdparty: Community Providers  [thirdparty]
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.showThrottleMessage = void 0;
 // Show the throttle message only once per service
 const shown = new Set();
 /**
@@ -34,5 +33,6 @@ function showThrottleMessage(service) {
     console.log("request rate/limit and enable other perks, such as metrics and advanced APIs.");
     console.log("");
 }
+
 exports.showThrottleMessage = showThrottleMessage;
 //# sourceMappingURL=community.js.map

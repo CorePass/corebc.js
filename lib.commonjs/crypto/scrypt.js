@@ -1,14 +1,22 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.scryptSync = exports.scrypt = void 0;
-const scrypt_1 = require("@noble/hashes/scrypt");
-const index_js_1 = require("../utils/index.js");
+'use strict';
+
+var scrypt_js = require('@noble/hashes/scrypt.js');
+require('../utils/base58.js');
+var data = require('../utils/data.js');
+require('../utils/errors.js');
+require('../logger/logger.js');
+require('http');
+require('https');
+require('zlib');
+require('../utils/fixednumber.js');
+require('../utils/maths.js');
+
 let lockedSync = false, lockedAsync = false;
 const _scryptAsync = async function (passwd, salt, N, r, p, dkLen, onProgress) {
-    return await (0, scrypt_1.scryptAsync)(passwd, salt, { N, r, p, dkLen, onProgress });
+    return await scrypt_js.scryptAsync(passwd, salt, { N, r, p, dkLen, onProgress });
 };
 const _scryptSync = function (passwd, salt, N, r, p, dkLen) {
-    return (0, scrypt_1.scrypt)(passwd, salt, { N, r, p, dkLen });
+    return scrypt_js.scrypt(passwd, salt, { N, r, p, dkLen });
 };
 let __scryptAsync = _scryptAsync;
 let __scryptSync = _scryptSync;
@@ -50,11 +58,10 @@ let __scryptSync = _scryptSync;
  *    //_result:
  */
 async function scrypt(_passwd, _salt, N, r, p, dkLen, progress) {
-    const passwd = (0, index_js_1.getBytes)(_passwd, "passwd");
-    const salt = (0, index_js_1.getBytes)(_salt, "salt");
-    return (0, index_js_1.hexlify)(await __scryptAsync(passwd, salt, N, r, p, dkLen, progress));
+    const passwd = data.getBytes(_passwd, "passwd");
+    const salt = data.getBytes(_salt, "salt");
+    return data.hexlify(await __scryptAsync(passwd, salt, N, r, p, dkLen, progress));
 }
-exports.scrypt = scrypt;
 scrypt._ = _scryptAsync;
 scrypt.lock = function () {
     lockedAsync = true;
@@ -89,11 +96,10 @@ Object.freeze(scrypt);
  *    //_result:
  */
 function scryptSync(_passwd, _salt, N, r, p, dkLen) {
-    const passwd = (0, index_js_1.getBytes)(_passwd, "passwd");
-    const salt = (0, index_js_1.getBytes)(_salt, "salt");
-    return (0, index_js_1.hexlify)(__scryptSync(passwd, salt, N, r, p, dkLen));
+    const passwd = data.getBytes(_passwd, "passwd");
+    const salt = data.getBytes(_salt, "salt");
+    return data.hexlify(__scryptSync(passwd, salt, N, r, p, dkLen));
 }
-exports.scryptSync = scryptSync;
 scryptSync._ = _scryptSync;
 scryptSync.lock = function () {
     lockedSync = true;
@@ -105,4 +111,7 @@ scryptSync.register = function (func) {
     __scryptSync = func;
 };
 Object.freeze(scryptSync);
+
+exports.scrypt = scrypt;
+exports.scryptSync = scryptSync;
 //# sourceMappingURL=scrypt.js.map

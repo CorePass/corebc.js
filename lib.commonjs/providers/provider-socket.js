@@ -1,4 +1,16 @@
-"use strict";
+'use strict';
+
+var abstractProvider = require('./abstract-provider.js');
+require('../utils/base58.js');
+require('../logger/logger.js');
+var errors = require('../utils/errors.js');
+require('http');
+require('https');
+require('zlib');
+require('../utils/fixednumber.js');
+require('../utils/maths.js');
+var providerJsonrpc = require('./provider-jsonrpc.js');
+
 /**
  *  Generic long-lived socket provider.
  *
@@ -9,11 +21,6 @@
  *
  *  @_subsection: api/providers/abstract-provider
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.SocketProvider = exports.SocketEventSubscriber = exports.SocketPendingSubscriber = exports.SocketBlockSubscriber = exports.SocketSubscriber = void 0;
-const abstract_provider_js_1 = require("./abstract-provider.js");
-const index_js_1 = require("../utils/index.js");
-const provider_jsonrpc_js_1 = require("./provider-jsonrpc.js");
 class SocketSubscriber {
     #provider;
     #filter;
@@ -47,7 +54,7 @@ class SocketSubscriber {
     // @TODO: pause should trap the current blockNumber, unsub, and on resume use getLogs
     //        and resume
     pause(dropWhilePaused) {
-        (0, index_js_1.assert)(dropWhilePaused, "preserve logs while paused not supported by SocketSubscriber yet", "UNSUPPORTED_OPERATION", { operation: "pause(false)" });
+        errors.assert(dropWhilePaused, "preserve logs while paused not supported by SocketSubscriber yet", "UNSUPPORTED_OPERATION", { operation: "pause(false)" });
         this.#paused = !!dropWhilePaused;
     }
     resume() {
@@ -78,7 +85,6 @@ class SocketSubscriber {
         throw new Error("sub-classes must implemente this; _emit");
     }
 }
-exports.SocketSubscriber = SocketSubscriber;
 class SocketBlockSubscriber extends SocketSubscriber {
     constructor(provider) {
         super(provider, ["newHeads"]);
@@ -87,7 +93,6 @@ class SocketBlockSubscriber extends SocketSubscriber {
         provider.emit("block", parseInt(message.number));
     }
 }
-exports.SocketBlockSubscriber = SocketBlockSubscriber;
 class SocketPendingSubscriber extends SocketSubscriber {
     constructor(provider) {
         super(provider, ["newPendingTransactions"]);
@@ -96,7 +101,6 @@ class SocketPendingSubscriber extends SocketSubscriber {
         provider.emit("pending", message);
     }
 }
-exports.SocketPendingSubscriber = SocketPendingSubscriber;
 class SocketEventSubscriber extends SocketSubscriber {
     #logFilter;
     get logFilter() {
@@ -110,12 +114,11 @@ class SocketEventSubscriber extends SocketSubscriber {
         provider.emit(this.logFilter, provider._wrapLog(message, provider._network));
     }
 }
-exports.SocketEventSubscriber = SocketEventSubscriber;
 /**
  *  SocketProvider...
  *
  */
-class SocketProvider extends provider_jsonrpc_js_1.JsonRpcApiProvider {
+class SocketProvider extends providerJsonrpc.JsonRpcApiProvider {
     #callbacks;
     // Maps each filterId to its subscriber
     #subs;
@@ -130,17 +133,17 @@ class SocketProvider extends provider_jsonrpc_js_1.JsonRpcApiProvider {
     }
     // This value is only valid after _start has been called
     /*
-      get _network(): Network {
-          if (this.#network == null) {
-              throw new Error("this shouldn't happen");
-          }
-          return this.#network.clone();
-      }
-      */
+    get _network(): Network {
+        if (this.#network == null) {
+            throw new Error("this shouldn't happen");
+        }
+        return this.#network.clone();
+    }
+    */
     _getSubscriber(sub) {
         switch (sub.type) {
             case "close":
-                return new abstract_provider_js_1.UnmanagedSubscriber("close");
+                return new abstractProvider.UnmanagedSubscriber("close");
             case "block":
                 return new SocketBlockSubscriber(this);
             case "pending":
@@ -151,7 +154,7 @@ class SocketProvider extends provider_jsonrpc_js_1.JsonRpcApiProvider {
                 // Handled auto-matically within AbstractProvider
                 // when the log.removed = true
                 if (sub.filter.orphan === "drop-log") {
-                    return new abstract_provider_js_1.UnmanagedSubscriber("drop-log");
+                    return new abstractProvider.UnmanagedSubscriber("drop-log");
                 }
         }
         return super._getSubscriber(sub);
@@ -168,7 +171,7 @@ class SocketProvider extends provider_jsonrpc_js_1.JsonRpcApiProvider {
     }
     async _send(payload) {
         // WebSocket provider doesn't accept batches
-        (0, index_js_1.assertArgument)(!Array.isArray(payload), "WebSocket does not support batch send", "payload", payload);
+        errors.assertArgument(!Array.isArray(payload), "WebSocket does not support batch send", "payload", payload);
         // @TODO: stringify payloads here and store to prevent mutations
         // Prepare a promise to respond to
         const promise = new Promise((resolve, reject) => {
@@ -182,25 +185,25 @@ class SocketProvider extends provider_jsonrpc_js_1.JsonRpcApiProvider {
     }
     // Sub-classes must call this once they are connected
     /*
-      async _start(): Promise<void> {
-          if (this.#ready) { return; }
-  
-          for (const { payload } of this.#callbacks.values()) {
-              await this._write(JSON.stringify(payload));
-          }
-  
-          this.#ready = (async function() {
-              await super._start();
-          })();
-      }
-      */
+    async _start(): Promise<void> {
+        if (this.#ready) { return; }
+
+        for (const { payload } of this.#callbacks.values()) {
+            await this._write(JSON.stringify(payload));
+        }
+
+        this.#ready = (async function() {
+            await super._start();
+        })();
+    }
+    */
     // Sub-classes must call this for each message
     async _processMessage(message) {
         const result = (JSON.parse(message));
         if ("id" in result) {
             const callback = this.#callbacks.get(result.id);
             if (callback == null) {
-                this.emit("error", (0, index_js_1.makeError)("received result for unknown id", "UNKNOWN_ERROR", {
+                this.emit("error", errors.makeError("received result for unknown id", "UNKNOWN_ERROR", {
                     reasonCode: "UNKNOWN_ID",
                     result,
                 }));
@@ -229,5 +232,10 @@ class SocketProvider extends provider_jsonrpc_js_1.JsonRpcApiProvider {
         throw new Error("sub-classes must override this");
     }
 }
+
+exports.SocketBlockSubscriber = SocketBlockSubscriber;
+exports.SocketEventSubscriber = SocketEventSubscriber;
+exports.SocketPendingSubscriber = SocketPendingSubscriber;
 exports.SocketProvider = SocketProvider;
+exports.SocketSubscriber = SocketSubscriber;
 //# sourceMappingURL=provider-socket.js.map

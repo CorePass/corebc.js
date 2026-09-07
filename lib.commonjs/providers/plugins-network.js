@@ -1,18 +1,24 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.FeeDataNetworkPlugin = exports.EnergyCostPlugin = exports.NetworkPlugin = void 0;
-const properties_js_1 = require("../utils/properties.js");
-const index_js_1 = require("../utils/index.js");
+'use strict';
+
+var properties = require('../utils/properties.js');
+require('../utils/base58.js');
+require('../logger/logger.js');
+var errors = require('../utils/errors.js');
+require('http');
+require('https');
+require('zlib');
+require('../utils/fixednumber.js');
+require('../utils/maths.js');
+
 class NetworkPlugin {
     name;
     constructor(name) {
-        (0, properties_js_1.defineProperties)(this, { name });
+        properties.defineProperties(this, { name });
     }
     clone() {
         return new NetworkPlugin(this.name);
     }
 }
-exports.NetworkPlugin = NetworkPlugin;
 class EnergyCostPlugin extends NetworkPlugin {
     effectiveBlock;
     txBase;
@@ -32,7 +38,7 @@ class EnergyCostPlugin extends NetworkPlugin {
             if (value == null) {
                 value = nullish;
             }
-            (0, index_js_1.assertArgument)(typeof value === "number", `invalud value for ${name}`, "costs", costs);
+            errors.assertArgument(typeof value === "number", `invalud value for ${name}`, "costs", costs);
             props[name] = value;
         }
         set("txBase", 21000);
@@ -41,13 +47,12 @@ class EnergyCostPlugin extends NetworkPlugin {
         set("txDataNonzero", 16);
         set("txAccessListStorageKey", 1900);
         set("txAccessListAddress", 2400);
-        (0, properties_js_1.defineProperties)(this, props);
+        properties.defineProperties(this, props);
     }
     clone() {
         return new EnergyCostPlugin(this.effectiveBlock, this);
     }
 }
-exports.EnergyCostPlugin = EnergyCostPlugin;
 class FeeDataNetworkPlugin extends NetworkPlugin {
     #feeDataFunc;
     get feeDataFunc() {
@@ -64,7 +69,6 @@ class FeeDataNetworkPlugin extends NetworkPlugin {
         return new FeeDataNetworkPlugin(this.#feeDataFunc);
     }
 }
-exports.FeeDataNetworkPlugin = FeeDataNetworkPlugin;
 /*
 export class CustomBlockNetworkPlugin extends NetworkPlugin {
     readonly #blockFunc: (provider: Provider, block: BlockParams<string>) => Block<string>;
@@ -83,4 +87,8 @@ export class CustomBlockNetworkPlugin extends NetworkPlugin {
     }
 }
 */
+
+exports.EnergyCostPlugin = EnergyCostPlugin;
+exports.FeeDataNetworkPlugin = FeeDataNetworkPlugin;
+exports.NetworkPlugin = NetworkPlugin;
 //# sourceMappingURL=plugins-network.js.map

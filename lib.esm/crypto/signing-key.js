@@ -3,15 +3,12 @@
  *
  *  @_subsection: api/crypto:Signing  [about-signing]
  */
-import * as secp256k1 from "@noble/secp256k1";
-import { dataLength, getBytes, getBytesCopy, hexlify, assertArgument, } from "../utils/index.js";
+import { dataLength, getBytesCopy, hexlify, assertArgument, } from "../utils/index.js";
 import { arrayify, hexConcat } from "../utils/data.js";
 import { Logger } from "../logger/logger.js";
 import { ed448 } from "./crypto.js";
 import { Buffer } from "buffer";
 const logger = new Logger("signing-key/0.0.1");
-//const N = BigInt("0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141");
-// Make noble-secp256k1 sync
 /**
  *  A **SigningKey** provides high-level access to the elliptic curve
  *  cryptography (ECC) operations and key management.
@@ -22,12 +19,11 @@ export class SigningKey {
      *  Creates a new **SigningKey** for %%privateKey%%.
      */
     constructor(privateKey) {
-        let tmp = privateKey;
-        if (typeof tmp === "string" && tmp.startsWith("0x")) {
-            tmp = tmp.replace("0x", "");
-        }
-        assertArgument(dataLength("0x" + tmp) === 57, "invalid private key", "privateKey", "[REDACTED]");
-        this.#privateKey = hexlify("0x" + tmp);
+        const normalized = typeof privateKey === "string" && !privateKey.startsWith("0x")
+            ? "0x" + privateKey
+            : privateKey;
+        assertArgument(dataLength(normalized) === 57, "invalid private key", "privateKey", "[REDACTED]");
+        this.#privateKey = hexlify(normalized);
     }
     /**
      *  The private key.
@@ -35,22 +31,11 @@ export class SigningKey {
     get privateKey() {
         return this.#privateKey;
     }
-    /**
-     *  The uncompressed public key.
-     *
-     * This will always begin with the prefix ``0x04`` and be 132
-     * characters long (the ``0x`` prefix and 130 hexadecimal nibbles).
-     */
+    /** The 57-byte Ed448 public key encoded as hex. */
     get publicKey() {
         return SigningKey.computePublicKey(this.#privateKey);
     }
-    /**
-     *  The compressed public key.
-     *
-     *  This will always begin with either the prefix ``0x02`` or ``0x03``
-     *  and be 68 characters long (the ``0x`` prefix and 33 hexadecimal
-     *  nibbles)
-     */
+    /** Compatibility alias: Ed448 has one 57-byte public-key encoding. */
     get compressedPublicKey() {
         return SigningKey.computePublicKey(this.#privateKey, true);
     }
@@ -85,57 +70,20 @@ export class SigningKey {
         const hexlified = hexlify(sig);
         return hexConcat([hexlified, this.publicKey]);
     }
-    /**
-     *  Returns the [[link-wiki-ecdh]] shared secret between this
-     *  private key and the %%other%% key.
-     *
-     *  The %%other%% key may be any type of key, a raw public key,
-     *  a compressed/uncompressed pubic key or aprivate key.
-     *
-     *  Best practice is usually to use a cryptographic hash on the
-     *  returned value before using it as a symetric secret.
-     *
-     *  @example:
-     *    sign1 = new SigningKey(id("some-secret-1"))
-     *    sign2 = new SigningKey(id("some-secret-2"))
-     *
-     *    // Notice that privA.computeSharedSecret(pubB)...
-     *    sign1.computeSharedSecret(sign2.publicKey)
-     *    //_result:
-     *
-     *    // ...is equal to privB.computeSharedSecret(pubA).
-     *    sign2.computeSharedSecret(sign1.publicKey)
-     *    //_result:
-     */
+    /** Derives an Ed448 shared secret from a 57-byte public key. Hash it before use as a symmetric key. */
     computeSharedSecret(other) {
-        const pubKey = SigningKey.computePublicKey(other);
-        return hexlify(secp256k1.getSharedSecret(getBytesCopy(this.#privateKey), getBytes(pubKey)));
+        const pub = Buffer.from(getBytesCopy(other));
+        assertArgument(pub.length === 57 && ed448.publicKeyVerify(pub), "invalid public key", "other", other);
+        const key = Buffer.from(getBytesCopy(this.#privateKey));
+        if (key[56] > 127) {
+            const scalar = key.subarray(0, 56);
+            scalar[0] &= 0xfc;
+            scalar[55] |= 0x80;
+            return hexlify(ed448.deriveWithScalar(pub, scalar));
+        }
+        return hexlify(ed448.derive(pub, key));
     }
-    /**
-     *  Compute the public key for %%key%%, optionally %%compressed%%.
-     *
-     *  The %%key%% may be any type of key, a raw public key, a
-     *  compressed/uncompressed public key or private key.
-     *
-     *  @example:
-     *    sign = new SigningKey(id("some-secret"));
-     *
-     *    // Compute the uncompressed public key for a private key
-     *    SigningKey.computePublicKey(sign.privateKey)
-     *    //_result:
-     *
-     *    // Compute the compressed public key for a private key
-     *    SigningKey.computePublicKey(sign.privateKey, true)
-     *    //_result:
-     *
-     *    // Compute the uncompressed public key
-     *    SigningKey.computePublicKey(sign.publicKey, false);
-     *    //_result:
-     *
-     *    // Compute the Compressed a public key
-     *    SigningKey.computePublicKey(sign.publicKey, true);
-     *    //_result:
-     */
+    /** Computes an Ed448 public key from a 57-byte private key. The compression flag is ignored. */
     static computePublicKey(key, compressed) {
         const bytes = Buffer.from(arrayify(key));
         if (bytes.length !== 57) {
@@ -184,20 +132,14 @@ export class SigningKey {
         logger.throwArgumentError("invalid signature", "signature", signature);
         return "";
     }
-    /**
-     *  Returns the point resulting from adding the ellipic curve points
-     *  %%p0%% and %%p1%%.
-     *
-     *  This is not a common function most developers should require, but
-     *  can be useful for certain privacy-specific techniques.
-     *
-     *  For example, it is used by [[HDNodeWallet]] to compute child
-     *  addresses from parent public keys and chain codes.
-     */
+    /** Adds two encoded Ed448 public points. The compression flag is ignored. */
     static addPoints(p0, p1, compressed) {
-        const pub0 = secp256k1.ProjectivePoint.fromHex(SigningKey.computePublicKey(p0).substring(2));
-        const pub1 = secp256k1.ProjectivePoint.fromHex(SigningKey.computePublicKey(p1).substring(2));
-        return "0x" + pub0.add(pub1).toHex(!!compressed);
+        const points = [p0, p1].map((point) => {
+            const bytes = Buffer.from(getBytesCopy(point));
+            assertArgument(bytes.length === 57 && ed448.publicKeyVerify(bytes), "invalid public key", "point", point);
+            return bytes;
+        });
+        return hexlify(ed448.publicKeyCombine(points));
     }
 }
 //# sourceMappingURL=signing-key.js.map

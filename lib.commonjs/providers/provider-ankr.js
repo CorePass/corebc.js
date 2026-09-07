@@ -1,6 +1,16 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.AnkrProvider = void 0;
+'use strict';
+
+require('../utils/base58.js');
+require('../logger/logger.js');
+var errors = require('../utils/errors.js');
+var properties = require('../utils/properties.js');
+var fetch = require('../utils/fetch.js');
+require('../utils/fixednumber.js');
+require('../utils/maths.js');
+var community = require('./community.js');
+var network = require('./network.js');
+var providerJsonrpc = require('./provider-jsonrpc.js');
+
 /**
  *  [[link-ankr]] provides a third-party service for connecting to
  *  various blockchains over JSON-RPC.
@@ -14,10 +24,6 @@ exports.AnkrProvider = void 0;
  *
  *  @_subsection: api/providers/thirdparty:Ankr  [providers-ankr]
  */
-const index_js_1 = require("../utils/index.js");
-const community_js_1 = require("./community.js");
-const network_js_1 = require("./network.js");
-const provider_jsonrpc_js_1 = require("./provider-jsonrpc.js");
 const defaultApiKey = "9f7d929b018cdffb338517efa06f58359e86ff1ffd350bc889738523659e7972";
 function getHost(name) {
     switch (name) {
@@ -30,7 +36,7 @@ function getHost(name) {
         case "arbitrum":
             return "rpc.ankr.com/arbitrum";
     }
-    (0, index_js_1.assertArgument)(false, "unsupported network", "network", name);
+    errors.assertArgument(false, "unsupported network", "network", name);
 }
 /**
  *  The **AnkrProvider** connects to the [[link-ankr]]
@@ -41,7 +47,7 @@ function getHost(name) {
  *  gain access to an increased rate-limit, it is highly
  *  recommended to [sign up here](link-ankr-signup).
  */
-class AnkrProvider extends provider_jsonrpc_js_1.JsonRpcProvider {
+class AnkrProvider extends providerJsonrpc.JsonRpcProvider {
     /**
      *  The API key for the Ankr connection.
      */
@@ -56,15 +62,15 @@ class AnkrProvider extends provider_jsonrpc_js_1.JsonRpcProvider {
         if (_network == null) {
             _network = "mainnet";
         }
-        const network = network_js_1.Network.from(_network);
+        const network$1 = network.Network.from(_network);
         if (apiKey == null) {
             apiKey = defaultApiKey;
         }
         // Ankr does not support filterId, so we force polling
-        const options = { polling: true, staticNetwork: network };
-        const request = AnkrProvider.getRequest(network, apiKey);
-        super(request, network, options);
-        (0, index_js_1.defineProperties)(this, { apiKey });
+        const options = { polling: true, staticNetwork: network$1 };
+        const request = AnkrProvider.getRequest(network$1, apiKey);
+        super(request, network$1, options);
+        properties.defineProperties(this, { apiKey });
     }
     _getProvider(networkId) {
         try {
@@ -81,11 +87,11 @@ class AnkrProvider extends provider_jsonrpc_js_1.JsonRpcProvider {
         if (apiKey == null) {
             apiKey = defaultApiKey;
         }
-        const request = new index_js_1.FetchRequest(`https:/\/${getHost(network.name)}/${apiKey}`);
+        const request = new fetch.FetchRequest(`https:/\/${getHost(network.name)}/${apiKey}`);
         request.allowGzip = true;
         if (apiKey === defaultApiKey) {
             request.retryFunc = async (request, response, attempt) => {
-                (0, community_js_1.showThrottleMessage)("AnkrProvider");
+                community.showThrottleMessage("AnkrProvider");
                 return true;
             };
         }
@@ -105,5 +111,6 @@ class AnkrProvider extends provider_jsonrpc_js_1.JsonRpcProvider {
         return this.apiKey === defaultApiKey;
     }
 }
+
 exports.AnkrProvider = AnkrProvider;
 //# sourceMappingURL=provider-ankr.js.map

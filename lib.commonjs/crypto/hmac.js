@@ -1,6 +1,20 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.computeHmac = void 0;
+'use strict';
+
+require('bcrypto/lib/ed448.js');
+require('buffer');
+require('bcrypto/lib/pbkdf2.js');
+require('bcrypto/lib/sha3-512.js');
+var crypto = require('crypto');
+require('../utils/base58.js');
+var data = require('../utils/data.js');
+require('../utils/errors.js');
+require('../logger/logger.js');
+require('http');
+require('https');
+require('zlib');
+require('../utils/fixednumber.js');
+require('../utils/maths.js');
+
 /**
  *  An **HMAC** enables verification that a given key was used
  *  to authenticate a payload.
@@ -9,11 +23,9 @@ exports.computeHmac = void 0;
  *
  *  @_subsection: api/crypto:HMAC  [about-hmac]
  */
-const crypto_js_1 = require("./crypto.js");
-const index_js_1 = require("../utils/index.js");
 let locked = false;
 const _computeHmac = function (algorithm, key, data) {
-    return (0, crypto_js_1.createHmac)(algorithm, key).update(data).digest();
+    return crypto.createHmac(algorithm, key).update(data).digest();
 };
 let __computeHmac = _computeHmac;
 /**
@@ -34,11 +46,10 @@ let __computeHmac = _computeHmac;
  *
  */
 function computeHmac(algorithm, _key, _data) {
-    const key = (0, index_js_1.getBytes)(_key, "key");
-    const data = (0, index_js_1.getBytes)(_data, "data");
-    return (0, index_js_1.hexlify)(__computeHmac(algorithm, key, data));
+    const key = data.getBytes(_key, "key");
+    const data$1 = data.getBytes(_data, "data");
+    return data.hexlify(__computeHmac(algorithm, key, data$1));
 }
-exports.computeHmac = computeHmac;
 computeHmac._ = _computeHmac;
 computeHmac.lock = function () {
     locked = true;
@@ -50,4 +61,6 @@ computeHmac.register = function (func) {
     __computeHmac = func;
 };
 Object.freeze(computeHmac);
+
+exports.computeHmac = computeHmac;
 //# sourceMappingURL=hmac.js.map

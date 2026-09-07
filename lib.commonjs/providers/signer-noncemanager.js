@@ -1,15 +1,23 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.NonceManager = void 0;
-const index_js_1 = require("../utils/index.js");
-const abstract_signer_js_1 = require("./abstract-signer.js");
-class NonceManager extends abstract_signer_js_1.AbstractSigner {
+'use strict';
+
+require('../utils/base58.js');
+require('../logger/logger.js');
+require('../utils/errors.js');
+var properties = require('../utils/properties.js');
+require('http');
+require('https');
+require('zlib');
+require('../utils/fixednumber.js');
+require('../utils/maths.js');
+var abstractSigner = require('./abstract-signer.js');
+
+class NonceManager extends abstractSigner.AbstractSigner {
     signer;
     #noncePromise;
     #delta;
     constructor(signer) {
         super(signer.provider);
-        (0, index_js_1.defineProperties)(this, { signer });
+        properties.defineProperties(this, { signer });
         this.#noncePromise = null;
         this.#delta = 0;
     }
@@ -55,5 +63,6 @@ class NonceManager extends abstract_signer_js_1.AbstractSigner {
         return this.signer.signTypedData(domain, types, value);
     }
 }
+
 exports.NonceManager = NonceManager;
 //# sourceMappingURL=signer-noncemanager.js.map

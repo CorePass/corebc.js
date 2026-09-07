@@ -1,0 +1,7 @@
+# Generated artifacts are retained for this repository's distribution model.
+lib.esm/** linguist-generated=true
+lib.commonjs/** linguist-generated=true
+types/** linguist-generated=true
+dist/** linguist-generated=true
+# Rollup preserves trailing spaces in bundled third-party dependency sources.
+dist/*.js whitespace=-blank-at-eol

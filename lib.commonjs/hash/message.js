@@ -1,10 +1,34 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.verifyMessage = exports.hashMessage = void 0;
-const index_js_1 = require("../constants/index.js");
-const index_js_2 = require("../transaction/index.js");
-const index_js_3 = require("../utils/index.js");
-const index_js_4 = require("../crypto/index.js");
+'use strict';
+
+require('../constants/numbers.js');
+var strings = require('../constants/strings.js');
+require('../address/index.js');
+require('../utils/base58.js');
+var data = require('../utils/data.js');
+require('../utils/errors.js');
+require('../logger/logger.js');
+var utf8 = require('../utils/utf8.js');
+require('http');
+require('https');
+require('zlib');
+require('../utils/fixednumber.js');
+require('../utils/maths.js');
+var address = require('../transaction/address.js');
+require('../transaction/transaction.js');
+require('../crypto/hmac.js');
+require('../crypto/ripemd160.js');
+require('../crypto/pbkdf2.js');
+require('../crypto/random.js');
+require('../crypto/scrypt.js');
+var sha3 = require('../crypto/sha3.js');
+require('bcrypto/lib/ed448.js');
+require('buffer');
+require('bcrypto/lib/pbkdf2.js');
+require('bcrypto/lib/sha3-512.js');
+require('crypto');
+require('../crypto/keccak.js');
+require('../crypto/signature.js');
+
 /**
  *  Computes the [[link-eip-191]] personal-sign message digest to sign.
  *
@@ -33,22 +57,23 @@ const index_js_4 = require("../crypto/index.js");
  */
 function hashMessage(message) {
     if (typeof message === "string") {
-        message = (0, index_js_3.toUtf8Bytes)(message);
+        message = utf8.toUtf8Bytes(message);
     }
-    return (0, index_js_4.sha256)((0, index_js_3.concat)([
-        (0, index_js_3.toUtf8Bytes)(index_js_1.MessagePrefix),
-        (0, index_js_3.toUtf8Bytes)(String(message.length)),
+    return sha3.sha256(data.concat([
+        utf8.toUtf8Bytes(strings.MessagePrefix),
+        utf8.toUtf8Bytes(String(message.length)),
         message,
     ]));
 }
-exports.hashMessage = hashMessage;
 /**
  *  Return the address of the private key that produced
  *  the signature %%sig%% during signing for %%message%%.
  */
 function verifyMessage(message, sig, prefix) {
     const digest = hashMessage(message);
-    return (0, index_js_2.recoverAddress)(digest, sig, prefix);
+    return address.recoverAddress(digest, sig, prefix);
 }
+
+exports.hashMessage = hashMessage;
 exports.verifyMessage = verifyMessage;
 //# sourceMappingURL=message.js.map

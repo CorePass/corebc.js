@@ -1,20 +1,43 @@
-"use strict";
+'use strict';
+
+var id = require('../hash/id.js');
+require('../constants/numbers.js');
+require('../address/index.js');
+require('../utils/base58.js');
+var data = require('../utils/data.js');
+var errors = require('../utils/errors.js');
+var properties = require('../utils/properties.js');
+require('http');
+require('https');
+require('zlib');
+require('../utils/fixednumber.js');
+var maths = require('../utils/maths.js');
+require('../crypto/hmac.js');
+require('../crypto/ripemd160.js');
+require('../crypto/pbkdf2.js');
+require('../crypto/random.js');
+require('../crypto/scrypt.js');
+var sha3 = require('../crypto/sha3.js');
+require('bcrypto/lib/ed448.js');
+require('buffer');
+require('bcrypto/lib/pbkdf2.js');
+require('bcrypto/lib/sha3-512.js');
+require('crypto');
+require('../crypto/keccak.js');
+require('../logger/logger.js');
+require('../crypto/signature.js');
+require('../transaction/transaction.js');
+require('../hash/typed-data.js');
+var abiCoder = require('./abi-coder.js');
+var abstractCoder = require('./coders/abstract-coder.js');
+var fragments = require('./fragments.js');
+var typed = require('./typed.js');
+
 /**
  *  About Interface
  *
  *  @_subsection api/abi:Interfaces  [interfaces]
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Interface = exports.Indexed = exports.ErrorDescription = exports.TransactionDescription = exports.LogDescription = exports.Result = exports.checkResultErrors = void 0;
-const index_js_1 = require("../hash/index.js");
-const index_js_2 = require("../utils/index.js");
-const abi_coder_js_1 = require("./abi-coder.js");
-const abstract_coder_js_1 = require("./coders/abstract-coder.js");
-Object.defineProperty(exports, "checkResultErrors", { enumerable: true, get: function () { return abstract_coder_js_1.checkResultErrors; } });
-Object.defineProperty(exports, "Result", { enumerable: true, get: function () { return abstract_coder_js_1.Result; } });
-const fragments_js_1 = require("./fragments.js");
-const typed_js_1 = require("./typed.js");
-const sha3_js_1 = require("../crypto/sha3.js");
 class LogDescription {
     fragment;
     name;
@@ -23,7 +46,7 @@ class LogDescription {
     args;
     constructor(fragment, topic, args) {
         const name = fragment.name, signature = fragment.format();
-        (0, index_js_2.defineProperties)(this, {
+        properties.defineProperties(this, {
             fragment,
             name,
             signature,
@@ -32,7 +55,6 @@ class LogDescription {
         });
     }
 }
-exports.LogDescription = LogDescription;
 class TransactionDescription {
     fragment;
     name;
@@ -42,7 +64,7 @@ class TransactionDescription {
     value;
     constructor(fragment, selector, args, value) {
         const name = fragment.name, signature = fragment.format();
-        (0, index_js_2.defineProperties)(this, {
+        properties.defineProperties(this, {
             fragment,
             name,
             args,
@@ -52,7 +74,6 @@ class TransactionDescription {
         });
     }
 }
-exports.TransactionDescription = TransactionDescription;
 class ErrorDescription {
     fragment;
     name;
@@ -61,7 +82,7 @@ class ErrorDescription {
     selector;
     constructor(fragment, selector, args) {
         const name = fragment.name, signature = fragment.format();
-        (0, index_js_2.defineProperties)(this, {
+        properties.defineProperties(this, {
             fragment,
             name,
             args,
@@ -70,7 +91,6 @@ class ErrorDescription {
         });
     }
 }
-exports.ErrorDescription = ErrorDescription;
 class Indexed {
     hash;
     _isIndexed;
@@ -78,10 +98,9 @@ class Indexed {
         return !!(value && value._isIndexed);
     }
     constructor(hash) {
-        (0, index_js_2.defineProperties)(this, { hash, _isIndexed: true });
+        properties.defineProperties(this, { hash, _isIndexed: true });
     }
 }
-exports.Indexed = Indexed;
 // https://docs.soliditylang.org/en/v0.8.13/control-structures.html?highlight=panic#panic-via-assert-and-error-via-require
 const PanicReasons = {
     "0": "generic panic",
@@ -152,13 +171,13 @@ class Interface {
     /**
      *  Create a new Interface for the %%fragments%%.
      */
-    constructor(fragments) {
+    constructor(fragments$1) {
         let abi = [];
-        if (typeof fragments === "string") {
-            abi = JSON.parse(fragments);
+        if (typeof fragments$1 === "string") {
+            abi = JSON.parse(fragments$1);
         }
         else {
-            abi = fragments;
+            abi = fragments$1;
         }
         this.#functions = new Map();
         this.#errors = new Map();
@@ -167,13 +186,13 @@ class Interface {
         const frags = [];
         for (const a of abi) {
             try {
-                frags.push(fragments_js_1.Fragment.from(a));
+                frags.push(fragments.Fragment.from(a));
             }
             catch (error) {
                 console.log("EE", error);
             }
         }
-        (0, index_js_2.defineProperties)(this, {
+        properties.defineProperties(this, {
             fragments: Object.freeze(frags),
         });
         let fallback = null;
@@ -189,7 +208,7 @@ class Interface {
                         return;
                     }
                     //checkNames(fragment, "input", fragment.inputs);
-                    (0, index_js_2.defineProperties)(this, {
+                    properties.defineProperties(this, {
                         deploy: fragment,
                     });
                     return;
@@ -198,7 +217,7 @@ class Interface {
                         receive = true;
                     }
                     else {
-                        (0, index_js_2.assertArgument)(!fallback ||
+                        errors.assertArgument(!fallback ||
                             fragment.payable !== fallback.payable, "conflicting fallback fragments", `fragments[${index}]`, fragment);
                         fallback = fragment;
                         receive = fallback.payable;
@@ -228,11 +247,11 @@ class Interface {
         });
         // If we do not have a constructor add a default
         if (!this.deploy) {
-            (0, index_js_2.defineProperties)(this, {
-                deploy: fragments_js_1.ConstructorFragment.from("constructor()"),
+            properties.defineProperties(this, {
+                deploy: fragments.ConstructorFragment.from("constructor()"),
             });
         }
-        (0, index_js_2.defineProperties)(this, { fallback, receive });
+        properties.defineProperties(this, { fallback, receive });
     }
     /**
      *  Returns the entire Human-Readable ABI, as an array of
@@ -258,12 +277,12 @@ class Interface {
      *  data.
      */
     getAbiCoder() {
-        return abi_coder_js_1.AbiCoder.defaultAbiCoder();
+        return abiCoder.AbiCoder.defaultAbiCoder();
     }
     // Find a function definition by any means necessary (unless it is ambiguous)
     #getFunction(key, values, forceUnique) {
         // Selector
-        if ((0, index_js_2.isHexString)(key)) {
+        if (data.isHexString(key)) {
             const selector = key.toLowerCase();
             for (const fragment of this.#functions.values()) {
                 if (selector === fragment.selector) {
@@ -284,7 +303,7 @@ class Interface {
                 const lastValue = values.length > 0 ? values[values.length - 1] : null;
                 let valueLength = values.length;
                 let allowOptions = true;
-                if (typed_js_1.Typed.isTyped(lastValue) && lastValue.type === "overrides") {
+                if (typed.Typed.isTyped(lastValue) && lastValue.type === "overrides") {
                     allowOptions = false;
                     valueLength--;
                 }
@@ -302,7 +321,7 @@ class Interface {
                     const inputs = matching[i].inputs;
                     for (let j = 0; j < values.length; j++) {
                         // Not a typed value
-                        if (!typed_js_1.Typed.isTyped(values[j])) {
+                        if (!typed.Typed.isTyped(values[j])) {
                             continue;
                         }
                         // We are past the inputs
@@ -340,12 +359,12 @@ class Interface {
                 const matchStr = matching
                     .map((m) => JSON.stringify(m.format()))
                     .join(", ");
-                (0, index_js_2.assertArgument)(false, `ambiguous function description (i.e. matches ${matchStr})`, "key", key);
+                errors.assertArgument(false, `ambiguous function description (i.e. matches ${matchStr})`, "key", key);
             }
             return matching[0];
         }
         // Normalize the signature and lookup the function
-        const result = this.#functions.get(fragments_js_1.FunctionFragment.from(key).format());
+        const result = this.#functions.get(fragments.FunctionFragment.from(key).format());
         if (result) {
             return result;
         }
@@ -357,7 +376,7 @@ class Interface {
      */
     getFunctionName(key) {
         const fragment = this.#getFunction(key, null, false);
-        (0, index_js_2.assertArgument)(fragment, "no matching function", "key", key);
+        errors.assertArgument(fragment, "no matching function", "key", key);
         return fragment.name;
     }
     /**
@@ -397,7 +416,7 @@ class Interface {
     // Find an event definition by any means necessary (unless it is ambiguous)
     #getEvent(key, values, forceUnique) {
         // EventTopic
-        if ((0, index_js_2.isHexString)(key)) {
+        if (data.isHexString(key)) {
             const eventTopic = key.toLowerCase();
             for (const fragment of this.#events.values()) {
                 if (eventTopic === fragment.topicHash) {
@@ -426,7 +445,7 @@ class Interface {
                     const inputs = matching[i].inputs;
                     for (let j = 0; j < values.length; j++) {
                         // Not a typed value
-                        if (!typed_js_1.Typed.isTyped(values[j])) {
+                        if (!typed.Typed.isTyped(values[j])) {
                             continue;
                         }
                         // Make sure the value type matches the input type
@@ -444,12 +463,12 @@ class Interface {
                 const matchStr = matching
                     .map((m) => JSON.stringify(m.format()))
                     .join(", ");
-                (0, index_js_2.assertArgument)(false, `ambiguous event description (i.e. matches ${matchStr})`, "key", key);
+                errors.assertArgument(false, `ambiguous event description (i.e. matches ${matchStr})`, "key", key);
             }
             return matching[0];
         }
         // Normalize the signature and lookup the function
-        const result = this.#events.get(fragments_js_1.EventFragment.from(key).format());
+        const result = this.#events.get(fragments.EventFragment.from(key).format());
         if (result) {
             return result;
         }
@@ -461,7 +480,7 @@ class Interface {
      */
     getEventName(key) {
         const fragment = this.#getEvent(key, null, false);
-        (0, index_js_2.assertArgument)(fragment, "no matching event", "key", key);
+        errors.assertArgument(fragment, "no matching event", "key", key);
         return fragment.name;
     }
     /**
@@ -509,10 +528,10 @@ class Interface {
      *  the ABI, this will throw.
      */
     getError(key, values) {
-        if ((0, index_js_2.isHexString)(key)) {
+        if (data.isHexString(key)) {
             const selector = key.toLowerCase();
             if (BuiltinErrors[selector]) {
-                return fragments_js_1.ErrorFragment.from(BuiltinErrors[selector].signature);
+                return fragments.ErrorFragment.from(BuiltinErrors[selector].signature);
             }
             for (const fragment of this.#errors.values()) {
                 if (selector === fragment.selector) {
@@ -531,10 +550,10 @@ class Interface {
             }
             if (matching.length === 0) {
                 if (key === "Error") {
-                    return fragments_js_1.ErrorFragment.from("error Error(string)");
+                    return fragments.ErrorFragment.from("error Error(string)");
                 }
                 if (key === "Panic") {
-                    return fragments_js_1.ErrorFragment.from("error Panic(uint256)");
+                    return fragments.ErrorFragment.from("error Panic(uint256)");
                 }
                 return null;
             }
@@ -542,17 +561,17 @@ class Interface {
                 const matchStr = matching
                     .map((m) => JSON.stringify(m.format()))
                     .join(", ");
-                (0, index_js_2.assertArgument)(false, `ambiguous error description (i.e. ${matchStr})`, "name", key);
+                errors.assertArgument(false, `ambiguous error description (i.e. ${matchStr})`, "name", key);
             }
             return matching[0];
         }
         // Normalize the signature and lookup the function
-        key = fragments_js_1.ErrorFragment.from(key).format();
+        key = fragments.ErrorFragment.from(key).format();
         if (key === "Error(string)") {
-            return fragments_js_1.ErrorFragment.from("error Error(string)");
+            return fragments.ErrorFragment.from("error Error(string)");
         }
         if (key === "Panic(uint256)") {
-            return fragments_js_1.ErrorFragment.from("error Panic(uint256)");
+            return fragments.ErrorFragment.from("error Panic(uint256)");
         }
         const result = this.#errors.get(key);
         if (result) {
@@ -573,32 +592,32 @@ class Interface {
     }
     // Get the 4-byte selector used by Solidity to identify a function
     /*
-      getSelector(fragment: ErrorFragment | FunctionFragment): string {
-          if (typeof(fragment) === "string") {
-              const matches: Array<Fragment> = [ ];
-  
-              try { matches.push(this.getFunction(fragment)); } catch (error) { }
-              try { matches.push(this.getError(<string>fragment)); } catch (_) { }
-  
-              if (matches.length === 0) {
-                  logger.throwArgumentError("unknown fragment", "key", fragment);
-              } else if (matches.length > 1) {
-                  logger.throwArgumentError("ambiguous fragment matches function and error", "key", fragment);
-              }
-  
-              fragment = matches[0];
-          }
-  
-          return dataSlice(id(fragment.format()), 0, 4);
-      }
-          */
+    getSelector(fragment: ErrorFragment | FunctionFragment): string {
+        if (typeof(fragment) === "string") {
+            const matches: Array<Fragment> = [ ];
+
+            try { matches.push(this.getFunction(fragment)); } catch (error) { }
+            try { matches.push(this.getError(<string>fragment)); } catch (_) { }
+
+            if (matches.length === 0) {
+                logger.throwArgumentError("unknown fragment", "key", fragment);
+            } else if (matches.length > 1) {
+                logger.throwArgumentError("ambiguous fragment matches function and error", "key", fragment);
+            }
+
+            fragment = matches[0];
+        }
+
+        return dataSlice(id(fragment.format()), 0, 4);
+    }
+        */
     // Get the 32-byte topic hash used by Solidity to identify an event
     /*
-      getEventTopic(fragment: EventFragment): string {
-          //if (typeof(fragment) === "string") { fragment = this.getEvent(eventFragment); }
-          return id(fragment.format());
-      }
-      */
+    getEventTopic(fragment: EventFragment): string {
+        //if (typeof(fragment) === "string") { fragment = this.getEvent(eventFragment); }
+        return id(fragment.format());
+    }
+    */
     _decodeParams(params, data) {
         return this.#abiCoder.decode(params, data);
     }
@@ -621,14 +640,14 @@ class Interface {
      *  which will automatically detect a ``CALL_EXCEPTION`` and throw the
      *  corresponding error.
      */
-    decodeErrorResult(fragment, data) {
+    decodeErrorResult(fragment, data$1) {
         if (typeof fragment === "string") {
             const f = this.getError(fragment);
-            (0, index_js_2.assertArgument)(f, "unknown error", "fragment", fragment);
+            errors.assertArgument(f, "unknown error", "fragment", fragment);
             fragment = f;
         }
-        (0, index_js_2.assertArgument)((0, index_js_2.dataSlice)(data, 0, 4) === fragment.selector, `data signature does not match error ${fragment.name}.`, "data", data);
-        return this._decodeParams(fragment.inputs, (0, index_js_2.dataSlice)(data, 4));
+        errors.assertArgument(data.dataSlice(data$1, 0, 4) === fragment.selector, `data signature does not match error ${fragment.name}.`, "data", data$1);
+        return this._decodeParams(fragment.inputs, data.dataSlice(data$1, 4));
     }
     /**
      *  Encodes the transaction revert data for a call result that
@@ -641,10 +660,10 @@ class Interface {
     encodeErrorResult(fragment, values) {
         if (typeof fragment === "string") {
             const f = this.getError(fragment);
-            (0, index_js_2.assertArgument)(f, "unknown error", "fragment", fragment);
+            errors.assertArgument(f, "unknown error", "fragment", fragment);
             fragment = f;
         }
-        return (0, index_js_2.concat)([
+        return data.concat([
             fragment.selector,
             this._encodeParams(fragment.inputs, values || []),
         ]);
@@ -657,14 +676,14 @@ class Interface {
      *  Most developers should prefer the [[parseTransaction]] method
      *  instead, which will automatically detect the fragment.
      */
-    decodeFunctionData(fragment, data) {
+    decodeFunctionData(fragment, data$1) {
         if (typeof fragment === "string") {
             const f = this.getFunction(fragment);
-            (0, index_js_2.assertArgument)(f, "unknown function", "fragment", fragment);
+            errors.assertArgument(f, "unknown function", "fragment", fragment);
             fragment = f;
         }
-        (0, index_js_2.assertArgument)((0, index_js_2.dataSlice)(data, 0, 4) === fragment.selector, `data signature does not match function ${fragment.name}.`, "data", data);
-        return this._decodeParams(fragment.inputs, (0, index_js_2.dataSlice)(data, 4));
+        errors.assertArgument(data.dataSlice(data$1, 0, 4) === fragment.selector, `data signature does not match function ${fragment.name}.`, "data", data$1);
+        return this._decodeParams(fragment.inputs, data.dataSlice(data$1, 4));
     }
     /**
      *  Encodes the ``tx.data`` for a transaction that calls the function
@@ -674,10 +693,10 @@ class Interface {
     encodeFunctionData(fragment, values) {
         if (typeof fragment === "string") {
             const f = this.getFunction(fragment);
-            (0, index_js_2.assertArgument)(f, "unknown function", "fragment", fragment);
+            errors.assertArgument(f, "unknown function", "fragment", fragment);
             fragment = f;
         }
-        return (0, index_js_2.concat)([
+        return data.concat([
             fragment.selector,
             this._encodeParams(fragment.inputs, values || []),
         ]);
@@ -691,14 +710,14 @@ class Interface {
      *  which will automatically detect a ``CALL_EXCEPTION`` and throw the
      *  corresponding error.
      */
-    decodeFunctionResult(fragment, data) {
+    decodeFunctionResult(fragment, data$1) {
         if (typeof fragment === "string") {
             const f = this.getFunction(fragment);
-            (0, index_js_2.assertArgument)(f, "unknown function", "fragment", fragment);
+            errors.assertArgument(f, "unknown function", "fragment", fragment);
             fragment = f;
         }
         let message = "invalid length for result data";
-        const bytes = (0, index_js_2.getBytesCopy)(data);
+        const bytes = data.getBytesCopy(data$1);
         if (bytes.length % 32 === 0) {
             try {
                 return this.#abiCoder.decode(fragment.outputs, bytes);
@@ -708,22 +727,22 @@ class Interface {
             }
         }
         // Call returned data with no error, but the data is junk
-        (0, index_js_2.assert)(false, message, "BAD_DATA", {
-            value: (0, index_js_2.hexlify)(bytes),
+        errors.assert(false, message, "BAD_DATA", {
+            value: data.hexlify(bytes),
             info: { method: fragment.name, signature: fragment.format() },
         });
     }
     makeError(_data, tx) {
-        const data = (0, index_js_2.getBytes)(_data, "data");
-        const error = abi_coder_js_1.AbiCoder.getBuiltinCallException("call", tx, data);
+        const data$1 = data.getBytes(_data, "data");
+        const error = abiCoder.AbiCoder.getBuiltinCallException("call", tx, data$1);
         // Not a built-in error; try finding a custom error
         const customPrefix = "execution reverted (unknown custom error)";
         if (error.message.startsWith(customPrefix)) {
-            const selector = (0, index_js_2.hexlify)(data.slice(0, 4));
+            const selector = data.hexlify(data$1.slice(0, 4));
             const ef = this.getError(selector);
             if (ef) {
                 try {
-                    const args = this.#abiCoder.decode(ef.inputs, data.slice(4));
+                    const args = this.#abiCoder.decode(ef.inputs, data$1.slice(4));
                     error.revert = {
                         name: ef.name,
                         signature: ef.format(),
@@ -759,48 +778,48 @@ class Interface {
     encodeFunctionResult(fragment, values) {
         if (typeof fragment === "string") {
             const f = this.getFunction(fragment);
-            (0, index_js_2.assertArgument)(f, "unknown function", "fragment", fragment);
+            errors.assertArgument(f, "unknown function", "fragment", fragment);
             fragment = f;
         }
-        return (0, index_js_2.hexlify)(this.#abiCoder.encode(fragment.outputs, values || []));
+        return data.hexlify(this.#abiCoder.encode(fragment.outputs, values || []));
     }
     /*
-      spelunk(inputs: Array<ParamType>, values: ReadonlyArray<any>, processfunc: (type: string, value: any) => Promise<any>): Promise<Array<any>> {
-          const promises: Array<Promise<>> = [ ];
-          const process = function(type: ParamType, value: any): any {
-              if (type.baseType === "array") {
-                  return descend(type.child
-              }
-              if (type. === "address") {
-              }
-          };
-  
-          const descend = function (inputs: Array<ParamType>, values: ReadonlyArray<any>) {
-              if (inputs.length !== values.length) { throw new Error("length mismatch"); }
-          };
-  
-          const result: Array<any> = [ ];
-          values.forEach((value, index) => {
-              if (value == null) {
-                  topics.push(null);
-              } else if (param.baseType === "array" || param.baseType === "tuple") {
-                  logger.throwArgumentError("filtering with tuples or arrays not supported", ("contract." + param.name), value);
-              } else if (Array.isArray(value)) {
-                  topics.push(value.map((value) => encodeTopic(param, value)));
-              } else {
-                  topics.push(encodeTopic(param, value));
-              }
-          });
-      }
-  */
+    spelunk(inputs: Array<ParamType>, values: ReadonlyArray<any>, processfunc: (type: string, value: any) => Promise<any>): Promise<Array<any>> {
+        const promises: Array<Promise<>> = [ ];
+        const process = function(type: ParamType, value: any): any {
+            if (type.baseType === "array") {
+                return descend(type.child
+            }
+            if (type. === "address") {
+            }
+        };
+
+        const descend = function (inputs: Array<ParamType>, values: ReadonlyArray<any>) {
+            if (inputs.length !== values.length) { throw new Error("length mismatch"); }
+        };
+
+        const result: Array<any> = [ ];
+        values.forEach((value, index) => {
+            if (value == null) {
+                topics.push(null);
+            } else if (param.baseType === "array" || param.baseType === "tuple") {
+                logger.throwArgumentError("filtering with tuples or arrays not supported", ("contract." + param.name), value);
+            } else if (Array.isArray(value)) {
+                topics.push(value.map((value) => encodeTopic(param, value)));
+            } else {
+                topics.push(encodeTopic(param, value));
+            }
+        });
+    }
+*/
     // Create the filter for the event with search criteria (e.g. for xcb_filterLog)
     encodeFilterTopics(fragment, values) {
         if (typeof fragment === "string") {
             const f = this.getEvent(fragment);
-            (0, index_js_2.assertArgument)(f, "unknown event", "eventFragment", fragment);
+            errors.assertArgument(f, "unknown event", "eventFragment", fragment);
             fragment = f;
         }
-        (0, index_js_2.assert)(values.length <= fragment.inputs.length, `too many arguments for ${fragment.format()}`, "UNEXPECTED_ARGUMENT", { count: values.length, expectedCount: fragment.inputs.length });
+        errors.assert(values.length <= fragment.inputs.length, `too many arguments for ${fragment.format()}`, "UNEXPECTED_ARGUMENT", { count: values.length, expectedCount: fragment.inputs.length });
         const topics = [];
         if (!fragment.anonymous) {
             topics.push(fragment.topicHash);
@@ -808,35 +827,35 @@ class Interface {
         // @TODO: Use the coders for this; to properly support tuples, etc.
         const encodeTopic = (param, value) => {
             if (param.type === "string") {
-                return (0, index_js_1.id)(value);
+                return id.id(value);
             }
             else if (param.type === "bytes") {
-                return (0, sha3_js_1.sha256)((0, index_js_2.hexlify)(value));
+                return sha3.sha256(data.hexlify(value));
             }
             if (param.type === "bool" && typeof value === "boolean") {
                 value = value ? "0x01" : "0x00";
             }
             if (param.type.match(/^u?int/)) {
-                value = (0, index_js_2.toBeHex)(value);
+                value = maths.toBeHex(value);
             }
             // Check addresses are valid
             if (param.type === "address") {
                 this.#abiCoder.encode(["address"], [value]);
             }
-            return (0, index_js_2.zeroPadValue)((0, index_js_2.hexlify)(value), 32);
+            return data.zeroPadValue(data.hexlify(value), 32);
             //@TOOD should probably be return toHex(value, 32)
         };
         values.forEach((value, index) => {
             const param = fragment.inputs[index];
             if (!param.indexed) {
-                (0, index_js_2.assertArgument)(value == null, "cannot filter non-indexed parameters; must be null", "contract." + param.name, value);
+                errors.assertArgument(value == null, "cannot filter non-indexed parameters; must be null", "contract." + param.name, value);
                 return;
             }
             if (value == null) {
                 topics.push(null);
             }
             else if (param.baseType === "array" || param.baseType === "tuple") {
-                (0, index_js_2.assertArgument)(false, "filtering with tuples or arrays not supported", "contract." + param.name, value);
+                errors.assertArgument(false, "filtering with tuples or arrays not supported", "contract." + param.name, value);
             }
             else if (Array.isArray(value)) {
                 topics.push(value.map((value) => encodeTopic(param, value)));
@@ -854,7 +873,7 @@ class Interface {
     encodeEventLog(fragment, values) {
         if (typeof fragment === "string") {
             const f = this.getEvent(fragment);
-            (0, index_js_2.assertArgument)(f, "unknown event", "eventFragment", fragment);
+            errors.assertArgument(f, "unknown event", "eventFragment", fragment);
             fragment = f;
         }
         const topics = [];
@@ -863,15 +882,15 @@ class Interface {
         if (!fragment.anonymous) {
             topics.push(fragment.topicHash);
         }
-        (0, index_js_2.assertArgument)(values.length === fragment.inputs.length, "event arguments/values mismatch", "values", values);
+        errors.assertArgument(values.length === fragment.inputs.length, "event arguments/values mismatch", "values", values);
         fragment.inputs.forEach((param, index) => {
             const value = values[index];
             if (param.indexed) {
                 if (param.type === "string") {
-                    topics.push((0, index_js_1.id)(value));
+                    topics.push(id.id(value));
                 }
                 else if (param.type === "bytes") {
-                    topics.push((0, sha3_js_1.sha256)(value));
+                    topics.push(sha3.sha256(value));
                 }
                 else if (param.baseType === "tuple" || param.baseType === "array") {
                     // @TODO
@@ -892,15 +911,15 @@ class Interface {
         };
     }
     // Decode a filter for the event and the search criteria
-    decodeEventLog(fragment, data, topics) {
+    decodeEventLog(fragment, data$1, topics) {
         if (typeof fragment === "string") {
             const f = this.getEvent(fragment);
-            (0, index_js_2.assertArgument)(f, "unknown event", "eventFragment", fragment);
+            errors.assertArgument(f, "unknown event", "eventFragment", fragment);
             fragment = f;
         }
         if (topics != null && !fragment.anonymous) {
             const eventTopic = fragment.topicHash;
-            (0, index_js_2.assertArgument)((0, index_js_2.isHexString)(topics[0], 32) && topics[0].toLowerCase() === eventTopic, "fragment/topic mismatch", "topics[0]", topics[0]);
+            errors.assertArgument(data.isHexString(topics[0], 32) && topics[0].toLowerCase() === eventTopic, "fragment/topic mismatch", "topics[0]", topics[0]);
             topics = topics.slice(1);
         }
         const indexed = [];
@@ -912,7 +931,7 @@ class Interface {
                     param.type === "bytes" ||
                     param.baseType === "tuple" ||
                     param.baseType === "array") {
-                    indexed.push(fragments_js_1.ParamType.from({ type: "bytes32", name: param.name }));
+                    indexed.push(fragments.ParamType.from({ type: "bytes32", name: param.name }));
                     dynamic.push(true);
                 }
                 else {
@@ -925,8 +944,8 @@ class Interface {
                 dynamic.push(false);
             }
         });
-        const resultIndexed = topics != null ? this.#abiCoder.decode(indexed, (0, index_js_2.concat)(topics)) : null;
-        const resultNonIndexed = this.#abiCoder.decode(nonIndexed, data, true);
+        const resultIndexed = topics != null ? this.#abiCoder.decode(indexed, data.concat(topics)) : null;
+        const resultNonIndexed = this.#abiCoder.decode(nonIndexed, data$1, true);
         //const result: (Array<any> & { [ key: string ]: any }) = [ ];
         const values = [];
         const keys = [];
@@ -960,7 +979,7 @@ class Interface {
             values.push(value);
             keys.push(param.name || null);
         });
-        return abstract_coder_js_1.Result.fromItems(values, keys);
+        return abstractCoder.Result.fromItems(values, keys);
     }
     /**
      *  Parses a transaction, finding the matching function and extracts
@@ -969,13 +988,13 @@ class Interface {
      *  If the matching function cannot be found, return null.
      */
     parseTransaction(tx) {
-        const data = (0, index_js_2.getBytes)(tx.data, "tx.data");
-        const value = (0, index_js_2.getBigInt)(tx.value != null ? tx.value : 0, "tx.value");
-        const fragment = this.getFunction((0, index_js_2.hexlify)(data.slice(0, 4)));
+        const data$1 = data.getBytes(tx.data, "tx.data");
+        const value = maths.getBigInt(tx.value != null ? tx.value : 0, "tx.value");
+        const fragment = this.getFunction(data.hexlify(data$1.slice(0, 4)));
         if (!fragment) {
             return null;
         }
-        const args = this.#abiCoder.decode(fragment.inputs, data.slice(4));
+        const args = this.#abiCoder.decode(fragment.inputs, data$1.slice(4));
         return new TransactionDescription(fragment, fragment.selector, args, value);
     }
     parseCallResult(data) {
@@ -1003,13 +1022,13 @@ class Interface {
      *
      *  If the matching event cannot be found, returns null.
      */
-    parseError(data) {
-        const hexData = (0, index_js_2.hexlify)(data);
-        const fragment = this.getError((0, index_js_2.dataSlice)(hexData, 0, 4));
+    parseError(data$1) {
+        const hexData = data.hexlify(data$1);
+        const fragment = this.getError(data.dataSlice(hexData, 0, 4));
         if (!fragment) {
             return null;
         }
-        const args = this.#abiCoder.decode(fragment.inputs, (0, index_js_2.dataSlice)(hexData, 4));
+        const args = this.#abiCoder.decode(fragment.inputs, data.dataSlice(hexData, 4));
         return new ErrorDescription(fragment, fragment.selector, args);
     }
     /**
@@ -1035,5 +1054,12 @@ class Interface {
         return new Interface(value);
     }
 }
+
+exports.Result = abstractCoder.Result;
+exports.checkResultErrors = abstractCoder.checkResultErrors;
+exports.ErrorDescription = ErrorDescription;
+exports.Indexed = Indexed;
 exports.Interface = Interface;
+exports.LogDescription = LogDescription;
+exports.TransactionDescription = TransactionDescription;
 //# sourceMappingURL=interface.js.map

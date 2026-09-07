@@ -485,7 +485,7 @@ export class AbstractProvider {
         }
         const networkPromise = this.#networkPromise;
         const [expected, actual] = await Promise.all([
-            networkPromise,
+            networkPromise, // Possibly an explicit Network
             this._detectNetwork(), // The actual connected network
         ]);
         if (expected.networkId !== actual.networkId) {
@@ -582,7 +582,7 @@ export class AbstractProvider {
                     action: "call",
                     data,
                     reason: "OffchainLookup",
-                    transaction: transaction,
+                    transaction: transaction, // @TODO: populate data?
                     invocation: null,
                     revert: {
                         signature: "OffchainLookup(address,string[],bytes,bytes4,bytes)",

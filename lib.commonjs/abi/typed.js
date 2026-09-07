@@ -1,4 +1,15 @@
-"use strict";
+'use strict';
+
+require('../utils/base58.js');
+require('../logger/logger.js');
+var errors = require('../utils/errors.js');
+var properties = require('../utils/properties.js');
+require('http');
+require('https');
+require('zlib');
+require('../utils/fixednumber.js');
+require('../utils/maths.js');
+
 /**
  *  A Typed object allows a value to have its type explicitly
  *  specified.
@@ -13,9 +24,6 @@
  *
  *  @_subsection: api/abi:Typed Values
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Typed = void 0;
-const index_js_1 = require("../utils/index.js");
 const _gaurd = {};
 function n(value, width) {
     let signed = false;
@@ -43,8 +51,8 @@ class Typed {
         if (options == null) {
             options = null;
         }
-        (0, index_js_1.assertPrivate)(_gaurd, gaurd, "Typed");
-        (0, index_js_1.defineProperties)(this, { _typedSymbol, type, value });
+        errors.assertPrivate(_gaurd, gaurd, "Typed");
+        properties.defineProperties(this, { _typedSymbol, type, value });
         this.#options = options;
         // Check the value is valid
         this.format();
@@ -412,11 +420,9 @@ class Typed {
     }
     static array(v, dynamic) {
         throw new Error("not implemented yet");
-        return new Typed(_gaurd, "array", v, dynamic);
     }
     static tuple(v, name) {
         throw new Error("not implemented yet");
-        return new Typed(_gaurd, "tuple", v, name);
     }
     static overrides(v) {
         return new Typed(_gaurd, "overrides", Object.assign({}, v));
@@ -444,5 +450,6 @@ class Typed {
         return value;
     }
 }
+
 exports.Typed = Typed;
 //# sourceMappingURL=typed.js.map

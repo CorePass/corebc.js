@@ -1,4 +1,4 @@
-/// <reference types="node" />
+/// <reference types="node" preserve="true" />
 import { SocketProvider } from "./provider-socket.js";
 import type { Socket } from "net";
 import type { Networkish } from "./network.js";

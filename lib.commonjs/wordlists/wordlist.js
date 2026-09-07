@@ -1,8 +1,16 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Wordlist = void 0;
-const id_js_1 = require("../hash/id.js");
-const index_js_1 = require("../utils/index.js");
+'use strict';
+
+var id = require('../hash/id.js');
+require('../utils/base58.js');
+require('../logger/logger.js');
+require('../utils/errors.js');
+var properties = require('../utils/properties.js');
+require('http');
+require('https');
+require('zlib');
+require('../utils/fixednumber.js');
+require('../utils/maths.js');
+
 /**
  *  A Wordlist represents a collection of language-specific
  *  words used to encode and devoce [[link-bip-39]] encoded data
@@ -21,7 +29,7 @@ class Wordlist {
      *  there is no state kept internally, so they are safe to share.
      */
     constructor(locale) {
-        (0, index_js_1.defineProperties)(this, { locale });
+        properties.defineProperties(this, { locale });
     }
     /**
      *  Sub-classes may override this to provide a language-specific
@@ -52,8 +60,9 @@ class Wordlist {
             }
             words.push(word);
         }
-        return (0, id_js_1.id)(words.join("\n") + "\n");
+        return id.id(words.join("\n") + "\n");
     }
 }
+
 exports.Wordlist = Wordlist;
 //# sourceMappingURL=wordlist.js.map

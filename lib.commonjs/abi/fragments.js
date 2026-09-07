@@ -1,14 +1,39 @@
-"use strict";
+'use strict';
+
+require('../utils/base58.js');
+require('../logger/logger.js');
+var errors = require('../utils/errors.js');
+var properties = require('../utils/properties.js');
+require('http');
+require('https');
+require('zlib');
+require('../utils/fixednumber.js');
+var maths = require('../utils/maths.js');
+var id = require('../hash/id.js');
+require('../constants/numbers.js');
+require('../address/index.js');
+require('../crypto/hmac.js');
+require('../crypto/ripemd160.js');
+require('../crypto/pbkdf2.js');
+require('../crypto/random.js');
+require('../crypto/scrypt.js');
+require('../crypto/sha3.js');
+require('bcrypto/lib/ed448.js');
+require('buffer');
+require('bcrypto/lib/pbkdf2.js');
+require('bcrypto/lib/sha3-512.js');
+require('crypto');
+require('../crypto/keccak.js');
+require('../crypto/signature.js');
+require('../transaction/transaction.js');
+require('../hash/typed-data.js');
+
 /**
  *  About frgaments...
  *
  *  @_subsection api/abi/abi-coder:Fragments  [about-fragments]
  */
 var _a;
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.StructFragment = exports.FunctionFragment = exports.FallbackFragment = exports.ConstructorFragment = exports.EventFragment = exports.ErrorFragment = exports.NamedFragment = exports.Fragment = exports.ParamType = void 0;
-const index_js_1 = require("../utils/index.js");
-const index_js_2 = require("../hash/index.js");
 // [ "a", "b" ] => { "a": 1, "b": 1 }
 function setify(items) {
     const result = new Set();
@@ -208,7 +233,7 @@ function lex(text) {
                     const value = tokens.pop().text;
                     suffix = value + suffix;
                     tokens[tokens.length - 1].value =
-                        (0, index_js_1.getNumber)(value);
+                        maths.getNumber(value);
                 }
                 if (tokens.length === 0 ||
                     tokens[tokens.length - 1].type !== "BRACKET") {
@@ -317,7 +342,7 @@ function consumeEnergy(tokens) {
     if (tokens.peekType("AT")) {
         tokens.pop();
         if (tokens.peekType("NUMBER")) {
-            return (0, index_js_1.getBigInt)(tokens.pop().text);
+            return maths.getBigInt(tokens.pop().text);
         }
         throw new Error("invalid energy");
     }
@@ -331,7 +356,7 @@ function consumeEoi(tokens) {
 const regexArrayType = new RegExp(/^(.*)\[([0-9]*)\]$/);
 function verifyBasicType(type) {
     const match = type.match(regexType);
-    (0, index_js_1.assertArgument)(match, "invalid type", "type", type);
+    errors.assertArgument(match, "invalid type", "type", type);
     if (type === "uint") {
         return "uint256";
     }
@@ -341,12 +366,12 @@ function verifyBasicType(type) {
     if (match[2]) {
         // bytesXX
         const length = parseInt(match[2]);
-        (0, index_js_1.assertArgument)(length !== 0 && length <= 32, "invalid bytes length", "type", type);
+        errors.assertArgument(length !== 0 && length <= 32, "invalid bytes length", "type", type);
     }
     else if (match[3]) {
         // intXX or uintXX
         const size = parseInt(match[3]);
-        (0, index_js_1.assertArgument)(size !== 0 && size <= 256 && size % 8 === 0, "invalid numeric width", "type", type);
+        errors.assertArgument(size !== 0 && size <= 256 && size % 8 === 0, "invalid numeric width", "type", type);
     }
     return type;
 }
@@ -405,7 +430,7 @@ class ParamType {
      *  @private
      */
     constructor(guard, name, type, baseType, indexed, components, arrayLength, arrayChildren) {
-        (0, index_js_1.assertPrivate)(guard, _guard, "ParamType");
+        errors.assertPrivate(guard, _guard, "ParamType");
         Object.defineProperty(this, internal, { value: ParamTypeInternal });
         if (components) {
             components = Object.freeze(components.slice());
@@ -426,7 +451,7 @@ class ParamType {
         else if (components != null) {
             throw new Error("");
         }
-        (0, index_js_1.defineProperties)(this, {
+        properties.defineProperties(this, {
             name,
             type,
             baseType,
@@ -691,10 +716,10 @@ class ParamType {
             return new ParamType(_guard, name, type, baseType, indexed, comps, arrayLength, arrayChildren);
         }
         const name = obj.name;
-        (0, index_js_1.assertArgument)(!name || (typeof name === "string" && name.match(regexId)), "invalid name", "obj.name", name);
+        errors.assertArgument(!name || (typeof name === "string" && name.match(regexId)), "invalid name", "obj.name", name);
         let indexed = obj.indexed;
         if (indexed != null) {
-            (0, index_js_1.assertArgument)(allowIndexed, "parameter cannot be indexed", "obj.indexed", obj.indexed);
+            errors.assertArgument(allowIndexed, "parameter cannot be indexed", "obj.indexed", obj.indexed);
             indexed = !!indexed;
         }
         let type = obj.type;
@@ -727,7 +752,6 @@ class ParamType {
         return value && value[internal] === ParamTypeInternal;
     }
 }
-exports.ParamType = ParamType;
 /**
  *  An abstract class to represent An individual fragment from a parse ABI.
  */
@@ -744,9 +768,9 @@ class Fragment {
      *  @private
      */
     constructor(guard, type, inputs) {
-        (0, index_js_1.assertPrivate)(guard, _guard, "Fragment");
+        errors.assertPrivate(guard, _guard, "Fragment");
         inputs = Object.freeze(inputs.slice());
-        (0, index_js_1.defineProperties)(this, { type, inputs });
+        properties.defineProperties(this, { type, inputs });
     }
     /**
      *  Creates a new **Fragment** for %%obj%%, wich can be any supported
@@ -798,11 +822,11 @@ class Fragment {
                 case "struct":
                     return StructFragment.from(obj);
             }
-            (0, index_js_1.assert)(false, `unsupported type: ${obj.type}`, "UNSUPPORTED_OPERATION", {
+            errors.assert(false, `unsupported type: ${obj.type}`, "UNSUPPORTED_OPERATION", {
                 operation: "Fragment.from",
             });
         }
-        (0, index_js_1.assertArgument)(false, "unsupported frgament object", "obj", obj);
+        errors.assertArgument(false, "unsupported frgament object", "obj", obj);
     }
     /**
      *  Returns true if %%value%% is a [[ConstructorFragment]].
@@ -835,7 +859,6 @@ class Fragment {
         return StructFragment.isFragment(value);
     }
 }
-exports.Fragment = Fragment;
 /**
  *  An abstract class to represent An individual fragment
  *  which has a name from a parse ABI.
@@ -850,12 +873,11 @@ class NamedFragment extends Fragment {
      */
     constructor(guard, type, name, inputs) {
         super(guard, type, inputs);
-        (0, index_js_1.assertArgument)(typeof name === "string" && name.match(regexId), "invalid identifier", "name", name);
+        errors.assertArgument(typeof name === "string" && name.match(regexId), "invalid identifier", "name", name);
         inputs = Object.freeze(inputs.slice());
-        (0, index_js_1.defineProperties)(this, { name });
+        properties.defineProperties(this, { name });
     }
 }
-exports.NamedFragment = NamedFragment;
 function joinParams(format, params) {
     return ("(" +
         params.map((p) => p.format(format)).join(format === "full" ? ", " : ",") +
@@ -876,7 +898,7 @@ class ErrorFragment extends NamedFragment {
      *  The Custom Error selector.
      */
     get selector() {
-        return (0, index_js_2.id)(this.format("sighash")).substring(0, 10);
+        return id.id(this.format("sighash")).substring(0, 10);
     }
     format(format) {
         if (format == null) {
@@ -915,7 +937,6 @@ class ErrorFragment extends NamedFragment {
         return value && value[internal] === ErrorFragmentInternal;
     }
 }
-exports.ErrorFragment = ErrorFragment;
 /**
  *  A Fragment which represents an Event.
  */
@@ -927,13 +948,13 @@ class EventFragment extends NamedFragment {
     constructor(guard, name, inputs, anonymous) {
         super(guard, "event", name, inputs);
         Object.defineProperty(this, internal, { value: EventFragmentInternal });
-        (0, index_js_1.defineProperties)(this, { anonymous });
+        properties.defineProperties(this, { anonymous });
     }
     /**
      *  The Event topic hash.
      */
     get topicHash() {
-        return (0, index_js_2.id)(this.format("sighash"));
+        return id.id(this.format("sighash"));
     }
     format(format) {
         if (format == null) {
@@ -982,7 +1003,6 @@ class EventFragment extends NamedFragment {
         return value && value[internal] === EventFragmentInternal;
     }
 }
-exports.EventFragment = EventFragment;
 /**
  *  A Fragment which represents a constructor.
  */
@@ -997,10 +1017,10 @@ class ConstructorFragment extends Fragment {
         Object.defineProperty(this, internal, {
             value: ConstructorFragmentInternal,
         });
-        (0, index_js_1.defineProperties)(this, { payable, energy });
+        properties.defineProperties(this, { payable, energy });
     }
     format(format) {
-        (0, index_js_1.assert)(format != null && format !== "sighash", "cannot format a constructor for sighash", "UNSUPPORTED_OPERATION", { operation: "format(sighash)" });
+        errors.assert(format != null && format !== "sighash", "cannot format a constructor for sighash", "UNSUPPORTED_OPERATION", { operation: "format(sighash)" });
         if (format === "json") {
             return JSON.stringify({
                 type: "constructor",
@@ -1038,7 +1058,6 @@ class ConstructorFragment extends Fragment {
         return value && value[internal] === ConstructorFragmentInternal;
     }
 }
-exports.ConstructorFragment = ConstructorFragment;
 /**
  *  A Fragment which represents a method.
  */
@@ -1050,7 +1069,7 @@ class FallbackFragment extends Fragment {
     constructor(guard, inputs, payable) {
         super(guard, "fallback", inputs);
         Object.defineProperty(this, internal, { value: FallbackFragmentInternal });
-        (0, index_js_1.defineProperties)(this, { payable });
+        properties.defineProperties(this, { payable });
     }
     format(format) {
         const type = this.inputs.length === 0 ? "receive" : "fallback";
@@ -1070,12 +1089,12 @@ class FallbackFragment extends Fragment {
         else if (obj instanceof TokenString) {
             const errorObj = obj.toString();
             const topIsValid = obj.peekKeyword(setify(["fallback", "receive"]));
-            (0, index_js_1.assertArgument)(topIsValid, "type must be fallback or receive", "obj", errorObj);
+            errors.assertArgument(topIsValid, "type must be fallback or receive", "obj", errorObj);
             const type = obj.popKeyword(setify(["fallback", "receive"]));
             // receive()
             if (type === "receive") {
                 const inputs = consumeParams(obj);
-                (0, index_js_1.assertArgument)(inputs.length === 0, `receive cannot have arguments`, "obj.inputs", inputs);
+                errors.assertArgument(inputs.length === 0, `receive cannot have arguments`, "obj.inputs", inputs);
                 consumeKeywords(obj, setify(["payable"]));
                 consumeEoi(obj);
                 return new FallbackFragment(_guard, [], true);
@@ -1084,16 +1103,16 @@ class FallbackFragment extends Fragment {
             // fallback(bytes) [payable] returns (bytes)
             let inputs = consumeParams(obj);
             if (inputs.length) {
-                (0, index_js_1.assertArgument)(inputs.length === 1 && inputs[0].type === "bytes", "invalid fallback inputs", "obj.inputs", inputs.map((i) => i.format("minimal")).join(", "));
+                errors.assertArgument(inputs.length === 1 && inputs[0].type === "bytes", "invalid fallback inputs", "obj.inputs", inputs.map((i) => i.format("minimal")).join(", "));
             }
             else {
                 inputs = [ParamType.from("bytes")];
             }
             const mutability = consumeMutability(obj);
-            (0, index_js_1.assertArgument)(mutability === "nonpayable" || mutability === "payable", "fallback cannot be constants", "obj.stateMutability", mutability);
+            errors.assertArgument(mutability === "nonpayable" || mutability === "payable", "fallback cannot be constants", "obj.stateMutability", mutability);
             if (consumeKeywords(obj, setify(["returns"])).has("returns")) {
                 const outputs = consumeParams(obj);
-                (0, index_js_1.assertArgument)(outputs.length === 1 && outputs[0].type === "bytes", "invalid fallback outputs", "obj.outputs", outputs.map((i) => i.format("minimal")).join(", "));
+                errors.assertArgument(outputs.length === 1 && outputs[0].type === "bytes", "invalid fallback outputs", "obj.outputs", outputs.map((i) => i.format("minimal")).join(", "));
             }
             consumeEoi(obj);
             return new FallbackFragment(_guard, inputs, mutability === "payable");
@@ -1106,13 +1125,12 @@ class FallbackFragment extends Fragment {
             const payable = obj.stateMutability === "payable";
             return new FallbackFragment(_guard, inputs, payable);
         }
-        (0, index_js_1.assertArgument)(false, "invalid fallback description", "obj", obj);
+        errors.assertArgument(false, "invalid fallback description", "obj", obj);
     }
     static isFragment(value) {
         return value && value[internal] === FallbackFragmentInternal;
     }
 }
-exports.FallbackFragment = FallbackFragment;
 /**
  *  A Fragment which represents a method.
  */
@@ -1147,7 +1165,7 @@ class FunctionFragment extends NamedFragment {
         outputs = Object.freeze(outputs.slice());
         const constant = stateMutability === "view" || stateMutability === "pure";
         const payable = stateMutability === "payable";
-        (0, index_js_1.defineProperties)(this, {
+        properties.defineProperties(this, {
             constant,
             energy,
             outputs,
@@ -1159,7 +1177,7 @@ class FunctionFragment extends NamedFragment {
      *  The Function selector.
      */
     get selector() {
-        return (0, index_js_2.id)(this.format("sighash")).substring(0, 10);
+        return id.id(this.format("sighash")).substring(0, 10);
     }
     format(format) {
         if (format == null) {
@@ -1247,7 +1265,6 @@ class FunctionFragment extends NamedFragment {
         return value && value[internal] === FunctionFragmentInternal;
     }
 }
-exports.FunctionFragment = FunctionFragment;
 /**
  *  A Fragment which represents a structure.
  */
@@ -1278,5 +1295,14 @@ class StructFragment extends NamedFragment {
         return value && value[internal] === StructFragmentInternal;
     }
 }
+
+exports.ConstructorFragment = ConstructorFragment;
+exports.ErrorFragment = ErrorFragment;
+exports.EventFragment = EventFragment;
+exports.FallbackFragment = FallbackFragment;
+exports.Fragment = Fragment;
+exports.FunctionFragment = FunctionFragment;
+exports.NamedFragment = NamedFragment;
+exports.ParamType = ParamType;
 exports.StructFragment = StructFragment;
 //# sourceMappingURL=fragments.js.map

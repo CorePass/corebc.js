@@ -53,8 +53,8 @@ function isPollable(value) {
 const defaultOptions = {
     polling: false,
     staticNetwork: null,
-    batchStallTime: 10,
-    batchMaxSize: 1 << 20,
+    batchStallTime: 10, // 10ms
+    batchMaxSize: 1 << 20, // 1Mb
     batchMaxCount: 100, // 100 requests
 };
 // @TODO: Unchecked Signers
@@ -315,12 +315,12 @@ export class JsonRpcApiProvider extends AbstractProvider {
         return this.#network;
     }
     /*
-       {
-          assert(false, "sub-classes must override _send", "UNSUPPORTED_OPERATION", {
-              operation: "jsonRpcApiProvider._send"
-          });
-      }
-      */
+     {
+        assert(false, "sub-classes must override _send", "UNSUPPORTED_OPERATION", {
+            operation: "jsonRpcApiProvider._send"
+        });
+    }
+    */
     /**
      *  Resolves to the non-normalized value by performing %%req%%.
      *

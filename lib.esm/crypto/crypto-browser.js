@@ -1,14 +1,17 @@
 /* Browser Crypto Shims */
-import { hmac } from "@noble/hashes/hmac";
-import { pbkdf2 } from "@noble/hashes/pbkdf2";
-import { sha256 } from "@noble/hashes/sha256";
-import { sha512 } from "@noble/hashes/sha512";
-import { sha3_256, sha3_512 } from "@noble/hashes/sha3";
+import { ripemd160 } from "@noble/hashes/legacy.js";
+import { hmac } from "@noble/hashes/hmac.js";
+import { pbkdf2 } from "@noble/hashes/pbkdf2.js";
+import { sha256 } from "@noble/hashes/sha2.js";
+import { sha512 } from "@noble/hashes/sha2.js";
+import { sha3_256, sha3_512 } from "@noble/hashes/sha3.js";
 import ed448 from "./browser-ed448.js";
 import { assert, assertArgument } from "../utils/index.js";
 export { ed448 };
 export { Ed448Goldilock } from "./ed448goldilock-browser.js";
 function getGlobal() {
+    if (typeof globalThis !== "undefined")
+        return globalThis;
     if (typeof self !== "undefined") {
         return self;
     }
@@ -24,6 +27,8 @@ const anyGlobal = getGlobal();
 const crypto = anyGlobal.crypto || anyGlobal.msCrypto;
 export function createHash(algo) {
     switch (algo) {
+        case "ripemd160":
+            return ripemd160.create();
         case "sha256":
             return sha256.create();
         case "sha512":
@@ -36,7 +41,7 @@ export function createHash(algo) {
     assertArgument(false, "invalid hashing algorithm name", "algorithm", algo);
 }
 export function createHmac(_algo, key) {
-    const algo = { sha256, sha512 }[_algo];
+    const algo = { sha256, sha512, "sha3-256": sha3_256, "sha3-512": sha3_512 }[_algo];
     assertArgument(algo != null, "invalid hmac algorithm", "algorithm", _algo);
     return hmac.create(algo, key);
 }

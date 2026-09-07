@@ -1,6 +1,11 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.randomBytes = void 0;
+'use strict';
+
+require('bcrypto/lib/ed448.js');
+require('buffer');
+require('bcrypto/lib/pbkdf2.js');
+require('bcrypto/lib/sha3-512.js');
+var crypto = require('crypto');
+
 /**
  *  A **Cryptographically Secure Random Value** is one that has been
  *  generated with additional care take to prevent side-channels
@@ -9,10 +14,9 @@ exports.randomBytes = void 0;
  *
  *  @_subsection: api/crypto:Random Values  [about-crypto-random]
  */
-const crypto_js_1 = require("./crypto.js");
 let locked = false;
 const _randomBytes = function (length) {
-    return new Uint8Array((0, crypto_js_1.randomBytes)(length));
+    return new Uint8Array(crypto.randomBytes(length));
 };
 let __randomBytes = _randomBytes;
 /**
@@ -25,7 +29,6 @@ let __randomBytes = _randomBytes;
 function randomBytes(length) {
     return __randomBytes(length);
 }
-exports.randomBytes = randomBytes;
 randomBytes._ = _randomBytes;
 randomBytes.lock = function () {
     locked = true;
@@ -37,4 +40,6 @@ randomBytes.register = function (func) {
     __randomBytes = func;
 };
 Object.freeze(randomBytes);
+
+exports.randomBytes = randomBytes;
 //# sourceMappingURL=random.js.map

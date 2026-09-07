@@ -1,34 +1,51 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Transaction = void 0;
-const tslib_1 = require("tslib");
-const index_js_1 = require("../address/index.js");
-const index_js_2 = require("../crypto/index.js");
-const index_js_3 = require("../utils/index.js");
-const address_js_1 = require("./address.js");
-const properties_js_1 = require("../utils/properties.js");
-const data_js_1 = require("../utils/data.js");
-const logger_js_1 = require("../logger/logger.js");
-const RLP = tslib_1.__importStar(require("../crypto/rlp.js"));
-const bigNumber_js_1 = require("../bigNumber/bigNumber.js");
-const index_js_4 = require("../address/index.js");
-const logger = new logger_js_1.Logger("transaction/0.0.1");
+'use strict';
+
+var index = require('../address/index.js');
+require('../crypto/hmac.js');
+require('../crypto/ripemd160.js');
+require('../crypto/pbkdf2.js');
+require('../crypto/random.js');
+require('../crypto/scrypt.js');
+var sha3 = require('../crypto/sha3.js');
+require('bcrypto/lib/ed448.js');
+require('buffer');
+require('bcrypto/lib/pbkdf2.js');
+require('bcrypto/lib/sha3-512.js');
+require('crypto');
+require('../crypto/keccak.js');
+var signingKey = require('../crypto/signing-key.js');
+require('../crypto/signature.js');
+require('../utils/base58.js');
+var data = require('../utils/data.js');
+var errors = require('../utils/errors.js');
+var properties = require('../utils/properties.js');
+require('http');
+require('https');
+require('zlib');
+require('../utils/fixednumber.js');
+var maths = require('../utils/maths.js');
+var address = require('./address.js');
+var logger$1 = require('../logger/logger.js');
+var rlp = require('../crypto/rlp.js');
+var bigNumber = require('../bigNumber/bigNumber.js');
+
+const logger = new logger$1.Logger("transaction/0.0.1");
 const BN_0 = BigInt(0);
 function handleAddress(value) {
     if (value === "0x") {
         return null;
     }
-    return (0, index_js_1.getAddress)(value);
+    return index.getAddress(value);
 }
 function parse(data) {
     const handleNumber = (value) => {
         // @ts-ignore
         if (value === "0x") {
-            return bigNumber_js_1.BigNumber.from(0);
+            return bigNumber.BigNumber.from(0);
         }
-        return bigNumber_js_1.BigNumber.from(value);
+        return bigNumber.BigNumber.from(value);
     };
-    const transaction = RLP.decode(data);
+    const transaction = rlp.decode(data);
     if (transaction.length !== 7 && transaction.length !== 8) {
         logger.throwArgumentError("invalid raw transaction", "data", data);
     }
@@ -43,10 +60,10 @@ function parse(data) {
         data: transaction[isSigned ? 6 : 5],
     };
     if (transaction.length === 8) {
-        const prefix = (0, index_js_4.networkIdToPrefix)(Number(tx.networkId));
-        const digest = (0, index_js_2.sha256)(serialize(tx));
-        tx.hash = (0, index_js_2.sha256)(serialize(tx, transaction[7]));
-        tx.from = (0, address_js_1.recoverAddress)(digest, transaction[7], prefix);
+        const prefix = index.networkIdToPrefix(Number(tx.networkId));
+        const digest = sha3.sha256(serialize(tx));
+        tx.hash = sha3.sha256(serialize(tx, transaction[7]));
+        tx.from = address.recoverAddress(digest, transaction[7], prefix);
         tx.signature = transaction[7];
     }
     return tx;
@@ -79,7 +96,7 @@ const allowedTransactionKeys = {
     value: true,
 };
 function serialize(transaction, signature) {
-    (0, properties_js_1.checkProperties)(transaction, allowedTransactionKeys);
+    properties.checkProperties(transaction, allowedTransactionKeys);
     const raw = [];
     (!!signature ? transactionFields : unsignedTransactionFields).forEach(function ({ numeric, maxLength, name, length }) {
         let value = transaction[name] || [];
@@ -87,26 +104,26 @@ function serialize(transaction, signature) {
         if (numeric) {
             options.hexPad = "left";
         }
-        const tmpHexlified = (0, index_js_3.hexlify)(value, options);
-        value = (0, data_js_1.arrayify)(tmpHexlified);
+        const tmpHexlified = data.hexlify(value, options);
+        value = data.arrayify(tmpHexlified);
         // Fixed-width field
         if (length && value.length !== length && value.length > 0) {
             logger.throwArgumentError("invalid length for " + name, "transaction:" + name, value);
         }
         // Variable-width (with a maximum)
         if (maxLength) {
-            value = (0, data_js_1.stripZeros)(value);
+            value = data.stripZeros(value);
             if (value.length > maxLength) {
                 logger.throwArgumentError("invalid length for " + name, "transaction:" + name, value);
             }
         }
-        const hexlified = (0, index_js_3.hexlify)(value);
+        const hexlified = data.hexlify(value);
         raw.push(hexlified);
     });
     if (!!signature) {
-        raw.push((0, index_js_3.hexlify)(signature));
+        raw.push(data.hexlify(signature));
     }
-    const finalValue = RLP.encode(raw);
+    const finalValue = rlp.encode(raw);
     return finalValue;
 }
 /**
@@ -139,7 +156,7 @@ class Transaction {
         return this.#to;
     }
     set to(value) {
-        this.#to = value == null ? null : (0, index_js_1.getAddress)(value);
+        this.#to = value == null ? null : index.getAddress(value);
     }
     /**
      *  The transaction nonce.
@@ -148,7 +165,7 @@ class Transaction {
         return this.#nonce;
     }
     set nonce(value) {
-        this.#nonce = (0, index_js_3.getNumber)(value, "value");
+        this.#nonce = maths.getNumber(value, "value");
     }
     /**
      *  The energy limit.
@@ -157,7 +174,7 @@ class Transaction {
         return this.#energyLimit;
     }
     set energyLimit(value) {
-        this.#energyLimit = (0, index_js_3.getBigInt)(value);
+        this.#energyLimit = maths.getBigInt(value);
     }
     /**
      *  The energy price.
@@ -173,7 +190,7 @@ class Transaction {
         return value;
     }
     set energyPrice(value) {
-        this.#energyPrice = value == null ? null : (0, index_js_3.getBigInt)(value, "energyPrice");
+        this.#energyPrice = value == null ? null : maths.getBigInt(value, "energyPrice");
     }
     /**
      *  The transaction data. For ``init`` transactions this is the
@@ -183,7 +200,7 @@ class Transaction {
         return this.#data;
     }
     set data(value) {
-        this.#data = (0, index_js_3.hexlify)(value);
+        this.#data = data.hexlify(value);
     }
     /**
      *  The amount of xcb (in ore) to send in this transactions.
@@ -192,7 +209,7 @@ class Transaction {
         return this.#value;
     }
     set value(value) {
-        this.#value = (0, index_js_3.getBigInt)(value, "value");
+        this.#value = maths.getBigInt(value, "value");
     }
     /**
      *  The chain ID this transaction is valid on.
@@ -201,7 +218,7 @@ class Transaction {
         return this.#networkId;
     }
     set networkId(value) {
-        this.#networkId = (0, index_js_3.getBigInt)(value);
+        this.#networkId = maths.getBigInt(value);
     }
     /**
      *  If signed, the signature for this transaction.
@@ -232,7 +249,7 @@ class Transaction {
         if (this.signature == null) {
             return null;
         }
-        return (0, index_js_2.sha256)(this.serialized);
+        return sha3.sha256(this.serialized);
     }
     /**
      *  The pre-image hash of this transaction.
@@ -241,7 +258,7 @@ class Transaction {
      *  this transaction.
      */
     get unsignedHash() {
-        return (0, index_js_2.sha256)(this.unsignedSerialized);
+        return sha3.sha256(this.unsignedSerialized);
     }
     /**
      *  The sending address, if signed. Otherwise, ``null``.
@@ -250,8 +267,8 @@ class Transaction {
         if (this.signature == null) {
             return null;
         }
-        const prefix = (0, index_js_4.networkIdToPrefix)(Number(this.#networkId));
-        return (0, address_js_1.recoverAddress)(this.unsignedHash, this.signature, prefix);
+        const prefix = index.networkIdToPrefix(Number(this.#networkId));
+        return address.recoverAddress(this.unsignedHash, this.signature, prefix);
     }
     /**
      *  The public key of the sender, if signed. Otherwise, ``null``.
@@ -260,7 +277,7 @@ class Transaction {
         if (this.signature == null) {
             return null;
         }
-        return index_js_2.SigningKey.recoverPublicKey(this.unsignedHash, this.signature);
+        return signingKey.SigningKey.recoverPublicKey(this.unsignedHash, this.signature);
     }
     /**
      *  Returns true if signed.
@@ -279,7 +296,7 @@ class Transaction {
      *  use [[unsignedSerialized]].
      */
     get serialized() {
-        (0, index_js_3.assert)(this.signature != null, "cannot serialize unsigned transaction; maybe you meant .unsignedSerialized", "UNSUPPORTED_OPERATION", { operation: ".serialized" });
+        errors.assert(this.signature != null, "cannot serialize unsigned transaction; maybe you meant .unsignedSerialized", "UNSUPPORTED_OPERATION", { operation: ".serialized" });
         return serialize(this, this.signature);
     }
     /**
@@ -327,7 +344,7 @@ class Transaction {
             return new Transaction();
         }
         if (typeof tx === "string") {
-            const payload = (0, index_js_3.getBytes)(tx);
+            const payload = data.getBytes(tx);
             return Transaction.from(parse(payload));
         }
         const result = new Transaction();
@@ -356,15 +373,16 @@ class Transaction {
             result.signature = tx.signature;
         }
         if (tx.hash != null) {
-            (0, index_js_3.assertArgument)(result.isSigned(), "unsigned transaction cannot define hash", "tx", tx);
-            (0, index_js_3.assertArgument)(result.hash === tx.hash, "hash mismatch", "tx", tx);
+            errors.assertArgument(result.isSigned(), "unsigned transaction cannot define hash", "tx", tx);
+            errors.assertArgument(result.hash === tx.hash, "hash mismatch", "tx", tx);
         }
         if (tx.from != null) {
-            (0, index_js_3.assertArgument)(result.isSigned(), "unsigned transaction cannot define from", "tx", tx);
-            (0, index_js_3.assertArgument)(result.from.toLowerCase() === (tx.from || "").toLowerCase(), "from mismatch", "tx", tx);
+            errors.assertArgument(result.isSigned(), "unsigned transaction cannot define from", "tx", tx);
+            errors.assertArgument(result.from.toLowerCase() === (tx.from || "").toLowerCase(), "from mismatch", "tx", tx);
         }
         return result;
     }
 }
+
 exports.Transaction = Transaction;
 //# sourceMappingURL=transaction.js.map

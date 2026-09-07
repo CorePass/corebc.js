@@ -4,6 +4,7 @@
  *  @_subsection: api/crypto:Hash Functions [about-crypto-hashing]
  */
 import type { BytesLike } from "../utils/index.js";
+declare const _keccak256: (data: Uint8Array) => Uint8Array;
 /**
  *  Compute the cryptographic KECCAK256 hash of %%data%%.
  *
@@ -28,8 +29,9 @@ import type { BytesLike } from "../utils/index.js";
  */
 export declare function keccak256(_data: BytesLike): string;
 export declare namespace keccak256 {
-    var _: (data: Uint8Array) => Uint8Array;
-    var lock: () => void;
-    var register: (func: (data: Uint8Array) => BytesLike) => void;
+    export { _keccak256 as _ };
+    export var lock: () => void;
+    export var register: (func: (data: Uint8Array) => BytesLike) => void;
 }
+export {};
 //# sourceMappingURL=keccak.d.ts.map

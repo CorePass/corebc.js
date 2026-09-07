@@ -1,7 +1,15 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.PollingEventSubscriber = exports.PollingTransactionSubscriber = exports.PollingOrphanSubscriber = exports.OnBlockSubscriber = exports.PollingBlockSubscriber = exports.getPollingSubscriber = void 0;
-const index_js_1 = require("../utils/index.js");
+'use strict';
+
+require('../utils/base58.js');
+var data = require('../utils/data.js');
+var errors = require('../utils/errors.js');
+require('../logger/logger.js');
+require('http');
+require('https');
+require('zlib');
+require('../utils/fixednumber.js');
+require('../utils/maths.js');
+
 function copy(obj) {
     return JSON.parse(JSON.stringify(obj));
 }
@@ -14,15 +22,14 @@ function getPollingSubscriber(provider, event) {
     if (event === "block") {
         return new PollingBlockSubscriber(provider);
     }
-    if ((0, index_js_1.isHexString)(event, 32)) {
+    if (data.isHexString(event, 32)) {
         return new PollingTransactionSubscriber(provider, event);
     }
-    (0, index_js_1.assert)(false, "unsupported polling event", "UNSUPPORTED_OPERATION", {
+    errors.assert(false, "unsupported polling event", "UNSUPPORTED_OPERATION", {
         operation: "getPollingSubscriber",
         info: { event },
     });
 }
-exports.getPollingSubscriber = getPollingSubscriber;
 // @TODO: refactor this
 /**
  *  @TODO
@@ -103,7 +110,6 @@ class PollingBlockSubscriber {
         this.start();
     }
 }
-exports.PollingBlockSubscriber = PollingBlockSubscriber;
 /**
  *  @TODO
  *
@@ -145,7 +151,6 @@ class OnBlockSubscriber {
         this.start();
     }
 }
-exports.OnBlockSubscriber = OnBlockSubscriber;
 /**
  *  @TODO
  *
@@ -159,10 +164,8 @@ class PollingOrphanSubscriber extends OnBlockSubscriber {
     }
     async _poll(blockNumber, provider) {
         throw new Error("@TODO");
-        console.log(this.#filter);
     }
 }
-exports.PollingOrphanSubscriber = PollingOrphanSubscriber;
 /**
  *  @TODO
  *
@@ -181,7 +184,6 @@ class PollingTransactionSubscriber extends OnBlockSubscriber {
         }
     }
 }
-exports.PollingTransactionSubscriber = PollingTransactionSubscriber;
 /**
  *  @TODO
  *
@@ -253,5 +255,11 @@ class PollingEventSubscriber {
         this.start();
     }
 }
+
+exports.OnBlockSubscriber = OnBlockSubscriber;
+exports.PollingBlockSubscriber = PollingBlockSubscriber;
 exports.PollingEventSubscriber = PollingEventSubscriber;
+exports.PollingOrphanSubscriber = PollingOrphanSubscriber;
+exports.PollingTransactionSubscriber = PollingTransactionSubscriber;
+exports.getPollingSubscriber = getPollingSubscriber;
 //# sourceMappingURL=subscriber-polling.js.map

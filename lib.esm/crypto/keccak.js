@@ -3,7 +3,7 @@
  *
  *  @_subsection: api/crypto:Hash Functions [about-crypto-hashing]
  */
-import { keccak_256 } from "@noble/hashes/sha3";
+import { keccak_256 } from "@noble/hashes/sha3.js";
 import { getBytes, hexlify } from "../utils/index.js";
 let locked = false;
 const _keccak256 = function (data) {

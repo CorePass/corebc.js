@@ -1,12 +1,12 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.NullCoder = void 0;
-const abstract_coder_js_1 = require("./abstract-coder.js");
+'use strict';
+
+var abstractCoder = require('./abstract-coder.js');
+
 const Empty = new Uint8Array([]);
 /**
  *  @_ignore
  */
-class NullCoder extends abstract_coder_js_1.Coder {
+class NullCoder extends abstractCoder.Coder {
     constructor(localName) {
         super("null", "", localName, false);
     }
@@ -24,5 +24,6 @@ class NullCoder extends abstract_coder_js_1.Coder {
         return null;
     }
 }
+
 exports.NullCoder = NullCoder;
 //# sourceMappingURL=null.js.map

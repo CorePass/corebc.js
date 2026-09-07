@@ -1,6 +1,17 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.InfuraProvider = exports.InfuraWebSocketProvider = void 0;
+'use strict';
+
+require('../utils/base58.js');
+require('../logger/logger.js');
+var errors = require('../utils/errors.js');
+var properties = require('../utils/properties.js');
+var fetch = require('../utils/fetch.js');
+require('../utils/fixednumber.js');
+require('../utils/maths.js');
+var community = require('./community.js');
+var network = require('./network.js');
+var providerJsonrpc = require('./provider-jsonrpc.js');
+var providerWebsocket = require('./provider-websocket.js');
+
 /**
  *  [[link-infura]] provides a third-party service for connecting to
  *  various blockchains over JSON-RPC.
@@ -19,11 +30,6 @@ exports.InfuraProvider = exports.InfuraWebSocketProvider = void 0;
  *
  *  @_subsection: api/providers/thirdparty:INFURA  [providers-infura]
  */
-const index_js_1 = require("../utils/index.js");
-const community_js_1 = require("./community.js");
-const network_js_1 = require("./network.js");
-const provider_jsonrpc_js_1 = require("./provider-jsonrpc.js");
-const provider_websocket_js_1 = require("./provider-websocket.js");
 const defaultProjectId = "84842078b09946638c03157f83405213";
 function getHost(name) {
     switch (name) {
@@ -46,7 +52,7 @@ function getHost(name) {
         case "optimism-goerli":
             return "optimism-goerli.infura.io";
     }
-    (0, index_js_1.assertArgument)(false, "unsupported network", "network", name);
+    errors.assertArgument(false, "unsupported network", "network", name);
 }
 /**
  *  The **InfuraWebSocketProvider** connects to the [[link-infura]]
@@ -57,7 +63,7 @@ function getHost(name) {
  *  gain access to an increased rate-limit, it is highly
  *  recommended to [sign up here](link-infura-signup).
  */
-class InfuraWebSocketProvider extends provider_websocket_js_1.WebSocketProvider {
+class InfuraWebSocketProvider extends providerWebsocket.WebSocketProvider {
     /**
      *  The Project ID for the INFURA connection.
      */
@@ -75,10 +81,10 @@ class InfuraWebSocketProvider extends provider_websocket_js_1.WebSocketProvider 
     constructor(network, projectId) {
         const provider = new InfuraProvider(network, projectId);
         const req = provider._getConnection();
-        (0, index_js_1.assert)(!req.credentials, "INFURA WebSocket project secrets unsupported", "UNSUPPORTED_OPERATION", { operation: "InfuraProvider.getWebSocketProvider()" });
+        errors.assert(!req.credentials, "INFURA WebSocket project secrets unsupported", "UNSUPPORTED_OPERATION", { operation: "InfuraProvider.getWebSocketProvider()" });
         const url = req.url.replace(/^http/i, "ws").replace("/v3/", "/ws/v3/");
         super(url, network);
-        (0, index_js_1.defineProperties)(this, {
+        properties.defineProperties(this, {
             projectId: provider.projectId,
             projectSecret: provider.projectSecret,
         });
@@ -87,7 +93,6 @@ class InfuraWebSocketProvider extends provider_websocket_js_1.WebSocketProvider 
         return this.projectId === defaultProjectId;
     }
 }
-exports.InfuraWebSocketProvider = InfuraWebSocketProvider;
 /**
  *  The **InfuraProvider** connects to the [[link-infura]]
  *  JSON-RPC end-points.
@@ -97,7 +102,7 @@ exports.InfuraWebSocketProvider = InfuraWebSocketProvider;
  *  gain access to an increased rate-limit, it is highly
  *  recommended to [sign up here](link-infura-signup).
  */
-class InfuraProvider extends provider_jsonrpc_js_1.JsonRpcProvider {
+class InfuraProvider extends providerJsonrpc.JsonRpcProvider {
     /**
      *  The Project ID for the INFURA connection.
      */
@@ -116,16 +121,16 @@ class InfuraProvider extends provider_jsonrpc_js_1.JsonRpcProvider {
         if (_network == null) {
             _network = "mainnet";
         }
-        const network = network_js_1.Network.from(_network);
+        const network$1 = network.Network.from(_network);
         if (projectId == null) {
             projectId = defaultProjectId;
         }
         if (projectSecret == null) {
             projectSecret = null;
         }
-        const request = InfuraProvider.getRequest(network, projectId, projectSecret);
-        super(request, network, { staticNetwork: network });
-        (0, index_js_1.defineProperties)(this, { projectId, projectSecret });
+        const request = InfuraProvider.getRequest(network$1, projectId, projectSecret);
+        super(request, network$1, { staticNetwork: network$1 });
+        properties.defineProperties(this, { projectId, projectSecret });
     }
     _getProvider(networkId) {
         try {
@@ -154,19 +159,21 @@ class InfuraProvider extends provider_jsonrpc_js_1.JsonRpcProvider {
         if (projectSecret == null) {
             projectSecret = null;
         }
-        const request = new index_js_1.FetchRequest(`https:/\/${getHost(network.name)}/v3/${projectId}`);
+        const request = new fetch.FetchRequest(`https:/\/${getHost(network.name)}/v3/${projectId}`);
         request.allowGzip = true;
         if (projectSecret) {
             request.setCredentials("", projectSecret);
         }
         if (projectId === defaultProjectId) {
             request.retryFunc = async (request, response, attempt) => {
-                (0, community_js_1.showThrottleMessage)("InfuraProvider");
+                community.showThrottleMessage("InfuraProvider");
                 return true;
             };
         }
         return request;
     }
 }
+
 exports.InfuraProvider = InfuraProvider;
+exports.InfuraWebSocketProvider = InfuraWebSocketProvider;
 //# sourceMappingURL=provider-infura.js.map

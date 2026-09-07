@@ -310,7 +310,7 @@ export function arrayify(value, options) {
         if (result.length === 0) {
             result.push(0);
         }
-        return addSlice(new Uint8Array(result));
+        return new Uint8Array(result);
     }
     if (options.allowMissingPrefix &&
         typeof value === "string" &&
@@ -338,23 +338,12 @@ export function arrayify(value, options) {
             // @ts-ignore
             result.push(parseInt(hex.substring(i, i + 2), 16));
         }
-        return addSlice(new Uint8Array(result));
+        return new Uint8Array(result);
     }
     if (isBytes(value)) {
-        return addSlice(new Uint8Array(value));
+        return new Uint8Array(value);
     }
     return logger.throwArgumentError("invalid arrayify value", "value", value);
-}
-function addSlice(array) {
-    // @ts-ignore
-    if (array.slice) {
-        return array;
-    }
-    array.slice = function () {
-        const args = Array.prototype.slice.call(arguments);
-        return addSlice(new Uint8Array(Array.prototype.slice.apply(array, args)));
-    };
-    return array;
 }
 export function hexConcat(items) {
     let result = "0x";

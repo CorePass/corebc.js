@@ -1,6 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.decodeBits = void 0;
+'use strict';
+
 const Base64 = ")!@#$%^&*(ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_";
 /**
  *  @_ignore
@@ -32,5 +31,6 @@ function decodeBits(width, data) {
     }
     return result;
 }
+
 exports.decodeBits = decodeBits;
 //# sourceMappingURL=bit-reader.js.map

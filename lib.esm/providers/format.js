@@ -209,38 +209,38 @@ export function formatTransactionResponse(value) {
     }
     // @TODO: check networkId
     /*
-      if (value.networkId != null) {
-          let networkId = value.networkId;
-  
-          if (isHexString(networkId)) {
-              networkId = BigNumber.from(networkId).toNumber();
-          }
-  
-          result.networkId = networkId;
-  
-      } else {
-          let networkId = value.networkId;
-  
-          // geth-etc returns networkId
-          if (networkId == null && result.v == null) {
-              networkId = value.networkId;
-          }
-  
-          if (isHexString(networkId)) {
-              networkId = BigNumber.from(networkId).toNumber();
-          }
-  
-          if (typeof(networkId) !== "number" && result.v != null) {
-              networkId = (result.v - 35) / 2;
-              if (networkId < 0) { networkId = 0; }
-              networkId = parseInt(networkId);
-          }
-  
-          if (typeof(networkId) !== "number") { networkId = 0; }
-  
-          result.networkId = networkId;
-      }
-      */
+    if (value.networkId != null) {
+        let networkId = value.networkId;
+
+        if (isHexString(networkId)) {
+            networkId = BigNumber.from(networkId).toNumber();
+        }
+
+        result.networkId = networkId;
+
+    } else {
+        let networkId = value.networkId;
+
+        // geth-etc returns networkId
+        if (networkId == null && result.v == null) {
+            networkId = value.networkId;
+        }
+
+        if (isHexString(networkId)) {
+            networkId = BigNumber.from(networkId).toNumber();
+        }
+
+        if (typeof(networkId) !== "number" && result.v != null) {
+            networkId = (result.v - 35) / 2;
+            if (networkId < 0) { networkId = 0; }
+            networkId = parseInt(networkId);
+        }
+
+        if (typeof(networkId) !== "number") { networkId = 0; }
+
+        result.networkId = networkId;
+    }
+    */
     // 0x0000... should actually be null
     if (result.blockHash && getBigInt(result.blockHash) === BN_0) {
         result.blockHash = null;

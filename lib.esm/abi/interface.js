@@ -565,32 +565,32 @@ export class Interface {
     }
     // Get the 4-byte selector used by Solidity to identify a function
     /*
-      getSelector(fragment: ErrorFragment | FunctionFragment): string {
-          if (typeof(fragment) === "string") {
-              const matches: Array<Fragment> = [ ];
-  
-              try { matches.push(this.getFunction(fragment)); } catch (error) { }
-              try { matches.push(this.getError(<string>fragment)); } catch (_) { }
-  
-              if (matches.length === 0) {
-                  logger.throwArgumentError("unknown fragment", "key", fragment);
-              } else if (matches.length > 1) {
-                  logger.throwArgumentError("ambiguous fragment matches function and error", "key", fragment);
-              }
-  
-              fragment = matches[0];
-          }
-  
-          return dataSlice(id(fragment.format()), 0, 4);
-      }
-          */
+    getSelector(fragment: ErrorFragment | FunctionFragment): string {
+        if (typeof(fragment) === "string") {
+            const matches: Array<Fragment> = [ ];
+
+            try { matches.push(this.getFunction(fragment)); } catch (error) { }
+            try { matches.push(this.getError(<string>fragment)); } catch (_) { }
+
+            if (matches.length === 0) {
+                logger.throwArgumentError("unknown fragment", "key", fragment);
+            } else if (matches.length > 1) {
+                logger.throwArgumentError("ambiguous fragment matches function and error", "key", fragment);
+            }
+
+            fragment = matches[0];
+        }
+
+        return dataSlice(id(fragment.format()), 0, 4);
+    }
+        */
     // Get the 32-byte topic hash used by Solidity to identify an event
     /*
-      getEventTopic(fragment: EventFragment): string {
-          //if (typeof(fragment) === "string") { fragment = this.getEvent(eventFragment); }
-          return id(fragment.format());
-      }
-      */
+    getEventTopic(fragment: EventFragment): string {
+        //if (typeof(fragment) === "string") { fragment = this.getEvent(eventFragment); }
+        return id(fragment.format());
+    }
+    */
     _decodeParams(params, data) {
         return this.#abiCoder.decode(params, data);
     }
@@ -757,34 +757,34 @@ export class Interface {
         return hexlify(this.#abiCoder.encode(fragment.outputs, values || []));
     }
     /*
-      spelunk(inputs: Array<ParamType>, values: ReadonlyArray<any>, processfunc: (type: string, value: any) => Promise<any>): Promise<Array<any>> {
-          const promises: Array<Promise<>> = [ ];
-          const process = function(type: ParamType, value: any): any {
-              if (type.baseType === "array") {
-                  return descend(type.child
-              }
-              if (type. === "address") {
-              }
-          };
-  
-          const descend = function (inputs: Array<ParamType>, values: ReadonlyArray<any>) {
-              if (inputs.length !== values.length) { throw new Error("length mismatch"); }
-          };
-  
-          const result: Array<any> = [ ];
-          values.forEach((value, index) => {
-              if (value == null) {
-                  topics.push(null);
-              } else if (param.baseType === "array" || param.baseType === "tuple") {
-                  logger.throwArgumentError("filtering with tuples or arrays not supported", ("contract." + param.name), value);
-              } else if (Array.isArray(value)) {
-                  topics.push(value.map((value) => encodeTopic(param, value)));
-              } else {
-                  topics.push(encodeTopic(param, value));
-              }
-          });
-      }
-  */
+    spelunk(inputs: Array<ParamType>, values: ReadonlyArray<any>, processfunc: (type: string, value: any) => Promise<any>): Promise<Array<any>> {
+        const promises: Array<Promise<>> = [ ];
+        const process = function(type: ParamType, value: any): any {
+            if (type.baseType === "array") {
+                return descend(type.child
+            }
+            if (type. === "address") {
+            }
+        };
+
+        const descend = function (inputs: Array<ParamType>, values: ReadonlyArray<any>) {
+            if (inputs.length !== values.length) { throw new Error("length mismatch"); }
+        };
+
+        const result: Array<any> = [ ];
+        values.forEach((value, index) => {
+            if (value == null) {
+                topics.push(null);
+            } else if (param.baseType === "array" || param.baseType === "tuple") {
+                logger.throwArgumentError("filtering with tuples or arrays not supported", ("contract." + param.name), value);
+            } else if (Array.isArray(value)) {
+                topics.push(value.map((value) => encodeTopic(param, value)));
+            } else {
+                topics.push(encodeTopic(param, value));
+            }
+        });
+    }
+*/
     // Create the filter for the event with search criteria (e.g. for xcb_filterLog)
     encodeFilterTopics(fragment, values) {
         if (typeof fragment === "string") {

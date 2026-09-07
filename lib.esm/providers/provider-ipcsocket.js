@@ -1,3 +1,4 @@
+/// <reference types="node" preserve="true" />
 import { connect } from "net";
 import { SocketProvider } from "./provider-socket.js";
 // @TODO: Is this sufficient? Is this robust? Will newlines occur between
@@ -34,7 +35,10 @@ export class IpcSocketProvider extends SocketProvider {
         });
         let response = Buffer.alloc(0);
         this.socket.on("data", (data) => {
-            response = Buffer.concat([response, data]);
+            response = Buffer.concat([
+                response,
+                typeof data === "string" ? Buffer.from(data) : data,
+            ]);
             const { messages, remaining } = splitBuffer(response);
             messages.forEach((message) => {
                 this._processMessage(message);
