@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Return go-core-compatible 56-byte X448 shared secrets from `SigningKey.computeSharedSecret`, replacing the previous 57-byte Edwards encoding.
+- Import go-core PBKDF2-SHA3-256 keystores while preserving MAC-validated access to historical CoreBC SHA2 keystores.
+- Add independent shared-secret and keystore compatibility vectors for Node and browser builds.
+
 ## 1.1.0
 
 - Add the German community mnemonic wordlist from dys2p/wordlists-de as `wordlists.de` and `LangDe` in the extra browser bundle.

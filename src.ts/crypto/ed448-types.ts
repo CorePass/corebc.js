@@ -5,6 +5,7 @@ export interface Ed448Backend {
 	publicKeyCreate(key: Buffer): Buffer;
 	publicKeyFromScalar(scalar: Buffer): Buffer;
 	publicKeyVerify(key: Buffer): boolean;
+	publicKeyConvert(key: Buffer): Buffer;
 	publicKeyCombine(keys: Buffer[]): Buffer;
 	sign(message: Buffer, key: Buffer): Buffer;
 	signWithScalar(message: Buffer, scalar: Buffer, prefix: Buffer): Buffer;

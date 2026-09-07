@@ -45,6 +45,16 @@ with the caller. Core uses 57-byte Ed448 private and public keys and
 network-prefixed addresses; Ethereum secp256k1 keys are not interchangeable.
 Keep private keys and recovery phrases out of logs and source control.
 
+`SigningKey.computeSharedSecret` returns the 56-byte X448 shared secret used
+by go-core, accepting the peer's 57-byte Ed448 public key. This changes the
+57-byte Edwards-point result returned by version 1.1.0. Applications using
+the previous result as key material must account for that change.
+
+PBKDF2 keystore imports recognize go-core's SHA3-256 interpretation of
+`hmac-sha256`, with MAC-checked fallback for historical CoreBC SHA2-256
+keystores. SHA2-512 keystores remain supported. This does not change the
+public `pbkdf2` API, mnemonic derivation, or scrypt keystore exports.
+
 `Contract` accepts JSON or human-readable ABIs and a provider for reads or
 signer for writes. Transaction fields use `energyLimit`, `energyPrice`, and
 `networkId`.

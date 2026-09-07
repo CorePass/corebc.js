@@ -100,7 +100,7 @@ export class SigningKey {
 		return hexConcat([hexlified, this.publicKey]);
 	}
 
-	/** Derives an Ed448 shared secret from a 57-byte public key. Hash it before use as a symmetric key. */
+	/** Derives the 56-byte X448 shared secret used by go-core from a 57-byte Ed448 public key. Hash it before use as a symmetric key. */
 	computeSharedSecret(other: BytesLike): string {
 		const pub = Buffer.from(getBytesCopy(other));
 		assertArgument(
@@ -114,9 +114,13 @@ export class SigningKey {
 			const scalar = key.subarray(0, 56);
 			scalar[0] &= 0xfc;
 			scalar[55] |= 0x80;
-			return hexlify(ed448.deriveWithScalar(pub, scalar));
+			return hexlify(
+				ed448.publicKeyConvert(ed448.deriveWithScalar(pub, scalar)),
+			);
 		}
-		return hexlify(ed448.derive(pub, key));
+		// The Edwards-to-Montgomery map commutes with scalar multiplication.
+		// Encode the shared point as X448, matching go-core's Ed448DeriveSecret.
+		return hexlify(ed448.publicKeyConvert(ed448.derive(pub, key)));
 	}
 
 	/** Computes an Ed448 public key from a 57-byte private key. The compression flag is ignored. */

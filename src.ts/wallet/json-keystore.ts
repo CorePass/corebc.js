@@ -16,6 +16,7 @@ const {
 } = pkg;
 
 import { getAddress } from "../address/index.js";
+import { pbkdf2Sync } from "../crypto/crypto.js";
 import {
 	pbkdf2,
 	randomBytes,
@@ -99,8 +100,7 @@ function decrypt(data: any, key: Uint8Array, ciphertext: Uint8Array): string {
 	});
 }
 
-function getAccount(data: any, _key: string): KeystoreAccount {
-	const key = getBytes(_key);
+function hasValidMac(data: any, key: Uint8Array): boolean {
 	const ciphertext = spelunk<Uint8Array>(data, "crypto.ciphertext:data!");
 
 	const computedMAC = hexlify(
@@ -115,8 +115,14 @@ function getAccount(data: any, _key: string): KeystoreAccount {
 		for (let i = 0; i < actual.length; i++)
 			difference |= actual[i] ^ expected[i];
 	}
+	return validMAC && difference === 0;
+}
+
+function getAccount(data: any, _key: string): KeystoreAccount {
+	const key = getBytes(_key);
+	const ciphertext = spelunk<Uint8Array>(data, "crypto.ciphertext:data!");
 	assertArgument(
-		validMAC && difference === 0,
+		hasValidMac(data, key),
 		"incorrect password",
 		"password",
 		"[REDACTED]",
@@ -189,6 +195,22 @@ type KdfParams =
 			dkLen: number;
 			algorithm: "sha256" | "sha512";
 	  };
+
+function getPbkdf2Key(
+	data: any,
+	password: Uint8Array,
+	params: Extract<KdfParams, { name: "pbkdf2" }>,
+): string {
+	const { salt, count, dkLen, algorithm } = params;
+	if (algorithm === "sha256") {
+		// go-core labels HMAC-SHA3-256 as "hmac-sha256" in keystores.
+		const key = pbkdf2Sync(password, salt, count, dkLen, "sha3-256");
+		if (hasValidMac(data, key)) return hexlify(key);
+	}
+	// Historical CoreBC keystores used SHA2. Authenticate that candidate in
+	// getAccount; do not fall back after cipher or address-validation errors.
+	return pbkdf2(password, salt, count, dkLen, algorithm);
+}
 
 // Match Core Web3Dart's wallet KDF resource limits.
 function validateScrypt(N: number, r: number, p: number): void {
@@ -284,8 +306,7 @@ export function decryptKeystoreJsonSync(
 
 	const params = getDecryptKdfParams(data);
 	if (params.name === "pbkdf2") {
-		const { salt, count, dkLen, algorithm } = params;
-		const key = pbkdf2(password, salt, count, dkLen, algorithm);
+		const key = getPbkdf2Key(data, password, params);
 		return getAccount(data, key);
 	}
 
@@ -332,8 +353,7 @@ export async function decryptKeystoreJson(
 			progress(0);
 			await stall(0);
 		}
-		const { salt, count, dkLen, algorithm } = params;
-		const key = pbkdf2(password, salt, count, dkLen, algorithm);
+		const key = getPbkdf2Key(data, password, params);
 		if (progress) {
 			progress(1);
 			await stall(0);
