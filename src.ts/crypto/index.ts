@@ -18,31 +18,31 @@ import { Ed448Goldilock } from "./crypto.js";
 import { keccak256 } from "./keccak.js";
 
 export {
-  computeHmac,
-  randomBytes,
-  ripemd160,
-  sha256,
-  sha512,
-  pbkdf2,
-  scrypt,
-  scryptSync,
-  keccak256,
-  Ed448Goldilock,
+	computeHmac,
+	randomBytes,
+	ripemd160,
+	sha256,
+	sha512,
+	pbkdf2,
+	scrypt,
+	scryptSync,
+	keccak256,
+	Ed448Goldilock,
 };
 
 export { SigningKey } from "./signing-key.js";
 export { Signature } from "./signature.js";
 
 function lock(): void {
-  computeHmac.lock();
-  pbkdf2.lock();
-  randomBytes.lock();
-  ripemd160.lock();
-  scrypt.lock();
-  scryptSync.lock();
-  sha256.lock();
-  sha512.lock();
-  randomBytes.lock();
+	computeHmac.lock();
+	pbkdf2.lock();
+	randomBytes.lock();
+	ripemd160.lock();
+	scrypt.lock();
+	scryptSync.lock();
+	sha256.lock();
+	sha512.lock();
+	randomBytes.lock();
 }
 
 export { lock };

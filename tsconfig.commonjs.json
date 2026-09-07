@@ -1,10 +1,5 @@
 {
-  "exclude": [
-    "src.ts/_admin/**"
-  ],
-  "extends": "./tsconfig.base.json",
-  "compilerOptions": {
-    "module": "commonjs",
-    "outDir": "./lib.commonjs"
-  }
+	"extends": "./tsconfig.esm.json",
+	"exclude": ["src.ts/_admin/**"],
+	"compilerOptions": { "noEmit": true }
 }

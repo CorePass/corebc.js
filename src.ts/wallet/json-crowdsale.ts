@@ -3,7 +3,12 @@
  */
 // @ts-ignore
 import pkg from "aes-js";
-const { CBC, pkcs7Strip } = pkg;
+const {
+	ModeOfOperation: { cbc: CBC },
+	padding: {
+		pkcs7: { strip: pkcs7Strip },
+	},
+} = pkg;
 import { getAddress } from "../address/index.js";
 import { pbkdf2 } from "../crypto/index.js";
 import { id } from "../hash/index.js";
@@ -16,21 +21,21 @@ import { getPassword, looseArrayify, spelunk } from "./utils.js";
  *  minimal.
  */
 export type CrowdsaleAccount = {
-  privateKey: string;
-  address: string;
+	privateKey: string;
+	address: string;
 };
 
 /**
  *  Returns true if %%json%% is a valid JSON Crowdsale wallet.
  */
 export function isCrowdsaleJson(json: string): boolean {
-  try {
-    const data = JSON.parse(json);
-    if (data.encseed) {
-      return true;
-    }
-  } catch (error) {}
-  return false;
+	try {
+		const data = JSON.parse(json);
+		if (data.encseed) {
+			return true;
+		}
+	} catch (error) {}
+	return false;
 }
 
 /**
@@ -44,41 +49,41 @@ export function isCrowdsaleJson(json: string): boolean {
  *  the library.
  */
 export function decryptCrowdsaleJson(
-  json: string,
-  _password: string | Uint8Array,
+	json: string,
+	_password: string | Uint8Array,
 ): CrowdsaleAccount {
-  const data = JSON.parse(json);
-  const password = getPassword(_password);
+	const data = JSON.parse(json);
+	const password = getPassword(_password);
 
-  // Core Address
-  const address = getAddress(spelunk(data, "ethaddr:string!"));
+	// Core Address
+	const address = getAddress(spelunk(data, "ethaddr:string!"));
 
-  // Encrypted Seed
-  const encseed = looseArrayify(spelunk(data, "encseed:string!"));
-  assertArgument(
-    encseed && encseed.length % 16 === 0,
-    "invalid encseed",
-    "json",
-    json,
-  );
+	// Encrypted Seed
+	const encseed = looseArrayify(spelunk(data, "encseed:string!"));
+	assertArgument(
+		encseed && encseed.length % 16 === 0,
+		"invalid encseed",
+		"json",
+		json,
+	);
 
-  const key = getBytes(pbkdf2(password, password, 2000, 32, "sha256")).slice(
-    0,
-    16,
-  );
+	const key = getBytes(pbkdf2(password, password, 2000, 32, "sha256")).slice(
+		0,
+		16,
+	);
 
-  const iv = encseed.slice(0, 16);
-  const encryptedSeed = encseed.slice(16);
+	const iv = encseed.slice(0, 16);
+	const encryptedSeed = encseed.slice(16);
 
-  // Decrypt the seed
-  const aesCbc = new CBC(key, iv);
-  const seed = pkcs7Strip(getBytes(aesCbc.decrypt(encryptedSeed)));
+	// Decrypt the seed
+	const aesCbc = new CBC(key, iv);
+	const seed = pkcs7Strip(getBytes(aesCbc.decrypt(encryptedSeed)));
 
-  // This wallet format is weird... Convert the binary encoded hex to a string.
-  let seedHex = "";
-  for (let i = 0; i < seed.length; i++) {
-    seedHex += String.fromCharCode(seed[i]);
-  }
+	// This wallet format is weird... Convert the binary encoded hex to a string.
+	let seedHex = "";
+	for (let i = 0; i < seed.length; i++) {
+		seedHex += String.fromCharCode(seed[i]);
+	}
 
-  return { address, privateKey: id(seedHex) };
+	return { address, privateKey: id(seedHex) };
 }

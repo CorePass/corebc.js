@@ -17,26 +17,26 @@ export { Network } from "./network.js";
 export { NonceManager } from "./signer-noncemanager.js";
 
 export {
-  NetworkPlugin,
-  EnergyCostPlugin,
-  FeeDataNetworkPlugin,
+	NetworkPlugin,
+	EnergyCostPlugin,
+	FeeDataNetworkPlugin,
 } from "./plugins-network.js";
 
 export {
-  Block,
-  FeeData,
-  Log,
-  TransactionReceipt,
-  TransactionResponse,
-  copyRequest,
-  //resolveTransactionRequest,
+	Block,
+	FeeData,
+	Log,
+	TransactionReceipt,
+	TransactionResponse,
+	copyRequest,
+	//resolveTransactionRequest,
 } from "./provider.js";
 
 export { FallbackProvider } from "./provider-fallback.js";
 export {
-  JsonRpcApiProvider,
-  JsonRpcProvider,
-  JsonRpcSigner,
+	JsonRpcApiProvider,
+	JsonRpcProvider,
+	JsonRpcSigner,
 } from "./provider-jsonrpc.js";
 
 export { BrowserProvider } from "./provider-browser.js";
@@ -54,28 +54,28 @@ export { SocketProvider } from "./provider-socket.js";
 export { WebSocketProvider } from "./provider-websocket.js";
 
 export {
-  SocketSubscriber,
-  SocketBlockSubscriber,
-  SocketPendingSubscriber,
-  SocketEventSubscriber,
+	SocketSubscriber,
+	SocketBlockSubscriber,
+	SocketPendingSubscriber,
+	SocketEventSubscriber,
 } from "./provider-socket.js";
 
 export type {
-  Subscription,
-  Subscriber,
-  AbstractProviderPlugin,
-  PerformActionFilter,
-  PerformActionTransaction,
-  PerformActionRequest,
+	Subscription,
+	Subscriber,
+	AbstractProviderPlugin,
+	PerformActionFilter,
+	PerformActionTransaction,
+	PerformActionRequest,
 } from "./abstract-provider.js";
 
 export type { ContractRunner } from "./contracts.js";
 
 export type {
-  BlockParams,
-  LogParams,
-  TransactionReceiptParams,
-  TransactionResponseParams,
+	BlockParams,
+	LogParams,
+	TransactionReceiptParams,
+	TransactionResponseParams,
 } from "./formatting.js";
 
 /*
@@ -92,31 +92,31 @@ export type { Networkish } from "./network.js";
 export type { EnergyCostParameters } from "./plugins-network.js";
 
 export type {
-  BlockTag,
-  TransactionRequest,
-  PreparedTransactionRequest,
-  EventFilter,
-  Filter,
-  FilterByBlockHash,
-  OrphanFilter,
-  ProviderEvent,
-  TopicFilter,
-  Provider,
-  MinedBlock,
-  MinedTransactionResponse,
+	BlockTag,
+	TransactionRequest,
+	PreparedTransactionRequest,
+	EventFilter,
+	Filter,
+	FilterByBlockHash,
+	OrphanFilter,
+	ProviderEvent,
+	TopicFilter,
+	Provider,
+	MinedBlock,
+	MinedTransactionResponse,
 } from "./provider.js";
 
 export type {
-  DebugEventBrowserProvider,
-  Eip1193Provider,
+	DebugEventBrowserProvider,
+	Eip1193Provider,
 } from "./provider-browser.js";
 
 export type {
-  JsonRpcPayload,
-  JsonRpcResult,
-  JsonRpcError,
-  JsonRpcApiProviderOptions,
-  JsonRpcTransactionRequest,
+	JsonRpcPayload,
+	JsonRpcResult,
+	JsonRpcError,
+	JsonRpcApiProviderOptions,
+	JsonRpcTransactionRequest,
 } from "./provider-jsonrpc.js";
 
 export type { WebSocketCreator, WebSocketLike } from "./provider-websocket.js";

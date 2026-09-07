@@ -1,43 +1,31 @@
-name: Feature request 🔮
-description: Suggest an idea for this project
-labels:
-  - feature
+name: Feature request
+description: Propose an improvement to corebc.js
+labels: [enhancement]
 body:
-  - type: markdown
-    attributes:
-      value: |
-        Suggest an idea for this project and developers will consider the integration.
-
   - type: textarea
     id: problem
     attributes:
-      label: Problem
-      description: Is your feature request related to a problem? Please describe.
+      label: Problem or use case
     validations:
       required: true
-
   - type: textarea
     id: solution
     attributes:
-      label: Solution
-      description: Describe the solution you'd like.
+      label: Proposed API or behavior
+      description: Include a TypeScript example if possible.
     validations:
       required: true
-
   - type: textarea
     id: alternatives
     attributes:
-      label: Alternatives
-      description: Describe alternatives you've considered.
-
-  - type: textarea
-    id: implementation
+      label: Alternatives considered
+  - type: input
+    id: cip
     attributes:
-      label: Implementation
-      description: Describe implementation with example of the code.
-
+      label: Related CIP or implementation
+      description: Link the specification or a compatible implementation.
   - type: textarea
-    id: additional
+    id: compatibility
     attributes:
-      label: Additional context
-      description: Please, place additional content or screenshots.
+      label: Compatibility and testing
+      description: Describe effects on existing callers, Node.js, browsers, and expected tests.

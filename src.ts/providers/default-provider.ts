@@ -16,72 +16,72 @@ import type { Networkish } from "./network.js";
 import { WebSocketLike } from "./provider-websocket.js";
 
 function isWebSocketLike(value: any): value is WebSocketLike {
-  return (
-    value &&
-    typeof value.send === "function" &&
-    typeof value.close === "function"
-  );
+	return (
+		value &&
+		typeof value.send === "function" &&
+		typeof value.close === "function"
+	);
 }
 
 export function getDefaultProvider(
-  network: string | Networkish | WebSocketLike,
-  options?: any,
+	network: string | Networkish | WebSocketLike,
+	options?: any,
 ): AbstractProvider {
-  if (options == null) {
-    options = {};
-  }
+	if (options == null) {
+		options = {};
+	}
 
-  if (typeof network === "string" && network.match(/^https?:/)) {
-    return new JsonRpcProvider(network);
-  }
+	if (typeof network === "string" && network.match(/^https?:/)) {
+		return new JsonRpcProvider(network);
+	}
 
-  if (
-    (typeof network === "string" && network.match(/^wss?:/)) ||
-    isWebSocketLike(network)
-  ) {
-    return new WebSocketProvider(network);
-  }
+	if (
+		(typeof network === "string" && network.match(/^wss?:/)) ||
+		isWebSocketLike(network)
+	) {
+		return new WebSocketProvider(network);
+	}
 
-  const providers: Array<AbstractProvider> = [];
+	const providers: Array<AbstractProvider> = [];
 
-  if (options.alchemy !== "-") {
-    try {
-      providers.push(new AlchemyProvider(network, options.alchemy));
-    } catch (error) {
-      console.log(error);
-    }
-  }
+	if (options.alchemy !== "-") {
+		try {
+			providers.push(new AlchemyProvider(network, options.alchemy));
+		} catch (error) {
+			console.log(error);
+		}
+	}
 
-  if (options.ankr !== "-" && options.ankr != null) {
-    try {
-      providers.push(new AnkrProvider(network, options.ankr));
-    } catch (error) {
-      console.log(error);
-    }
-  }
+	if (options.ankr !== "-" && options.ankr != null) {
+		try {
+			providers.push(new AnkrProvider(network, options.ankr));
+		} catch (error) {
+			console.log(error);
+		}
+	}
 
-  if (options.cloudflare !== "-") {
-    try {
-      providers.push(new CloudflareProvider(network));
-    } catch (error) {
-      console.log(error);
-    }
-  }
+	if (options.cloudflare !== "-") {
+		try {
+			providers.push(new CloudflareProvider(network));
+		} catch (error) {
+			console.log(error);
+		}
+	}
 
-  if (options.infura !== "-") {
-    try {
-      let projectId = options.infura;
-      let projectSecret: undefined | string = undefined;
-      if (typeof projectId === "object") {
-        projectSecret = projectId.projectSecret;
-        projectId = projectId.projectId;
-      }
-      providers.push(new InfuraProvider(network, projectId, projectSecret));
-    } catch (error) {
-      console.log(error);
-    }
-  }
-  /*
+	if (options.infura !== "-") {
+		try {
+			let projectId = options.infura;
+			let projectSecret: undefined | string = undefined;
+			if (typeof projectId === "object") {
+				projectSecret = projectId.projectSecret;
+				projectId = projectId.projectId;
+			}
+			providers.push(new InfuraProvider(network, projectId, projectSecret));
+		} catch (error) {
+			console.log(error);
+		}
+	}
+	/*
     if (options.pocket !== "-") {
         try {
             let appId = options.pocket;
@@ -96,27 +96,27 @@ export function getDefaultProvider(
         } catch (error) { console.log(error); }
     }
 */
-  if (options.quicknode !== "-") {
-    try {
-      let token = options.quicknode;
-      providers.push(new QuickNodeProvider(network, token));
-    } catch (error) {
-      console.log(error);
-    }
-  }
+	if (options.quicknode !== "-") {
+		try {
+			let token = options.quicknode;
+			providers.push(new QuickNodeProvider(network, token));
+		} catch (error) {
+			console.log(error);
+		}
+	}
 
-  assert(
-    providers.length,
-    "unsupported default network",
-    "UNSUPPORTED_OPERATION",
-    {
-      operation: "getDefaultProvider",
-    },
-  );
+	assert(
+		providers.length,
+		"unsupported default network",
+		"UNSUPPORTED_OPERATION",
+		{
+			operation: "getDefaultProvider",
+		},
+	);
 
-  if (providers.length === 1) {
-    return providers[0];
-  }
+	if (providers.length === 1) {
+		return providers[0];
+	}
 
-  return new FallbackProvider(providers);
+	return new FallbackProvider(providers);
 }

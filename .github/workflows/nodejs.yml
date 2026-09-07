@@ -1,36 +1,28 @@
-name: Node.js CI
-
+name: Package checks
 on:
   push:
-    branches:
-      - master
-
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
-
-  test-build:
-
+  check:
     runs-on: ubuntu-latest
-
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
-        node-version: [ 16.x, 18.x, 20.x ]
-
+        node: ["22.12.0", "24", "26"]
     steps:
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
-          node-version: ${{ matrix.node-version }}
-          registry-url: 'https://registry.npmjs.org'
-
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Build CommonJS and ESM (from TypeScript)
-        run: npm run build-all
-
-      - name: Run written tests
-        run: npm run test
+          node-version: ${{ matrix.node }}
+          package-manager-cache: false
+      - run: npm install
+      - run: npm run check
+      - run: npm audit --audit-level=high

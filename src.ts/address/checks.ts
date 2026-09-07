@@ -17,7 +17,7 @@ import { Addressable, AddressLike, getAddress } from "./index.js";
  *    //_result:
  */
 export function isAddressable(value: any): value is Addressable {
-  return value && typeof value.getAddress === "function";
+	return value && typeof value.getAddress === "function";
 }
 
 /**
@@ -46,36 +46,36 @@ export function isAddressable(value: any): value is Addressable {
  *    //_result:
  */
 export function isAddress(value: any): value is string {
-  try {
-    getAddress(value);
-    return true;
-  } catch (error) {}
-  return false;
+	try {
+		getAddress(value);
+		return true;
+	} catch (error) {}
+	return false;
 }
 
 async function checkAddress(
-  target: any,
-  promise: Promise<null | string>,
+	target: any,
+	promise: Promise<null | string>,
 ): Promise<string> {
-  const result = await promise;
-  if (
-    result == null ||
-    result === "0x0000000000000000000000000000000000000000"
-  ) {
-    assert(
-      typeof target !== "string",
-      "unconfigured name",
-      "UNCONFIGURED_NAME",
-      { value: target },
-    );
-    assertArgument(
-      false,
-      "invalid AddressLike value; did not resolve to a value address",
-      "target",
-      target,
-    );
-  }
-  return getAddress(result);
+	const result = await promise;
+	if (
+		result == null ||
+		result === "0x0000000000000000000000000000000000000000"
+	) {
+		assert(
+			typeof target !== "string",
+			"unconfigured name",
+			"UNCONFIGURED_NAME",
+			{ value: target },
+		);
+		assertArgument(
+			false,
+			"invalid AddressLike value; did not resolve to a value address",
+			"target",
+			target,
+		);
+	}
+	return getAddress(result);
 }
 
 /**
@@ -113,18 +113,18 @@ async function checkAddress(
  *    //_error:
  */
 export function resolveAddress(target: AddressLike): string | Promise<string> {
-  if (typeof target === "string") {
-    return getAddress(target);
+	if (typeof target === "string") {
+		return getAddress(target);
 
-    // assert(resolver != null, "ENS resolution requires a provider",
-    //     "UNSUPPORTED_OPERATION", { operation: "resolveName" });
+		// assert(resolver != null, "ENS resolution requires a provider",
+		//     "UNSUPPORTED_OPERATION", { operation: "resolveName" });
 
-    // return checkAddress(target, resolver.resolveName(target));
-  } else if (isAddressable(target)) {
-    return checkAddress(target, target.getAddress());
-  } else if (target && typeof target.then === "function") {
-    return checkAddress(target, target);
-  }
+		// return checkAddress(target, resolver.resolveName(target));
+	} else if (isAddressable(target)) {
+		return checkAddress(target, target.getAddress());
+	} else if (target && typeof target.then === "function") {
+		return checkAddress(target, target);
+	}
 
-  assertArgument(false, "unsupported addressable value", "target", target);
+	assertArgument(false, "unsupported addressable value", "target", target);
 }

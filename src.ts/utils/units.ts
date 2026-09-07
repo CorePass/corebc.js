@@ -26,25 +26,25 @@ import { getNumber } from "./maths.js";
 import type { BigNumberish, Numeric } from "../utils/index.js";
 
 const names = [
-  ///Ore, the smallest and atomic amount of Core
-  "ore",
+	///Ore, the smallest and atomic amount of Core
+	"ore",
 
-  ///fecore, 1000 ore
-  "fecore",
+	///fecore, 1000 ore
+	"fecore",
 
-  ///Picore, one million ore
-  "picore",
+	///Picore, one million ore
+	"picore",
 
-  ///Nacore, one billion ore. Typically a reasonable unit to measure energy prices.
-  "nacore",
+	///Nacore, one billion ore. Typically a reasonable unit to measure energy prices.
+	"nacore",
 
-  ///Μcore, 10^12 ore or 1 μCore
-  "mcore",
+	///Μcore, 10^12 ore or 1 μCore
+	"mcore",
 
-  ///micore, 10^15 ore or 1 mcore
-  "micore",
+	///micore, 10^15 ore or 1 mcore
+	"micore",
 
-  "core",
+	"core",
 ];
 
 /**
@@ -54,19 +54,19 @@ const names = [
  *
  */
 export function formatUnits(
-  value: BigNumberish,
-  unit?: string | Numeric,
+	value: BigNumberish,
+	unit?: string | Numeric,
 ): string {
-  let decimals = 18;
-  if (typeof unit === "string") {
-    const index = names.indexOf(unit);
-    assertArgument(index >= 0, "invalid unit", "unit", unit);
-    decimals = 3 * index;
-  } else if (unit != null) {
-    decimals = getNumber(unit, "unit");
-  }
+	let decimals = 18;
+	if (typeof unit === "string") {
+		const index = names.indexOf(unit);
+		assertArgument(index >= 0, "invalid unit", "unit", unit);
+		decimals = 3 * index;
+	} else if (unit != null) {
+		decimals = getNumber(unit, "unit");
+	}
 
-  return FixedNumber.fromValue(value, decimals, { decimals }).toString();
+	return FixedNumber.fromValue(value, decimals, { decimals }).toString();
 }
 
 /**
@@ -76,90 +76,90 @@ export function formatUnits(
  */
 
 export const scientificToDecimal = (num: string | number) => {
-  // @ts-ignore
-  var nsign = Math.sign(num);
-  //remove the sign
-  // @ts-ignore
-  num = Math.abs(num);
-  //if the number is in scientific notation remove it
-  // @ts-ignore
-  if (/\d+\.?\d*e[\+\-]*\d+/i.test(num)) {
-    var zero = "0",
-      // @ts-ignore
-      parts = String(num).toLowerCase().split("e"), //split into coeff and exponent
-      e = parts.pop(), //store the exponential part
-      // @ts-ignore
-      l = Math.abs(e), //get the number of zeros
-      // @ts-ignore
-      sign = e / l,
-      coeff_array = parts[0].split(".");
-    if (sign === -1) {
-      l = l - coeff_array[0].length;
-      if (l < 0) {
-        // @ts-ignore
-        num =
-          coeff_array[0].slice(0, l) +
-          "." +
-          coeff_array[0].slice(l) +
-          (coeff_array.length === 2 ? coeff_array[1] : "");
-      } else {
-        // @ts-ignore
-        num = zero + "." + new Array(l + 1).join(zero) + coeff_array.join("");
-      }
-    } else {
-      var dec = coeff_array[1];
-      if (dec) l = l - dec.length;
-      if (l < 0) {
-        // @ts-ignore
-        num = coeff_array[0] + dec.slice(0, l) + "." + dec.slice(l);
-      } else {
-        // @ts-ignore
-        num = coeff_array.join("") + new Array(l + 1).join(zero);
-      }
-    }
-  }
-  // @ts-ignore
-  return nsign < 0 ? "-" + num : num;
+	// @ts-ignore
+	var nsign = Math.sign(num);
+	//remove the sign
+	// @ts-ignore
+	num = Math.abs(num);
+	//if the number is in scientific notation remove it
+	// @ts-ignore
+	if (/\d+\.?\d*e[\+\-]*\d+/i.test(num)) {
+		var zero = "0",
+			// @ts-ignore
+			parts = String(num).toLowerCase().split("e"), //split into coeff and exponent
+			e = parts.pop(), //store the exponential part
+			// @ts-ignore
+			l = Math.abs(e), //get the number of zeros
+			// @ts-ignore
+			sign = e / l,
+			coeff_array = parts[0].split(".");
+		if (sign === -1) {
+			l = l - coeff_array[0].length;
+			if (l < 0) {
+				// @ts-ignore
+				num =
+					coeff_array[0].slice(0, l) +
+					"." +
+					coeff_array[0].slice(l) +
+					(coeff_array.length === 2 ? coeff_array[1] : "");
+			} else {
+				// @ts-ignore
+				num = zero + "." + new Array(l + 1).join(zero) + coeff_array.join("");
+			}
+		} else {
+			var dec = coeff_array[1];
+			if (dec) l = l - dec.length;
+			if (l < 0) {
+				// @ts-ignore
+				num = coeff_array[0] + dec.slice(0, l) + "." + dec.slice(l);
+			} else {
+				// @ts-ignore
+				num = coeff_array.join("") + new Array(l + 1).join(zero);
+			}
+		}
+	}
+	// @ts-ignore
+	return nsign < 0 ? "-" + num : num;
 };
 export const trimDecimals = (n: string, decimals = 18) => {
-  n += "";
+	n += "";
 
-  if (n.indexOf(".") === -1) return n;
+	if (n.indexOf(".") === -1) return n;
 
-  const arr = n.split(".");
-  const fraction = arr[1].substr(0, decimals);
-  return arr[0] + "." + fraction;
+	const arr = n.split(".");
+	const fraction = arr[1].substr(0, decimals);
+	return arr[0] + "." + fraction;
 };
 
 export function parseUnits(value: string, unit?: string | Numeric): bigint {
-  assertArgument(
-    typeof value === "string",
-    "value must be a string",
-    "value",
-    value,
-  );
-  if (value.includes("e")) {
-    value = scientificToDecimal(value).toString();
-  }
-  let decimals = 18;
-  if (typeof unit === "string") {
-    const index = names.indexOf(unit);
-    assertArgument(index >= 0, "invalid unit", "unit", unit);
-    decimals = 3 * index;
-    value = trimDecimals(value, decimals);
-  } else if (unit != null) {
-    decimals = getNumber(unit, "unit");
-    value = trimDecimals(value, decimals);
-  }
+	assertArgument(
+		typeof value === "string",
+		"value must be a string",
+		"value",
+		value,
+	);
+	if (value.includes("e")) {
+		value = scientificToDecimal(value).toString();
+	}
+	let decimals = 18;
+	if (typeof unit === "string") {
+		const index = names.indexOf(unit);
+		assertArgument(index >= 0, "invalid unit", "unit", unit);
+		decimals = 3 * index;
+		value = trimDecimals(value, decimals);
+	} else if (unit != null) {
+		decimals = getNumber(unit, "unit");
+		value = trimDecimals(value, decimals);
+	}
 
-  return FixedNumber.fromString(value, { decimals }).value;
+	return FixedNumber.fromString(value, { decimals }).value;
 }
 
 /**
  *  Converts %%value%% into a //decimal string// using 18 decimal places.
  */
 export function formatXCB(ore: BigNumberish): string {
-  return formatUnits(ore, 18);
+	return formatUnits(ore, 18);
 }
 
 /**
@@ -167,5 +167,5 @@ export function formatXCB(ore: BigNumberish): string {
  *  decimal places.
  */
 export function parseXCB(xcb: string): bigint {
-  return parseUnits(xcb, 18);
+	return parseUnits(xcb, 18);
 }

@@ -16,136 +16,136 @@ import { JsonRpcApiProvider } from "./provider-jsonrpc.js";
 import type { Subscriber, Subscription } from "./abstract-provider.js";
 import type { EventFilter } from "./provider.js";
 import type {
-  JsonRpcError,
-  JsonRpcPayload,
-  JsonRpcResult,
+	JsonRpcError,
+	JsonRpcPayload,
+	JsonRpcResult,
 } from "./provider-jsonrpc.js";
 import type { Networkish } from "./network.js";
 
 type JsonRpcSubscription = {
-  method: string;
-  params: {
-    result: any;
-    subscription: string;
-  };
+	method: string;
+	params: {
+		result: any;
+		subscription: string;
+	};
 };
 
 export class SocketSubscriber implements Subscriber {
-  #provider: SocketProvider;
+	#provider: SocketProvider;
 
-  #filter: string;
-  get filter(): Array<any> {
-    return JSON.parse(this.#filter);
-  }
+	#filter: string;
+	get filter(): Array<any> {
+		return JSON.parse(this.#filter);
+	}
 
-  #filterId: null | Promise<string | number>;
-  #paused: null | boolean;
+	#filterId: null | Promise<string | number>;
+	#paused: null | boolean;
 
-  #emitPromise: null | Promise<void>;
+	#emitPromise: null | Promise<void>;
 
-  constructor(provider: SocketProvider, filter: Array<any>) {
-    this.#provider = provider;
-    this.#filter = JSON.stringify(filter);
-    this.#filterId = null;
-    this.#paused = null;
-    this.#emitPromise = null;
-  }
+	constructor(provider: SocketProvider, filter: Array<any>) {
+		this.#provider = provider;
+		this.#filter = JSON.stringify(filter);
+		this.#filterId = null;
+		this.#paused = null;
+		this.#emitPromise = null;
+	}
 
-  start(): void {
-    this.#filterId = this.#provider
-      .send("xcb_subscribe", this.filter)
-      .then((filterId) => {
-        this.#provider._register(filterId, this);
-        return filterId;
-      });
-  }
+	start(): void {
+		this.#filterId = this.#provider
+			.send("xcb_subscribe", this.filter)
+			.then((filterId) => {
+				this.#provider._register(filterId, this);
+				return filterId;
+			});
+	}
 
-  stop(): void {
-    (<Promise<number>>this.#filterId).then((filterId) => {
-      this.#provider.send("xcb_unsubscribe", [filterId]);
-    });
-    this.#filterId = null;
-  }
+	stop(): void {
+		(<Promise<number>>this.#filterId).then((filterId) => {
+			this.#provider.send("xcb_unsubscribe", [filterId]);
+		});
+		this.#filterId = null;
+	}
 
-  // @TODO: pause should trap the current blockNumber, unsub, and on resume use getLogs
-  //        and resume
-  pause(dropWhilePaused?: boolean): void {
-    assert(
-      dropWhilePaused,
-      "preserve logs while paused not supported by SocketSubscriber yet",
-      "UNSUPPORTED_OPERATION",
-      { operation: "pause(false)" },
-    );
-    this.#paused = !!dropWhilePaused;
-  }
+	// @TODO: pause should trap the current blockNumber, unsub, and on resume use getLogs
+	//        and resume
+	pause(dropWhilePaused?: boolean): void {
+		assert(
+			dropWhilePaused,
+			"preserve logs while paused not supported by SocketSubscriber yet",
+			"UNSUPPORTED_OPERATION",
+			{ operation: "pause(false)" },
+		);
+		this.#paused = !!dropWhilePaused;
+	}
 
-  resume(): void {
-    this.#paused = null;
-  }
+	resume(): void {
+		this.#paused = null;
+	}
 
-  _handleMessage(message: any): void {
-    if (this.#filterId == null) {
-      return;
-    }
-    if (this.#paused === null) {
-      let emitPromise: null | Promise<void> = this.#emitPromise;
-      if (emitPromise == null) {
-        emitPromise = this._emit(this.#provider, message);
-      } else {
-        emitPromise = emitPromise.then(async () => {
-          await this._emit(this.#provider, message);
-        });
-      }
-      this.#emitPromise = emitPromise.then(() => {
-        if (this.#emitPromise === emitPromise) {
-          this.#emitPromise = null;
-        }
-      });
-    }
-  }
+	_handleMessage(message: any): void {
+		if (this.#filterId == null) {
+			return;
+		}
+		if (this.#paused === null) {
+			let emitPromise: null | Promise<void> = this.#emitPromise;
+			if (emitPromise == null) {
+				emitPromise = this._emit(this.#provider, message);
+			} else {
+				emitPromise = emitPromise.then(async () => {
+					await this._emit(this.#provider, message);
+				});
+			}
+			this.#emitPromise = emitPromise.then(() => {
+				if (this.#emitPromise === emitPromise) {
+					this.#emitPromise = null;
+				}
+			});
+		}
+	}
 
-  async _emit(provider: SocketProvider, message: any): Promise<void> {
-    throw new Error("sub-classes must implemente this; _emit");
-  }
+	async _emit(provider: SocketProvider, message: any): Promise<void> {
+		throw new Error("sub-classes must implemente this; _emit");
+	}
 }
 
 export class SocketBlockSubscriber extends SocketSubscriber {
-  constructor(provider: SocketProvider) {
-    super(provider, ["newHeads"]);
-  }
+	constructor(provider: SocketProvider) {
+		super(provider, ["newHeads"]);
+	}
 
-  async _emit(provider: SocketProvider, message: any): Promise<void> {
-    provider.emit("block", parseInt(message.number));
-  }
+	async _emit(provider: SocketProvider, message: any): Promise<void> {
+		provider.emit("block", parseInt(message.number));
+	}
 }
 
 export class SocketPendingSubscriber extends SocketSubscriber {
-  constructor(provider: SocketProvider) {
-    super(provider, ["newPendingTransactions"]);
-  }
+	constructor(provider: SocketProvider) {
+		super(provider, ["newPendingTransactions"]);
+	}
 
-  async _emit(provider: SocketProvider, message: any): Promise<void> {
-    provider.emit("pending", message);
-  }
+	async _emit(provider: SocketProvider, message: any): Promise<void> {
+		provider.emit("pending", message);
+	}
 }
 
 export class SocketEventSubscriber extends SocketSubscriber {
-  #logFilter: string;
-  get logFilter(): EventFilter {
-    return JSON.parse(this.#logFilter);
-  }
+	#logFilter: string;
+	get logFilter(): EventFilter {
+		return JSON.parse(this.#logFilter);
+	}
 
-  constructor(provider: SocketProvider, filter: EventFilter) {
-    super(provider, ["logs", filter]);
-    this.#logFilter = JSON.stringify(filter);
-  }
+	constructor(provider: SocketProvider, filter: EventFilter) {
+		super(provider, ["logs", filter]);
+		this.#logFilter = JSON.stringify(filter);
+	}
 
-  async _emit(provider: SocketProvider, message: any): Promise<void> {
-    provider.emit(
-      this.logFilter,
-      provider._wrapLog(message, provider._network),
-    );
-  }
+	async _emit(provider: SocketProvider, message: any): Promise<void> {
+		provider.emit(
+			this.logFilter,
+			provider._wrapLog(message, provider._network),
+		);
+	}
 }
 
 /**
@@ -153,31 +153,31 @@ export class SocketEventSubscriber extends SocketSubscriber {
  *
  */
 export class SocketProvider extends JsonRpcApiProvider {
-  #callbacks: Map<
-    number,
-    {
-      payload: JsonRpcPayload;
-      resolve: (r: any) => void;
-      reject: (e: Error) => void;
-    }
-  >;
+	#callbacks: Map<
+		number,
+		{
+			payload: JsonRpcPayload;
+			resolve: (r: any) => void;
+			reject: (e: Error) => void;
+		}
+	>;
 
-  // Maps each filterId to its subscriber
-  #subs: Map<number | string, SocketSubscriber>;
+	// Maps each filterId to its subscriber
+	#subs: Map<number | string, SocketSubscriber>;
 
-  // If any events come in before a subscriber has finished
-  // registering, queue them
-  #pending: Map<number | string, Array<any>>;
+	// If any events come in before a subscriber has finished
+	// registering, queue them
+	#pending: Map<number | string, Array<any>>;
 
-  constructor(network?: Networkish) {
-    super(network, { batchMaxCount: 1 });
-    this.#callbacks = new Map();
-    this.#subs = new Map();
-    this.#pending = new Map();
-  }
+	constructor(network?: Networkish) {
+		super(network, { batchMaxCount: 1 });
+		this.#callbacks = new Map();
+		this.#subs = new Map();
+		this.#pending = new Map();
+	}
 
-  // This value is only valid after _start has been called
-  /*
+	// This value is only valid after _start has been called
+	/*
     get _network(): Network {
         if (this.#network == null) {
             throw new Error("this shouldn't happen");
@@ -186,66 +186,66 @@ export class SocketProvider extends JsonRpcApiProvider {
     }
     */
 
-  _getSubscriber(sub: Subscription): Subscriber {
-    switch (sub.type) {
-      case "close":
-        return new UnmanagedSubscriber("close");
-      case "block":
-        return new SocketBlockSubscriber(this);
-      case "pending":
-        return new SocketPendingSubscriber(this);
-      case "event":
-        return new SocketEventSubscriber(this, sub.filter);
-      case "orphan":
-        // Handled auto-matically within AbstractProvider
-        // when the log.removed = true
-        if (sub.filter.orphan === "drop-log") {
-          return new UnmanagedSubscriber("drop-log");
-        }
-    }
-    return super._getSubscriber(sub);
-  }
+	_getSubscriber(sub: Subscription): Subscriber {
+		switch (sub.type) {
+			case "close":
+				return new UnmanagedSubscriber("close");
+			case "block":
+				return new SocketBlockSubscriber(this);
+			case "pending":
+				return new SocketPendingSubscriber(this);
+			case "event":
+				return new SocketEventSubscriber(this, sub.filter);
+			case "orphan":
+				// Handled auto-matically within AbstractProvider
+				// when the log.removed = true
+				if (sub.filter.orphan === "drop-log") {
+					return new UnmanagedSubscriber("drop-log");
+				}
+		}
+		return super._getSubscriber(sub);
+	}
 
-  _register(filterId: number | string, subscriber: SocketSubscriber): void {
-    this.#subs.set(filterId, subscriber);
-    const pending = this.#pending.get(filterId);
-    if (pending) {
-      for (const message of pending) {
-        subscriber._handleMessage(message);
-      }
-      this.#pending.delete(filterId);
-    }
-  }
+	_register(filterId: number | string, subscriber: SocketSubscriber): void {
+		this.#subs.set(filterId, subscriber);
+		const pending = this.#pending.get(filterId);
+		if (pending) {
+			for (const message of pending) {
+				subscriber._handleMessage(message);
+			}
+			this.#pending.delete(filterId);
+		}
+	}
 
-  async _send(
-    payload: JsonRpcPayload | Array<JsonRpcPayload>,
-  ): Promise<Array<JsonRpcResult | JsonRpcError>> {
-    // WebSocket provider doesn't accept batches
-    assertArgument(
-      !Array.isArray(payload),
-      "WebSocket does not support batch send",
-      "payload",
-      payload,
-    );
+	async _send(
+		payload: JsonRpcPayload | Array<JsonRpcPayload>,
+	): Promise<Array<JsonRpcResult | JsonRpcError>> {
+		// WebSocket provider doesn't accept batches
+		assertArgument(
+			!Array.isArray(payload),
+			"WebSocket does not support batch send",
+			"payload",
+			payload,
+		);
 
-    // @TODO: stringify payloads here and store to prevent mutations
+		// @TODO: stringify payloads here and store to prevent mutations
 
-    // Prepare a promise to respond to
-    const promise = new Promise((resolve, reject) => {
-      this.#callbacks.set(payload.id, { payload, resolve, reject });
-    });
+		// Prepare a promise to respond to
+		const promise = new Promise((resolve, reject) => {
+			this.#callbacks.set(payload.id, { payload, resolve, reject });
+		});
 
-    // Wait until the socket is connected before writing to it
-    await this._waitUntilReady();
+		// Wait until the socket is connected before writing to it
+		await this._waitUntilReady();
 
-    // Write the request to the socket
-    await this._write(JSON.stringify(payload));
+		// Write the request to the socket
+		await this._write(JSON.stringify(payload));
 
-    return <Array<JsonRpcResult | JsonRpcError>>[await promise];
-  }
+		return <Array<JsonRpcResult | JsonRpcError>>[await promise];
+	}
 
-  // Sub-classes must call this once they are connected
-  /*
+	// Sub-classes must call this once they are connected
+	/*
     async _start(): Promise<void> {
         if (this.#ready) { return; }
 
@@ -259,44 +259,44 @@ export class SocketProvider extends JsonRpcApiProvider {
     }
     */
 
-  // Sub-classes must call this for each message
-  async _processMessage(message: string): Promise<void> {
-    const result = <JsonRpcResult | JsonRpcError | JsonRpcSubscription>(
-      JSON.parse(message)
-    );
+	// Sub-classes must call this for each message
+	async _processMessage(message: string): Promise<void> {
+		const result = <JsonRpcResult | JsonRpcError | JsonRpcSubscription>(
+			JSON.parse(message)
+		);
 
-    if ("id" in result) {
-      const callback = this.#callbacks.get(result.id);
-      if (callback == null) {
-        this.emit(
-          "error",
-          makeError("received result for unknown id", "UNKNOWN_ERROR", {
-            reasonCode: "UNKNOWN_ID",
-            result,
-          }),
-        );
-        return;
-      }
-      this.#callbacks.delete(result.id);
+		if ("id" in result) {
+			const callback = this.#callbacks.get(result.id);
+			if (callback == null) {
+				this.emit(
+					"error",
+					makeError("received result for unknown id", "UNKNOWN_ERROR", {
+						reasonCode: "UNKNOWN_ID",
+						result,
+					}),
+				);
+				return;
+			}
+			this.#callbacks.delete(result.id);
 
-      callback.resolve(result);
-    } else if (result.method === "xcb_subscription") {
-      const filterId = result.params.subscription;
-      const subscriber = this.#subs.get(filterId);
-      if (subscriber) {
-        subscriber._handleMessage(result.params.result);
-      } else {
-        let pending = this.#pending.get(filterId);
-        if (pending == null) {
-          pending = [];
-          this.#pending.set(filterId, pending);
-        }
-        pending.push(result.params.result);
-      }
-    }
-  }
+			callback.resolve(result);
+		} else if (result.method === "xcb_subscription") {
+			const filterId = result.params.subscription;
+			const subscriber = this.#subs.get(filterId);
+			if (subscriber) {
+				subscriber._handleMessage(result.params.result);
+			} else {
+				let pending = this.#pending.get(filterId);
+				if (pending == null) {
+					pending = [];
+					this.#pending.set(filterId, pending);
+				}
+				pending.push(result.params.result);
+			}
+		}
+	}
 
-  async _write(message: string): Promise<void> {
-    throw new Error("sub-classes must override this");
-  }
+	async _write(message: string): Promise<void> {
+		throw new Error("sub-classes must override this");
+	}
 }

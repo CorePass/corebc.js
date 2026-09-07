@@ -30,16 +30,16 @@ import { sha256, SignatureLike } from "../crypto/index.js";
  *
  */
 export function hashMessage(message: Uint8Array | string): string {
-  if (typeof message === "string") {
-    message = toUtf8Bytes(message);
-  }
-  return sha256(
-    concat([
-      toUtf8Bytes(MessagePrefix),
-      toUtf8Bytes(String(message.length)),
-      message,
-    ]),
-  );
+	if (typeof message === "string") {
+		message = toUtf8Bytes(message);
+	}
+	return sha256(
+		concat([
+			toUtf8Bytes(MessagePrefix),
+			toUtf8Bytes(String(message.length)),
+			message,
+		]),
+	);
 }
 
 /**
@@ -47,10 +47,10 @@ export function hashMessage(message: Uint8Array | string): string {
  *  the signature %%sig%% during signing for %%message%%.
  */
 export function verifyMessage(
-  message: Uint8Array | string,
-  sig: SignatureLike,
-  prefix: string,
+	message: Uint8Array | string,
+	sig: SignatureLike,
+	prefix: string,
 ): string {
-  const digest = hashMessage(message);
-  return recoverAddress(digest, sig, prefix);
+	const digest = hashMessage(message);
+	return recoverAddress(digest, sig, prefix);
 }

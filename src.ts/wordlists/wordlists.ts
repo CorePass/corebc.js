@@ -24,14 +24,14 @@ import type { Wordlist } from "./wordlist.js";
  *  included ``wordlists-extra.min.js`` file.
  */
 export const wordlists: Record<string, Wordlist> = {
-  cz: LangCz.wordlist(),
-  en: LangEn.wordlist(),
-  es: LangEs.wordlist(),
-  fr: LangFr.wordlist(),
-  it: LangIt.wordlist(),
-  pt: LangPt.wordlist(),
-  ja: LangJa.wordlist(),
-  ko: LangKo.wordlist(),
-  zh_cn: LangZh.wordlist("cn"),
-  zh_tw: LangZh.wordlist("tw"),
+	cz: LangCz.wordlist(),
+	en: LangEn.wordlist(),
+	es: LangEs.wordlist(),
+	fr: LangFr.wordlist(),
+	it: LangIt.wordlist(),
+	pt: LangPt.wordlist(),
+	ja: LangJa.wordlist(),
+	ko: LangKo.wordlist(),
+	zh_cn: LangZh.wordlist("cn"),
+	zh_tw: LangZh.wordlist("tw"),
 };
