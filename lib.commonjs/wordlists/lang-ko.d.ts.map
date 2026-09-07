@@ -1,1 +1,0 @@
-{"version":3,"file":"lang-ko.d.ts","sourceRoot":"","sources":["../../src.ts/wordlists/lang-ko.ts"],"names":[],"mappings":"AAGA,OAAO,EAAE,QAAQ,EAAE,MAAM,eAAe,CAAC;AAqEzC;;;;GAIG;AACH,qBAAa,MAAO,SAAQ,QAAQ;IACnC;;;;;;;OAOG;IACH,cAEC;IAED,OAAO,CAAC,KAAK,EAAE,MAAM,GAAG,MAAM,CAS7B;IAED,YAAY,CAAC,IAAI,EAAE,MAAM,GAAG,MAAM,CAEjC;IAED;;;OAGG;IACH,MAAM,CAAC,QAAQ,IAAI,MAAM,CAKxB;CACD"}

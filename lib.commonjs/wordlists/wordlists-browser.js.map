@@ -1,1 +1,0 @@
-{"version":3,"file":"wordlists-browser.js","sources":["../../lib.esm/wordlists/wordlists-browser.js"],"sourcesContent":["import { LangEn } from \"./lang-en.js\";\nexport const wordlists = {\n    en: LangEn.wordlist(),\n};\n//# sourceMappingURL=wordlists-browser.js.map"],"names":["LangEn"],"mappings":";;;;AACY,MAAC,SAAS,GAAG;AACzB,IAAI,EAAE,EAAEA,aAAM,CAAC,QAAQ,EAAE;AACzB;;"}

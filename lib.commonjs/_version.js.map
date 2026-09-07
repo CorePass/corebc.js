@@ -1,1 +1,0 @@
-{"version":3,"file":"_version.js","sources":["../lib.esm/_version.js"],"sourcesContent":["/** The current version of corebc; keep in sync with package.json. */\nexport const version = \"0.4.1\";\n//# sourceMappingURL=_version.js.map"],"names":[],"mappings":";;AAAA;AACY,MAAC,OAAO,GAAG;;"}
