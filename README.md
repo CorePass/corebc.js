@@ -72,12 +72,12 @@ const token = new CustomUnitToken(tokenAddress, provider);
 const block = await provider.getBlockNumber();
 const units = await token.discover(block);
 if (units) {
-	const balance = await token.balance(
-		accountAddress,
-		units.preferredUnit,
-		block,
-	);
-	console.log(balance.canonicalAmount, balance.unitAmount, balance.unit);
+  const balance = await token.balance(
+    accountAddress,
+    units.preferredUnit,
+    block,
+  );
+  console.log(balance.canonicalAmount, balance.unitAmount, balance.unit);
 }
 ```
 
@@ -89,8 +89,8 @@ ESM and UMD bundles, including minified versions, are in `dist/` in the npm pack
 
 ```html
 <script type="module">
-	import { Wallet, networkIdToPrefix } from "./dist/corebc.min.js";
-	const wallet = Wallet.createRandom(networkIdToPrefix(3));
+  import { Wallet, networkIdToPrefix } from "./dist/corebc.min.js";
+  const wallet = Wallet.createRandom(networkIdToPrefix(3));
 </script>
 ```
 
