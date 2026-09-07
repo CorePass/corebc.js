@@ -34,4 +34,25 @@ for (const file of ["dist/corebc.umd.js", "dist/corebc.umd.min.js"]) {
 		context,
 	);
 }
+for (const file of ["wordlists-extra.js", "wordlists-extra.min.js"]) {
+	const { LangSk, LangDe } = await import(
+		new URL("../dist/" + file, import.meta.url)
+	);
+	const de = LangDe.wordlist();
+	if (
+		de.locale !== "de" ||
+		de.getWord(0) !== "abbau" ||
+		de.getWordIndex("zyklus") !== 2047
+	) {
+		throw new Error("browser German wordlist mismatch");
+	}
+	const sk = LangSk.wordlist();
+	if (
+		sk.locale !== "sk" ||
+		sk.getWord(208) !== "chalupa" ||
+		sk.getWordIndex("zvuk") !== 2047
+	) {
+		throw new Error("browser Slovak wordlist mismatch");
+	}
+}
 console.log("Browser bundle checks passed");

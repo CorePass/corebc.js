@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.0
+
+- Add the German community mnemonic wordlist from dys2p/wordlists-de as `wordlists.de` and `LangDe` in the extra browser bundle.
+- Add the Slovak mnemonic wordlist as `wordlists.sk` and `LangSk` in the extra browser wordlist bundle, preserving upstream word order.
+
 ## 1.0.0
 
 - Support the updated Noble hashes, TypeScript 7, Node types, and Rollup dependencies.
