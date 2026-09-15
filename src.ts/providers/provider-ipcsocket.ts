@@ -3,6 +3,8 @@ import { connect } from "net";
 import { SocketProvider } from "./provider-socket.js";
 
 import type { Socket } from "net";
+
+import type { JsonRpcApiProviderOptions } from "./provider-jsonrpc.js";
 import type { Networkish } from "./network.js";
 
 // @TODO: Is this sufficient? Is this robust? Will newlines occur between
@@ -26,14 +28,27 @@ function splitBuffer(data: Buffer): {
 	return { messages, remaining: data.subarray(lastStart) };
 }
 
+/**
+ *  An **IpcSocketProvider** connects over an IPC socket on the host
+ *  which provides fast access to the node, but requires the node and
+ *  the script run on the same machine.
+ */
 export class IpcSocketProvider extends SocketProvider {
 	#socket: Socket;
+
+	/**
+	 *  The connected socket.
+	 */
 	get socket(): Socket {
 		return this.#socket;
 	}
 
-	constructor(path: string, network?: Networkish) {
-		super(network);
+	constructor(
+		path: string,
+		network?: Networkish,
+		options?: JsonRpcApiProviderOptions,
+	) {
+		super(network, options);
 		this.#socket = connect(path);
 
 		this.socket.on("ready", async () => {
@@ -73,6 +88,9 @@ export class IpcSocketProvider extends SocketProvider {
 	}
 
 	async _write(message: string): Promise<void> {
+		if (!message.endsWith("\n")) {
+			message += "\n";
+		}
 		this.socket.write(message);
 	}
 }

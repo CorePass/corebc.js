@@ -1,0 +1,439 @@
+{
+	"hashes": {
+		"sha256(0x)": "0xa7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a",
+		"sha512(0x)": "0xa69f73cca23a9ac5c8b567dc185a756e97c982164fe25859e0d1dcc1475c80a615b2123af1f5f94c11e3e9402c3ac558f500199d95b6d3e301758586281dcd26",
+		"keccak256(0x)": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470",
+		"ripemd160(0x)": "0x9c1185a5c5e9fc54612808977ee8f548b2258d31",
+		"sha256(0x00)": "0x5d53469f20fef4f8eab52b88044ede69c77a6a68a60728609fc4a65ff531e7d0",
+		"sha512(0x00)": "0x7127aab211f82a18d06cf7578ff49d5089017944139aa60d8bee057811a15fb55a53887600a3eceba004de51105139f32506fe5b53e1913bfa6b32e716fe97da",
+		"keccak256(0x00)": "0xbc36789e7a1e281436464229828f817d6612f7b477d66591ff96a9e064bcc98a",
+		"ripemd160(0x00)": "0xc81b94933420221a7ac004a90242d8b1d3e5070d",
+		"sha256(0x1234)": "0x19becdc0e8d6dd4aa2c9c2983dbb9c61956a8ade69b360d3e6019f0bcd5557a9",
+		"sha512(0x1234)": "0xbcbd8b146c45dccfa437ac242dbc09baf4a9d5504657155a352d7ebb0e7aa6d51e86d7d7db9b3eef80283c3d3e830a9ea1cd9872318023d303baac036e84989e",
+		"keccak256(0x1234)": "0x56570de287d73cd1cb6092bb8fdee6173974955fdef345ae579ee9f475ea7432",
+		"ripemd160(0x1234)": "0xc39867e393cb061b837240862d9ad318c176a96d",
+		"sha256(0xdeadbeef)": "0x352b82608dad6c7ac3dd665bc2666e5d97803cb13f23a1109e2105e93f42c448",
+		"sha512(0xdeadbeef)": "0x16f4abfb7f079d757a24cf6a12a4ee2c28041cee3fa68cb7a50aa95e33aa87d5ada97274d4dc548499eb23da351b1b3ab7c5a04376f94cab4fe705dc0d171bef",
+		"keccak256(0xdeadbeef)": "0xd4fd4e189132273036449fc9e11198c739161b4c0116a9a2dccdfa1c492006f1",
+		"ripemd160(0xdeadbeef)": "0x226821c2f5423e11fe9af68bd285c249db2e4b5a",
+		"id(hello)": "0x3338be694f50c5f338814986cdf0686453a888b84f424d792af4b9202398f392",
+		"hashMessage(hello)": "0x1b73999586e902d53f5282d51f9aec46237f46a6ed4e9dbba2fb50cf9a87596d",
+		"hashMessage(bytes)": "0x8489ab705ee14d184ef5f564a1cc3cab149492f3d86c3e7fd7c4be29a1afd2f9",
+		"computeHmac": "0x7553df81c628815cf569696cad13a37c606c5058df13d9dff4fee2cf5e9b5779",
+		"pbkdf2": "0xb41f8f30651253d2722ecdb771dc47d2801e63eae5c907fc49bec6d34952d427",
+		"scryptSync": "0x77d6576238657b203b19ca42c18a0497",
+		"solidityPacked": "0x01616263",
+		"solidityPackedSha256": "0x905819d59ce211099512320aa1b50d9cf4402d47eea2aebd808adb17c06808f5"
+	},
+	"dataUtils": {
+		"hexlify": "0x0102ff",
+		"getBytes": "0x010203",
+		"concat": "0x01020304",
+		"dataLength": 3,
+		"dataSlice": "0x1122",
+		"stripZerosLeft": "0x1234",
+		"zeroPadValue": "0x0000000000001234",
+		"zeroPadBytes": "0x1234000000000000",
+		"toBigInt(0x0)": "bigint:0",
+		"toNumber(0x0)": 0,
+		"toQuantity(0x0)": "0x0",
+		"toBigInt(0x1234)": "bigint:4660",
+		"toNumber(0x1234)": 4660,
+		"toQuantity(0x1234)": "0x1234",
+		"toBigInt(0xdeadbeef)": "bigint:3735928559",
+		"toNumber(0xdeadbeef)": 3735928559,
+		"toQuantity(0xdeadbeef)": "0xdeadbeef",
+		"toBeHex(255,4)": "0x000000ff",
+		"toBeHex(0)": "0x00",
+		"toBeArray(65535)": "0xffff",
+		"toTwos": "bigint:4294967295",
+		"fromTwos": "bigint:-1",
+		"mask": "bigint:255",
+		"encodeBase58": "2PM",
+		"decodeBase58": "bigint:4660",
+		"encodeBase64": "EjQ=",
+		"decodeBase64": "0x1234",
+		"encodeBytes32String": "0x6162630000000000000000000000000000000000000000000000000000000000",
+		"decodeBytes32String": "abc",
+		"toUtf8Bytes": "0x68c3a96c6c6f",
+		"toUtf8String": "héllo",
+		"encodeRlp": "0xc8821234c382567880",
+		"decodeRlp": [
+			"0x1234",
+			[
+				"0x5678"
+			],
+			"0x"
+		],
+		"BigNumber.from": "0x04d2",
+		"BigNumber.add": "12"
+	},
+	"addresses": {
+		"getAddress(known)": "0xab41f5e89ba978317da861b7ad06ba3103d41c876098",
+		"getAddress(upper)": "0xAB41F5E89BA978317DA861B7AD06BA3103D41C876098",
+		"getAddress(bad-checksum)": "ERROR: bad address checksum",
+		"getAddress(too-short)": "ERROR: invalid address",
+		"isAddress(known)": true,
+		"isAddress(garbage)": false,
+		"networkIdToPrefix(0)": "ce",
+		"networkIdToPrefix(1)": "cb",
+		"networkIdToPrefix(2)": "ERROR: bad networkId",
+		"networkIdToPrefix(3)": "ab",
+		"networkIdToPrefix(4)": "ab",
+		"networkIdToPrefix(5)": "ERROR: bad networkId",
+		"networkIdToPrefix(11)": "ce",
+		"networkIdToPrefix(100)": "ce",
+		"computeAddress(A,cb)": "0xcb23f5e89ba978317da861b7ad06ba3103d41c876098",
+		"computeAddress(B,cb)": "0xcb35d093eef7b8606c3569b4958ddc58e2e85e72d6eb",
+		"computeAddress(A,ab)": "0xab41f5e89ba978317da861b7ad06ba3103d41c876098",
+		"computeAddress(B,ab)": "0xab53d093eef7b8606c3569b4958ddc58e2e85e72d6eb",
+		"computeAddress(A,ce)": "0xce14f5e89ba978317da861b7ad06ba3103d41c876098",
+		"computeAddress(B,ce)": "0xce26d093eef7b8606c3569b4958ddc58e2e85e72d6eb",
+		"computeAddress(bad-prefix)": "ERROR: invalid BytesLike value",
+		"publicToAddress": "0xcb23f5e89ba978317da861b7ad06ba3103d41c876098",
+		"getCreateAddress": "0xab41f5e89ba978317da861b7ad06ba3103d41c876098"
+	},
+	"units": {
+		"CoreSymbol": "Ξ",
+		"OrePerXCB": "bigint:1000000000000000000",
+		"parseXCB(1)": "bigint:1000000000000000000",
+		"parseXCB(0.5)": "bigint:500000000000000000",
+		"parseXCB(1234.000000000000000001)": "bigint:1234000000000000000001",
+		"formatXCB": "1.0",
+		"parseUnits(1,9)": "bigint:1000000000",
+		"formatUnits(1e9,9)": "1.0"
+	},
+	"signing": {
+		"A.privateKey": "0x010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101",
+		"A.publicKey": "0xe0758a33267939a394fb5ccb202ee851cebc2e89c91ac1289e2bfcddfd9ff9fc5694b0f569d7f7e9da16e1cde9301b29f48128b3cbd1168580",
+		"A.sign": "0xb1ab57b91285be81136704f5ca98e8792af9e2f0cce52611c997999755283ed7405f17c45b8c1c564e4d00569f04d33288b4f3fc50a45e1180623888142d12d7b013f14cddb95c8889155e3adcc84d8af1a7b670a453d3762b6d87891007e3e8e70fdfcd4e0c3919d5704581ddbc1c3b0500e0758a33267939a394fb5ccb202ee851cebc2e89c91ac1289e2bfcddfd9ff9fc5694b0f569d7f7e9da16e1cde9301b29f48128b3cbd1168580",
+		"A.recover": "0xe0758a33267939a394fb5ccb202ee851cebc2e89c91ac1289e2bfcddfd9ff9fc5694b0f569d7f7e9da16e1cde9301b29f48128b3cbd1168580",
+		"A.recover-wrong-digest": "ERROR: invalid signature",
+		"B.privateKey": "0x020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020280",
+		"B.publicKey": "0x7feb9357e8aceb83b713ad38f2e43e92050a13e317d58ff08195ff46247bc5dd3120fcc5346667a0bbdb54a66e96aed90b755b47793e849000",
+		"B.sign": "0x17065332ff2d741e5a15ef9a8b3f21a63840afc56ffce24b19d6b73ed70e9535af2959067c1f5fa7e025493b438a054a5595781dfecb29a900eaec9a892b79d4d6153ad36017c21122000c6204ed7a6965a7f496d07f5b540947d574b28e263c767e58dece6272d6d606cde4e15c1c6c30007feb9357e8aceb83b713ad38f2e43e92050a13e317d58ff08195ff46247bc5dd3120fcc5346667a0bbdb54a66e96aed90b755b47793e849000",
+		"B.recover": "0x7feb9357e8aceb83b713ad38f2e43e92050a13e317d58ff08195ff46247bc5dd3120fcc5346667a0bbdb54a66e96aed90b755b47793e849000",
+		"B.recover-wrong-digest": "ERROR: invalid signature",
+		"sharedSecret(a,b)": "0xe34645238d104c7ae8fc8e54cbdcb937270f96648e1f60faee6c9d9121b54ae1179ba8158dea842cbc8ae31557c96b22f1fe8d7cc2cf9375",
+		"sharedSecret(b,a)": "0xe34645238d104c7ae8fc8e54cbdcb937270f96648e1f60faee6c9d9121b54ae1179ba8158dea842cbc8ae31557c96b22f1fe8d7cc2cf9375",
+		"addPoints": "0xfae9d09ab0d26458a8ac47c9fe70d609f9cde1da6a00997935e55a2a5900049ea4e0021e3bd13876296b952ab62f4a68af5def784be1d3f480",
+		"sharedSecret(invalid)": "ERROR: invalid public key",
+		"SigningKey(len=0)": "ERROR: invalid private key",
+		"SigningKey(len=32)": "ERROR: invalid private key",
+		"SigningKey(len=56)": "ERROR: invalid private key",
+		"SigningKey(len=58)": "ERROR: invalid private key",
+		"vector:seed": {
+			"publicA": "0x18e2f925aef56fc05910474593ee84c932bc7ea4d352a3416f72d115e60eb58cd862f73ac50886fbaad6354a4eeb01fd9f740491fb11f59580",
+			"publicB": "0x4e15975a78604b2d6575f2d3310ca4e4f122226189f5900f744c1ead49408bdf8247843c05ba24fbb26c9b5f81c287cbbe3d3e8a3ad0231d00",
+			"reverse": "0xb5353e76df0e00c528f800f4659a7eab368f29374870979245eed3f2e9bda1351d70ca219ade1eb0b76fcea78af42268d46723ffdd9e36fb",
+			"secret": "0xb5353e76df0e00c528f800f4659a7eab368f29374870979245eed3f2e9bda1351d70ca219ade1eb0b76fcea78af42268d46723ffdd9e36fb"
+		},
+		"vector:mixed": {
+			"publicA": "0xe0758a33267939a394fb5ccb202ee851cebc2e89c91ac1289e2bfcddfd9ff9fc5694b0f569d7f7e9da16e1cde9301b29f48128b3cbd1168580",
+			"publicB": "0x7feb9357e8aceb83b713ad38f2e43e92050a13e317d58ff08195ff46247bc5dd3120fcc5346667a0bbdb54a66e96aed90b755b47793e849000",
+			"reverse": "0xe34645238d104c7ae8fc8e54cbdcb937270f96648e1f60faee6c9d9121b54ae1179ba8158dea842cbc8ae31557c96b22f1fe8d7cc2cf9375",
+			"secret": "0xe34645238d104c7ae8fc8e54cbdcb937270f96648e1f60faee6c9d9121b54ae1179ba8158dea842cbc8ae31557c96b22f1fe8d7cc2cf9375"
+		},
+		"vector:scalar": {
+			"publicA": "0x9115fe1455b552b73a73ae0172dc39bb9deec3f91e0f4a9d5bc418ff0217dc50ddc8b982756a35b13597a48459e6b6f9eb24c4bdb05f6d6780",
+			"publicB": "0x7feb9357e8aceb83b713ad38f2e43e92050a13e317d58ff08195ff46247bc5dd3120fcc5346667a0bbdb54a66e96aed90b755b47793e849000",
+			"reverse": "0xfabbfd711b429df0a179a9dc29a1d7e1284452d471caf6c80b9b151d60b4de30a560885926e884cb1056aac6ef9977c5e0394913d25cdd74",
+			"secret": "0xfabbfd711b429df0a179a9dc29a1d7e1284452d471caf6c80b9b151d60b4de30a560885926e884cb1056aac6ef9977c5e0394913d25cdd74"
+		},
+		"recoverAddress": "0xcb23f5e89ba978317da861b7ad06ba3103d41c876098"
+	},
+	"wallets": {
+		"wallet.address": "0xcb23f5e89ba978317da861b7ad06ba3103d41c876098",
+		"wallet.privateKey": "0x010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101",
+		"wallet.signMessage": "0xb1dc9c11a28173a36c9d46137924310b8f167eec650aac81bd91ff846428824dff96d0b85fd5e69f827b159ce315ff7c830e30d7c9e0c4f000ded3f6087f1d8a5a9894dbf7f76307f034cbfaaccd4e6b853d6480b953355f4a263b256fbbf9e9052e48d83b64e787c7bd24b68405b5390400e0758a33267939a394fb5ccb202ee851cebc2e89c91ac1289e2bfcddfd9ff9fc5694b0f569d7f7e9da16e1cde9301b29f48128b3cbd1168580",
+		"verifyMessage": "0xcb23f5e89ba978317da861b7ad06ba3103d41c876098",
+		"wallet.address(ab)": "0xab41f5e89ba978317da861b7ad06ba3103d41c876098",
+		"wallet.address(ce)": "0xce14f5e89ba978317da861b7ad06ba3103d41c876098",
+		"defaultPath": "m/44'/654'/0'/0/0",
+		"getAccountPath(0)": "m/44'/654'/0'/0/0",
+		"getIndexedAccountPath(0)": "m/44'/654'/0'/0/0",
+		"getAccountPath(1)": "ERROR: Core cannot derive the account component; use getIndexedAccountPath",
+		"getIndexedAccountPath(1)": "m/44'/654'/0'/0/1",
+		"getAccountPath(5)": "ERROR: Core cannot derive the account component; use getIndexedAccountPath",
+		"getIndexedAccountPath(5)": "m/44'/654'/0'/0/5",
+		"getAccountPath(100)": "ERROR: Core cannot derive the account component; use getIndexedAccountPath",
+		"getIndexedAccountPath(100)": "m/44'/654'/0'/0/100",
+		"mnemonic.fromEntropy": {
+			"entropy": "0x0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f",
+			"phrase": "audit journey sense bulk valley maple destroy tiger audit journey sense cable",
+			"seed": "d3b73ade1ae372466c16e7914aedf56964543ab3fce9939214404ef5d217e77552f615a504173505cc85c75976b685d6fc82700054428376d96aba77daf04267"
+		},
+		"mnemonic.phrase": "audit journey sense bulk valley maple destroy tiger audit journey sense cable",
+		"mnemonic.fromPhrase.seed": "d3b73ade1ae372466c16e7914aedf56964543ab3fce9939214404ef5d217e77552f615a504173505cc85c75976b685d6fc82700054428376d96aba77daf04267",
+		"mnemonic.withPassword": "605f2f1d76aee239be3e7c316a817246f16f9aee9dd11fcca5b1c56a237050a2e9978fa8f99ddd63db7bf3893e1f2cab04696820ea12181d91a0bb796b66d98c",
+		"hd.fromPhrase": {
+			"address": "0xcb92fc0f6ce594fb25f4291993cb1dde696565303a03",
+			"depth": 5,
+			"fingerprint": "0x8f914b02",
+			"index": 0,
+			"path": "m/44'/654'/0'/0/0",
+			"privateKey": "0x1744a883f4bde3dc3cc29aef03da8155a76823488b8dea2e7399ffd2be0010810ba7ce14077e8e45a2f53629c20683b9e7c1de93ffd3eba1e9",
+			"publicKey": "0xa74d24ae3fbd098f48299c5b3db6b5d071465daf07619bb4e9334a4ca7ef8c164e4f8d86c5b7b1db0cb50cb9db6e7c0493f97b90d4c3cde180"
+		},
+		"hd.derive(m/44'/654'/0'/0/0)": {
+			"address": "0xcb92fc0f6ce594fb25f4291993cb1dde696565303a03",
+			"depth": 5,
+			"path": "m/44'/654'/0'/0/0",
+			"privateKey": "0x1744a883f4bde3dc3cc29aef03da8155a76823488b8dea2e7399ffd2be0010810ba7ce14077e8e45a2f53629c20683b9e7c1de93ffd3eba1e9"
+		},
+		"hd.derive(m/44'/654'/0'/0/1)": {
+			"address": "0xcb7155aff7aaee2b43488182b3c27d30c6db0ff36fa9",
+			"depth": 5,
+			"path": "m/44'/654'/0'/0/1",
+			"privateKey": "0x0ba9ca41a928eae78b5de16c03ae406c127608f7b884785faffe5de53dec5dc9f389ed398ebd2cc2b2f7df70d94efe29c3a1d38fe1d3eba1e9"
+		},
+		"hd.derive(m/44'/654'/0'/0/5)": {
+			"address": "0xcb422dc219c8164fb19c028a5ca6678a40a2dc3d0952",
+			"depth": 5,
+			"path": "m/44'/654'/0'/0/5",
+			"privateKey": "0x2b4c9e5a18b20ff68d888ddc4dc3c50023a6f36a4354920a14b81808cbc13fc0e24780fd05ee45166e30a863952b9d9b4e48d6b8b5d3eba1e9"
+		},
+		"hd.derive(m/44'/60'/0'/0/5)": {
+			"address": "0xcb422dc219c8164fb19c028a5ca6678a40a2dc3d0952",
+			"depth": 5,
+			"path": "m/44'/654'/0'/0/5",
+			"privateKey": "0x2b4c9e5a18b20ff68d888ddc4dc3c50023a6f36a4354920a14b81808cbc13fc0e24780fd05ee45166e30a863952b9d9b4e48d6b8b5d3eba1e9"
+		},
+		"hd.derive(m)": "ERROR: unsupported derivation path; Core derives m/44'/654'/0'/0/<index>",
+		"hd.derive(m/0)": "ERROR: unsupported derivation path; Core derives m/44'/654'/0'/0/<index>",
+		"hd.derive(m/1)": "ERROR: unsupported derivation path; Core derives m/44'/654'/0'/0/<index>",
+		"hd.derive(m/0/1)": "ERROR: unsupported derivation path; Core derives m/44'/654'/0'/0/<index>",
+		"hd.derive(m/44'/654'/1'/0/0)": "ERROR: unsupported derivation path; Core derives m/44'/654'/0'/0/<index>",
+		"hd.derive(m/44'/654'/0'/0/0')": "ERROR: unsupported derivation path; Core derives m/44'/654'/0'/0/<index>",
+		"hd.derive(m/44'/654'/0'/0/x)": "ERROR: unsupported derivation path; Core derives m/44'/654'/0'/0/<index>",
+		"hd.deriveChild(0)": {
+			"address": "0xcb92fc0f6ce594fb25f4291993cb1dde696565303a03",
+			"privateKey": "0x1744a883f4bde3dc3cc29aef03da8155a76823488b8dea2e7399ffd2be0010810ba7ce14077e8e45a2f53629c20683b9e7c1de93ffd3eba1e9"
+		},
+		"hd.deriveChild(1)": {
+			"address": "0xcb7155aff7aaee2b43488182b3c27d30c6db0ff36fa9",
+			"privateKey": "0x0ba9ca41a928eae78b5de16c03ae406c127608f7b884785faffe5de53dec5dc9f389ed398ebd2cc2b2f7df70d94efe29c3a1d38fe1d3eba1e9"
+		},
+		"hd.deriveChild(2)": {
+			"address": "0xcb376912a62a9f7680a804b3db57b950091dfae82a30",
+			"privateKey": "0xdb2c74037c0985d9c2fd2d6bf38720f2844ed2e242ec0968a3bd9a688a82aef0b8ee37fd6d465a390d0852d97db98717c0adbf4656d3eba1e9"
+		},
+		"hd.deriveChild(5)": {
+			"address": "0xcb422dc219c8164fb19c028a5ca6678a40a2dc3d0952",
+			"privateKey": "0x2b4c9e5a18b20ff68d888ddc4dc3c50023a6f36a4354920a14b81808cbc13fc0e24780fd05ee45166e30a863952b9d9b4e48d6b8b5d3eba1e9"
+		},
+		"hd.deriveChild(100)": {
+			"address": "0xcb493a94d6f400c8ae03c376bc58c1474a1e3d00ffc0",
+			"privateKey": "0xcbf4fc61ad60c0b788a353d64442edcf8ca193aeeb859f96043cc0745deba509ffe17f0b5b00da2bf8a71dbea6af60a262a773a5e7d3eba1e9"
+		},
+		"hd.fromSeed": {
+			"address": "0xcb92fc0f6ce594fb25f4291993cb1dde696565303a03",
+			"path": "m/44'/654'/0'/0/0",
+			"privateKey": "0x1744a883f4bde3dc3cc29aef03da8155a76823488b8dea2e7399ffd2be0010810ba7ce14077e8e45a2f53629c20683b9e7c1de93ffd3eba1e9"
+		},
+		"hd.fromSeed.absolute": {
+			"address": "0xcb92fc0f6ce594fb25f4291993cb1dde696565303a03",
+			"path": "m/44'/654'/0'/0/0",
+			"privateKey": "0x1744a883f4bde3dc3cc29aef03da8155a76823488b8dea2e7399ffd2be0010810ba7ce14077e8e45a2f53629c20683b9e7c1de93ffd3eba1e9"
+		}
+	},
+	"keystores": {
+		"encryptKeystoreJsonSync": {
+			"Crypto": {
+				"cipher": "aes-128-ctr",
+				"cipherparams": {
+					"iv": "03030303030303030303030303030303"
+				},
+				"ciphertext": "a064abf4a2dbcac8ded4839ee75c979758ad6894629733fb35b41353de7d69d7f6c18a7f9e3244f8214853636fcbe9312d618b994830c18d49",
+				"kdf": "scrypt",
+				"kdfparams": {
+					"dklen": 32,
+					"n": 1024,
+					"p": 1,
+					"r": 8,
+					"salt": "0202020202020202020202020202020202020202020202020202020202020202"
+				},
+				"mac": "bdfa61b142ebb9175c682e364b61d8b5d04ef561edd471af6697833591d89e97"
+			},
+			"address": "ab41f5e89ba978317da861b7ad06ba3103d41c876098",
+			"id": "04040404-0404-4404-8404-040404040404",
+			"version": 3
+		},
+		"roundtrip": {
+			"address": "0xab41f5e89ba978317da861b7ad06ba3103d41c876098",
+			"privateKey": "0x010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101"
+		},
+		"wrong-password": "ERROR: incorrect password",
+		"legacy-path:0:m": {
+			"keyMatches": true,
+			"kind": "HDNodeWallet",
+			"path": "m/44'/654'/0'/0/0"
+		},
+		"legacy-path:1:m/1": {
+			"keyMatches": true,
+			"kind": "HDNodeWallet",
+			"path": "m/44'/654'/0'/0/1"
+		},
+		"legacy-path:1:m/0/1": {
+			"keyMatches": true,
+			"kind": "HDNodeWallet",
+			"path": "m/44'/654'/0'/0/1"
+		},
+		"legacy-path:3:m/3": {
+			"keyMatches": true,
+			"kind": "HDNodeWallet",
+			"path": "m/44'/654'/0'/0/3"
+		},
+		"legacy-path:3:m/44'/654'/0'/0/3": {
+			"keyMatches": true,
+			"kind": "HDNodeWallet",
+			"path": "m/44'/654'/0'/0/3"
+		},
+		"legacy-path:3:m/44'/60'/0'/0/3": {
+			"keyMatches": true,
+			"kind": "HDNodeWallet",
+			"path": "m/44'/654'/0'/0/3"
+		},
+		"legacy-path:3:m/44'/654'/0'/0/7": {
+			"keyMatches": true,
+			"kind": "Wallet",
+			"path": null
+		},
+		"import:sha3-256": {
+			"address": "0xab41f5e89ba978317da861b7ad06ba3103d41c876098",
+			"privateKey": "0x010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101"
+		},
+		"import:sha256": {
+			"address": "0xab41f5e89ba978317da861b7ad06ba3103d41c876098",
+			"privateKey": "0x010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101"
+		},
+		"import:sha512": {
+			"address": "0xab41f5e89ba978317da861b7ad06ba3103d41c876098",
+			"privateKey": "0x010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101"
+		}
+	},
+	"transactions": {
+		"unsigned": {
+			"energyLimit": "bigint:21000",
+			"energyPrice": "bigint:1000000000",
+			"networkId": "bigint:1",
+			"unsignedHash": "0x18348be62d06f59b6e41e877ddfb42ed314ff8260e36862075d24e081ebf3dcb",
+			"unsignedSerialized": "0xeb03843b9aca0082520896ab41f5e89ba978317da861b7ad06ba3103d41c876098880de0b6b3a76400008001"
+		},
+		"signed": {
+			"from": "0xcb23f5e89ba978317da861b7ad06ba3103d41c876098",
+			"hash": "0x0bdc4e7283fd57896ec8cf94bfb62458b74d149bfce2491a7610b6f102952ec6",
+			"nonce": 3,
+			"serialized": "0xf8d803843b9aca008252080196ab41f5e89ba978317da861b7ad06ba3103d41c876098880de0b6b3a764000080b8ab44de4e64bb951da075c85760a299331b8a74a6db30ebbfb1a4b286fa74378dd7e4b0691030d13769846bbda1513dc8030206a77c09e06ede009c9335e82ba20767363963deaec613e2979c95b5215763a1b96fca4e90f16fb4a738d5f64b68659a9b97fe7e716a5c082fd0a1d9d1661c3100e0758a33267939a394fb5ccb202ee851cebc2e89c91ac1289e2bfcddfd9ff9fc5694b0f569d7f7e9da16e1cde9301b29f48128b3cbd1168580",
+			"to": "0xab41f5e89ba978317da861b7ad06ba3103d41c876098"
+		},
+		"withData": "0xef03843b9aca0082520896ab41f5e89ba978317da861b7ad06ba3103d41c876098880de0b6b3a764000084deadbeef01",
+		"noTo": "0xd503843b9aca0082520880880de0b6b3a76400008001"
+	},
+	"abi": {
+		"encode(uint256)": "0x000000000000000000000000000000000000000000000000000000000000007b",
+		"decode(uint256)": [
+			"bigint:123"
+		],
+		"encode(string)": "0x0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000568656c6c6f000000000000000000000000000000000000000000000000000000",
+		"decode(string)": [
+			"hello"
+		],
+		"encode(bool,bytes)": "0x0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000021234000000000000000000000000000000000000000000000000000000000000",
+		"decode(bool,bytes)": [
+			true,
+			"0x1234"
+		],
+		"encode(uint8[])": "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000003",
+		"decode(uint8[])": [
+			[
+				"bigint:1",
+				"bigint:2",
+				"bigint:3"
+			]
+		],
+		"encode((uint256,string))": "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000007000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000017800000000000000000000000000000000000000000000000000000000000000",
+		"decode((uint256,string))": [
+			[
+				"bigint:7",
+				"x"
+			]
+		],
+		"iface.format": [
+			"function transfer(address to, uint256 amount) returns (bool)",
+			"event Transfer(address indexed from, address indexed to, uint256 value)",
+			"error Failed(string reason)"
+		],
+		"iface.selector": "0x4b40e901",
+		"iface.encodeFunctionData": "0x4b40e90100000000000000000000ab41f5e89ba978317da861b7ad06ba3103d41c8760980000000000000000000000000000000000000000000000000000000000000005",
+		"iface.eventTopic": "0xc17a9d92b89f27cb79cc390f23a1a5d302fefab8c7911075ede952ac2b5607a1",
+		"iface.errorSelector": "0x784c6ed1",
+		"typedData.hash": "0x3fbb4128e3da2714b62a8b611743f4f200e33b954dbbc941a62ee3b64e65f78d",
+		"typedData.sign+verify": {
+			"sig": "0xe3cfa3485c35b06215bc1da16d9ca496ea88fc20ea0496f7b3c3769efed184766239a8e65ed53a1ef005d5d569daf8729c20af707203ce6780e637574870a49acb47987fa8899d35bbebab9776e77647cc2800b26b99afe3bf5083c1dbf0a1f4293b1cba2dd1af5e4e26d3f8de77b03f0600e0758a33267939a394fb5ccb202ee851cebc2e89c91ac1289e2bfcddfd9ff9fc5694b0f569d7f7e9da16e1cde9301b29f48128b3cbd1168580",
+			"signer": "0xcb23f5e89ba978317da861b7ad06ba3103d41c876098"
+		}
+	},
+	"wordlists": {
+		"cz": {
+			"checksum": "0xd2a01a206c26179be829b3290a9208f5d0fe62365e88838dec7e43813a4624ee",
+			"first": "abdikace",
+			"indexOfFirst": 0,
+			"last": "zvyk",
+			"second": "abeceda"
+		},
+		"de": {
+			"checksum": "0x4822d6a038d7709f82ba5685bf9a84e6e155734d3481480f3898852353cd9119",
+			"first": "abbau",
+			"indexOfFirst": 0,
+			"last": "zyklus",
+			"second": "abbild"
+		},
+		"en": {
+			"checksum": "0x19ebd87406eb7294c756d4a14898223eb5e86bfde795f3ad96a938b82012e029",
+			"first": "abandon",
+			"indexOfFirst": 0,
+			"last": "zoo",
+			"second": "ability"
+		},
+		"es": {
+			"checksum": "0x44865652d31df24eab9bab347d4beeeb02ca0996018c86f0a6945d9c9d03199f",
+			"first": "ábaco",
+			"indexOfFirst": 0,
+			"last": "zurdo",
+			"second": "abdomen"
+		},
+		"fr": {
+			"checksum": "0x05d81431562c7f4a8a6a319217b01bc2cc8a8f98efa9dbf054a913b61540273a",
+			"first": "abaisser",
+			"indexOfFirst": 0,
+			"last": "zoologie",
+			"second": "abandon"
+		},
+		"it": {
+			"checksum": "0x44aef205c1d0ee73384f1835e906421c4c387ba6e744d7659957b2d4d7a40762",
+			"first": "abaco",
+			"indexOfFirst": 0,
+			"last": "zuppa",
+			"second": "abbaglio"
+		},
+		"ja": "ERROR: BIP39 Wordlist for ja",
+		"ko": "ERROR: BIP39 Wordlist for ko",
+		"pt": {
+			"checksum": "0xf097fb95d488b6979bb2b62df2503b70566dd24c67f4bdd2150d21e05db39f7b",
+			"first": "abacate",
+			"indexOfFirst": 0,
+			"last": "zumbido",
+			"second": "abaixo"
+		},
+		"sk": {
+			"checksum": "0x34407003933e32a445389d7b339e83be817cbd1d07576763abca14111cc36bdb",
+			"first": "abakus",
+			"indexOfFirst": 0,
+			"last": "zvuk",
+			"second": "abatis"
+		},
+		"zh_cn": "ERROR: BIP39 Wordlist for zh_cn",
+		"zh_tw": "ERROR: BIP39 Wordlist for zh_tw"
+	}
+}

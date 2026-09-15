@@ -1,5 +1,7 @@
 /**
- *  About Subclassing the Provider...
+ *  The available providers should suffice for most developers purposes,
+ *  but the [[AbstractProvider]] class has many features which enable
+ *  sub-classing it for specific purposes.
  *
  *  @_section: api/providers/abstract-provider: Subclassing Provider  [abstract-provider]
  */
@@ -53,6 +55,7 @@ import {
 } from "./provider.js";
 import {
 	PollingBlockSubscriber,
+	PollingBlockTagSubscriber,
 	PollingEventSubscriber,
 	PollingOrphanSubscriber,
 	PollingTransactionSubscriber,
@@ -60,7 +63,7 @@ import {
 
 import type { Addressable, AddressLike } from "../address/index.js";
 import type { BigNumberish, BytesLike } from "../utils/index.js";
-import type { Listener } from "../utils/index.js";
+import type { FetchResponse, Listener } from "../utils/index.js";
 
 import type { Networkish } from "./network.js";
 import type {
@@ -85,6 +88,12 @@ import type {
 type Timer = ReturnType<typeof setTimeout>;
 
 const MAX_CCIP_REDIRECTS = 10;
+
+function stall(duration: number): Promise<void> {
+	return new Promise((resolve) => {
+		setTimeout(resolve, duration);
+	});
+}
 
 function isPromise<T = any>(value: any): value is Promise<T> {
 	return value && typeof value.then === "function";
@@ -123,6 +132,10 @@ function getTag(prefix: string, value: any): string {
 	);
 }
 
+/**
+ *  The types of additional event values that can be emitted for the
+ *  ``"debug"`` event.
+ */
 export type DebugEventAbstractProvider =
 	| {
 			action: "sendCcipReadFetchRequest";
@@ -155,10 +168,23 @@ export type DebugEventAbstractProvider =
 			error: Error;
 	  };
 
-// Only sub-classes overriding the _getSubscription method will care about this
+/**
+ *  The value passed to the [[AbstractProvider-_getSubscriber]] method.
+ *
+ *  Only developers sub-classing [[AbstractProvider[[ will care about this,
+ *  if they are modifying a low-level feature of how subscriptions operate.
+ */
 export type Subscription =
 	| {
-			type: "block" | "close" | "debug" | "error" | "network" | "pending";
+			type:
+				| "block"
+				| "close"
+				| "debug"
+				| "error"
+				| "finalized"
+				| "network"
+				| "pending"
+				| "safe";
 			tag: string;
 	  }
 	| {
@@ -177,22 +203,59 @@ export type Subscription =
 			filter: OrphanFilter;
 	  };
 
+/**
+ *  A **Subscriber** manages a subscription.
+ *
+ *  Only developers sub-classing [[AbstractProvider[[ will care about this,
+ *  if they are modifying a low-level feature of how subscriptions operate.
+ */
 export interface Subscriber {
+	/**
+	 *  Called initially when a subscriber is added the first time.
+	 */
 	start(): void;
+
+	/**
+	 *  Called when there are no more subscribers to the event.
+	 */
 	stop(): void;
 
+	/**
+	 *  Called when the subscription should pause.
+	 *
+	 *  If %%dropWhilePaused%%, events that occur while paused should not
+	 *  be emitted [[resume]].
+	 */
 	pause(dropWhilePaused?: boolean): void;
+
+	/**
+	 *  Resume a paused subscriber.
+	 */
 	resume(): void;
 
-	// Subscribers which use polling should implement this to allow
-	// Providers the ability to update underlying polling intervals
-	// If not supported, accessing this property should return undefined
+	/**
+	 *  The frequency (in ms) to poll for events, if polling is used by
+	 *  the subscriber.
+	 *
+	 *  For non-polling subscribers, this must return ``undefined``.
+	 */
 	pollingInterval?: number;
 }
 
+/**
+ *  An **UnmanagedSubscriber** is useful for events which do not require
+ *  any additional management, such as ``"debug"`` which only requires
+ *  emit in synchronous event loop triggered calls.
+ */
 export class UnmanagedSubscriber implements Subscriber {
+	/**
+	 *  The name fof the event.
+	 */
 	name!: string;
 
+	/**
+	 *  Create a new UnmanagedSubscriber with %%name%%.
+	 */
 	constructor(name: string) {
 		defineProperties<UnmanagedSubscriber>(this, { name });
 	}
@@ -241,10 +304,12 @@ async function getSubscription(
 	if (typeof _event === "string") {
 		switch (_event) {
 			case "block":
-			case "pending":
 			case "debug":
 			case "error":
-			case "network": {
+			case "finalized":
+			case "network":
+			case "pending":
+			case "safe": {
 				return { type: _event, tag: _event };
 			}
 		}
@@ -317,11 +382,26 @@ function getTime(): number {
 	return new Date().getTime();
 }
 
+/**
+ *  An **AbstractPlugin** is used to provide additional internal services
+ *  to an [[AbstractProvider]] without adding backwards-incompatible changes
+ *  to method signatures or other internal and complex logic.
+ */
 export interface AbstractProviderPlugin {
+	/**
+	 *  The reverse domain notation of the plugin.
+	 */
 	readonly name: string;
+
+	/**
+	 *  Creates a new instance of the plugin, connected to %%provider%%.
+	 */
 	connect(provider: AbstractProvider): AbstractProviderPlugin;
 }
 
+/**
+ *  A normalized filter used for [[PerformActionRequest]] objects.
+ */
 export type PerformActionFilter =
 	| {
 			address?: string | Array<string>;
@@ -335,11 +415,25 @@ export type PerformActionFilter =
 			blockHash?: string;
 	  };
 
+/**
+ *  A normalized transactions used for [[PerformActionRequest]] objects.
+ */
 export interface PerformActionTransaction extends PreparedTransactionRequest {
+	/**
+	 *  The ``to`` address of the transaction.
+	 */
 	to?: string;
+
+	/**
+	 *  The sender of the transaction.
+	 */
 	from?: string;
 }
 
+/**
+ *  The [[AbstractProvider]] methods will normalize all values and pass this
+ *  type to [[AbstractProvider-_perform]].
+ */
 export type PerformActionRequest =
 	| {
 			method: "broadcastTransaction";
@@ -388,6 +482,9 @@ export type PerformActionRequest =
 			filter: PerformActionFilter;
 	  }
 	| {
+			method: "getPriorityFee";
+	  }
+	| {
 			method: "getStorage";
 			address: string;
 			position: bigint;
@@ -420,6 +517,26 @@ type _PerformAccountRequest =
 			position: bigint;
 	  };
 
+/**
+ *  Options for configuring some internal aspects of an [[AbstractProvider]].
+ *
+ *  **``cacheTimeout``** - how long to cache a low-level ``_perform``
+ *  for, based on input parameters. This reduces the number of calls
+ *  to getChainId and getBlockNumber, but may break test chains which
+ *  can perform operations (internally) synchronously. Use ``-1`` to
+ *  disable, ``0`` will only buffer within the same event loop and
+ *  any other value is in ms. (default: ``250``)
+ */
+export type AbstractProviderOptions = {
+	cacheTimeout?: number;
+	pollingInterval?: number;
+};
+
+const defaultOptions = {
+	cacheTimeout: 250,
+	pollingInterval: 4000,
+};
+
 type CcipArgs = {
 	sender: string;
 	urls: Array<string>;
@@ -429,12 +546,20 @@ type CcipArgs = {
 	errorArgs: Array<any>;
 };
 
+/**
+ *  An **AbstractProvider** provides a base class for other sub-classes to
+ *  implement the [[Provider]] API by normalizing input arguments and
+ *  formatting output results as well as tracking events for consistent
+ *  behaviour on an eventually-consistent network.
+ */
 export class AbstractProvider implements Provider {
 	#subs: Map<string, Sub>;
 	#plugins: Map<string, AbstractProviderPlugin>;
 
 	// null=unpaused, true=paused+dropWhilePaused, false=paused
 	#pausedState: null | boolean;
+
+	#destroyed: boolean;
 
 	#networkPromise: null | Promise<Network>;
 	readonly #anyNetwork: boolean;
@@ -449,9 +574,22 @@ export class AbstractProvider implements Provider {
 
 	#disableCcipRead: boolean;
 
-	// @TODO: This should be a () => Promise<Network> so network can be
-	// done when needed; or rely entirely on _detectNetwork?
-	constructor(_network?: "any" | Networkish) {
+	#requestRate: number;
+	#requestTimes: Array<number>;
+
+	#options: Required<AbstractProviderOptions>;
+
+	/**
+	 *  Create a new **AbstractProvider** connected to %%network%%, or
+	 *  use the various network detection capabilities to discover the
+	 *  [[Network]] if necessary.
+	 */
+	constructor(
+		_network?: "any" | Networkish,
+		options?: AbstractProviderOptions,
+	) {
+		this.#options = Object.assign({}, defaultOptions, options || {});
+
 		if (_network === "any") {
 			this.#anyNetwork = true;
 			this.#networkPromise = null;
@@ -475,20 +613,56 @@ export class AbstractProvider implements Provider {
 		this.#plugins = new Map();
 		this.#pausedState = null;
 
+		this.#destroyed = false;
+
 		this.#nextTimer = 1;
 		this.#timers = new Map();
 
 		this.#disableCcipRead = false;
+
+		this.#requestRate = 0;
+		this.#requestTimes = [];
 	}
 
+	/**
+	 *  Limit the number of requests per second. (default: no limit)
+	 */
+	get _requestRate(): null | number {
+		const value = this.#requestRate;
+		if (value == 0) {
+			return null;
+		}
+		return value;
+	}
+	set _requestRate(value: null | number) {
+		if (value == null || value < 0) {
+			value = 0;
+		}
+		this.#requestRate = getNumber(value);
+	}
+
+	get pollingInterval(): number {
+		return this.#options.pollingInterval;
+	}
+
+	/**
+	 *  Returns ``this``, to allow an **AbstractProvider** to implement
+	 *  the [[ContractRunner]] interface.
+	 */
 	get provider(): this {
 		return this;
 	}
 
+	/**
+	 *  Returns all the registered plug-ins.
+	 */
 	get plugins(): Array<AbstractProviderPlugin> {
 		return Array.from(this.#plugins.values());
 	}
 
+	/**
+	 *  Attach a new plug-in.
+	 */
 	attachPlugin(plugin: AbstractProviderPlugin): this {
 		if (this.#plugins.get(plugin.name)) {
 			throw new Error(`cannot replace existing plugin: ${plugin.name} `);
@@ -497,12 +671,19 @@ export class AbstractProvider implements Provider {
 		return this;
 	}
 
+	/**
+	 *  Get a plugin by name.
+	 */
 	getPlugin<T extends AbstractProviderPlugin = AbstractProviderPlugin>(
 		name: string,
 	): null | T {
 		return <T>this.#plugins.get(name) || null;
 	}
 
+	/**
+	 *  Prevent any CCIP-read operation, regardless of whether requested
+	 *  in a [[call]] using ``enableCcipRead``.
+	 */
 	get disableCcipRead(): boolean {
 		return this.#disableCcipRead;
 	}
@@ -510,26 +691,67 @@ export class AbstractProvider implements Provider {
 		this.#disableCcipRead = !!value;
 	}
 
+	#getDelay(): number {
+		let requestRate = this.#requestRate;
+		if (requestRate === 0) {
+			return 0;
+		}
+
+		// Remove all too-old request times
+		const requests = this.#requestTimes;
+		const now = getTime();
+		requests.push(now);
+		const scanTime = now - 1000;
+		while (requests.length && requests[0] < scanTime) {
+			requests.shift();
+		}
+
+		if (requests.length < requestRate) {
+			return 0;
+		}
+
+		return requests[0] + 1000 - now;
+	}
+
 	// Shares multiple identical requests made during the same 250ms
 	async #perform<T = any>(req: PerformActionRequest): Promise<T> {
+		const timeout = this.#options.cacheTimeout;
+
+		// Caching disabled
+		if (timeout < 0) {
+			const delay = this.#getDelay();
+			if (delay) {
+				await stall(delay);
+			}
+			return await this._perform(req);
+		}
+
 		// Create a tag
 		const tag = getTag(req.method, req);
 
 		let perform = this.#performCache.get(tag);
 		if (!perform) {
+			const delay = this.#getDelay();
+			if (delay) {
+				await stall(delay);
+			}
 			perform = this._perform(req);
+
 			this.#performCache.set(tag, perform);
 
 			setTimeout(() => {
 				if (this.#performCache.get(tag) === perform) {
 					this.#performCache.delete(tag);
 				}
-			}, 250);
+			}, timeout);
 		}
 
 		return await perform;
 	}
 
+	/**
+	 *  Resolves to the data for executing the CCIP-read operations.
+	 */
 	async ccipReadFetch(
 		tx: PerformActionTransaction,
 		calldata: string,
@@ -571,7 +793,22 @@ export class AbstractProvider implements Provider {
 
 			let errorMessage = "unknown error";
 
-			const resp = await request.send();
+			// Fetch the resource...
+			let resp: FetchResponse;
+			try {
+				resp = await request.send();
+			} catch (error: any) {
+				// ...low-level fetch error (missing host, bad SSL, etc.),
+				// so try next URL
+				errorMessages.push(error.message);
+				this.emit("debug", {
+					action: "receiveCcipReadFetchError",
+					request,
+					result: { error },
+				});
+				continue;
+			}
+
 			try {
 				const result = resp.bodyJson;
 				if (result.data) {
@@ -622,14 +859,29 @@ export class AbstractProvider implements Provider {
 		);
 	}
 
+	/**
+	 *  Provides the opportunity for a sub-class to wrap a block before
+	 *  returning it, to add additional properties or an alternate
+	 *  sub-class of [[Block]].
+	 */
 	_wrapBlock(value: BlockParams, network: Network): Block {
 		return new Block(formatBlock(value), this);
 	}
 
+	/**
+	 *  Provides the opportunity for a sub-class to wrap a log before
+	 *  returning it, to add additional properties or an alternate
+	 *  sub-class of [[Log]].
+	 */
 	_wrapLog(value: LogParams, network: Network): Log {
 		return new Log(formatLog(value), this);
 	}
 
+	/**
+	 *  Provides the opportunity for a sub-class to wrap a transaction
+	 *  receipt before returning it, to add additional properties or an
+	 *  alternate sub-class of [[TransactionReceipt]].
+	 */
 	_wrapTransactionReceipt(
 		value: TransactionReceiptParams,
 		network: Network,
@@ -637,6 +889,11 @@ export class AbstractProvider implements Provider {
 		return new TransactionReceipt(formatTransactionReceipt(value), this);
 	}
 
+	/**
+	 *  Provides the opportunity for a sub-class to wrap a transaction
+	 *  response before returning it, to add additional properties or an
+	 *  alternate sub-class of [[TransactionResponse]].
+	 */
 	_wrapTransactionResponse(
 		tx: TransactionResponseParams,
 		network: Network,
@@ -644,14 +901,24 @@ export class AbstractProvider implements Provider {
 		return new TransactionResponse(formatTransactionResponse(tx), this);
 	}
 
+	/**
+	 *  Resolves to the Network, forcing a network detection using whatever
+	 *  technique the sub-class requires.
+	 *
+	 *  Sub-classes **must** override this.
+	 */
 	_detectNetwork(): Promise<Network> {
 		assert(false, "sub-classes must implement this", "UNSUPPORTED_OPERATION", {
 			operation: "_detectNetwork",
 		});
 	}
 
-	// Sub-classes should override this and handle PerformActionRequest requests, calling
-	// the super for any unhandled actions.
+	/**
+	 *  Sub-classes should use this to perform all built-in operations. All
+	 *  methods sanitizes and normalizes the values passed into this.
+	 *
+	 *  Sub-classes **must** override this.
+	 */
 	async _perform<T = any>(req: PerformActionRequest): Promise<T> {
 		assert(
 			false,
@@ -665,6 +932,7 @@ export class AbstractProvider implements Provider {
 	}
 
 	// State
+
 	async getBlockNumber(): Promise<number> {
 		const blockNumber = getNumber(
 			await this.#perform({ method: "getBlockNumber" }),
@@ -676,10 +944,19 @@ export class AbstractProvider implements Provider {
 		return blockNumber;
 	}
 
+	/**
+	 *  Returns or resolves to the address for %%address%%, resolving ENS
+	 *  names and [[Addressable]] objects and returning if already an
+	 *  address.
+	 */
 	_getAddress(address: AddressLike): string | Promise<string> {
 		return resolveAddress(address);
 	}
 
+	/**
+	 *  Returns or resolves to a valid block tag for %%blockTag%%, resolving
+	 *  negative values and returning if already a valid block tag.
+	 */
 	_getBlockTag(blockTag?: BlockTag): string | Promise<string> {
 		if (blockTag == null) {
 			return "latest";
@@ -688,10 +965,10 @@ export class AbstractProvider implements Provider {
 		switch (blockTag) {
 			case "earliest":
 				return "0x0";
+			case "finalized":
 			case "latest":
 			case "pending":
 			case "safe":
-			case "finalized":
 				return blockTag;
 		}
 
@@ -721,6 +998,11 @@ export class AbstractProvider implements Provider {
 		assertArgument(false, "invalid blockTag", "blockTag", blockTag);
 	}
 
+	/**
+	 *  Returns or resolves to a filter for %%filter%%, resolving any ENS
+	 *  names or [[Addressable]] object and returning if already a valid
+	 *  filter.
+	 */
 	_getFilter(
 		filter: Filter | FilterByBlockHash,
 	): PerformActionFilter | Promise<PerformActionFilter> {
@@ -817,6 +1099,11 @@ export class AbstractProvider implements Provider {
 		return resolve(<Array<string>>address, fromBlock, toBlock);
 	}
 
+	/**
+	 *  Returns or resolves to a transaction for %%request%%, resolving
+	 *  any ENS names or [[Addressable]] and returning if already a valid
+	 *  transaction.
+	 */
 	_getTransactionRequest(
 		_request: TransactionRequest,
 	): PerformActionTransaction | Promise<PerformActionTransaction> {
@@ -867,19 +1154,18 @@ export class AbstractProvider implements Provider {
 		// No explicit network was set and this is our first time
 		if (this.#networkPromise == null) {
 			// Detect the current network (shared with all calls)
-			const detectNetwork = this._detectNetwork().then(
-				(network) => {
+			const detectNetwork = (async () => {
+				try {
+					const network = await this._detectNetwork();
 					this.emit("network", network, null);
 					return network;
-				},
-				(error) => {
-					// Reset the networkPromise on failure, so we will try again
-					if (this.#networkPromise === detectNetwork) {
+				} catch (error) {
+					if (this.#networkPromise === detectNetwork!) {
 						this.#networkPromise = null;
 					}
 					throw error;
-				},
-			);
+				}
+			})();
 
 			this.#networkPromise = detectNetwork;
 			return (await detectNetwork).clone();
@@ -977,10 +1263,14 @@ export class AbstractProvider implements Provider {
 		const transaction = <PerformActionTransaction>copyRequest(tx);
 
 		try {
+			const delay = this.#getDelay();
+			if (delay) {
+				await stall(delay);
+			}
 			return hexlify(
 				await this._perform({ method: "call", transaction, blockTag }),
 			);
-		} catch (error) {
+		} catch (error: any) {
 			// CCIP Read OffchainLookup
 			if (
 				!this.disableCcipRead &&
@@ -1086,6 +1376,7 @@ export class AbstractProvider implements Provider {
 			tx: this._getTransactionRequest(_tx),
 			blockTag: this._getBlockTag(_tx.blockTag),
 		});
+
 		return await this.#checkNetwork(
 			this.#call(tx, blockTag, _tx.enableCcipRead ? 0 : -1),
 		);
@@ -1344,6 +1635,9 @@ export class AbstractProvider implements Provider {
 		});
 	}
 
+	/**
+	 *  Clear a timer created using the [[_setTimeout]] method.
+	 */
 	_clearTimeout(timerId: number): void {
 		const timer = this.#timers.get(timerId);
 		if (!timer) {
@@ -1355,6 +1649,14 @@ export class AbstractProvider implements Provider {
 		this.#timers.delete(timerId);
 	}
 
+	/**
+	 *  Create a timer that will execute %%func%% after at least %%timeout%%
+	 *  (in ms). If %%timeout%% is unspecified, then %%func%% will execute
+	 *  in the next event loop.
+	 *
+	 *  [Pausing](AbstractProvider-paused) the provider will pause any
+	 *  associated timers.
+	 */
 	_setTimeout(_func: () => void, timeout?: number): number {
 		if (timeout == null) {
 			timeout = 0;
@@ -1375,22 +1677,33 @@ export class AbstractProvider implements Provider {
 		return timerId;
 	}
 
+	/**
+	 *  Perform %%func%% on each subscriber.
+	 */
 	_forEachSubscriber(func: (s: Subscriber) => void): void {
 		for (const sub of this.#subs.values()) {
 			func(sub.subscriber);
 		}
 	}
 
-	// Event API; sub-classes should override this; any supported
-	// event filter will have been munged into an EventFilter
+	/**
+	 *  Sub-classes may override this to customize subscription
+	 *  implementations.
+	 */
 	_getSubscriber(sub: Subscription): Subscriber {
 		switch (sub.type) {
 			case "debug":
 			case "error":
 			case "network":
 				return new UnmanagedSubscriber(sub.type);
-			case "block":
-				return new PollingBlockSubscriber(this);
+			case "block": {
+				const subscriber = new PollingBlockSubscriber(this);
+				subscriber.pollingInterval = this.pollingInterval;
+				return subscriber;
+			}
+			case "safe":
+			case "finalized":
+				return new PollingBlockTagSubscriber(this, sub.type);
 			case "event":
 				return new PollingEventSubscriber(this, sub.filter);
 			case "transaction":
@@ -1402,6 +1715,15 @@ export class AbstractProvider implements Provider {
 		throw new Error(`unsupported event: ${sub.type}`);
 	}
 
+	/**
+	 *  If a [[Subscriber]] fails and needs to replace itself, this
+	 *  method may be used.
+	 *
+	 *  For example, this is used for providers when using the
+	 *  ``eth_getFilterChanges`` method, which can return null if state
+	 *  filters are not supported by the backend, allowing the Subscriber
+	 *  to swap in a [[PollingEventSubscriber]].
+	 */
 	_recoverSubscriber(oldSub: Subscriber, newSub: Subscriber): void {
 		for (const sub of this.#subs.values()) {
 			if (sub.subscriber === oldSub) {
@@ -1607,8 +1929,23 @@ export class AbstractProvider implements Provider {
 		return this.off(event, listener);
 	}
 
-	// Sub-classes should override this to shutdown any sockets, etc.
-	// but MUST call this super.shutdown.
+	/**
+	 *  If this provider has been destroyed using the [[destroy]] method.
+	 *
+	 *  Once destroyed, all resources are reclaimed, internal event loops
+	 *  and timers are cleaned up and no further requests may be sent to
+	 *  the provider.
+	 */
+	get destroyed(): boolean {
+		return this.#destroyed;
+	}
+
+	/**
+	 *  Sub-classes may use this to shutdown any sockets or release their
+	 *  resources and reject any pending requests.
+	 *
+	 *  Sub-classes **must** call ``super.destroy()``.
+	 */
 	destroy(): void {
 		// Stop all listeners
 		this.removeAllListeners();
@@ -1617,8 +1954,21 @@ export class AbstractProvider implements Provider {
 		for (const timerId of this.#timers.keys()) {
 			this._clearTimeout(timerId);
 		}
+
+		this.#destroyed = true;
 	}
 
+	/**
+	 *  Whether the provider is currently paused.
+	 *
+	 *  A paused provider will not emit any events, and generally should
+	 *  not make any requests to the network, but that is up to sub-classes
+	 *  to manage.
+	 *
+	 *  Setting ``paused = true`` is identical to calling ``.pause(false)``,
+	 *  which will buffer any events that occur while paused until the
+	 *  provider is unpaused.
+	 */
 	get paused(): boolean {
 		return this.#pausedState != null;
 	}
@@ -1634,6 +1984,11 @@ export class AbstractProvider implements Provider {
 		}
 	}
 
+	/**
+	 *  Pause the provider. If %%dropWhilePaused%%, any events that occur
+	 *  while paused are dropped, otherwise all events will be emitted once
+	 *  the provider is unpaused.
+	 */
 	pause(dropWhilePaused?: boolean): void {
 		this.#lastBlockNumber = -1;
 
@@ -1665,6 +2020,9 @@ export class AbstractProvider implements Provider {
 		}
 	}
 
+	/**
+	 *  Resume the provider.
+	 */
 	resume(): void {
 		if (this.#pausedState == null) {
 			return;

@@ -27,7 +27,7 @@ function loadWords(locale: string): Array<string> {
 		return _wordlist[locale] as Array<string>;
 	}
 
-	const wordlist = [];
+	const wordlist: Array<string> = [];
 
 	let deltaOffset = 0;
 	for (let i = 0; i < 2048; i++) {

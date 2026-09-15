@@ -1,6 +1,7 @@
 import { getAddress } from "../address/index.js";
+import { resolveAddress } from "../address/checks.js";
 import { hashMessage, TypedDataEncoder } from "../hash/index.js";
-import { AbstractSigner } from "../providers/index.js";
+import { AbstractSigner, copyRequest } from "../providers/index.js";
 import { computeAddress, Transaction } from "../transaction/index.js";
 import {
 	defineProperties,
@@ -95,10 +96,13 @@ export class BaseWallet extends AbstractSigner {
 	}
 
 	async signTransaction(tx: TransactionRequest): Promise<string> {
-		// Replace any Addressable or ENS name with an address
+		tx = copyRequest(tx);
+
+		// Replace any Addressable with a plain address. Core has no ENS, so
+		// resolveAddress takes no resolver here.
 		const { to, from } = await resolveProperties({
-			to: tx.to || undefined,
-			from: tx.from || undefined,
+			to: tx.to ? resolveAddress(tx.to) : undefined,
+			from: tx.from ? resolveAddress(tx.from) : undefined,
 		});
 
 		if (to != null) {

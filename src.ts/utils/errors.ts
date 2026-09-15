@@ -1,5 +1,9 @@
 /**
- *  About Errors.
+ *  All errors in ethers include properties to ensure they are both
+ *  human-readable (i.e. ``.message``) and machine-readable (i.e. ``.code``).
+ *
+ *  The [[isError]] function can be used to check the error ``code`` and
+ *  provide a type guard for the properties present on that error interface.
  *
  *  @_section: api/utils/errors:Errors  [about-errors]
  */
@@ -16,15 +20,32 @@ import type {
 
 import type { FetchRequest, FetchResponse } from "./fetch.js";
 
-export type ErrorInfo<T> = Omit<T, "code" | "name" | "message">;
+/**
+ *  An error may contain additional properties, but those must not
+ *  conflict with any implicit properties.
+ */
+export type ErrorInfo<T> = Omit<
+	T,
+	"code" | "name" | "message" | "shortMessage"
+> & { shortMessage?: string };
 
-function stringify(value: any): any {
+function stringify(value: any, seen?: Set<any>): any {
 	if (value == null) {
 		return "null";
 	}
 
+	if (seen == null) {
+		seen = new Set();
+	}
+	if (typeof value === "object") {
+		if (seen.has(value)) {
+			return "[Circular]";
+		}
+		seen.add(value);
+	}
+
 	if (Array.isArray(value)) {
-		return "[ " + value.map(stringify).join(", ") + " ]";
+		return "[ " + value.map((v) => stringify(v, seen)).join(", ") + " ]";
 	}
 
 	if (value instanceof Uint8Array) {
@@ -38,17 +59,16 @@ function stringify(value: any): any {
 	}
 
 	if (typeof value === "object" && typeof value.toJSON === "function") {
-		return stringify(value.toJSON());
+		return stringify(value.toJSON(), seen);
 	}
 
 	switch (typeof value) {
 		case "boolean":
+		case "number":
 		case "symbol":
 			return value.toString();
 		case "bigint":
 			return BigInt(value).toString();
-		case "number":
-			return value.toString();
 		case "string":
 			return JSON.stringify(value);
 		case "object": {
@@ -56,7 +76,9 @@ function stringify(value: any): any {
 			keys.sort();
 			return (
 				"{ " +
-				keys.map((k) => `${stringify(k)}: ${stringify(value[k])}`).join(", ") +
+				keys
+					.map((k) => `${stringify(k, seen)}: ${stringify(value[k], seen)}`)
+					.join(", ") +
 				" }"
 			);
 		}
@@ -67,7 +89,7 @@ function stringify(value: any): any {
 
 /**
  *  All errors emitted by corebc have an **ErrorCode** to help
- *  identify and coalesce errors to simplfy programatic analysis.
+ *  identify and coalesce errors to simplify programmatic analysis.
  *
  *  Each **ErrorCode** is the %%code%% proerty of a coresponding
  *  [[corebcError]].
@@ -170,6 +192,12 @@ export interface CoreBCError<T extends ErrorCode = ErrorCode> extends Error {
 	code: ErrorCode;
 
 	/**
+	 *  A short message describing the error, with minimal additional
+	 *  details.
+	 */
+	shortMessage: string;
+
+	/**
 	 *  Additional info regarding the error that may be useful.
 	 *
 	 *  This is generally helpful mostly for human-based debugging.
@@ -206,7 +234,7 @@ export interface NotImplementedError extends CoreBCError<"NOT_IMPLEMENTED"> {
 /**
  *  This Error indicates that the attempted operation is not supported.
  *
- *  This could range from a specifc JSON-RPC end-point not supporting
+ *  This could range from a specific JSON-RPC end-point not supporting
  *  a feature to a specific configuration of an object prohibiting the
  *  operation.
  *
@@ -267,7 +295,7 @@ export interface TimeoutError extends CoreBCError<"TIMEOUT"> {
 
 /**
  *  This Error indicates that a provided set of data cannot
- *  be correctly interpretted.
+ *  be correctly interpreted.
  */
 export interface BadDataError extends CoreBCError<"BAD_DATA"> {
 	/**
@@ -385,10 +413,14 @@ export interface UnexpectedArgumentError extends CoreBCError<"UNEXPECTED_ARGUMEN
 // Blockchain Errors
 
 /**
- *  The action that resulted in the error.
+ *  The action that resulted in the call exception.
  */
 export type CallExceptionAction =
-	"call" | "estimateEnergy" | "getTransactionResult" | "unknown";
+	| "call"
+	| "estimateEnergy"
+	| "getTransactionResult"
+	| "sendTransaction"
+	| "unknown";
 
 /**
  *  The related transaction that caused the error.
@@ -440,6 +472,12 @@ export interface CallExceptionError extends CoreBCError<"CALL_EXCEPTION"> {
 		name: string;
 		args: Array<any>;
 	};
+
+	/**
+	 *  If the error occurred in a transaction that was mined
+	 *  (with a status of ``0``), this is the receipt.
+	 */
+	receipt?: TransactionReceipt; // @TODO: in v7, make this `null | TransactionReceipt`
 }
 
 /**
@@ -623,7 +661,7 @@ export type CodedCoreBCError<T> = T extends "UNKNOWN_ERROR"
  *  Returns true if the %%error%% matches an error thrown by corebc
  *  that matches the error %%code%%.
  *
- *  In TypeScript envornoments, this can be used to check that %%error%%
+ *  In TypeScript environments, this can be used to check that %%error%%
  *  matches an corebcError type, which means the expected properties will
  *  be set.
  *
@@ -654,19 +692,21 @@ export function isCallException(error: any): error is CallExceptionError {
 
 /**
  *  Returns a new Error configured to the format corebc emits errors, with
- *  the %%message%%, [[api:ErrorCode]] %%code%% and additioanl properties
+ *  the %%message%%, [[api:ErrorCode]] %%code%% and additional properties
  *  for the corresponding corebcError.
  *
  *  Each error in corebc includes the version of corebc, a
- *  machine-readable [[ErrorCode]], and depneding on %%code%%, additional
- *  required properties. The error message will also include the %%meeage%%,
- *  corebc version, %%code%% and all aditional properties, serialized.
+ *  machine-readable [[ErrorCode]], and depending on %%code%%, additional
+ *  required properties. The error message will also include the %%message%%,
+ *  corebc version, %%code%% and all additional properties, serialized.
  */
 export function makeError<K extends ErrorCode, T extends CodedCoreBCError<K>>(
 	message: string,
 	code: K,
 	info?: ErrorInfo<T>,
 ): T {
+	let shortMessage = message;
+
 	{
 		const details: Array<string> = [];
 		if (info) {
@@ -676,6 +716,9 @@ export function makeError<K extends ErrorCode, T extends CodedCoreBCError<K>>(
 				);
 			}
 			for (const key in info) {
+				if (key === "shortMessage") {
+					continue;
+				}
 				const value = <any>info[<keyof ErrorInfo<T>>key];
 				//                try {
 				details.push(key + "=" + stringify(value));
@@ -710,6 +753,10 @@ export function makeError<K extends ErrorCode, T extends CodedCoreBCError<K>>(
 
 	if (info) {
 		Object.assign(error, info);
+	}
+
+	if ((<any>error).shortMessage == null) {
+		defineProperties<CoreBCError>(<CoreBCError>error, { shortMessage });
 	}
 
 	return <T>error;
@@ -762,7 +809,7 @@ export function assertArgumentCount(
 
 	assert(
 		count >= expectedCount,
-		"missing arguemnt" + message,
+		"missing argument" + message,
 		"MISSING_ARGUMENT",
 		{
 			count: count,
@@ -772,7 +819,7 @@ export function assertArgumentCount(
 
 	assert(
 		count <= expectedCount,
-		"too many arguemnts" + message,
+		"too many arguments" + message,
 		"UNEXPECTED_ARGUMENT",
 		{
 			count: count,

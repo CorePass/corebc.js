@@ -8,7 +8,7 @@ function copy(obj: any): any {
 }
 
 /**
- *  @TODO
+ *  Return the polling subscriber for common events.
  *
  *  @_docloc: api/providers/abstract-provider
  */
@@ -32,7 +32,8 @@ export function getPollingSubscriber(
 // @TODO: refactor this
 
 /**
- *  @TODO
+ *  A **PollingBlockSubscriber** polls at a regular interval for a change
+ *  in the block number.
  *
  *  @_docloc: api/providers/abstract-provider
  */
@@ -46,6 +47,9 @@ export class PollingBlockSubscriber implements Subscriber {
 	// indicates we still need to fetch an initial block number
 	#blockNumber: number;
 
+	/**
+	 *  Create a new **PollingBlockSubscriber** attached to %%provider%%.
+	 */
 	constructor(provider: AbstractProvider) {
 		this.#provider = provider;
 		this.#poller = null;
@@ -54,6 +58,9 @@ export class PollingBlockSubscriber implements Subscriber {
 		this.#blockNumber = -2;
 	}
 
+	/**
+	 *  The polling interval.
+	 */
 	get pollingInterval(): number {
 		return this.#interval;
 	}
@@ -134,7 +141,8 @@ export class PollingBlockSubscriber implements Subscriber {
 }
 
 /**
- *  @TODO
+ *  An **OnBlockSubscriber** can be sub-classed, with a [[_poll]]
+ *  implmentation which will be called on every new block.
  *
  *  @_docloc: api/providers/abstract-provider
  */
@@ -143,6 +151,9 @@ export class OnBlockSubscriber implements Subscriber {
 	#poll: (b: number) => void;
 	#running: boolean;
 
+	/**
+	 *  Create a new **OnBlockSubscriber** attached to %%provider%%.
+	 */
 	constructor(provider: AbstractProvider) {
 		this.#provider = provider;
 		this.#running = false;
@@ -151,6 +162,9 @@ export class OnBlockSubscriber implements Subscriber {
 		};
 	}
 
+	/**
+	 *  Called on every new block.
+	 */
 	async _poll(blockNumber: number, provider: AbstractProvider): Promise<void> {
 		throw new Error("sub-classes must override this");
 	}
@@ -182,8 +196,40 @@ export class OnBlockSubscriber implements Subscriber {
 	}
 }
 
+export class PollingBlockTagSubscriber extends OnBlockSubscriber {
+	readonly #tag: string;
+	#lastBlock: number;
+
+	constructor(provider: AbstractProvider, tag: string) {
+		super(provider);
+		this.#tag = tag;
+		this.#lastBlock = -2;
+	}
+
+	pause(dropWhilePaused?: boolean): void {
+		if (dropWhilePaused) {
+			this.#lastBlock = -2;
+		}
+		super.pause(dropWhilePaused);
+	}
+
+	async _poll(blockNumber: number, provider: AbstractProvider): Promise<void> {
+		const block = await provider.getBlock(this.#tag);
+		if (block == null) {
+			return;
+		}
+
+		if (this.#lastBlock === -2) {
+			this.#lastBlock = block.number;
+		} else if (block.number > this.#lastBlock) {
+			provider.emit(this.#tag, block.number);
+			this.#lastBlock = block.number;
+		}
+	}
+}
+
 /**
- *  @TODO
+ *  @_ignore:
  *
  *  @_docloc: api/providers/abstract-provider
  */
@@ -202,13 +248,18 @@ export class PollingOrphanSubscriber extends OnBlockSubscriber {
 }
 
 /**
- *  @TODO
+ *  A **PollingTransactionSubscriber** will poll for a given transaction
+ *  hash for its receipt.
  *
  *  @_docloc: api/providers/abstract-provider
  */
 export class PollingTransactionSubscriber extends OnBlockSubscriber {
 	#hash: string;
 
+	/**
+	 *  Create a new **PollingTransactionSubscriber** attached to
+	 *  %%provider%%, listening for %%hash%%.
+	 */
 	constructor(provider: AbstractProvider, hash: string) {
 		super(provider);
 		this.#hash = hash;
@@ -223,7 +274,7 @@ export class PollingTransactionSubscriber extends OnBlockSubscriber {
 }
 
 /**
- *  @TODO
+ *  A **PollingEventSubscriber** will poll for a given filter for its logs.
  *
  *  @_docloc: api/providers/abstract-provider
  */
@@ -238,6 +289,10 @@ export class PollingEventSubscriber implements Subscriber {
 	// indicates we still need to fetch an initial block number
 	#blockNumber: number;
 
+	/**
+	 *  Create a new **PollingTransactionSubscriber** attached to
+	 *  %%provider%%, listening for %%filter%%.
+	 */
 	constructor(provider: AbstractProvider, filter: EventFilter) {
 		this.#provider = provider;
 		this.#filter = copy(filter);
@@ -255,6 +310,7 @@ export class PollingEventSubscriber implements Subscriber {
 		const filter = copy(this.#filter);
 		filter.fromBlock = this.#blockNumber + 1;
 		filter.toBlock = blockNumber;
+
 		const logs = await this.#provider.getLogs(filter);
 
 		// No logs could just mean the node has not indexed them yet,
@@ -266,10 +322,13 @@ export class PollingEventSubscriber implements Subscriber {
 			return;
 		}
 
-		this.#blockNumber = blockNumber;
-
 		for (const log of logs) {
 			this.#provider.emit(this.#filter, log);
+
+			// Only advance the block number when logs were found to
+			// account for networks (like BNB and Polygon) which may
+			// sacrifice event consistency for block event speed
+			this.#blockNumber = log.blockNumber;
 		}
 	}
 

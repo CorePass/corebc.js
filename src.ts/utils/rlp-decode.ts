@@ -35,7 +35,7 @@ function _decodeChildren(
 	childOffset: number,
 	length: number,
 ): Decoded {
-	const result: any = [];
+	const result: Array<any> = [];
 
 	while (childOffset < offset + 1 + length) {
 		const decoded = _decode(data, childOffset);

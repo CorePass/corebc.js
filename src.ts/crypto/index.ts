@@ -33,6 +33,10 @@ export {
 export { SigningKey } from "./signing-key.js";
 export { Signature } from "./signature.js";
 
+/**
+ *  Once called, prevents any future change to the underlying cryptographic
+ *  primitives using the ``.register`` feature for hooks.
+ */
 function lock(): void {
 	computeHmac.lock();
 	pbkdf2.lock();

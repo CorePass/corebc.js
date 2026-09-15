@@ -1,5 +1,11 @@
 /**
- *  About providers.
+ *  A **Provider** provides a connection to the blockchain, which can be
+ *  used to query its current state, simulate execution and send transactions
+ *  to update the state.
+ *
+ *  It is one of the most fundamental components of interacting with a
+ *  blockchain application, and there are many ways to connect, such as over
+ *  HTTP, WebSockets or injected providers such as [MetaMask](link-metamask).
  *
  *  @_section: api/providers:Providers  [about-providers]
  */
@@ -61,6 +67,7 @@ export {
 } from "./provider-socket.js";
 
 export type {
+	AbstractProviderOptions,
 	Subscription,
 	Subscriber,
 	AbstractProviderPlugin,
@@ -78,11 +85,9 @@ export type {
 	TransactionResponseParams,
 } from "./formatting.js";
 
-/*
-export type {
-    CommunityResourcable
-} from "./community.js";
+export type { CommunityResourcable } from "./community.js";
 
+/*
 export type {
     AvatarLinkageType, AvatarLinkage, AvatarResult
 } from "./ens-resolver.js";
@@ -107,9 +112,14 @@ export type {
 } from "./provider.js";
 
 export type {
+	BrowserDiscoverOptions,
+	BrowserProviderOptions,
 	DebugEventBrowserProvider,
 	Eip1193Provider,
+	Eip6963ProviderInfo,
 } from "./provider-browser.js";
+
+export type { FallbackProviderOptions } from "./provider-fallback.js";
 
 export type {
 	JsonRpcPayload,

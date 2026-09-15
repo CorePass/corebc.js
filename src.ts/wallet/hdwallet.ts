@@ -39,9 +39,24 @@ import { mnemonicToSeed } from "./mnemonicToSeed.js";
 // }
 
 /**
- *  The default derivation path for Core HD Nodes. (i.e. ``"m/44'/60'/0'/0/0"``)
+ *  The default derivation path for Core HD Nodes.
+ *  (i.e. ``"m/44'/654'/0'/0/0"``)
  */
-export const defaultPath: string = "m";
+export const defaultPath: string = "m/44'/654'/0'/0/0";
+
+/**
+ *  The BIP-44 prefix baked into the Ed448 derivation primitive, using Core's
+ *  coin type (654). Only the trailing account index is variable, so this is
+ *  the sole path shape this wallet can derive.
+ */
+const CorePathPrefix = "m/44'/654'/0'/0";
+
+/**
+ *  Keystores written by earlier versions of this library recorded Ethereum's
+ *  coin type (60) in the path while still deriving the Core key, so that
+ *  spelling is accepted on the way in.
+ */
+const LegacyPathPrefix = "m/44'/60'/0'/0";
 
 // "Bitcoin seed"
 // const MasterSecret = new Uint8Array([66, 105, 116, 99, 111, 105, 110, 32, 115, 101, 101, 100]);
@@ -77,49 +92,35 @@ const _guard = {};
 //     return sha512Hash(t, salt);
 // }
 
-type HDNodeLike<T> = { depth: number; deriveChild: (i: number) => T };
-function derivePath<T extends HDNodeLike<T>>(node: T, path: string): T {
-	const components = path.split("/");
+/**
+ *  Returns the account index %%path%% refers to.
+ *
+ *  Derivation is anchored to [[CorePathPrefix]], so only the trailing account
+ *  index can vary. Any other path is rejected rather than silently answered
+ *  with an unrelated account's key.
+ */
+function accountIndexFromPath(path: string): number {
+	for (const prefix of [CorePathPrefix, LegacyPathPrefix]) {
+		if (!path.startsWith(prefix + "/")) {
+			continue;
+		}
+
+		const tail = path.substring(prefix.length + 1);
+		if (!tail.match(/^[0-9]+$/)) {
+			continue;
+		}
+
+		const index = parseInt(tail);
+		assertArgument(index < HardenedBit, "invalid account index", "path", path);
+		return index;
+	}
 
 	assertArgument(
-		components.length > 0 && (components[0] === "m" || node.depth > 0),
-		"invalid path",
+		false,
+		`unsupported derivation path; Core derives ${CorePathPrefix}/<index>`,
 		"path",
 		path,
 	);
-
-	if (components[0] === "m") {
-		components.shift();
-	}
-
-	let result: T = node;
-	for (let i = 0; i < components.length; i++) {
-		const component = components[i];
-
-		if (component.match(/^[0-9]+'$/)) {
-			const index = parseInt(component.substring(0, component.length - 1));
-			assertArgument(
-				index < HardenedBit,
-				"invalid path index",
-				`path[${i}]`,
-				component,
-			);
-			result = result.deriveChild(HardenedBit + index);
-		} else if (component.match(/^[0-9]+$/)) {
-			const index = parseInt(component);
-			assertArgument(
-				index < HardenedBit,
-				"invalid path index",
-				`path[${i}]`,
-				component,
-			);
-			result = result.deriveChild(index);
-		} else {
-			assertArgument(false, "invalid path component", `path[${i}]`, component);
-		}
-	}
-
-	return result;
 }
 
 /**
@@ -162,9 +163,9 @@ export class HDNodeWallet extends BaseWallet {
 	/**
 	 *  The derivation path of this wallet.
 	 *
-	 *  Since extended keys do not provider full path details, this
+	 *  Since extended keys do not provide full path details, this
 	 *  may be ``null``, if instantiated from a source that does not
-	 *  enocde it.
+	 *  encode it.
 	 */
 	readonly path!: null | string;
 
@@ -300,32 +301,33 @@ export class HDNodeWallet extends BaseWallet {
 	}
 
 	/**
-	 *  Return the child for %%index%%.
+	 *  Return the wallet for the account at %%_index%%.
+	 *
+	 *  This is not a tree walk: an account's key is a function of the seed and
+	 *  the account index alone, so the result is a sibling of this node rather
+	 *  than a child of it, and calling this repeatedly does not descend.
 	 */
 	deriveChild(_index: number): HDNodeWallet {
+		const index = getNumber(_index, "index");
+		assertArgument(index >= 0, "invalid account index", "index", _index);
+
 		const newPrivateKey = Ed448Goldilock.HDWalletGenerateKeyFromSeed(
 			this.#seed,
-			Number(_index),
+			index,
 		);
 		const newSigningKey = new SigningKey(newPrivateKey);
 
-		// Base path
-		let path = this.path;
-		if (path) {
-			path += "/" + (_index & ~HardenedBit);
-			if (_index & HardenedBit) {
-				path += "'";
-			}
-		}
+		const hardened = (index & HardenedBit) !== 0;
+		const path = `${CorePathPrefix}/${index & ~HardenedBit}${hardened ? "'" : ""}`;
 
 		return new HDNodeWallet({
 			guard: _guard,
 			signingKey: newSigningKey,
-			parentFingerprint: this.fingerprint,
+			parentFingerprint: this.parentFingerprint,
 			path,
-			index: _index,
+			index,
 			seed: this.#seed,
-			depth: this.depth + 1,
+			depth: this.depth,
 			mnemonic: this.mnemonic,
 			provider: this.provider,
 			prefix: this.prefix,
@@ -333,37 +335,44 @@ export class HDNodeWallet extends BaseWallet {
 	}
 
 	/**
-	 *  Return the HDNode for %%path%% from this node.
+	 *  Return the HDNode for %%path%%.
+	 *
+	 *  Only ``m/44'/654'/0'/0/<index>`` can be derived; see
+	 *  [[getIndexedAccountPath]].
 	 */
 	derivePath(path: string): HDNodeWallet {
-		return derivePath<HDNodeWallet>(this, path);
+		return this.deriveChild(accountIndexFromPath(path));
 	}
 
+	/**
+	 *  The account-0 node for %%_seed%%.
+	 *
+	 *  There is no node above this one: the primitive derives straight from the
+	 *  seed to ``m/44'/654'/0'/0/<index>``, so the intermediate nodes of the
+	 *  BIP-44 path are never materialised and the parent fingerprint is unknown.
+	 */
 	static #fromSeed({
 		_seed,
 		mnemonic,
 		prefix,
-		path,
 	}: {
 		_seed: string;
 		mnemonic: null | Mnemonic;
 		prefix: string;
-		path?: string;
 	}): HDNodeWallet {
 		const extendetPrivateKey = Ed448Goldilock.HDWalletGenerateKeyFromSeed(
 			_seed,
 			0,
 		);
 		const signingKey = new SigningKey(extendetPrivateKey);
-		// console.log({ privateKey, thisKey: signingKey.privateKey,len:tmp.privateKey.length })
 		return new HDNodeWallet({
 			seed: _seed,
 			guard: _guard,
 			signingKey,
 			parentFingerprint: "0x00000000",
-			path: path || defaultPath,
+			path: `${CorePathPrefix}/0`,
 			index: 0,
-			depth: 0,
+			depth: 5,
 			mnemonic,
 			provider: null,
 			prefix,
@@ -397,7 +406,7 @@ export class HDNodeWallet extends BaseWallet {
 	}
 
 	/**
-	 *  Create am HD Node from %%mnemonic%%.
+	 *  Create an HD Node from %%mnemonic%%.
 	 */
 	static fromMnemonic(
 		mnemonic: Mnemonic,
@@ -467,9 +476,8 @@ export class HDNodeWallet extends BaseWallet {
 		return HDNodeWallet.#fromSeed({
 			_seed: seed,
 			mnemonic: null,
-			path: path || defaultPath,
 			prefix,
-		});
+		}).derivePath(path || defaultPath);
 	}
 }
 
@@ -491,7 +499,7 @@ export class HDNodeWalletManager {
 */
 
 /**
- *  Returns the [[link-bip-32]] path for the acount at %%index%%.
+ *  Returns the [[link-bip-32]] path for the account at %%index%%.
  *
  *  This is the pattern used by wallets like Ledger.
  *
@@ -506,7 +514,16 @@ export function getAccountPath(_index: Numeric): string {
 		"index",
 		index,
 	);
-	return `m/44'/60'/${index}'/0/0`;
+	// The primitive pins the account component to 0', so this pattern cannot
+	// address anything but the first account; say so instead of handing back a
+	// path that derives an unrelated key.
+	assertArgument(
+		index === 0,
+		"Core cannot derive the account component; use getIndexedAccountPath",
+		"index",
+		index,
+	);
+	return `m/44'/654'/${index}'/0/0`;
 }
 
 /**
@@ -526,5 +543,5 @@ export function getIndexedAccountPath(_index: Numeric): string {
 		"index",
 		index,
 	);
-	return `m/44'/60'/0'/0/${index}`;
+	return `m/44'/654'/0'/0/${index}`;
 }

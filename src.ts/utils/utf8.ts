@@ -205,8 +205,8 @@ function getUtf8CodePoints(
 		}
 
 		// Multibyte; how many bytes left for this character?
-		let extraLength: any = null;
-		let overlongMask: any = null;
+		let extraLength: null | number = null;
+		let overlongMask: null | number = null;
 
 		// 110x xxxx 10xx xxxx
 		if ((c & 0xe0) === 0xc0) {
@@ -294,12 +294,14 @@ export function toUtf8Bytes(
 	str: string,
 	form?: UnicodeNormalizationForm,
 ): Uint8Array {
+	assertArgument(typeof str === "string", "invalid string value", "str", str);
+
 	if (form != null) {
 		assertNormalize(form);
 		str = str.normalize(form);
 	}
 
-	let result: any = [];
+	let result: Array<number> = [];
 	for (let i = 0; i < str.length; i++) {
 		const c = str.charCodeAt(i);
 

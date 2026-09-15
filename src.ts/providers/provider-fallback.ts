@@ -1,13 +1,15 @@
 /**
- *  Explain all the nitty-gritty about the **FallbackProvider**.
+ *  A **FallbackProvider** provides resilience, security and performance
+ *  in a way that is customizable and configurable.
  *
  *  @_section: api/providers/fallback-provider:Fallback Provider [about-fallback-provider]
  */
 import {
-	getBigInt,
-	getNumber,
 	assert,
 	assertArgument,
+	getBigInt,
+	getNumber,
+	isError,
 } from "../utils/index.js";
 
 import { AbstractProvider } from "./abstract-provider.js";
@@ -51,17 +53,27 @@ function stringify(value: any): string {
  *  A configuration entry for how to use a [[Provider]].
  */
 export interface FallbackProviderConfig {
-	// The provider
+	/**
+	 *  The provider.
+	 */
 	provider: AbstractProvider;
 
-	// How long to wait for a response before getting impatient
-	// and ispatching the next provider
+	/**
+	 *  The amount of time to wait before kicking off the next provider.
+	 *
+	 *  Any providers that have not responded can still respond and be
+	 *  counted, but this ensures new providers start.
+	 */
 	stallTimeout?: number;
 
-	// Lower values are dispatched first
+	/**
+	 *  The priority. Lower priority providers are dispatched first.
+	 */
 	priority?: number;
 
-	// How much this provider contributes to the quorum
+	/**
+	 *  The amount of weight a provider is given against the quorum.
+	 */
 	weight?: number;
 }
 
@@ -73,28 +85,44 @@ const defaultConfig = { stallTimeout: 400, priority: 1, weight: 1 };
  *  The statistics and state maintained for a [[Provider]].
  */
 export interface FallbackProviderState extends Required<FallbackProviderConfig> {
-	// The most recent blockNumber this provider has reported (-2 if none)
+	/**
+	 *  The most recent blockNumber this provider has reported (-2 if none).
+	 */
 	blockNumber: number;
 
-	// The number of total requests ever sent to this provider
+	/**
+	 *  The number of total requests ever sent to this provider.
+	 */
 	requests: number;
 
-	// The number of responses that errored
+	/**
+	 *  The number of responses that errored.
+	 */
 	errorResponses: number;
 
-	// The number of responses that occured after the result resolved
+	/**
+	 *  The number of responses that occured after the result resolved.
+	 */
 	lateResponses: number;
 
-	// How many times syncing was required to catch up the expected block
+	/**
+	 *  How many times syncing was required to catch up the expected block.
+	 */
 	outOfSync: number;
 
-	// The number of requests which reported unsupported operation
+	/**
+	 *  The number of requests which reported unsupported operation.
+	 */
 	unsupportedEvents: number;
 
-	// A rolling average (5% current duration) for response time
+	/**
+	 *  A rolling average (5% current duration) for response time.
+	 */
 	rollingDuration: number;
 
-	// The ratio of quorum-agreed results to total
+	/**
+	 *  The ratio of quorum-agreed results to total.
+	 */
 	score: number;
 }
 
@@ -140,16 +168,20 @@ async function waitForSync(config: Config, blockNumber: number): Promise<void> {
 export type FallbackProviderOptions = {
 	// How many providers must agree on a value before reporting
 	// back the response
-	quorum: number;
+	quorum?: number;
 
 	// How many providers must have reported the same event
-	// for it to be emitted
-	eventQuorum: number;
+	// for it to be emitted (currently unimplmented)
+	eventQuorum?: number;
 
 	// How many providers to dispatch each event to simultaneously.
 	// Set this to 0 to use getLog polling, which implies eventQuorum
-	// is equal to quorum.
-	eventWorkers: number;
+	// is equal to quorum. (currently unimplemented)
+	eventWorkers?: number;
+
+	cacheTimeout?: number;
+
+	pollingInterval?: number;
 };
 
 type RunnerResult = { result: any } | { error: Error };
@@ -201,10 +233,27 @@ function _normalize(value: any): string {
 	throw new Error("Hmm...");
 }
 
-function normalizeResult(value: RunnerResult): { tag: string; value: any } {
+function normalizeResult(
+	method: string,
+	value: RunnerResult,
+): { tag: string; value: any } {
 	if ("error" in value) {
 		const error = value.error;
-		return { tag: _normalize(error), value: error };
+
+		let tag: string;
+		if (isError(error, "CALL_EXCEPTION")) {
+			tag = _normalize(
+				Object.assign({}, error, {
+					shortMessage: undefined,
+					reason: undefined,
+					info: undefined,
+				}),
+			);
+		} else {
+			tag = _normalize(error);
+		}
+
+		return { tag, value: error };
 	}
 
 	const result = value.result;
@@ -228,7 +277,6 @@ function checkQuorum(quorum: number, results: Array<TallyResult>): any | Error {
 	}
 
 	let best: null | { value: any; weight: number } = null;
-
 	for (const r of tally.values()) {
 		if (r.weight >= quorum && (!best || r.weight > best.weight)) {
 			best = r;
@@ -335,7 +383,7 @@ function getFuzzyMode(
 	}
 
 	let bestWeight = 0;
-	let bestResult: any = undefined;
+	let bestResult: undefined | number = undefined;
 
 	for (const { weight, result } of tally.values()) {
 		// Use this result, if this result meets quorum and has either:
@@ -355,12 +403,27 @@ function getFuzzyMode(
 }
 
 /**
- *  A Fallback Provider.
+ *  A **FallbackProvider** manages several [[Providers]] providing
+ *  resilience by switching between slow or misbehaving nodes, security
+ *  by requiring multiple backends to aggree and performance by allowing
+ *  faster backends to respond earlier.
  *
  */
 export class FallbackProvider extends AbstractProvider {
+	/**
+	 *  The number of backends that must agree on a value before it is
+	 *  accpeted.
+	 */
 	readonly quorum: number;
+
+	/**
+	 *  @_ignore:
+	 */
 	readonly eventQuorum: number;
+
+	/**
+	 *  @_ignore:
+	 */
 	readonly eventWorkers: number;
 
 	readonly #configs: Array<Config>;
@@ -368,11 +431,20 @@ export class FallbackProvider extends AbstractProvider {
 	#height: number;
 	#initialSyncPromise: null | Promise<void>;
 
+	/**
+	 *  Creates a new **FallbackProvider** with %%providers%% connected to
+	 *  %%network%%.
+	 *
+	 *  If a [[Provider]] is included in %%providers%%, defaults are used
+	 *  for the configuration.
+	 */
 	constructor(
 		providers: Array<AbstractProvider | FallbackProviderConfig>,
 		network?: Networkish,
+		options?: FallbackProviderOptions,
 	) {
-		super(network);
+		super(network, options);
+
 		this.#configs = providers.map((p) => {
 			if (p instanceof AbstractProvider) {
 				return Object.assign({ provider: p }, defaultConfig, defaultState);
@@ -384,13 +456,23 @@ export class FallbackProvider extends AbstractProvider {
 		this.#height = -2;
 		this.#initialSyncPromise = null;
 
-		this.quorum = 2; //Math.ceil(providers.length /  2);
+		if (options && options.quorum != null) {
+			this.quorum = options.quorum;
+		} else {
+			this.quorum = Math.ceil(
+				this.#configs.reduce((accum, config) => {
+					accum += config.weight;
+					return accum;
+				}, 0) / 2,
+			);
+		}
+
 		this.eventQuorum = 1;
 		this.eventWorkers = 1;
 
 		assertArgument(
 			this.quorum <= this.#configs.reduce((a, c) => a + c.weight, 0),
-			"quorum exceed provider wieght",
+			"quorum exceed provider weight",
 			"quorum",
 			this.quorum,
 		);
@@ -419,6 +501,9 @@ export class FallbackProvider extends AbstractProvider {
 	//    throw new Error("@TODO");
 	//}
 
+	/**
+	 *  Transforms a %%req%% into the correct method call on %%provider%%.
+	 */
 	async _translatePerform(
 		provider: AbstractProvider,
 		req: PerformActionRequest,
@@ -477,7 +562,7 @@ export class FallbackProvider extends AbstractProvider {
 		// Shuffle the states, sorted by priority
 		const allConfigs = this.#configs.slice();
 		shuffle(allConfigs);
-		allConfigs.sort((a, b) => b.priority - a.priority);
+		allConfigs.sort((a, b) => a.priority - b.priority);
 
 		for (const config of allConfigs) {
 			if (configs.indexOf(config) === -1) {
@@ -591,7 +676,7 @@ export class FallbackProvider extends AbstractProvider {
 		const results: Array<TallyResult> = [];
 		for (const runner of running) {
 			if (runner.result != null) {
-				const { tag, value } = normalizeResult(runner.result);
+				const { tag, value } = normalizeResult(req.method, runner.result);
 				results.push({ tag, value, weight: runner.config.weight });
 			}
 		}
@@ -736,18 +821,61 @@ export class FallbackProvider extends AbstractProvider {
 		// a cost on the user, so spamming is safe-ish. Just send it to
 		// every backend.
 		if (req.method === "broadcastTransaction") {
-			const results = await Promise.all(
-				this.#configs.map(async ({ provider, weight }) => {
+			// Once any broadcast provides a positive result, use it. No
+			// need to wait for anyone else
+			const results: Array<null | TallyResult> = this.#configs.map((c) => null);
+			const broadcasts = this.#configs.map(
+				async ({ provider, weight }, index) => {
 					try {
 						const result = await provider._perform(req);
-						return Object.assign(normalizeResult({ result }), { weight });
+						results[index] = Object.assign(
+							normalizeResult(req.method, { result }),
+							{ weight },
+						);
 					} catch (error: any) {
-						return Object.assign(normalizeResult({ error }), { weight });
+						results[index] = Object.assign(
+							normalizeResult(req.method, { error }),
+							{ weight },
+						);
 					}
-				}),
+				},
 			);
 
-			const result = getAnyResult(this.quorum, results);
+			// As each promise finishes...
+			while (true) {
+				// Check for a valid broadcast result
+				const done = <Array<any>>results.filter((r) => r != null);
+				for (const { value } of done) {
+					if (!(value instanceof Error)) {
+						return value;
+					}
+				}
+
+				// Check for a legit broadcast error (one which we cannot
+				// recover from; some nodes may return the following red
+				// herring events:
+				// - alredy seend (UNKNOWN_ERROR)
+				// - NONCE_EXPIRED
+				// - REPLACEMENT_UNDERPRICED
+				const result = checkQuorum(
+					this.quorum,
+					<Array<any>>results.filter((r) => r != null),
+				);
+				if (isError(result, "INSUFFICIENT_FUNDS")) {
+					throw result;
+				}
+
+				// Kick off the next provider (if any)
+				const waiting = broadcasts.filter((b, i) => results[i] == null);
+				if (waiting.length === 0) {
+					break;
+				}
+				await Promise.race(waiting);
+			}
+
+			// Use standard quorum results; any result was returned above,
+			// so this will find any error that met quorum if any
+			const result = getAnyResult(this.quorum, <Array<any>>results);
 			assert(
 				result !== undefined,
 				"problem multi-broadcasting",
@@ -767,8 +895,16 @@ export class FallbackProvider extends AbstractProvider {
 
 		// Bootstrap enough runners to meet quorum
 		const running: Set<RunnerState> = new Set();
-		for (let i = 0; i < this.quorum; i++) {
-			this.#addRunner(running, req);
+		let inflightQuorum = 0;
+		while (true) {
+			const runner = this.#addRunner(running, req);
+			if (runner == null) {
+				break;
+			}
+			inflightQuorum += runner.config.weight;
+			if (inflightQuorum >= this.quorum) {
+				break;
+			}
 		}
 
 		const result = await this.#waitForQuorum(running, req);

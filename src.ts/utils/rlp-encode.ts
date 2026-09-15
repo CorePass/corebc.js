@@ -1,9 +1,9 @@
 import { getBytes } from "./data.js";
 
-import type { RlpStructuredData } from "./rlp.js";
+import type { RlpStructuredDataish } from "./rlp.js";
 
 function arrayifyInteger(value: number): Array<number> {
-	const result: any = [];
+	const result: Array<number> = [];
 	while (value) {
 		result.unshift(value & 0xff);
 		value >>= 8;
@@ -11,7 +11,7 @@ function arrayifyInteger(value: number): Array<number> {
 	return result;
 }
 
-function _encode(object: Array<any> | string): Array<number> {
+function _encode(object: Array<any> | string | Uint8Array): Array<number> {
 	if (Array.isArray(object)) {
 		let payload: Array<number> = [];
 		object.forEach(function (child) {
@@ -51,7 +51,7 @@ const nibbles = "0123456789abcdef";
 /**
  *  Encodes %%object%% as an RLP-encoded [[DataHexString]].
  */
-export function encodeRlp(object: RlpStructuredData): string {
+export function encodeRlp(object: RlpStructuredDataish): string {
 	let result = "0x";
 	for (const v of _encode(object)) {
 		result += nibbles[v >> 4];

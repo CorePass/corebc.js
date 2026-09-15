@@ -1,5 +1,11 @@
 /**
- *  About frgaments...
+ *  A fragment is a single item from an ABI, which may represent any of:
+ *
+ *  - [Functions](FunctionFragment)
+ *  - [Events](EventFragment)
+ *  - [Constructors](ConstructorFragment)
+ *  - Custom [Errors](ErrorFragment)
+ *  - [Fallback or Receive](FallbackFragment) functions
  *
  *  @_subsection api/abi/abi-coder:Fragments  [about-fragments]
  */
@@ -15,7 +21,7 @@ import {
 import { id } from "../hash/index.js";
 
 /**
- *  A type description in a JSON API.
+ *  A Type description in a [JSON ABI format](link-solc-jsonabi).
  */
 export interface JsonFragmentType {
 	/**
@@ -45,7 +51,7 @@ export interface JsonFragmentType {
 }
 
 /**
- *  A fragment for a method, event or error in a JSON API.
+ *  A fragment for a method, event or error in a [JSON ABI format](link-solc-jsonabi).
  */
 export interface JsonFragment {
 	/**
@@ -96,19 +102,21 @@ export interface JsonFragment {
 
 /**
  *  The format to serialize the output as.
+ *
+ *  **``"sighash"``** - the bare formatting, used to compute the selector
+ *  or topic hash; this format cannot be reversed (as it discards ``indexed``)
+ *  so cannot by used to export an [[Interface]].
+ *
+ *  **``"minimal"``** - Human-Readable ABI with minimal spacing and without
+ *  names, so it is compact, but will result in Result objects that cannot
+ *  be accessed by name.
+ *
+ *  **``"full"``** - Full Human-Readable ABI, with readable spacing and names
+ *  intact; this is generally the recommended format.
+ *
+ *  **``"json"``** - The [JSON ABI format](link-solc-jsonabi).
  */
-export type FormatType =
-	// Bare formatting, as is needed for computing a sighash of an event or function
-	| "sighash"
-
-	// Human-Readable with Minimal spacing and without names (compact human-readable)
-	| "minimal"
-
-	// Human-Readable with nice spacing, including all names
-	| "full"
-
-	// JSON-format a la Solidity
-	| "json";
+export type FormatType = "sighash" | "minimal" | "full" | "json";
 
 // [ "a", "b" ] => { "a": 1, "b": 1 }
 function setify(items: Array<string>): ReadonlySet<string> {
@@ -117,8 +125,12 @@ function setify(items: Array<string>): ReadonlySet<string> {
 	return Object.freeze(result);
 }
 
+const _kwVisibDeploy = "external public payable override";
+const KwVisibDeploy = setify(_kwVisibDeploy.split(" "));
+
 // Visibility Keywords
-const _kwVisib = "constant external internal payable private public pure view";
+const _kwVisib =
+	"constant external internal payable private public pure view override";
 const KwVisib = setify(_kwVisib.split(" "));
 
 const _kwTypes = "constructor error event fallback function receive struct";
@@ -231,7 +243,10 @@ class TokenString {
 	// Pops and returns the value of the next token if it is `type`; throws if out of tokens
 	popType(type: string): string {
 		if (this.peek().type !== type) {
-			throw new Error(`expected ${type}; got ${JSON.stringify(this.peek())}`);
+			const top = this.peek();
+			throw new Error(
+				`expected ${type}; got ${top.type} ${JSON.stringify(top.text)}`,
+			);
 		}
 		return this.pop().text;
 	}
@@ -532,7 +547,9 @@ function consumeEnergy(tokens: TokenString): null | bigint {
 
 function consumeEoi(tokens: TokenString): void {
 	if (tokens.length) {
-		throw new Error(`unexpected tokens: ${tokens.toString()}`);
+		throw new Error(
+			`unexpected tokens at offset ${tokens.offset}: ${tokens.toString()}`,
+		);
 	}
 }
 
@@ -600,7 +617,7 @@ const FunctionFragmentInternal = "_FunctionInternal";
 const StructFragmentInternal = "_StructInternal";
 
 /**
- *  Each input and output of a [[Fragment]] is an Array of **PAramType**.
+ *  Each input and output of a [[Fragment]] is an Array of **ParamType**.
  */
 export class ParamType {
 	/**
@@ -710,10 +727,20 @@ export class ParamType {
 			format = "sighash";
 		}
 		if (format === "json") {
-			let result: any = {
+			const name = this.name || "";
+
+			if (this.isArray()) {
+				const result = JSON.parse(this.arrayChildren.format("json"));
+				result.name = name;
+				result.type += `[${this.arrayLength < 0 ? "" : String(this.arrayLength)}]`;
+				return JSON.stringify(result);
+			}
+
+			const result: any = {
 				type: this.baseType === "tuple" ? "tuple" : this.type,
-				name: this.name || undefined,
+				name,
 			};
+
 			if (typeof this.indexed === "boolean") {
 				result.indexed = this.indexed;
 			}
@@ -733,9 +760,6 @@ export class ParamType {
 			result += `[${this.arrayLength < 0 ? "" : String(this.arrayLength)}]`;
 		} else {
 			if (this.isTuple()) {
-				if (format !== "sighash") {
-					result += this.type;
-				}
 				result +=
 					"(" +
 					this.components
@@ -758,16 +782,6 @@ export class ParamType {
 
 		return result;
 	}
-
-	/*
-	 *  Returns true if %%value%% is an Array type.
-	 *
-	 *  This provides a type gaurd ensuring that the
-	 *  [[arrayChildren]] and [[arrayLength]] are non-null.
-	 */
-	//static isArray(value: any): value is { arrayChildren: ParamType, arrayLength: number } {
-	//    return value && (value.baseType === "array")
-	//}
 
 	/**
 	 *  Returns true if %%this%% is an Array type.
@@ -909,7 +923,7 @@ export class ParamType {
 	 *  Walks the **ParamType** with %%value%%, asynchronously calling
 	 *  %%process%% on each type, destructing the %%value%% recursively.
 	 *
-	 *  This can be used to resolve ENS naes by walking and resolving each
+	 *  This can be used to resolve ENS names by walking and resolving each
 	 *  ``"address"`` type.
 	 */
 	async walkAsync(value: any, process: ParamTypeWalkAsyncFunc): Promise<any> {
@@ -936,7 +950,11 @@ export class ParamType {
 		}
 
 		if (typeof obj === "string") {
-			return ParamType.from(lex(obj), allowIndexed);
+			try {
+				return ParamType.from(lex(obj), allowIndexed);
+			} catch (error) {
+				assertArgument(false, "invalid param type", "obj", obj);
+			}
 		} else if (obj instanceof TokenString) {
 			let type = "",
 				baseType = "";
@@ -1125,7 +1143,7 @@ export abstract class Fragment {
 	}
 
 	/**
-	 *  Returns a string representation of this fragment.
+	 *  Returns a string representation of this fragment as %%format%%.
 	 */
 	abstract format(format?: FormatType): string;
 
@@ -1288,6 +1306,9 @@ export class ErrorFragment extends NamedFragment {
 		return id(this.format("sighash")).substring(0, 10);
 	}
 
+	/**
+	 *  Returns a string representation of this fragment as %%format%%.
+	 */
 	format(format?: FormatType): string {
 		if (format == null) {
 			format = "sighash";
@@ -1308,6 +1329,9 @@ export class ErrorFragment extends NamedFragment {
 		return result.join(" ");
 	}
 
+	/**
+	 *  Returns a new **ErrorFragment** for %%obj%%.
+	 */
 	static from(obj: any): ErrorFragment {
 		if (ErrorFragment.isFragment(obj)) {
 			return obj;
@@ -1330,6 +1354,10 @@ export class ErrorFragment extends NamedFragment {
 		);
 	}
 
+	/**
+	 *  Returns ``true`` and provides a type guard if %%value%% is an
+	 *  **ErrorFragment**.
+	 */
 	static isFragment(value: any): value is ErrorFragment {
 		return value && value[internal] === ErrorFragmentInternal;
 	}
@@ -1339,6 +1367,9 @@ export class ErrorFragment extends NamedFragment {
  *  A Fragment which represents an Event.
  */
 export class EventFragment extends NamedFragment {
+	/**
+	 *  Whether this event is anonymous.
+	 */
 	readonly anonymous!: boolean;
 
 	/**
@@ -1362,6 +1393,9 @@ export class EventFragment extends NamedFragment {
 		return id(this.format("sighash"));
 	}
 
+	/**
+	 *  Returns a string representation of this event as %%format%%.
+	 */
 	format(format?: FormatType): string {
 		if (format == null) {
 			format = "sighash";
@@ -1386,19 +1420,29 @@ export class EventFragment extends NamedFragment {
 		return result.join(" ");
 	}
 
+	/**
+	 *  Return the topic hash for an event with %%name%% and %%params%%.
+	 */
 	static getTopicHash(name: string, params?: Array<any>): string {
 		params = (params || []).map((p) => ParamType.from(p));
 		const fragment = new EventFragment(_guard, name, params, false);
 		return fragment.topicHash;
 	}
 
+	/**
+	 *  Returns a new **EventFragment** for %%obj%%.
+	 */
 	static from(obj: any): EventFragment {
 		if (EventFragment.isFragment(obj)) {
 			return obj;
 		}
 
 		if (typeof obj === "string") {
-			return EventFragment.from(lex(obj));
+			try {
+				return EventFragment.from(lex(obj));
+			} catch (error) {
+				assertArgument(false, "invalid event fragment", "obj", obj);
+			}
 		} else if (obj instanceof TokenString) {
 			const name = consumeName("event", obj);
 			const inputs = consumeParams(obj, true);
@@ -1418,6 +1462,10 @@ export class EventFragment extends NamedFragment {
 		);
 	}
 
+	/**
+	 *  Returns ``true`` and provides a type guard if %%value%% is an
+	 *  **EventFragment**.
+	 */
 	static isFragment(value: any): value is EventFragment {
 		return value && value[internal] === EventFragmentInternal;
 	}
@@ -1427,6 +1475,9 @@ export class EventFragment extends NamedFragment {
  *  A Fragment which represents a constructor.
  */
 export class ConstructorFragment extends Fragment {
+	/**
+	 *  Whether the constructor can receive an endowment.
+	 */
 	readonly payable!: boolean;
 	readonly energy!: null | bigint;
 
@@ -1447,6 +1498,9 @@ export class ConstructorFragment extends Fragment {
 		defineProperties<ConstructorFragment>(this, { payable, energy });
 	}
 
+	/**
+	 *  Returns a string representation of this constructor as %%format%%.
+	 */
 	format(format?: FormatType): string {
 		assert(
 			format != null && format !== "sighash",
@@ -1466,26 +1520,33 @@ export class ConstructorFragment extends Fragment {
 		}
 
 		const result = [`constructor${joinParams(format, this.inputs)}`];
-		result.push(this.payable ? "payable" : "nonpayable");
+		if (this.payable) {
+			result.push("payable");
+		}
 		if (this.energy != null) {
 			result.push(`@${this.energy.toString()}`);
 		}
 		return result.join(" ");
 	}
 
+	/**
+	 *  Returns a new **ConstructorFragment** for %%obj%%.
+	 */
 	static from(obj: any): ConstructorFragment {
 		if (ConstructorFragment.isFragment(obj)) {
 			return obj;
 		}
 
 		if (typeof obj === "string") {
-			return ConstructorFragment.from(lex(obj));
+			try {
+				return ConstructorFragment.from(lex(obj));
+			} catch (error) {
+				assertArgument(false, "invalid constuctor fragment", "obj", obj);
+			}
 		} else if (obj instanceof TokenString) {
 			consumeKeywords(obj, setify(["constructor"]));
 			const inputs = consumeParams(obj);
-			const payable = !!consumeKeywords(obj, setify(["payable"])).has(
-				"payable",
-			);
+			const payable = !!consumeKeywords(obj, KwVisibDeploy).has("payable");
 			const energy = consumeEnergy(obj);
 			consumeEoi(obj);
 
@@ -1507,6 +1568,10 @@ export class ConstructorFragment extends Fragment {
 		);
 	}
 
+	/**
+	 *  Returns ``true`` and provides a type guard if %%value%% is a
+	 *  **ConstructorFragment**.
+	 */
 	static isFragment(value: any): value is ConstructorFragment {
 		return value && value[internal] === ConstructorFragmentInternal;
 	}
@@ -1527,6 +1592,9 @@ export class FallbackFragment extends Fragment {
 		defineProperties<FallbackFragment>(this, { payable });
 	}
 
+	/**
+	 *  Returns a string representation of this fallback as %%format%%.
+	 */
 	format(format?: FormatType): string {
 		const type = this.inputs.length === 0 ? "receive" : "fallback";
 
@@ -1538,13 +1606,20 @@ export class FallbackFragment extends Fragment {
 		return `${type}()${this.payable ? " payable" : ""}`;
 	}
 
+	/**
+	 *  Returns a new **FallbackFragment** for %%obj%%.
+	 */
 	static from(obj: any): FallbackFragment {
 		if (FallbackFragment.isFragment(obj)) {
 			return obj;
 		}
 
 		if (typeof obj === "string") {
-			return FallbackFragment.from(lex(obj));
+			try {
+				return FallbackFragment.from(lex(obj));
+			} catch (error) {
+				assertArgument(false, "invalid fallback fragment", "obj", obj);
+			}
 		} else if (obj instanceof TokenString) {
 			const errorObj = obj.toString();
 
@@ -1622,6 +1697,10 @@ export class FallbackFragment extends Fragment {
 		assertArgument(false, "invalid fallback description", "obj", obj);
 	}
 
+	/**
+	 *  Returns ``true`` and provides a type guard if %%value%% is a
+	 *  **FallbackFragment**.
+	 */
 	static isFragment(value: any): value is FallbackFragment {
 		return value && value[internal] === FallbackFragmentInternal;
 	}
@@ -1689,6 +1768,9 @@ export class FunctionFragment extends NamedFragment {
 		return id(this.format("sighash")).substring(0, 10);
 	}
 
+	/**
+	 *  Returns a string representation of this function as %%format%%.
+	 */
 	format(format?: FormatType): string {
 		if (format == null) {
 			format = "sighash";
@@ -1734,6 +1816,9 @@ export class FunctionFragment extends NamedFragment {
 		return result.join(" ");
 	}
 
+	/**
+	 *  Return the selector for a function with %%name%% and %%params%%.
+	 */
 	static getSelector(name: string, params?: Array<any>): string {
 		params = (params || []).map((p) => ParamType.from(p));
 		const fragment = new FunctionFragment(
@@ -1747,13 +1832,20 @@ export class FunctionFragment extends NamedFragment {
 		return fragment.selector;
 	}
 
+	/**
+	 *  Returns a new **FunctionFragment** for %%obj%%.
+	 */
 	static from(obj: any): FunctionFragment {
 		if (FunctionFragment.isFragment(obj)) {
 			return obj;
 		}
 
 		if (typeof obj === "string") {
-			return FunctionFragment.from(lex(obj));
+			try {
+				return FunctionFragment.from(lex(obj));
+			} catch (error) {
+				assertArgument(false, "invalid function fragment", "obj", obj);
+			}
 		} else if (obj instanceof TokenString) {
 			const name = consumeName("function", obj);
 			const inputs = consumeParams(obj);
@@ -1810,6 +1902,10 @@ export class FunctionFragment extends NamedFragment {
 		);
 	}
 
+	/**
+	 *  Returns ``true`` and provides a type guard if %%value%% is a
+	 *  **FunctionFragment**.
+	 */
 	static isFragment(value: any): value is FunctionFragment {
 		return value && value[internal] === FunctionFragmentInternal;
 	}
@@ -1827,13 +1923,23 @@ export class StructFragment extends NamedFragment {
 		Object.defineProperty(this, internal, { value: StructFragmentInternal });
 	}
 
+	/**
+	 *  Returns a string representation of this struct as %%format%%.
+	 */
 	format(): string {
 		throw new Error("@TODO");
 	}
 
+	/**
+	 *  Returns a new **StructFragment** for %%obj%%.
+	 */
 	static from(obj: any): StructFragment {
 		if (typeof obj === "string") {
-			return StructFragment.from(lex(obj));
+			try {
+				return StructFragment.from(lex(obj));
+			} catch (error) {
+				assertArgument(false, "invalid struct fragment", "obj", obj);
+			}
 		} else if (obj instanceof TokenString) {
 			const name = consumeName("struct", obj);
 			const inputs = consumeParams(obj);
@@ -1848,6 +1954,11 @@ export class StructFragment extends NamedFragment {
 		);
 	}
 
+	// @TODO: fix this return type
+	/**
+	 *  Returns ``true`` and provides a type guard if %%value%% is a
+	 *  **StructFragment**.
+	 */
 	static isFragment(value: any): value is FunctionFragment {
 		return value && value[internal] === StructFragmentInternal;
 	}

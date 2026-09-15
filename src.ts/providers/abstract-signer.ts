@@ -1,5 +1,7 @@
 /**
- *  About Abstract Signer and subclassing
+ *  Generally the [[Wallet]] and [[JsonRpcSigner]] and their sub-classes
+ *  are sufficient for most developers, but this is provided to
+ *  fascilitate more complex Signers.
  *
  *  @_section: api/providers/abstract-signer: Subclassing Signer [abstract-signer]
  */
@@ -64,16 +66,38 @@ async function populate(
 	return await resolveProperties(pop);
 }
 
+/**
+ *  An **AbstractSigner** includes most of teh functionality required
+ *  to get a [[Signer]] working as expected, but requires a few
+ *  Signer-specific methods be overridden.
+ *
+ */
 export abstract class AbstractSigner<
 	P extends null | Provider = null | Provider,
 > implements Signer {
+	/**
+	 *  The provider this signer is connected to.
+	 */
 	readonly provider!: P;
 
+	/**
+	 *  Creates a new Signer connected to %%provider%%.
+	 */
 	constructor(provider?: P) {
 		defineProperties<AbstractSigner>(this, { provider: provider || null });
 	}
 
+	/**
+	 *  Resolves to the Signer address.
+	 */
 	abstract getAddress(): Promise<string>;
+
+	/**
+	 *  Returns the signer connected to %%provider%%.
+	 *
+	 *  This may throw, for example, a Signer connected over a Socket or
+	 *  to a specific instance of a node may not be transferrable.
+	 */
 	abstract connect(provider: null | Provider): Signer;
 
 	async getNonce(blockTag?: BlockTag): Promise<number> {
@@ -178,9 +202,24 @@ export abstract class AbstractSigner<
 	): Promise<string>;
 }
 
+/**
+ *  A **VoidSigner** is a class designed to allow an address to be used
+ *  in any API which accepts a Signer, but for which there are no
+ *  credentials available to perform any actual signing.
+ *
+ *  This for example allow impersonating an account for the purpose of
+ *  static calls or estimating gas, but does not allow sending transactions.
+ */
 export class VoidSigner extends AbstractSigner {
+	/**
+	 *  The signer address.
+	 */
 	readonly address!: string;
 
+	/**
+	 *  Creates a new **VoidSigner** with %%address%% attached to
+	 *  %%provider%%.
+	 */
 	constructor(address: string, provider?: null | Provider) {
 		super(provider);
 		defineProperties<VoidSigner>(this, { address });

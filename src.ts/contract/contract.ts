@@ -10,6 +10,7 @@ import {
 	isCallException,
 	isHexString,
 	resolveProperties,
+	isError,
 	makeError,
 	assert,
 	assertArgument,
@@ -20,6 +21,7 @@ import {
 	ContractUnknownEventPayload,
 	ContractTransactionResponse,
 	EventLog,
+	UndecodedEventLog,
 } from "./wrappers.js";
 
 import type {
@@ -111,6 +113,9 @@ class PreparedTopicFilter implements DeferredTopicFilter {
 
 					return param.walkAsync(args[index], (type, value) => {
 						if (type === "address") {
+							if (Array.isArray(value)) {
+								return Promise.all(value.map((v) => resolveAddress(v)));
+							}
 							return resolveAddress(value);
 						}
 						return value;
@@ -164,8 +169,17 @@ export async function copyOverrides<O extends string = "data" | "to">(
 	arg: any,
 	allowed?: Array<string>,
 ): Promise<Omit<ContractTransaction, O>> {
+	// Make sure the overrides passed in are a valid overrides object
+	const _overrides = Typed.dereference(arg, "overrides");
+	assertArgument(
+		typeof _overrides === "object",
+		"invalid overrides parameter",
+		"overrides",
+		arg,
+	);
+
 	// Create a shallow copy (we'll deep-ify anything needed during normalizing)
-	const overrides = copyRequest(Typed.dereference(arg, "overrides"));
+	const overrides = copyRequest(_overrides);
 
 	assertArgument(
 		overrides.to == null || (allowed || []).indexOf("to") >= 0,
@@ -182,7 +196,7 @@ export async function copyOverrides<O extends string = "data" | "to">(
 
 	// Resolve any from
 	if (overrides.from) {
-		overrides.from = await resolveAddress(overrides.from);
+		overrides.from = overrides.from;
 	}
 
 	return <Omit<ContractTransaction, O>>overrides;
@@ -220,6 +234,10 @@ function buildWrappedFallback(contract: BaseContract): WrappedFallback {
 			await copyOverrides<"data">(overrides, ["data"])
 		);
 		tx.to = await contract.getAddress();
+
+		if (tx.from) {
+			tx.from = await resolveAddress(tx.from);
+		}
 
 		const iface = contract.interface;
 
@@ -329,14 +347,10 @@ function buildWrappedMethod<
 		...args: ContractMethodArgs<A>
 	): FunctionFragment {
 		const fragment = contract.interface.getFunction(key, args);
-		assert(
-			fragment,
-			"no matching fragment in getFragment",
-			"UNSUPPORTED_OPERATION",
-			{
-				operation: "fragment",
-			},
-		);
+		assert(fragment, "no matching fragment", "UNSUPPORTED_OPERATION", {
+			operation: "fragment",
+			info: { key, args },
+		});
 		return fragment;
 	};
 
@@ -349,6 +363,10 @@ function buildWrappedMethod<
 		let overrides: Omit<ContractTransaction, "data" | "to"> = {};
 		if (fragment.inputs.length + 1 === args.length) {
 			overrides = await copyOverrides(args.pop());
+
+			if (overrides.from) {
+				overrides.from = await resolveAddress(overrides.from);
+			}
 		}
 
 		if (fragment.inputs.length !== args.length) {
@@ -474,14 +492,10 @@ function buildWrappedMethod<
 		enumerable: true,
 		get: () => {
 			const fragment = contract.interface.getFunction(key);
-			assert(
-				fragment,
-				"no matching fragment in defineProperty",
-				"UNSUPPORTED_OPERATION",
-				{
-					operation: "fragment",
-				},
-			);
+			assert(fragment, "no matching fragment", "UNSUPPORTED_OPERATION", {
+				operation: "fragment",
+				info: { key },
+			});
 			return fragment;
 		},
 	});
@@ -498,6 +512,7 @@ function buildWrappedEvent<A extends Array<any> = Array<any>>(
 
 		assert(fragment, "no matching fragment in", "UNSUPPORTED_OPERATION", {
 			operation: "fragment",
+			info: { key, args },
 		});
 
 		return fragment;
@@ -526,6 +541,7 @@ function buildWrappedEvent<A extends Array<any> = Array<any>>(
 
 			assert(fragment, "no matching fragment", "UNSUPPORTED_OPERATION", {
 				operation: "fragment",
+				info: { key },
 			});
 
 			return fragment;
@@ -787,6 +803,12 @@ async function _emit(
 		} catch (error) {}
 		return !once;
 	});
+
+	if (sub.listeners.length === 0) {
+		sub.stop();
+		getInternal(contract).subs.delete(sub.tag);
+	}
+
 	return count > 0;
 }
 
@@ -809,16 +831,49 @@ const passProperties = ["then"];
 export class BaseContract
 	implements Addressable, EventEmitterable<ContractEventName>
 {
+	/**
+	 *  The target to connect to.
+	 *
+	 *  This can be an address, ENS name or any [[Addressable]], such as
+	 *  another contract. To get the resolved address, use the ``getAddress``
+	 *  method.
+	 */
 	readonly target!: string | Addressable;
+
+	/**
+	 *  The contract Interface.
+	 */
 	readonly interface!: Interface;
+
+	/**
+	 *  The connected runner. This is generally a [[Provider]] or a
+	 *  [[Signer]], which dictates what operations are supported.
+	 *
+	 *  For example, a **Contract** connected to a [[Provider]] may
+	 *  only execute read-only operations.
+	 */
 	readonly runner!: null | ContractRunner;
 
+	/**
+	 *  All the Events available on this contract.
+	 */
 	readonly filters!: Record<string, ContractEvent>;
 
+	/**
+	 *  @_ignore:
+	 */
 	readonly [internal]: any;
 
+	/**
+	 *  The fallback or receive function if any.
+	 */
 	readonly fallback!: null | WrappedFallback;
 
+	/**
+	 *  Creates a new contract connected to %%target%% with the %%abi%% and
+	 *  optionally connected to a %%runner%% to perform operations on behalf
+	 *  of.
+	 */
 	constructor(
 		target: string | Addressable,
 		abi: Interface | InterfaceAbi,
@@ -833,7 +888,7 @@ export class BaseContract
 		Object.defineProperty(this, internal, { value: {} });
 
 		let addrPromise;
-		let addr: any = null;
+		let addr: null | string = null;
 
 		let deployTx: null | ContractTransactionResponse = null;
 		if (_deployTx) {
@@ -868,7 +923,13 @@ export class BaseContract
 
 				addrPromise = resolver.resolveName(target).then((addr) => {
 					if (addr == null) {
-						throw new Error("TODO");
+						throw makeError(
+							"an ENS name used for a contract target must be correctly configured",
+							"UNCONFIGURED_NAME",
+							{
+								value: target,
+							},
+						);
 					}
 					getInternal(this).addr = addr;
 					return addr;
@@ -891,20 +952,24 @@ export class BaseContract
 		const filters = new Proxy(
 			{},
 			{
-				get: (target, _prop, receiver) => {
+				get: (target, prop, receiver) => {
 					// Pass important checks (like `then` for Promise) through
-					if (passProperties.indexOf(<string>_prop) >= 0) {
-						return Reflect.get(target, _prop, receiver);
+					if (typeof prop === "symbol" || passProperties.indexOf(prop) >= 0) {
+						return Reflect.get(target, prop, receiver);
 					}
 
-					const prop = String(_prop);
-
-					const result = this.getEvent(prop);
-					if (result) {
-						return result;
+					try {
+						return this.getEvent(prop);
+					} catch (error) {
+						if (
+							!isError(error, "INVALID_ARGUMENT") ||
+							error.argument !== "key"
+						) {
+							throw error;
+						}
 					}
 
-					throw new Error(`unknown contract event: ${prop}`);
+					return undefined;
 				},
 				has: (target, prop) => {
 					// Pass important checks (like `then` for Promise) through
@@ -927,38 +992,66 @@ export class BaseContract
 
 		// Return a Proxy that will respond to functions
 		return new Proxy(this, {
-			get: (target, _prop, receiver) => {
-				if (_prop in target || passProperties.indexOf(<string>_prop) >= 0) {
-					return Reflect.get(target, _prop, receiver);
+			get: (target, prop, receiver) => {
+				if (
+					typeof prop === "symbol" ||
+					prop in target ||
+					passProperties.indexOf(prop) >= 0
+				) {
+					return Reflect.get(target, prop, receiver);
 				}
 
-				const prop = String(_prop);
-
-				const result = target.getFunction(prop);
-				if (result) {
-					return result;
+				// Undefined properties should return undefined
+				try {
+					return target.getFunction(prop);
+				} catch (error) {
+					if (!isError(error, "INVALID_ARGUMENT") || error.argument !== "key") {
+						throw error;
+					}
 				}
 
-				throw new Error(`unknown contract method: ${prop}`);
+				return undefined;
 			},
 			has: (target, prop) => {
-				if (prop in target || passProperties.indexOf(<string>prop) >= 0) {
+				if (
+					typeof prop === "symbol" ||
+					prop in target ||
+					passProperties.indexOf(prop) >= 0
+				) {
 					return Reflect.has(target, prop);
 				}
 
-				return target.interface.hasFunction(String(prop));
+				return target.interface.hasFunction(prop);
 			},
 		});
 	}
 
+	/**
+	 *  Return a new Contract instance with the same target and ABI, but
+	 *  a different %%runner%%.
+	 */
 	connect(runner: null | ContractRunner): BaseContract {
 		return new BaseContract(this.target, this.interface, runner);
 	}
 
+	/**
+	 *  Return a new Contract instance with the same ABI and runner, but
+	 *  a different %%target%%.
+	 */
+	attach(target: string | Addressable): BaseContract {
+		return new BaseContract(target, this.interface, this.runner);
+	}
+
+	/**
+	 *  Return the resolved address of this Contract.
+	 */
 	async getAddress(): Promise<string> {
 		return await getInternal(this).addrPromise;
 	}
 
+	/**
+	 *  Return the deployed bytecode or null if no bytecode is found.
+	 */
 	async getDeployedCode(): Promise<null | string> {
 		const provider = getProvider(this.runner);
 		assert(
@@ -975,8 +1068,12 @@ export class BaseContract
 		return code;
 	}
 
+	/**
+	 *  Resolve to this Contract once the bytecode has been deployed, or
+	 *  resolve immediately if already deployed.
+	 */
 	async waitForDeployment(): Promise<this> {
-		// We have the deployement transaction; just use that (throws if deployement fails)
+		// We have the deployment transaction; just use that (throws if deployment fails)
 		const deployTx = this.deploymentTransaction();
 		if (deployTx) {
 			await deployTx.wait();
@@ -1014,10 +1111,21 @@ export class BaseContract
 		});
 	}
 
+	/**
+	 *  Return the transaction used to deploy this contract.
+	 *
+	 *  This is only available if this instance was returned from a
+	 *  [[ContractFactory]].
+	 */
 	deploymentTransaction(): null | ContractTransactionResponse {
 		return getInternal(this).deployTx;
 	}
 
+	/**
+	 *  Return the function for a given name. This is useful when a contract
+	 *  method name conflicts with a JavaScript name such as ``prototype`` or
+	 *  when using a Contract programmatically.
+	 */
 	getFunction<T extends ContractMethod = ContractMethod>(
 		key: string | FunctionFragment,
 	): T {
@@ -1028,6 +1136,11 @@ export class BaseContract
 		return <T>func;
 	}
 
+	/**
+	 *  Return the event for a given name. This is useful when a contract
+	 *  event name conflicts with a JavaScript name such as ``prototype`` or
+	 *  when using a Contract programmatically.
+	 */
 	getEvent(key: string | EventFragment): ContractEvent {
 		if (typeof key !== "string") {
 			key = key.format();
@@ -1035,11 +1148,34 @@ export class BaseContract
 		return buildWrappedEvent(this, key);
 	}
 
+	/**
+	 *  @_ignore:
+	 */
 	async queryTransaction(hash: string): Promise<Array<EventLog>> {
-		// Is this useful?
 		throw new Error("@TODO");
 	}
 
+	/*
+    // @TODO: this is a non-backwards compatible change, but will be added
+    //        in v7 and in a potential SmartContract class in an upcoming
+    //        v6 release
+    async getTransactionReceipt(hash: string): Promise<null | ContractTransactionReceipt> {
+        const provider = getProvider(this.runner);
+        assert(provider, "contract runner does not have a provider",
+            "UNSUPPORTED_OPERATION", { operation: "queryTransaction" });
+
+        const receipt = await provider.getTransactionReceipt(hash);
+        if (receipt == null) { return null; }
+
+        return new ContractTransactionReceipt(this.interface, provider, receipt);
+    }
+    */
+
+	/**
+	 *  Provide historic access to event data for %%event%% in the range
+	 *  %%fromBlock%% (default: ``0``) to %%toBlock%% (default: ``"latest"``)
+	 *  inclusive.
+	 */
 	async queryFilter(
 		event: ContractEventName,
 		fromBlock?: BlockTag,
@@ -1073,13 +1209,20 @@ export class BaseContract
 			}
 
 			if (foundFragment) {
-				return new EventLog(log, this.interface, foundFragment);
-			} else {
-				return new Log(log, provider);
+				try {
+					return new EventLog(log, this.interface, foundFragment);
+				} catch (error: any) {
+					return new UndecodedEventLog(log, error);
+				}
 			}
+
+			return new Log(log, provider);
 		});
 	}
 
+	/**
+	 *  Add an event %%listener%% for the %%event%%.
+	 */
 	async on(event: ContractEventName, listener: Listener): Promise<this> {
 		const sub = await getSub(this, "on", event);
 		sub.listeners.push({ listener, once: false });
@@ -1087,6 +1230,10 @@ export class BaseContract
 		return this;
 	}
 
+	/**
+	 *  Add an event %%listener%% for the %%event%%, but remove the listener
+	 *  after it is fired once.
+	 */
 	async once(event: ContractEventName, listener: Listener): Promise<this> {
 		const sub = await getSub(this, "once", event);
 		sub.listeners.push({ listener, once: true });
@@ -1094,10 +1241,19 @@ export class BaseContract
 		return this;
 	}
 
+	/**
+	 *  Emit an %%event%% calling all listeners with %%args%%.
+	 *
+	 *  Resolves to ``true`` if any listeners were called.
+	 */
 	async emit(event: ContractEventName, ...args: Array<any>): Promise<boolean> {
 		return await emit(this, event, args, null);
 	}
 
+	/**
+	 *  Resolves to the number of listeners of %%event%% or the total number
+	 *  of listeners if unspecified.
+	 */
 	async listenerCount(event?: ContractEventName): Promise<number> {
 		if (event) {
 			const sub = await hasSub(this, event);
@@ -1116,6 +1272,10 @@ export class BaseContract
 		return total;
 	}
 
+	/**
+	 *  Resolves to the listeners subscribed to %%event%% or all listeners
+	 *  if unspecified.
+	 */
 	async listeners(event?: ContractEventName): Promise<Array<Listener>> {
 		if (event) {
 			const sub = await hasSub(this, event);
@@ -1134,6 +1294,10 @@ export class BaseContract
 		return result;
 	}
 
+	/**
+	 *  Remove the %%listener%% from the listeners for %%event%% or remove
+	 *  all listeners if unspecified.
+	 */
 	async off(event: ContractEventName, listener?: Listener): Promise<this> {
 		const sub = await hasSub(this, event);
 		if (!sub) {
@@ -1157,6 +1321,10 @@ export class BaseContract
 		return this;
 	}
 
+	/**
+	 *  Remove all the listeners for %%event%% or remove all listeners if
+	 *  unspecified.
+	 */
 	async removeAllListeners(event?: ContractEventName): Promise<this> {
 		if (event) {
 			const sub = await hasSub(this, event);
@@ -1176,7 +1344,9 @@ export class BaseContract
 		return this;
 	}
 
-	// Alias for "on"
+	/**
+	 *  Alias for [on].
+	 */
 	async addListener(
 		event: ContractEventName,
 		listener: Listener,
@@ -1184,7 +1354,9 @@ export class BaseContract
 		return await this.on(event, listener);
 	}
 
-	// Alias for "off"
+	/**
+	 *  Alias for [off].
+	 */
 	async removeListener(
 		event: ContractEventName,
 		listener: Listener,
@@ -1192,8 +1364,11 @@ export class BaseContract
 		return await this.off(event, listener);
 	}
 
+	/**
+	 *  Create a new Class for the %%abi%%.
+	 */
 	static buildClass<T = ContractInterface>(
-		abi: InterfaceAbi,
+		abi: Interface | InterfaceAbi,
 	): new (
 		target: string,
 		runner?: null | ContractRunner,
@@ -1206,9 +1381,12 @@ export class BaseContract
 		return CustomContract as any;
 	}
 
+	/**
+	 *  Create a new BaseContract with a specified Interface.
+	 */
 	static from<T = ContractInterface>(
 		target: string,
-		abi: InterfaceAbi,
+		abi: Interface | InterfaceAbi,
 		runner?: null | ContractRunner,
 	): BaseContract & Omit<T, keyof BaseContract> {
 		if (runner == null) {
@@ -1223,11 +1401,14 @@ export class BaseContract
 }
 
 function _ContractBase(): new (
-	target: string,
-	abi: InterfaceAbi,
+	target: string | Addressable,
+	abi: Interface | InterfaceAbi,
 	runner?: null | ContractRunner,
 ) => BaseContract & Omit<ContractInterface, keyof BaseContract> {
 	return BaseContract as any;
 }
 
+/**
+ *  A [[BaseContract]] with no type guards on its methods or events.
+ */
 export class Contract extends _ContractBase() {}

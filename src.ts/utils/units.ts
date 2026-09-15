@@ -66,7 +66,10 @@ export function formatUnits(
 		decimals = getNumber(unit, "unit");
 	}
 
-	return FixedNumber.fromValue(value, decimals, { decimals }).toString();
+	return FixedNumber.fromValue(value, decimals, {
+		decimals,
+		width: 512,
+	}).toString();
 }
 
 /**
@@ -152,7 +155,7 @@ export function parseUnits(value: string, unit?: string | Numeric): bigint {
 		value = trimDecimals(value, decimals);
 	}
 
-	return FixedNumber.fromString(value, { decimals }).value;
+	return FixedNumber.fromString(value, { decimals, width: 512 }).value;
 }
 
 /**

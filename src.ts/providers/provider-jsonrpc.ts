@@ -1,5 +1,11 @@
 /**
- *  About JSON-RPC...
+ *  One of the most common ways to interact with the blockchain is
+ *  by a node running a JSON-RPC interface which can be connected to,
+ *  based on the transport, using:
+ *
+ *  - HTTP or HTTPS - [[JsonRpcProvider]]
+ *  - WebSocket - [[WebSocketProvider]]
+ *  - IPC - [[IpcSocketProvider]]
  *
  * @_section: api/providers/jsonrpc:JSON-RPC Provider  [about-jsonrpcProvider]
  */
@@ -18,6 +24,7 @@ import {
 	isHexString,
 	toQuantity,
 	toUtf8Bytes,
+	isError,
 	makeError,
 	assert,
 	assertArgument,
@@ -107,9 +114,24 @@ function isPollable(value: any): value is Pollable {
  *  A JSON-RPC payload, which are sent to a JSON-RPC server.
  */
 export type JsonRpcPayload = {
+	/**
+	 *  The JSON-RPC request ID.
+	 */
 	id: number;
+
+	/**
+	 *  The JSON-RPC request method.
+	 */
 	method: string;
+
+	/**
+	 *  The JSON-RPC request parameters.
+	 */
 	params: Array<any> | Record<string, any>;
+
+	/**
+	 *  A required constant in the JSON-RPC specification.
+	 */
 	jsonrpc: "2.0";
 };
 
@@ -117,7 +139,14 @@ export type JsonRpcPayload = {
  *  A JSON-RPC result, which are returned on success from a JSON-RPC server.
  */
 export type JsonRpcResult = {
+	/**
+	 *  The response ID to match it to the relevant request.
+	 */
 	id: number;
+
+	/**
+	 *  The response result.
+	 */
 	result: any;
 };
 
@@ -125,7 +154,14 @@ export type JsonRpcResult = {
  *  A JSON-RPC error, which are returned on failure from a JSON-RPC server.
  */
 export type JsonRpcError = {
+	/**
+	 *  The response ID to match it to the relevant request.
+	 */
 	id: number;
+
+	/**
+	 *  The response error.
+	 */
 	error: {
 		code: number;
 		message?: string;
@@ -167,7 +203,7 @@ export type DebugEventJsonRpcApiProvider =
  *  cannot change, such as when using INFURA (since the URL dictates the
  *  network). If the network is assumed static and it does change, this
  *  can have tragic consequences. For example, this **CANNOT** be used
- *  with MetaMask, since the used can select a new network from the
+ *  with MetaMask, since the user can select a new network from the
  *  drop-down at any time.
  *
  *  **``batchStallTime``** - how long (ms) to aggregate requests into a
@@ -179,13 +215,18 @@ export type DebugEventJsonRpcApiProvider =
  *
  *  **``batchMaxCount``** - maximum number of requests to allow in a batch.
  *  If ``batchMaxCount = 1``, then batching is disabled. (default: ``100``)
+ *
+ *  **``cacheTimeout``** - passed as [[AbstractProviderOptions]].
  */
 export type JsonRpcApiProviderOptions = {
 	polling?: boolean;
-	staticNetwork?: null | Network;
+	staticNetwork?: null | boolean | Network;
 	batchStallTime?: number;
 	batchMaxSize?: number;
 	batchMaxCount?: number;
+
+	cacheTimeout?: number;
+	pollingInterval?: number;
 };
 
 const defaultOptions = {
@@ -195,11 +236,29 @@ const defaultOptions = {
 	batchStallTime: 10, // 10ms
 	batchMaxSize: 1 << 20, // 1Mb
 	batchMaxCount: 100, // 100 requests
+
+	cacheTimeout: 250,
+	pollingInterval: 4000,
 };
 
+/**
+ *  A **JsonRpcTransactionRequest** is formatted as needed by the JSON-RPC
+ *  Ethereum API specification.
+ */
 export interface JsonRpcTransactionRequest {
+	/**
+	 *  The sender address to use when signing.
+	 */
 	from?: string;
+
+	/**
+	 *  The target address.
+	 */
 	to?: string;
+
+	/**
+	 *  The transaction data.
+	 */
 	data?: string;
 
 	networkId?: string;
@@ -208,10 +267,32 @@ export interface JsonRpcTransactionRequest {
 
 	energyPrice?: string;
 
+	/**
+	 *  The nonce for the transaction.
+	 */
 	nonce?: string;
+
+	/**
+	 *  The transaction value (in wei).
+	 */
 	value?: string;
 
+	/**
+	 *  The transaction access list.
+	 */
 	accessList?: Array<{ address: string; storageKeys: Array<string> }>;
+
+	/**
+	 *  The transaction authorization list.
+	 */
+	authorizationList?: Array<{
+		address: string;
+		nonce: string;
+		chainId: string;
+		yParity: string;
+		r: string;
+		s: string;
+	}>;
 }
 
 // @TODO: Unchecked Signers
@@ -314,12 +395,60 @@ export class JsonRpcSigner extends AbstractSigner<JsonRpcApiProvider> {
 		// for it; it should show up very quickly
 		return await new Promise((resolve, reject) => {
 			const timeouts = [1000, 100];
+			let invalids = 0;
+
 			const checkTx = async () => {
-				// Try getting the transaction
-				const tx = await this.provider.getTransaction(hash);
-				if (tx != null) {
-					resolve(tx.replaceableTransaction(blockNumber));
-					return;
+				try {
+					// Try getting the transaction
+					const tx = await this.provider.getTransaction(hash);
+
+					if (tx != null) {
+						resolve(tx.replaceableTransaction(blockNumber));
+						return;
+					}
+				} catch (error) {
+					// If we were cancelled: stop polling.
+					// If the data is bad: the node returns bad transactions
+					// If the network changed: calling again will also fail
+					// If unsupported: likely destroyed
+					if (
+						isError(error, "CANCELLED") ||
+						isError(error, "BAD_DATA") ||
+						isError(error, "NETWORK_ERROR") ||
+						isError(error, "UNSUPPORTED_OPERATION")
+					) {
+						if (error.info == null) {
+							error.info = {};
+						}
+						error.info.sendTransactionHash = hash;
+
+						reject(error);
+						return;
+					}
+
+					// Stop-gap for misbehaving backends; see #4513
+					if (isError(error, "INVALID_ARGUMENT")) {
+						invalids++;
+						if (error.info == null) {
+							error.info = {};
+						}
+						error.info.sendTransactionHash = hash;
+						if (invalids > 10) {
+							reject(error);
+							return;
+						}
+					}
+
+					// Notify anyone that cares; but we will try again, since
+					// it is likely an intermittent service error
+					this.provider.emit(
+						"error",
+						makeError(
+							"failed to fetch transation after sending (will try again)",
+							"UNKNOWN_ERROR",
+							{ error },
+						),
+					);
 				}
 
 				// Wait another 4 seconds
@@ -446,13 +575,14 @@ export abstract class JsonRpcApiProvider extends AbstractProvider {
 	};
 
 	#network: null | Network;
+	#pendingDetectNetwork: null | Promise<Network>;
 
 	#scheduleDrain(): void {
 		if (this.#drainTimer) {
 			return;
 		}
 
-		// If we aren't using batching, no hard in sending it immeidately
+		// If we aren't using batching, no harm in sending it immediately
 		const stallTime =
 			this._getOption("batchMaxCount") === 1
 				? 0
@@ -494,22 +624,39 @@ export abstract class JsonRpcApiProvider extends AbstractProvider {
 
 						// Process results in batch order
 						for (const { resolve, reject, payload } of batch) {
+							if (this.destroyed) {
+								reject(
+									makeError(
+										"provider destroyed; cancelled request",
+										"UNSUPPORTED_OPERATION",
+										{ operation: payload.method },
+									),
+								);
+								continue;
+							}
+
 							// Find the matching result
 							const resp = result.filter((r) => r.id === payload.id)[0];
 
 							// No result; the node failed us in unexpected ways
 							if (resp == null) {
-								return reject(
-									makeError("no response from server", "BAD_DATA", {
+								const error = makeError(
+									"missing response for request",
+									"BAD_DATA",
+									{
 										value: result,
 										info: { payload },
-									}),
+									},
 								);
+								this.emit("error", error);
+								reject(error);
+								continue;
 							}
 
 							// The response is an error
 							if ("error" in resp) {
-								return reject(this.getRpcError(payload, resp));
+								reject(this.getRpcError(payload, resp));
+								continue;
 							}
 
 							// All good; send the result
@@ -529,7 +676,7 @@ export abstract class JsonRpcApiProvider extends AbstractProvider {
 	}
 
 	constructor(network?: Networkish, options?: JsonRpcApiProviderOptions) {
-		super(network);
+		super(network, options);
 
 		this.#nextId = 1;
 		this.#options = Object.assign({}, defaultOptions, options || {});
@@ -538,6 +685,7 @@ export abstract class JsonRpcApiProvider extends AbstractProvider {
 		this.#drainTimer = null;
 
 		this.#network = null;
+		this.#pendingDetectNetwork = null;
 
 		{
 			let resolve: null | ((value: void) => void) = null;
@@ -547,9 +695,19 @@ export abstract class JsonRpcApiProvider extends AbstractProvider {
 			this.#notReady = { promise, resolve };
 		}
 
-		// Make sure any static network is compatbile with the provided netwrok
 		const staticNetwork = this._getOption("staticNetwork");
-		if (staticNetwork) {
+		if (typeof staticNetwork === "boolean") {
+			assertArgument(
+				!staticNetwork || network !== "any",
+				"staticNetwork cannot be used on special network 'any'",
+				"options",
+				options,
+			);
+			if (staticNetwork && network != null) {
+				this.#network = Network.from(network);
+			}
+		} else if (staticNetwork) {
+			// Make sure any static network is compatbile with the provided netwrok
 			assertArgument(
 				network == null || staticNetwork.matches(network),
 				"staticNetwork MUST match network object",
@@ -588,13 +746,6 @@ export abstract class JsonRpcApiProvider extends AbstractProvider {
 	abstract _send(
 		payload: JsonRpcPayload | Array<JsonRpcPayload>,
 	): Promise<Array<JsonRpcResult | JsonRpcError>>;
-	/*
-     {
-        assert(false, "sub-classes must override _send", "UNSUPPORTED_OPERATION", {
-            operation: "jsonRpcApiProvider._send"
-        });
-    }
-    */
 
 	/**
 	 *  Resolves to the non-normalized value by performing %%req%%.
@@ -622,40 +773,65 @@ export abstract class JsonRpcApiProvider extends AbstractProvider {
 	async _detectNetwork(): Promise<Network> {
 		const network = this._getOption("staticNetwork");
 		if (network) {
-			return network;
+			if (network === true) {
+				if (this.#network) {
+					return this.#network;
+				}
+			} else {
+				return network;
+			}
+		}
+
+		if (this.#pendingDetectNetwork) {
+			return await this.#pendingDetectNetwork;
 		}
 
 		// If we are ready, use ``send``, which enabled requests to be batched
 		if (this.ready) {
-			return Network.from(getBigInt(await this.send("xcb_networkId", [])));
+			this.#pendingDetectNetwork = (async () => {
+				try {
+					const result = Network.from(
+						getBigInt(await this.send("xcb_networkId", [])),
+					);
+					this.#pendingDetectNetwork = null;
+					return result;
+				} catch (error) {
+					this.#pendingDetectNetwork = null;
+					throw error;
+				}
+			})();
+			return await this.#pendingDetectNetwork;
 		}
 
 		// We are not ready yet; use the primitive _send
+		this.#pendingDetectNetwork = (async () => {
+			const payload: JsonRpcPayload = {
+				id: this.#nextId++,
+				method: "xcb_networkId",
+				params: [],
+				jsonrpc: "2.0",
+			};
 
-		const payload: JsonRpcPayload = {
-			id: this.#nextId++,
-			method: "xcb_networkId",
-			params: [],
-			jsonrpc: "2.0",
-		};
+			let result: JsonRpcResult | JsonRpcError;
+			try {
+				result = (await this._send(payload))[0];
+				this.#pendingDetectNetwork = null;
+			} catch (error) {
+				this.#pendingDetectNetwork = null;
+				this.emit("debug", { action: "receiveRpcError", error });
+				throw error;
+			}
 
-		this.emit("debug", { action: "sendRpcPayload", payload });
+			this.emit("debug", { action: "receiveRpcResult", result });
 
-		let result: JsonRpcResult | JsonRpcError;
-		try {
-			result = (await this._send(payload))[0];
-		} catch (error) {
-			this.emit("debug", { action: "receiveRpcError", error });
-			throw error;
-		}
+			if ("result" in result) {
+				return Network.from(getBigInt(result.result));
+			}
 
-		this.emit("debug", { action: "receiveRpcResult", result });
+			throw this.getRpcError(payload, result);
+		})();
 
-		if ("result" in result) {
-			return Network.from(getBigInt(result.result));
-		}
-
-		throw this.getRpcError(payload, result);
+		return await this.#pendingDetectNetwork;
 	}
 
 	/**
@@ -675,11 +851,24 @@ export abstract class JsonRpcApiProvider extends AbstractProvider {
 
 		(async () => {
 			// Bootstrap the network
-			while (this.#network == null) {
+			while (this.#network == null && !this.destroyed) {
 				try {
 					this.#network = await this._detectNetwork();
 				} catch (error) {
-					console.log("JsonRpcProvider failed to startup; retry in 1s");
+					if (this.destroyed) {
+						break;
+					}
+					console.log(
+						"JsonRpcProvider failed to detect network and cannot start up; retry in 1s (perhaps the URL is wrong or the node is not started)",
+					);
+					this.emit(
+						"error",
+						makeError(
+							"failed to bootstrap network detection",
+							"NETWORK_ERROR",
+							{ event: "initial-network-discovery", info: { error } },
+						),
+					);
 					await stall(1000);
 				}
 			}
@@ -896,6 +1085,11 @@ export abstract class JsonRpcApiProvider extends AbstractProvider {
 					transaction: (<any>payload).params[0],
 					info: { payload, error },
 				});
+			} else if (msg.match(/nonce/i) && msg.match(/too low/i)) {
+				return makeError("nonce has already been used", "NONCE_EXPIRED", {
+					transaction: (<any>payload).params[0],
+					info: { payload, error },
+				});
 			}
 		}
 
@@ -990,14 +1184,28 @@ export abstract class JsonRpcApiProvider extends AbstractProvider {
 			}
 		}
 
-		if (message.match(/the method .* does not exist/i)) {
+		let unsupported = !!message.match(/the method .* does not exist/i);
+		if (!unsupported) {
+			if (
+				error &&
+				(<any>error).details &&
+				(<any>error).details.startsWith("Unauthorized method:")
+			) {
+				unsupported = true;
+			}
+		}
+
+		if (unsupported) {
 			return makeError("unsupported operation", "UNSUPPORTED_OPERATION", {
 				operation: payload.method,
-				info: { error },
+				info: { error, payload },
 			});
 		}
 
-		return makeError("could not coalesce error", "UNKNOWN_ERROR", { error });
+		return makeError("could not coalesce error", "UNKNOWN_ERROR", {
+			error,
+			payload,
+		});
 	}
 
 	/**
@@ -1015,6 +1223,17 @@ export abstract class JsonRpcApiProvider extends AbstractProvider {
 	 */
 	send(method: string, params: Array<any> | Record<string, any>): Promise<any> {
 		// @TODO: cache networkId?? purge on switch_networks
+
+		// We have been destroyed; no operations are supported anymore
+		if (this.destroyed) {
+			return Promise.reject(
+				makeError(
+					"provider destroyed; cancelled request",
+					"UNSUPPORTED_OPERATION",
+					{ operation: method },
+				),
+			);
+		}
 
 		const id = this.#nextId++;
 		const promise = new Promise((resolve, reject) => {
@@ -1079,14 +1298,49 @@ export abstract class JsonRpcApiProvider extends AbstractProvider {
 		const accounts: Array<string> = await this.send("xcb_accounts", []);
 		return accounts.map((a) => new JsonRpcSigner(this, a));
 	}
+
+	destroy(): void {
+		// Stop processing requests
+		if (this.#drainTimer) {
+			clearTimeout(this.#drainTimer);
+			this.#drainTimer = null;
+		}
+
+		// Cancel all pending requests
+		for (const { payload, reject } of this.#payloads) {
+			reject(
+				makeError(
+					"provider destroyed; cancelled request",
+					"UNSUPPORTED_OPERATION",
+					{ operation: payload.method },
+				),
+			);
+		}
+
+		this.#payloads = [];
+
+		// Parent clean-up
+		super.destroy();
+	}
 }
 
+// @TODO: remove this in v7, it is not exported because this functionality
+// is exposed in the JsonRpcApiProvider by setting polling to true. It should
+// be safe to remove regardless, because it isn't reachable, but just in case.
+/**
+ *  @_ignore:
+ */
 export abstract class JsonRpcApiPollingProvider extends JsonRpcApiProvider {
 	#pollingInterval: number;
 	constructor(network?: Networkish, options?: JsonRpcApiProviderOptions) {
 		super(network, options);
 
-		this.#pollingInterval = 4000;
+		let pollingInterval = this._getOption("pollingInterval");
+		if (pollingInterval == null) {
+			pollingInterval = defaultOptions.pollingInterval;
+		}
+
+		this.#pollingInterval = pollingInterval;
 	}
 
 	_getSubscriber(sub: Subscription): Subscriber {
@@ -1167,7 +1421,6 @@ export class JsonRpcProvider extends JsonRpcApiPollingProvider {
 		const request = this._getConnection();
 		request.body = JSON.stringify(payload);
 		request.setHeader("content-type", "application/json");
-
 		const response = await request.send();
 		response.assertOk();
 
@@ -1188,7 +1441,7 @@ function spelunkData(value: any): null | { message: string; data: string } {
 	// These *are* the droids we're looking for.
 	if (
 		typeof value.message === "string" &&
-		value.message.match("reverted") &&
+		value.message.match(/revert/i) &&
 		isHexString(value.data)
 	) {
 		return { message: value.message, data: value.data };

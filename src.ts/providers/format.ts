@@ -34,8 +34,11 @@ export function allowNull(format: FormatFunc, nullValue?: any): FormatFunc {
 	};
 }
 
-export function arrayOf(format: FormatFunc): FormatFunc {
+export function arrayOf(format: FormatFunc, allowNull?: boolean): FormatFunc {
 	return (array: any) => {
+		if (allowNull && array == null) {
+			return null;
+		}
 		if (!Array.isArray(array)) {
 			throw new Error("not an array");
 		}
@@ -140,6 +143,8 @@ export function formatLog(value: any): LogParams {
 const _formatBlock = object({
 	hash: allowNull(formatHash),
 	parentHash: formatHash,
+	parentBeaconBlockRoot: allowNull(formatHash, null),
+
 	number: getNumber,
 
 	timestamp: getNumber,
@@ -149,8 +154,9 @@ const _formatBlock = object({
 	energyLimit: getBigInt,
 	energyUsed: getBigInt,
 
-	miner: allowNull(getAddress),
-	extraData: formatData,
+	stateRoot: allowNull(formatHash, null),
+	receiptsRoot: allowNull(formatHash, null),
+	transactionsRoot: allowNull(formatHash, null),
 
 	baseFeePerEnergy: allowNull(getBigInt),
 });
@@ -232,6 +238,9 @@ export function formatTransactionResponse(
 		{
 			hash: formatHash,
 
+			// Some nodes do not return this, usually test nodes (like Ganache)
+			index: allowNull(getNumber, undefined),
+
 			type: (value: any) => {
 				if (value === "0x" || value == null) {
 					return 0;
@@ -243,8 +252,6 @@ export function formatTransactionResponse(
 			blockHash: allowNull(formatHash, null),
 			blockNumber: allowNull(getNumber, null),
 			transactionIndex: allowNull(getNumber, null),
-
-			//confirmations: allowNull(getNumber, null),
 
 			from: getAddress,
 

@@ -1,5 +1,11 @@
 /**
- *  About Interface
+ *  The Interface class is a low-level class that accepts an
+ *  ABI and provides all the necessary functionality to encode
+ *  and decode paramaters to and results from methods, events
+ *  and errors.
+ *
+ *  It also provides several convenience methods to automatically
+ *  search and find matching transactions and events to parse them.
  *
  *  @_subsection api/abi:Interfaces  [interfaces]
  */
@@ -12,6 +18,7 @@ import {
 	getBytes,
 	getBytesCopy,
 	hexlify,
+	zeroPadBytes,
 	zeroPadValue,
 	isHexString,
 	defineProperties,
@@ -45,13 +52,39 @@ import { sha256 } from "../crypto/sha3.js";
 
 export { checkResultErrors, Result };
 
+/**
+ *  When using the [[Interface-parseLog]] to automatically match a Log to its event
+ *  for parsing, a **LogDescription** is returned.
+ */
 export class LogDescription {
+	/**
+	 *  The matching fragment for the ``topic0``.
+	 */
 	readonly fragment!: EventFragment;
+
+	/**
+	 *  The name of the Event.
+	 */
 	readonly name!: string;
+
+	/**
+	 *  The full Event signature.
+	 */
 	readonly signature!: string;
+
+	/**
+	 *  The topic hash for the Event.
+	 */
 	readonly topic!: string;
+
+	/**
+	 *  The arguments passed into the Event with ``emit``.
+	 */
 	readonly args!: Result;
 
+	/**
+	 *  @_ignore:
+	 */
 	constructor(fragment: EventFragment, topic: string, args: Result) {
 		const name = fragment.name,
 			signature = fragment.format();
@@ -65,14 +98,45 @@ export class LogDescription {
 	}
 }
 
+/**
+ *  When using the [[Interface-parseTransaction]] to automatically match
+ *  a transaction data to its function for parsing,
+ *  a **TransactionDescription** is returned.
+ */
 export class TransactionDescription {
+	/**
+	 *  The matching fragment from the transaction ``data``.
+	 */
 	readonly fragment!: FunctionFragment;
+
+	/**
+	 *  The name of the Function from the transaction ``data``.
+	 */
 	readonly name!: string;
+
+	/**
+	 *  The arguments passed to the Function from the transaction ``data``.
+	 */
 	readonly args!: Result;
+
+	/**
+	 *  The full Function signature from the transaction ``data``.
+	 */
 	readonly signature!: string;
+
+	/**
+	 *  The selector for the Function from the transaction ``data``.
+	 */
 	readonly selector!: string;
+
+	/**
+	 *  The ``value`` (in wei) from the transaction.
+	 */
 	readonly value!: bigint;
 
+	/**
+	 *  @_ignore:
+	 */
 	constructor(
 		fragment: FunctionFragment,
 		selector: string,
@@ -92,13 +156,39 @@ export class TransactionDescription {
 	}
 }
 
+/**
+ *  When using the [[Interface-parseError]] to automatically match an
+ *  error for a call result for parsing, an **ErrorDescription** is returned.
+ */
 export class ErrorDescription {
+	/**
+	 *  The matching fragment.
+	 */
 	readonly fragment!: ErrorFragment;
+
+	/**
+	 *  The name of the Error.
+	 */
 	readonly name!: string;
+
+	/**
+	 *  The arguments passed to the Error with ``revert``.
+	 */
 	readonly args!: Result;
+
+	/**
+	 *  The full Error signature.
+	 */
 	readonly signature!: string;
+
+	/**
+	 *  The selector for the Error.
+	 */
 	readonly selector!: string;
 
+	/**
+	 *  @_ignore:
+	 */
 	constructor(fragment: ErrorFragment, selector: string, args: Result) {
 		const name = fragment.name,
 			signature = fragment.format();
@@ -112,14 +202,35 @@ export class ErrorDescription {
 	}
 }
 
+/**
+ *  An **Indexed** is used as a value when a value that does not
+ *  fit within a topic (i.e. not a fixed-length, 32-byte type). It
+ *  is the ``keccak256`` of the value, and used for types such as
+ *  arrays, tuples, bytes and strings.
+ */
 export class Indexed {
+	/**
+	 *  The ``keccak256`` of the value logged.
+	 */
 	readonly hash!: null | string;
+
+	/**
+	 *  @_ignore:
+	 */
 	readonly _isIndexed!: boolean;
 
+	/**
+	 *  Returns ``true`` if %%value%% is an **Indexed**.
+	 *
+	 *  This provides a Type Guard for property access.
+	 */
 	static isIndexed(value: any): value is Indexed {
 		return !!(value && value._isIndexed);
 	}
 
+	/**
+	 *  @_ignore:
+	 */
 	constructor(hash: null | string) {
 		defineProperties<Indexed>(this, { hash, _isIndexed: true });
 	}
@@ -191,7 +302,23 @@ function checkNames(fragment: Fragment, type: "input" | "output", params: Array<
 */
 
 /**
- *  @TODO
+ *  An **InterfaceAbi** may be any supported ABI format.
+ *
+ *  A string is expected to be a JSON string, which will be parsed
+ *  using ``JSON.parse``. This means that the value **must** be a valid
+ *  JSON string, with no stray commas, etc.
+ *
+ *  An array may contain any combination of:
+ *  - Human-Readable fragments
+ *  - Parsed JSON fragment
+ *  - [[Fragment]] instances
+ *
+ *  A **Human-Readable Fragment** is a string which resembles a Solidity
+ *  signature and is introduced in [this blog entry](link-ricmoo-humanreadableabi).
+ *  For example, ``function balanceOf(address) view returns (uint)``.
+ *
+ *  A **Parsed JSON Fragment** is a JavaScript Object desribed in the
+ *  [Solidity documentation](link-solc-jsonabi).
  */
 export type InterfaceAbi =
 	string | ReadonlyArray<Fragment | JsonFragment | string>;
@@ -254,8 +381,11 @@ export class Interface {
 		for (const a of abi) {
 			try {
 				frags.push(Fragment.from(a));
-			} catch (error) {
-				console.log("EE", error);
+			} catch (error: any) {
+				console.log(
+					`[Warning] Invalid Fragment ${JSON.stringify(a)}:`,
+					error.message,
+				);
 			}
 		}
 
@@ -557,7 +687,7 @@ export class Interface {
 
 		// It is a bare name, look up the function (will return null if ambiguous)
 		if (key.indexOf("(") === -1) {
-			const matching: any = [];
+			const matching: Array<EventFragment> = [];
 			for (const [name, fragment] of this.#events) {
 				if (name.split("(" /* fix:) */)[0] === key) {
 					matching.push(fragment);
@@ -695,7 +825,7 @@ export class Interface {
 
 		// It is a bare name, look up the function (will return null if ambiguous)
 		if (key.indexOf("(") === -1) {
-			const matching: any = [];
+			const matching: Array<ErrorFragment> = [];
 			for (const [name, fragment] of this.#errors) {
 				if (name.split("(" /* fix:) */)[0] === key) {
 					matching.push(fragment);
@@ -1063,18 +1193,16 @@ export class Interface {
 
 			if (param.type === "bool" && typeof value === "boolean") {
 				value = value ? "0x01" : "0x00";
-			}
-
-			if (param.type.match(/^u?int/)) {
-				value = toBeHex(value);
-			}
-
-			// Check addresses are valid
-			if (param.type === "address") {
+			} else if (param.type.match(/^u?int/)) {
+				value = toBeHex(value); // @TODO: Should this toTwos??
+			} else if (param.type.match(/^bytes/)) {
+				value = zeroPadBytes(value, 32);
+			} else if (param.type === "address") {
+				// Check addresses are valid
 				this.#abiCoder.encode(["address"], [value]);
 			}
+
 			return zeroPadValue(hexlify(value), 32);
-			//@TOOD should probably be return toHex(value, 32)
 		};
 
 		values.forEach((value, index) => {
@@ -1222,7 +1350,7 @@ export class Interface {
 		let nonIndexedIndex = 0,
 			indexedIndex = 0;
 		fragment.inputs.forEach((param, index) => {
-			let value: any = null;
+			let value: null | Indexed | Error = null;
 			if (param.indexed) {
 				if (resultIndexed == null) {
 					value = new Indexed(null);
@@ -1231,14 +1359,14 @@ export class Interface {
 				} else {
 					try {
 						value = resultIndexed[indexedIndex++];
-					} catch (error) {
+					} catch (error: any) {
 						value = error;
 					}
 				}
 			} else {
 				try {
 					value = resultNonIndexed[nonIndexedIndex++];
-				} catch (error) {
+				} catch (error: any) {
 					value = error;
 				}
 			}
@@ -1284,7 +1412,7 @@ export class Interface {
 	 *  If the matching event cannot be found, returns null.
 	 */
 	parseLog(log: {
-		topics: Array<string>;
+		topics: ReadonlyArray<string>;
 		data: string;
 	}): null | LogDescription {
 		const fragment = this.getEvent(log.topics[0]);
@@ -1308,7 +1436,7 @@ export class Interface {
 	 *  Parses a revert data, finding the matching error and extracts
 	 *  the parameter values along with other useful error details.
 	 *
-	 *  If the matching event cannot be found, returns null.
+	 *  If the matching error cannot be found, returns null.
 	 */
 	parseError(data: BytesLike): null | ErrorDescription {
 		const hexData = hexlify(data);
@@ -1340,7 +1468,12 @@ export class Interface {
 			return new Interface(JSON.parse(value));
 		}
 
-		// Maybe an interface from an older version, or from a symlinked copy
+		// An Interface; possibly from another v6 instance
+		if (typeof (<any>value).formatJson === "function") {
+			return new Interface((<any>value).formatJson());
+		}
+
+		// A legacy Interface; from an older version
 		if (typeof (<any>value).format === "function") {
 			return new Interface((<any>value).format("json"));
 		}

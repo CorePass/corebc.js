@@ -52,6 +52,7 @@ const paramTypeBytes = new RegExp(/^bytes([0-9]*)$/);
 const paramTypeNumber = new RegExp(/^(u?int)([0-9]*)$/);
 
 let defaultCoder: null | AbiCoder = null;
+let defaultMaxInflation = 1024;
 
 function getBuiltinCallException(
 	action: CallExceptionAction,
@@ -128,7 +129,8 @@ function getBuiltinCallException(
 }
 
 /**
- * About AbiCoder
+ *  The **AbiCoder** is a low-level class responsible for encoding JavaScript
+ *  values into binary data and decoding binary data into JavaScript values.
  */
 export class AbiCoder {
 	#getCoder(param: ParamType): Coder {
@@ -242,7 +244,17 @@ export class AbiCoder {
 			this.#getCoder(ParamType.from(type)),
 		);
 		const coder = new TupleCoder(coders, "_");
-		return coder.decode(new Reader(data, loose));
+		return coder.decode(new Reader(data, loose, defaultMaxInflation));
+	}
+
+	static _setDefaultMaxInflation(value: number): void {
+		assertArgument(
+			typeof value === "number" && Number.isInteger(value),
+			"invalid defaultMaxInflation factor",
+			"value",
+			value,
+		);
+		defaultMaxInflation = value;
 	}
 
 	/**

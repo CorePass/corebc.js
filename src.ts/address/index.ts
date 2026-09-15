@@ -1,6 +1,6 @@
 /**
  *  Addresses are a fundamental part of interacting with Core. They
- *  represent the gloabal identity of Externally Owned Accounts (accounts
+ *  represent the global identity of Externally Owned Accounts (accounts
  *  backed by a private key) and contracts.
  *
  *  The Core Naming Service (CNS) provides an interconnected ecosystem

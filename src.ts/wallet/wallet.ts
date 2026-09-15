@@ -2,7 +2,11 @@ import { SigningKey } from "../crypto/index.js";
 import { assertArgument } from "../utils/index.js";
 
 import { BaseWallet } from "./base-wallet.js";
-import { defaultPath, HDNodeWallet } from "./hdwallet.js";
+import {
+	defaultPath,
+	getIndexedAccountPath,
+	HDNodeWallet,
+} from "./hdwallet.js";
 import { decryptCrowdsaleJson, isCrowdsaleJson } from "./json-crowdsale.js";
 import {
 	decryptKeystoreJson,
@@ -40,7 +44,7 @@ function stall(duration: number): Promise<void> {
  */
 export class Wallet extends BaseWallet {
 	/**
-	 *  Create a new wallet for the %%privateKey%% or %%signingKey%%, optionally connected
+	 *  Create a new wallet for the private %%key%%, optionally connected
 	 *  to %%provider%%.
 	 */
 	constructor({
@@ -113,17 +117,34 @@ export class Wallet extends BaseWallet {
 			account.mnemonic &&
 			account.mnemonic.locale === "en"
 		) {
+			// Keystores written before the derivation path was pinned recorded
+			// labels like "m" or "m/3" that are no longer derivable, so fall back
+			// to reading the account index off the end of the label. Each
+			// candidate is only accepted if it reproduces the recorded address
+			// and private key exactly, so a bad guess can never be returned.
+			const recorded = account.mnemonic.path;
+			const tail = (recorded || "").split("/").pop() || "";
+			const candidates = [
+				recorded,
+				tail.match(/^[0-9]+$/)
+					? getIndexedAccountPath(parseInt(tail))
+					: defaultPath,
+			];
+
 			const mnemonic = Mnemonic.fromEntropy(account.mnemonic.entropy);
-			const wallet = HDNodeWallet.fromMnemonic(
-				mnemonic,
-				prefix,
-				account.mnemonic.path,
-			);
-			if (
-				wallet.address === account.address &&
-				wallet.privateKey === account.privateKey
-			) {
-				return wallet;
+			for (const path of candidates) {
+				let wallet: HDNodeWallet;
+				try {
+					wallet = HDNodeWallet.fromMnemonic(mnemonic, prefix, path);
+				} catch (error) {
+					continue;
+				}
+				if (
+					wallet.address === account.address &&
+					wallet.privateKey === account.privateKey
+				) {
+					return wallet;
+				}
 			}
 			console.log(
 				"WARNING: JSON mismatch address/privateKey != mnemonic; fallback onto private key",
@@ -199,7 +220,7 @@ export class Wallet extends BaseWallet {
 	}
 
 	/**
-	 *  Creates a new random [[HDNodeWallet]] using the avavilable
+	 *  Creates a new random [[HDNodeWallet]] using the available
 	 *  [cryptographic random source](randomBytes).
 	 *
 	 *  If there is no crytographic random source, this will throw.

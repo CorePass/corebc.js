@@ -6,7 +6,7 @@
  *  - a sub-class MUST override the `_write(string)` method
  *  - a sub-class MUST call `_processMessage(string)` for each message
  *
- *  @_subsection: api/providers/abstract-provider
+ *  @_subsection: api/providers/abstract-provider:Socket Providers  [about-socketProvider]
  */
 
 import { UnmanagedSubscriber } from "./abstract-provider.js";
@@ -16,6 +16,7 @@ import { JsonRpcApiProvider } from "./provider-jsonrpc.js";
 import type { Subscriber, Subscription } from "./abstract-provider.js";
 import type { EventFilter } from "./provider.js";
 import type {
+	JsonRpcApiProviderOptions,
 	JsonRpcError,
 	JsonRpcPayload,
 	JsonRpcResult,
@@ -30,10 +31,18 @@ type JsonRpcSubscription = {
 	};
 };
 
+/**
+ *  A **SocketSubscriber** uses a socket transport to handle events and
+ *  should use [[_emit]] to manage the events.
+ */
 export class SocketSubscriber implements Subscriber {
 	#provider: SocketProvider;
 
 	#filter: string;
+
+	/**
+	 *  The filter.
+	 */
 	get filter(): Array<any> {
 		return JSON.parse(this.#filter);
 	}
@@ -43,6 +52,10 @@ export class SocketSubscriber implements Subscriber {
 
 	#emitPromise: null | Promise<void>;
 
+	/**
+	 *  Creates a new **SocketSubscriber** attached to %%provider%% listening
+	 *  to %%filter%%.
+	 */
 	constructor(provider: SocketProvider, filter: Array<any>) {
 		this.#provider = provider;
 		this.#filter = JSON.stringify(filter);
@@ -62,6 +75,9 @@ export class SocketSubscriber implements Subscriber {
 
 	stop(): void {
 		(<Promise<number>>this.#filterId).then((filterId) => {
+			if (this.#provider.destroyed) {
+				return;
+			}
 			this.#provider.send("xcb_unsubscribe", [filterId]);
 		});
 		this.#filterId = null;
@@ -83,6 +99,9 @@ export class SocketSubscriber implements Subscriber {
 		this.#paused = null;
 	}
 
+	/**
+	 *  @_ignore:
+	 */
 	_handleMessage(message: any): void {
 		if (this.#filterId == null) {
 			return;
@@ -104,12 +123,23 @@ export class SocketSubscriber implements Subscriber {
 		}
 	}
 
+	/**
+	 *  Sub-classes **must** override this to emit the events on the
+	 *  provider.
+	 */
 	async _emit(provider: SocketProvider, message: any): Promise<void> {
 		throw new Error("sub-classes must implemente this; _emit");
 	}
 }
 
+/**
+ *  A **SocketBlockSubscriber** listens for ``newHeads`` events and emits
+ *  ``"block"`` events.
+ */
 export class SocketBlockSubscriber extends SocketSubscriber {
+	/**
+	 *  @_ignore:
+	 */
 	constructor(provider: SocketProvider) {
 		super(provider, ["newHeads"]);
 	}
@@ -119,7 +149,14 @@ export class SocketBlockSubscriber extends SocketSubscriber {
 	}
 }
 
+/**
+ *  A **SocketPendingSubscriber** listens for pending transacitons and emits
+ *  ``"pending"`` events.
+ */
 export class SocketPendingSubscriber extends SocketSubscriber {
+	/**
+	 *  @_ignore:
+	 */
 	constructor(provider: SocketProvider) {
 		super(provider, ["newPendingTransactions"]);
 	}
@@ -129,12 +166,22 @@ export class SocketPendingSubscriber extends SocketSubscriber {
 	}
 }
 
+/**
+ *  A **SocketEventSubscriber** listens for event logs.
+ */
 export class SocketEventSubscriber extends SocketSubscriber {
 	#logFilter: string;
+
+	/**
+	 *  The filter.
+	 */
 	get logFilter(): EventFilter {
 		return JSON.parse(this.#logFilter);
 	}
 
+	/**
+	 *  @_ignore:
+	 */
 	constructor(provider: SocketProvider, filter: EventFilter) {
 		super(provider, ["logs", filter]);
 		this.#logFilter = JSON.stringify(filter);
@@ -149,8 +196,9 @@ export class SocketEventSubscriber extends SocketSubscriber {
 }
 
 /**
- *  SocketProvider...
- *
+ *  A **SocketProvider** is backed by a long-lived connection over a
+ *  socket, which can subscribe and receive real-time messages over
+ *  its communication channel.
  */
 export class SocketProvider extends JsonRpcApiProvider {
 	#callbacks: Map<
@@ -169,8 +217,34 @@ export class SocketProvider extends JsonRpcApiProvider {
 	// registering, queue them
 	#pending: Map<number | string, Array<any>>;
 
-	constructor(network?: Networkish) {
-		super(network, { batchMaxCount: 1 });
+	/**
+	 *  Creates a new **SocketProvider** connected to %%network%%.
+	 *
+	 *  If unspecified, the network will be discovered.
+	 */
+	constructor(network?: Networkish, _options?: JsonRpcApiProviderOptions) {
+		// Copy the options
+		const options = Object.assign({}, _options != null ? _options : {});
+
+		// Support for batches is generally not supported for
+		// connection-base providers; if this changes in the future
+		// the _send should be updated to reflect this
+		assertArgument(
+			options.batchMaxCount == null || options.batchMaxCount === 1,
+			"sockets-based providers do not support batches",
+			"options.batchMaxCount",
+			_options,
+		);
+		options.batchMaxCount = 1;
+
+		// Socket-based Providers (generally) cannot change their network,
+		// since they have a long-lived connection; but let people override
+		// this if they have just cause.
+		if (options.staticNetwork == null) {
+			options.staticNetwork = true;
+		}
+
+		super(network, options);
 		this.#callbacks = new Map();
 		this.#subs = new Map();
 		this.#pending = new Map();
@@ -206,6 +280,10 @@ export class SocketProvider extends JsonRpcApiProvider {
 		return super._getSubscriber(sub);
 	}
 
+	/**
+	 *  Register a new subscriber. This is used internalled by Subscribers
+	 *  and generally is unecessary unless extending capabilities.
+	 */
 	_register(filterId: number | string, subscriber: SocketSubscriber): void {
 		this.#subs.set(filterId, subscriber);
 		const pending = this.#pending.get(filterId);
@@ -259,7 +337,10 @@ export class SocketProvider extends JsonRpcApiProvider {
     }
     */
 
-	// Sub-classes must call this for each message
+	/**
+	 *  Sub-classes **must** call this with messages received over their
+	 *  transport to be processed and dispatched.
+	 */
 	async _processMessage(message: string): Promise<void> {
 		const result = <JsonRpcResult | JsonRpcError | JsonRpcSubscription>(
 			JSON.parse(message)
@@ -296,6 +377,10 @@ export class SocketProvider extends JsonRpcApiProvider {
 		}
 	}
 
+	/**
+	 *  Sub-classes **must** override this to send %%message%% over their
+	 *  transport.
+	 */
 	async _write(message: string): Promise<void> {
 		throw new Error("sub-classes must override this");
 	}

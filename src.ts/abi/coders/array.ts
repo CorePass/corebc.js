@@ -194,7 +194,7 @@ export class ArrayCoder extends Coder {
 			"coder array" + (this.localName ? " " + this.localName : ""),
 		);
 
-		let coders = [];
+		let coders: Array<Coder> = [];
 		for (let i = 0; i < value.length; i++) {
 			coders.push(this.coder);
 		}
@@ -223,7 +223,7 @@ export class ArrayCoder extends Coder {
 				},
 			);
 		}
-		let coders = [];
+		let coders: Array<Coder> = [];
 		for (let i = 0; i < count; i++) {
 			coders.push(new AnonymousCoder(this.coder));
 		}
