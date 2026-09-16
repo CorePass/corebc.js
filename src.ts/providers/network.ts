@@ -306,8 +306,8 @@ function injectCommonNetworks(): void {
 	}
 	injected = true;
 
-	/// Register popular Core networks
-	function registerEth(
+	/// Register the Core networks
+	function registerCore(
 		name: string,
 		networkId: number,
 		options: Options,
@@ -318,7 +318,7 @@ function injectCommonNetworks(): void {
 			return network;
 		};
 
-		// Register the network by name and chain ID
+		// Register the network by name and network id
 		Network.register(name, func);
 		Network.register(networkId, func);
 
@@ -329,15 +329,10 @@ function injectCommonNetworks(): void {
 		}
 	}
 
-	registerEth("mainnet", 1, { ensNetwork: 1, altNames: ["homestead"] });
-	registerEth("ropsten", 3, { ensNetwork: 3 });
-	registerEth("rinkeby", 4, { ensNetwork: 4 });
-	registerEth("goerli", 5, { ensNetwork: 5 });
-	registerEth("kovan", 42, { ensNetwork: 42 });
-	registerEth("sepolia", 11155111, {});
-
-	registerEth("classic", 61, {});
-	registerEth("classicKotti", 6, {});
-
-	registerEth("xdai", 100, { ensNetwork: 1 });
+	// Only networks that `networkIdToPrefix` can render an address for
+	// belong here: a resolvable network with no address prefix would be a
+	// contradiction between the registry and the address layer.
+	registerCore("mainnet", 1, { altNames: ["cb"] });
+	registerCore("devin", 3, { altNames: ["testnet", "ab"] });
+	registerCore("private", 0, { altNames: ["ce"] });
 }

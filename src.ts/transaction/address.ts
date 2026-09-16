@@ -1,10 +1,11 @@
-import { getAddress } from "../address/index.js";
+import { getAddress, isNetworkPrefix } from "../address/index.js";
 import { sha256, SigningKey } from "../crypto/index.js";
 
 import type { SignatureLike } from "../crypto/index.js";
 import type { BytesLike } from "../utils/index.js";
 import { arrayify, hexDataSlice } from "../utils/data.js";
 import { calculateCheckSum } from "../address/index.js";
+import { assertArgument } from "../utils/errors.js";
 
 /**
  *  Returns the address for the %%key%%.
@@ -20,6 +21,17 @@ export function publicToAddress(
 	key: BytesLike | string,
 	prefix: string,
 ): string {
+	// The prefix is spliced into the address verbatim and folded into the
+	// check digits, so an unknown or wrong-length one would silently produce
+	// an address on a network that does not exist, or one that is not 44 hex
+	// characters at all.
+	assertArgument(
+		typeof prefix === "string" && isNetworkPrefix(prefix),
+		"invalid network prefix",
+		"prefix",
+		prefix,
+	);
+
 	const val = hexDataSlice(sha256(key), 12);
 	const checksum = calculateCheckSum(val, prefix);
 	return "0x" + prefix + checksum + removeHexPrefix(val);

@@ -181,7 +181,11 @@ function getAddress(address: string): string {
 	if (!address.match(/^(0x)?[0-9a-fA-F]{44}$/)) {
 		logger.throwArgumentError("invalid address", "address", address);
 	}
-	const raw = removeHexPrefix(address);
+	// Core encodes its checksum in the check digits rather than in
+	// capitalization, so case carries no information and the canonical form is
+	// lower-case. Without normalizing, two spellings of one address compare
+	// unequal.
+	const raw = removeHexPrefix(address).toLowerCase();
 	if (precompiledAddresses.includes(raw)) {
 		return "0x" + raw;
 	}
@@ -221,17 +225,74 @@ function getIcapAddress(address: string): string {
 	return "XE" + ibanChecksum("XE00" + base36) + base36;
 }
 
+/**
+ *  Every address prefix Core defines, in the order network ids reach them.
+ */
+const networkPrefixes = ["cb", "ab", "ce"] as const;
+
+/**
+ *  Returns true if %%prefix%% is one of Core's network prefixes.
+ *
+ *  A prefix is part of the address body for checksum purposes, so it has to
+ *  be lower-case two-character hex as well as a known network tag.
+ */
+function isNetworkPrefix(prefix: string): boolean {
+	return (networkPrefixes as readonly string[]).includes(prefix);
+}
+
+/**
+ *  Returns the address prefix for %%networkId%%.
+ *
+ *  Core assigns ``1`` to mainnet (``cb``), ``3`` and ``4`` to test networks
+ *  (``ab``), and ``0`` along with anything above ``10`` to private networks
+ *  (``ce``). The ids in between are unassigned and rejected.
+ */
 function networkIdToPrefix(networkId: number): string {
-	if (networkId == 1) {
+	// Guard the type first: a fractional or non-finite id is not a network,
+	// and must not fall through to the private-network range check.
+	if (
+		typeof networkId !== "number" ||
+		!Number.isInteger(networkId) ||
+		networkId < 0
+	) {
+		logger.throwArgumentError("bad networkId", "networkId", networkId);
+	}
+
+	if (networkId === 1) {
 		return "cb";
-	} else if (networkId == 3 || networkId == 4) {
+	} else if (networkId === 3 || networkId === 4) {
 		return "ab";
-	} else if (networkId > 10 || networkId == 0) {
+	} else if (networkId > 10 || networkId === 0) {
 		return "ce";
 	} else {
 		logger.throwArgumentError("bad networkId", "networkId", networkId);
 		return "";
 	}
+}
+
+/**
+ *  Returns a representative network id for %%prefix%%.
+ *
+ *  A prefix covers a range of ids, so this returns the canonical one for
+ *  that network: ``cb`` to ``1``, ``ab`` to ``3`` and ``ce`` to ``0``. Use
+ *  it to answer "which network is this address on", not to recover the
+ *  exact id an address was produced with, which a prefix cannot encode.
+ */
+function prefixToNetworkId(prefix: string): number {
+	const normalized =
+		typeof prefix === "string" ? removeHexPrefix(prefix).toLowerCase() : prefix;
+
+	switch (normalized) {
+		case "cb":
+			return 1;
+		case "ab":
+			return 3;
+		case "ce":
+			return 0;
+	}
+
+	logger.throwArgumentError("bad address prefix", "prefix", prefix);
+	return 0;
 }
 
 function getContractAddress(transaction: {
@@ -263,5 +324,8 @@ export {
 	getIcapAddress,
 	calculateCheckSum,
 	networkIdToPrefix,
+	prefixToNetworkId,
+	isNetworkPrefix,
+	networkPrefixes,
 	getContractAddress,
 };

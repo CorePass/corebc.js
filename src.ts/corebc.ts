@@ -24,7 +24,14 @@ export {
 	Typed,
 } from "./abi/index.js";
 
-export { getAddress, networkIdToPrefix } from "./address/index.js";
+export {
+	getAddress,
+	getContractAddress,
+	isNetworkPrefix,
+	networkIdToPrefix,
+	networkPrefixes,
+	prefixToNetworkId,
+} from "./address/index.js";
 
 export {
 	getCreate2Address,

@@ -130,8 +130,14 @@ export const trimDecimals = (n: string, decimals = 18) => {
 	if (n.indexOf(".") === -1) return n;
 
 	const arr = n.split(".");
-	const fraction = arr[1].substr(0, decimals);
-	return arr[0] + "." + fraction;
+	// Rebuilding from the first two parts alone would quietly turn a
+	// malformed amount like "1.2.3" into "1.2", so leave anything that is not
+	// a single decimal point untouched and let the parser reject it.
+	if (arr.length !== 2) {
+		return n;
+	}
+	const fraction = arr[1].substring(0, decimals);
+	return fraction.length ? arr[0] + "." + fraction : arr[0];
 };
 
 export function parseUnits(value: string, unit?: string | Numeric): bigint {

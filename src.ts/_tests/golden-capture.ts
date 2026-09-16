@@ -42,8 +42,13 @@ import {
 	getAccountPath,
 	getAddress,
 	getBytes,
+	getContractAddress,
+	getCreate2Address,
 	getCreateAddress,
 	getIndexedAccountPath,
+	isNetworkPrefix,
+	networkPrefixes,
+	prefixToNetworkId,
 	hashMessage,
 	hexlify,
 	id,
@@ -220,15 +225,38 @@ async function addresses(): Promise<Bucket> {
 		await cap(o, `computeAddress(A,${p})`, () => computeAddress(PRIV_A, p));
 		await cap(o, `computeAddress(B,${p})`, () => computeAddress(PRIV_B, p));
 	}
-	await cap(o, "computeAddress(bad-prefix)", () =>
-		computeAddress(PRIV_A, "zz"),
-	);
+	for (const p of ["zz", "ff", "", "cbcb", "CB"]) {
+		await cap(o, `computeAddress(prefix:${p || "empty"})`, () =>
+			computeAddress(PRIV_A, p),
+		);
+	}
 	await cap(o, "publicToAddress", () =>
 		publicToAddress(new SigningKey(PRIV_A).publicKey, PREFIX),
 	);
-	await cap(o, "getCreateAddress", () =>
-		getCreateAddress({ from: KNOWN_ADDRESS, nonce: 7 }),
+	for (const nonce of [0, 1, 7, 256]) {
+		await cap(o, `getCreateAddress(${nonce})`, () =>
+			getCreateAddress({ from: KNOWN_ADDRESS, nonce }),
+		);
+		await cap(o, `getContractAddress(${nonce})`, () =>
+			getContractAddress({ from: KNOWN_ADDRESS, nonce }),
+		);
+	}
+	await cap(o, "getCreate2Address", () =>
+		getCreate2Address(
+			KNOWN_ADDRESS,
+			"0x" + "22".repeat(32),
+			"0x" + "33".repeat(32),
+		),
 	);
+	for (const p of ["cb", "ab", "ce", "CB", "0xcb", "ff", ""]) {
+		await cap(o, `prefixToNetworkId(${p || "empty"})`, () =>
+			prefixToNetworkId(p),
+		);
+	}
+	for (const p of ["cb", "ab", "ce", "ff", "CB", ""]) {
+		await cap(o, `isNetworkPrefix(${p || "empty"})`, () => isNetworkPrefix(p));
+	}
+	await cap(o, "networkPrefixes", () => [...networkPrefixes].join(","));
 	return o;
 }
 

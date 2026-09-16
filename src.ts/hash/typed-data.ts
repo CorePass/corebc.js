@@ -81,6 +81,13 @@ function hexPadRight(value: BytesLike): string {
 const hexTrue = toBeHex(BN_1, 32);
 const hexFalse = toBeHex(BN_0, 32);
 
+/**
+ *  Byte length of an ICAN address (1 prefix + 1 checksum + 20 body). Core
+ *  addresses are 22 bytes, not Ethereum's 20, so anything that decides
+ *  "address or name?" by length has to use this.
+ */
+const addressLength = 22;
+
 const domainFieldTypes: Record<string, string> = {
 	name: "string",
 	version: "string",
@@ -712,7 +719,7 @@ export class TypedDataEncoder {
 		// Do we need to look up the domain's verifyingContract?
 		if (
 			domain.verifyingContract &&
-			!isHexString(domain.verifyingContract, 20)
+			!isHexString(domain.verifyingContract, addressLength)
 		) {
 			ensCache[domain.verifyingContract] = "0x";
 		}
@@ -722,7 +729,7 @@ export class TypedDataEncoder {
 
 		// Get a list of all the addresses
 		encoder.visit(value, (type: string, value: any) => {
-			if (type === "address" && !isHexString(value, 20)) {
+			if (type === "address" && !isHexString(value, addressLength)) {
 				ensCache[value] = "0x";
 			}
 			return value;

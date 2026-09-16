@@ -5,7 +5,7 @@ import {
 	//    encodeRlp
 } from "../utils/index.js";
 
-import { getAddress } from "./index.js";
+import { getAddress, getContractAddress } from "./index.js";
 
 import type { BigNumberish, BytesLike } from "../utils/index.js";
 import { sha256 } from "../crypto/sha3.js";
@@ -37,19 +37,10 @@ export function getCreateAddress(tx: {
 	from: string;
 	nonce: BigNumberish;
 }): string {
-	const from = getAddress(tx.from);
-	const nonce = getBigInt(tx.nonce, "tx.nonce");
-
-	let nonceHex = nonce.toString(16);
-	if (nonceHex === "0") {
-		nonceHex = "0x";
-	} else if (nonceHex.length % 2) {
-		nonceHex = "0x0" + nonceHex;
-	} else {
-		nonceHex = "0x" + nonceHex;
-	}
-
-	return getAddress(from);
+	return getContractAddress({
+		from: getAddress(tx.from),
+		nonce: getBigInt(tx.nonce, "tx.nonce"),
+	});
 }
 
 /**
@@ -84,11 +75,11 @@ export function getCreate2Address(
 		);
 	}
 
+	from = getAddress(from);
 	const val = hexDataSlice(
-		sha256(concat(["0xff", getAddress(from), salt, initCodeHash])),
+		sha256(concat(["0xff", from, salt, initCodeHash])),
 		12,
 	);
-	console.log({ "contract-address/74=>should be string": val });
 	const prefix = from.substring(2, 4);
 	const checksum = calculateCheckSum(val, prefix);
 	return "0x" + prefix + checksum + removeHexPrefix(val);
