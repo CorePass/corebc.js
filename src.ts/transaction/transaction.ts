@@ -2,8 +2,8 @@ import { getAddress } from "../address/index.js";
 import { sha256, Signature, SigningKey } from "../crypto/index.js";
 import {
 	getBytes,
-	getBigInt,
 	getNumber,
+	getUint,
 	hexlify,
 	assert,
 	assertArgument,
@@ -139,6 +139,47 @@ const transactionFields = [
 	{ name: "data" },
 ];
 
+// Ethereum field names that have a Core equivalent. Accepting these silently
+// would produce a transaction with the Core field left at its default, so they
+// are rejected with the replacement named in the error.
+const renamedEthereumFields: { [key: string]: string } = {
+	chainId: "networkId",
+	gas: "energyLimit",
+	gasLimit: "energyLimit",
+	gasPrice: "energyPrice",
+};
+
+// Ethereum field names with no Core equivalent at all.
+const unsupportedEthereumFields = [
+	"maxFeePerGas",
+	"maxPriorityFeePerGas",
+	"accessList",
+	"blobs",
+	"blobVersionedHashes",
+	"maxFeePerBlobGas",
+	"kzg",
+	"authorizationList",
+];
+
+function rejectEthereumFields(tx: any): void {
+	for (const key in renamedEthereumFields) {
+		assertArgument(
+			tx[key] == null,
+			`unsupported Ethereum field "${key}"; use "${renamedEthereumFields[key]}" instead`,
+			`tx.${key}`,
+			tx[key],
+		);
+	}
+	for (const key of unsupportedEthereumFields) {
+		assertArgument(
+			tx[key] == null,
+			`unsupported Ethereum field "${key}"; Core has no equivalent`,
+			`tx.${key}`,
+			tx[key],
+		);
+	}
+}
+
 const allowedTransactionKeys: { [key: string]: boolean } = {
 	networkId: true,
 	data: true,
@@ -237,7 +278,7 @@ export class Transaction implements TransactionLike<string> {
 		return this.#nonce;
 	}
 	set nonce(value: BigNumberish) {
-		this.#nonce = getNumber(value, "value");
+		this.#nonce = getNumber(getUint(value, "nonce"), "nonce");
 	}
 
 	/**
@@ -247,7 +288,7 @@ export class Transaction implements TransactionLike<string> {
 		return this.#energyLimit;
 	}
 	set energyLimit(value: BigNumberish) {
-		this.#energyLimit = getBigInt(value);
+		this.#energyLimit = getUint(value, "energyLimit");
 	}
 
 	/**
@@ -264,7 +305,7 @@ export class Transaction implements TransactionLike<string> {
 		return value;
 	}
 	set energyPrice(value: null | BigNumberish) {
-		this.#energyPrice = value == null ? null : getBigInt(value, "energyPrice");
+		this.#energyPrice = value == null ? null : getUint(value, "energyPrice");
 	}
 
 	/**
@@ -285,7 +326,7 @@ export class Transaction implements TransactionLike<string> {
 		return this.#value;
 	}
 	set value(value: BigNumberish) {
-		this.#value = getBigInt(value, "value");
+		this.#value = getUint(value, "value");
 	}
 
 	/**
@@ -295,7 +336,7 @@ export class Transaction implements TransactionLike<string> {
 		return this.#networkId;
 	}
 	set networkId(value: BigNumberish) {
-		this.#networkId = getBigInt(value);
+		this.#networkId = getUint(value, "networkId");
 	}
 
 	/**
@@ -431,7 +472,7 @@ export class Transaction implements TransactionLike<string> {
 			energyPrice: s(this.energyPrice),
 			value: s(this.value),
 			networkId: s(this.networkId),
-			sig: this.signature ? this.signature : null,
+			signature: this.signature ? this.signature : null,
 		};
 	}
 
@@ -448,6 +489,9 @@ export class Transaction implements TransactionLike<string> {
 			const payload = getBytes(tx);
 			return Transaction.from(parse(payload));
 		}
+
+		rejectEthereumFields(tx);
+
 		const result = new Transaction();
 		if (tx.to != null) {
 			result.to = tx.to;

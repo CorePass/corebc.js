@@ -139,7 +139,10 @@ const KwTypes = setify(_kwTypes.split(" "));
 const _kwModifiers = "calldata memory storage payable indexed";
 const KwModifiers = setify(_kwModifiers.split(" "));
 
-const _kwOther = "tuple returns";
+// "anonymous" has to be a keyword rather than an identifier, otherwise the
+// lexer types it as an ID, consumeKeywords never sees it and the trailing
+// token makes the whole event fragment unparseable.
+const _kwOther = "tuple returns anonymous";
 
 // All Keywords
 const _keywords = [_kwTypes, _kwModifiers, _kwOther, _kwVisib].join(" ");

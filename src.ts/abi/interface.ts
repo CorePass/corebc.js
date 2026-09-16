@@ -257,8 +257,14 @@ const PanicReasons: Record<string, string> = {
 	"81": "uninitialized function",
 };
 
+// Core hashes a signature with SHA-2 rather than keccak256, so the built-in
+// revert selectors differ from Ethereum's well-known 0x08c379a0 / 0x4e487b71.
+// Deriving them keeps this table in step with whatever `id` computes.
+export const ErrorSelector = id("Error(string)").substring(0, 10);
+export const PanicSelector = id("Panic(uint256)").substring(0, 10);
+
 const BuiltinErrors: Record<string, ErrorInfo> = {
-	"0x08c379a0": {
+	[ErrorSelector]: {
 		signature: "Error(string)",
 		name: "Error",
 		inputs: ["string"],
@@ -266,7 +272,7 @@ const BuiltinErrors: Record<string, ErrorInfo> = {
 			return `reverted with reason string ${JSON.stringify(message)}`;
 		},
 	},
-	"0x4e487b71": {
+	[PanicSelector]: {
 		signature: "Panic(uint256)",
 		name: "Panic",
 		inputs: ["uint256"],

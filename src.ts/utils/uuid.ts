@@ -3,7 +3,8 @@
  *
  *  @_subsection: api/utils:UUID  [about-uuid]
  */
-import { getBytes, hexlify } from "./data.js";
+import { getBytesCopy, hexlify } from "./data.js";
+import { assertArgument } from "./errors.js";
 
 import type { BytesLike } from "./index.js";
 
@@ -13,7 +14,16 @@ import type { BytesLike } from "./index.js";
  *  @see: https://www.ietf.org/rfc/rfc4122.txt (Section 4.4)
  */
 export function uuidV4(randomBytes: BytesLike): string {
-	const bytes = getBytes(randomBytes, "randomBytes");
+	// A copy, because the version and variant bits are written below and
+	// getBytes would hand back the caller's own array.
+	const bytes = getBytesCopy(randomBytes, "randomBytes");
+
+	assertArgument(
+		bytes.length === 16,
+		"randomBytes must be 16 bytes",
+		"randomBytes",
+		randomBytes,
+	);
 
 	// Section: 4.1.3:
 	// - time_hi_and_version[12:16] = 0b0100

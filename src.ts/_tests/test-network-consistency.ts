@@ -13,7 +13,9 @@ import assert from "node:assert/strict";
 
 import { networkIdToPrefix } from "../address/index.js";
 import { extractPrefix } from "../transaction/address.js";
-import { Network, Transaction, Wallet } from "../index.js";
+import { formatBlock } from "../providers/format.js";
+import { Block, Network, Transaction, Wallet } from "../index.js";
+import type { Provider } from "../index.js";
 
 const KEY = "0x" + "11".repeat(57);
 const OTHER_KEY = "0x" + "22".repeat(57);
@@ -408,5 +410,97 @@ describe("network registry", () => {
 			`expected an energy plugin, got ${names.join(", ")}`,
 		);
 		assert.ok(!names.some((name) => /\bgas\b/i.test(name)), "no gas plugin");
+	});
+});
+
+// A real xcb_getBlockByNumber response, trimmed of the fields no formatter
+// claims. Note that a Core node reports `miner` without a "0x" prefix.
+const blockResponse = {
+	difficulty: "0x2530",
+	energyLimit: "0xbebc20",
+	energyUsed: "0x0",
+	extraData: "0xd686676f636f726588676f312e32322e31856c696e7578",
+	hash: "0x3d58b79fc75d34cc0f908dac2749383ed095829c97574758f15692e155197c1d",
+	miner: "ab92f84686fc90f00f1a50c1e7bf2f5cf7277ebb8b10",
+	nonce: "0x793a17cfa9cbb466",
+	number: "0xca8916",
+	parentHash:
+		"0x9ef38b026c9ee0caa0563c5a37a3cbbad93783c8e824c04dcf6489ddca3d1af1",
+	receiptsRoot:
+		"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
+	stateRoot:
+		"0x5dfe34c7f0b6b53422b445a033bc02a919d8f9193be549fa50e2c5e0f0a54f34",
+	timestamp: "0x68c96e3f",
+	transactionsRoot:
+		"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
+	transactions: [],
+};
+
+describe("block formatting keeps the fields Block declares", () => {
+	it("populates miner, prefixing the address the node omits", () => {
+		const block = formatBlock(blockResponse);
+		assert.equal(block.miner, "0xab92f84686fc90f00f1a50c1e7bf2f5cf7277ebb8b10");
+		assert.equal(
+			extractPrefix(block.miner),
+			networkIdToPrefix(3),
+			"miner prefix disagrees with the network",
+		);
+	});
+
+	it("populates extraData", () => {
+		const block = formatBlock(blockResponse);
+		assert.equal(
+			block.extraData,
+			"0xd686676f636f726588676f312e32322e31856c696e7578",
+		);
+	});
+
+	it("exposes every field the Block class reads", () => {
+		// The fixture has no transactions, so the provider is never touched.
+		const block = new Block(
+			formatBlock(blockResponse),
+			null as unknown as Provider,
+		);
+		for (const field of [
+			"number",
+			"hash",
+			"timestamp",
+			"nonce",
+			"difficulty",
+			"energyLimit",
+			"energyUsed",
+			"miner",
+			"extraData",
+			"parentHash",
+		] as const) {
+			assert.notEqual(
+				block[field],
+				undefined,
+				`Block.${field} was dropped by the formatter`,
+			);
+		}
+	});
+
+	it("keeps miner nullable for a pending block", () => {
+		// A pending block has no validator, hash or nonce yet. The formatter
+		// omits such fields and the Block class reports the absent hash as null.
+		const params = formatBlock({
+			...blockResponse,
+			hash: null,
+			miner: null,
+			nonce: null,
+		});
+		assert.equal(params.miner, undefined);
+		assert.equal(params.hash, undefined);
+
+		const block = new Block(params, null as unknown as Provider);
+		assert.equal(block.hash, null);
+	});
+
+	it("rejects a miner address that is not a valid Core address", () => {
+		assert.throws(
+			() => formatBlock({ ...blockResponse, miner: "0xdeadbeef" }),
+			(error: any) => error.code === "BAD_DATA",
+		);
 	});
 });

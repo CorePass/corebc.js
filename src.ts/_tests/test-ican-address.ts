@@ -539,15 +539,54 @@ describe("ICAP / IBAN encoding", () => {
 		assert.throws(() => getIcapAddress("0x1234"), /invalid address/);
 	});
 
-	it("PINS BUG: getAddress does not accept ICAP output", () => {
-		// getAddress's documentation claims ICAP input is supported, but its
-		// length/charset check rejects the XE form outright.
-		const icap = getIcapAddress(ADDRESSES.cb);
-		assert.throws(() => getAddress(icap), /invalid address/);
+	it("getAddress round-trips ICAP addresses", () => {
+		// getAddress documents ICAP input as supported; its length and charset
+		// check used to reject the XE form outright.
+		assert.equal(getAddress(getIcapAddress(ADDRESSES.cb)), ADDRESSES.cb);
 	});
 
-	it.skip("getAddress should round-trip ICAP addresses", () => {
-		assert.equal(getAddress(getIcapAddress(ADDRESSES.cb)), ADDRESSES.cb);
+	it("round-trips an ICAP address on every network", () => {
+		for (const { prefix } of PREFIXES) {
+			const address = ADDRESSES[prefix];
+			assert.equal(getAddress(getIcapAddress(address)), address, prefix);
+		}
+	});
+
+	it("round-trips addresses whose numeric value is extreme", () => {
+		// The body is the address read as a base-36 number, so leading zero
+		// bytes and a full-width value are the interesting cases.
+		for (const { prefix } of PREFIXES) {
+			for (const body of [
+				"00".repeat(20),
+				"ff".repeat(20),
+				"00" + "ff".repeat(19),
+				"0065a16059864a2fdbc7c99a4723a8395bc6f188",
+			]) {
+				const address = getAddress(
+					"0x" + prefix + calculateCheckSum(body, prefix) + body,
+				);
+				assert.equal(
+					getAddress(getIcapAddress(address)),
+					address,
+					`${prefix}/${body.substring(0, 6)}`,
+				);
+			}
+		}
+	});
+
+	it("rejects an ICAP address whose check digits were tampered with", () => {
+		const icap = getIcapAddress(ADDRESSES.cb);
+		const digits = icap.substring(2, 4);
+		const tampered = "XE" + (digits === "00" ? "01" : "00") + icap.substring(4);
+		assert.throws(() => getAddress(tampered), /bad icap checksum/);
+	});
+
+	it("rejects an ICAP address whose body was tampered with", () => {
+		const icap = getIcapAddress(ADDRESSES.cb);
+		const last = icap.substring(icap.length - 1);
+		const tampered =
+			icap.substring(0, icap.length - 1) + (last === "A" ? "B" : "A");
+		assert.throws(() => getAddress(tampered), /icap|address/);
 	});
 });
 

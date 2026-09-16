@@ -591,7 +591,9 @@ export class FixedNumber {
 		if (this.#val < BN_0) {
 			val -= this.#tens - BN_1;
 		}
-		val = (this.#val / this.#tens) * this.#tens;
+		// Division truncates toward zero, so the bias above is what carries a
+		// negative value down rather than in. It has to be applied to `val`.
+		val = (val / this.#tens) * this.#tens;
 		return this.#checkValue(val, "floor");
 	}
 
@@ -606,7 +608,7 @@ export class FixedNumber {
 		if (this.#val > BN_0) {
 			val += this.#tens - BN_1;
 		}
-		val = (this.#val / this.#tens) * this.#tens;
+		val = (val / this.#tens) * this.#tens;
 		return this.#checkValue(val, "ceiling");
 	}
 
@@ -627,9 +629,18 @@ export class FixedNumber {
 		const delta = this.decimals - decimals;
 		const bump = BN_5 * getTens(delta - 1);
 
-		let value = this.value + bump;
+		const biased = this.value + bump;
 		const tens = getTens(delta);
-		value = (value / tens) * tens;
+
+		// Rounding half-up means taking the floor after the half-ulp bump, but
+		// BigInt division truncates toward zero. For a negative value that
+		// truncation moves the result the wrong way, which even shifted values
+		// that were already exact at this precision.
+		let quotient = biased / tens;
+		if (biased < BN_0 && quotient * tens !== biased) {
+			quotient -= BN_1;
+		}
+		const value = quotient * tens;
 
 		checkValue(value, this.#format, "round");
 

@@ -154,6 +154,11 @@ const _formatBlock = object({
 	energyLimit: getBigInt,
 	energyUsed: getBigInt,
 
+	// A pending block has no validator yet, so this stays nullable. Core nodes
+	// report the address without a "0x" prefix, which getAddress accepts.
+	miner: allowNull(getAddress),
+	extraData: formatData,
+
 	stateRoot: allowNull(formatHash, null),
 	receiptsRoot: allowNull(formatHash, null),
 	transactionsRoot: allowNull(formatHash, null),

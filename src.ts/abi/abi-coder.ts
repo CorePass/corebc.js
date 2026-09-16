@@ -12,6 +12,9 @@
  */
 
 import { assertArgumentCount, assertArgument } from "../utils/index.js";
+// Imported from the module rather than the hash barrel, which would pull in
+// typed-data and cycle back through this file.
+import { id } from "../hash/id.js";
 
 import { Coder, Reader, Result, Writer } from "./coders/abstract-coder.js";
 import { AddressCoder } from "./coders/address.js";
@@ -62,6 +65,11 @@ function getBuiltinCallException(
 ): CallExceptionError {
 	let message = "missing revert data";
 
+	// Core hashes signatures with SHA-2, so these are not Ethereum's
+	// 0x08c379a0 / 0x4e487b71.
+	const ErrorSelector = id("Error(string)").substring(0, 10);
+	const PanicSelector = id("Panic(uint256)").substring(0, 10);
+
 	let reason: null | string = null;
 	const invocation = null;
 	let revert: null | { signature: string; name: string; args: Array<any> } =
@@ -78,7 +86,7 @@ function getBuiltinCallException(
 			reason = "require(false)";
 		} else if (bytes.length % 32 !== 4) {
 			message += " (could not decode reason; invalid data length)";
-		} else if (hexlify(bytes.slice(0, 4)) === "0x08c379a0") {
+		} else if (hexlify(bytes.slice(0, 4)) === ErrorSelector) {
 			// Error(string)
 			try {
 				reason = abiCoder.decode(["string"], bytes.slice(4))[0];
@@ -91,7 +99,7 @@ function getBuiltinCallException(
 			} catch (error) {
 				message += " (could not decode reason; invalid string data)";
 			}
-		} else if (hexlify(bytes.slice(0, 4)) === "0x4e487b71") {
+		} else if (hexlify(bytes.slice(0, 4)) === PanicSelector) {
 			// Panic(uint256)
 			try {
 				const code = Number(abiCoder.decode(["uint256"], bytes.slice(4))[0]);

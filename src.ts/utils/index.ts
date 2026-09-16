@@ -6,7 +6,7 @@
  *  @_section api/utils:Utilities  [about-utils]
  */
 
-export { decodeBase58, encodeBase58 } from "./base58.js";
+export { decodeBase58, decodeBase58Bytes, encodeBase58 } from "./base58.js";
 
 export { decodeBase64, encodeBase64 } from "./base64.js";
 

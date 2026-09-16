@@ -61,13 +61,51 @@ export function encodeBase58(_value: BytesLike): string {
 }
 
 /**
- *  Decode the Base58-encoded %%value%%.
+ *  Decode the Base58-encoded %%value%% as a numeric value.
+ *
+ *  Leading zero bytes cannot survive a numeric decode. Use
+ *  [[decodeBase58Bytes]] to recover the bytes [[encodeBase58]] was given.
  */
 export function decodeBase58(value: string): bigint {
+	assertArgument(
+		typeof value === "string",
+		"invalid base58 value",
+		"value",
+		value,
+	);
+
 	let result = BN_0;
 	for (let i = 0; i < value.length; i++) {
 		result *= BN_58;
 		result += getAlpha(value[i]);
 	}
 	return result;
+}
+
+/**
+ *  Decode the Base58-encoded %%value%% as bytes.
+ *
+ *  Unlike [[decodeBase58]] this restores the leading zero bytes that
+ *  [[encodeBase58]] wrote as leading ``"1"`` characters, so it round-trips
+ *  arbitrary data.
+ */
+export function decodeBase58Bytes(value: string): Uint8Array {
+	assertArgument(
+		typeof value === "string",
+		"invalid base58 value",
+		"value",
+		value,
+	);
+
+	// Every leading "1" stands for one zero byte and carries no magnitude.
+	let zeros = 0;
+	while (zeros < value.length && value[zeros] === Alphabet[0]) {
+		zeros++;
+	}
+
+	const magnitude = decodeBase58(value.substring(zeros));
+	const body = magnitude === BN_0 ? "" : magnitude.toString(16);
+	const padded = body.length % 2 ? "0" + body : body;
+
+	return getBytes("0x" + "00".repeat(zeros) + padded);
 }

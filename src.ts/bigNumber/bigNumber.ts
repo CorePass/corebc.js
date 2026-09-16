@@ -274,7 +274,10 @@ export class BigNumber implements Hexable {
 				throwFault("underflow", "BigNumber.from", value);
 			}
 
-			if (value >= MAX_SAFE || value <= -MAX_SAFE) {
+			// Inclusive bounds: MAX_SAFE is Number.MAX_SAFE_INTEGER itself,
+			// which is exactly representable and which hexlify and getNumber
+			// both accept. Excluding it here refused the boundary value.
+			if (value > MAX_SAFE || value < -MAX_SAFE) {
 				throwFault("overflow", "BigNumber.from", value);
 			}
 
@@ -357,9 +360,14 @@ function toHex(value: string | BN): string {
 	}
 
 	// Add a "0x" prefix if missing
-	if (value.substring(0, 2) !== "0x") {
+	if (value.substring(0, 2).toLowerCase() !== "0x") {
 		value = "0x" + value;
 	}
+
+	// Normalize the prefix and the digits to lower case. Without this an
+	// upper-case "0X" prefix survives into BN.js, which rejects it with its
+	// own error rather than one of ours.
+	value = "0x" + value.substring(2).toLowerCase();
 
 	// Normalize zero
 	if (value === "0x") {

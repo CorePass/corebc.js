@@ -63,8 +63,11 @@ const transaction = Transaction.from({
 	networkId: 4,
 });
 
+// The provider is shared by every suite in this file, so it has to outlive
+// them all. A suite-level hook would tear it down between the two describes.
+after(() => provider.destroy());
+
 describe("Test wallet creation", function () {
-	after(() => provider.destroy());
 	it("can generate a random wallet", function () {
 		assert.equal(mnemonicWalletWithoutPassKey.publicKey.length, 116);
 		assert.equal(

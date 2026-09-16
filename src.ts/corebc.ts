@@ -27,6 +27,7 @@ export {
 export {
 	getAddress,
 	getContractAddress,
+	getZeroAddress,
 	isNetworkPrefix,
 	networkIdToPrefix,
 	networkPrefixes,
@@ -42,6 +43,8 @@ export { isAddressable, isAddress, resolveAddress } from "./address/checks.js";
 
 export {
 	ZeroAddress,
+	ZeroAddressDevin,
+	ZeroAddressPrivate,
 	OrePerXCB,
 	MaxUint256,
 	MinInt256,
@@ -137,6 +140,7 @@ export {
 
 export {
 	decodeBase58,
+	decodeBase58Bytes,
 	encodeBase58,
 	decodeBase64,
 	encodeBase64,

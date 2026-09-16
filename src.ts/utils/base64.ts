@@ -7,6 +7,7 @@
  *  @_subsection: api/utils:Base64 Encoding  [about-base64]
  */
 import { getBytes, getBytesCopy } from "./data.js";
+import { assertBase64 } from "./base64-helper.js";
 
 import type { BytesLike } from "./data.js";
 
@@ -27,6 +28,7 @@ import type { BytesLike } from "./data.js";
  *    //_result:
  */
 export function decodeBase64(value: string): Uint8Array {
+	assertBase64(value);
 	return getBytesCopy(Buffer.from(value, "base64"));
 }
 

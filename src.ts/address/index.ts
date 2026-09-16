@@ -173,9 +173,48 @@ function ibanChecksum(address: string): string {
  *    getAddress("0x8Ba1f109551bD432803012645Ac136ddd64DBA72")
  *    //_error:
  */
+/**
+ *  Converts the [[getIcapAddress]] form of an address back to hex.
+ *
+ *  The body is the address read as a base-36 number, so the digit count
+ *  varies with the value; only the two IBAN check digits are fixed width.
+ */
+function icapToAddress(icap: string): string {
+	const body = icap.substring(4).toUpperCase();
+
+	if (ibanChecksum("XE00" + body) !== icap.substring(2, 4)) {
+		logger.throwArgumentError("bad icap checksum", "address", icap);
+	}
+
+	let value = BigInt(0);
+	for (const character of body) {
+		const digit = ibanLookup[character];
+		if (digit == null) {
+			logger.throwArgumentError("invalid address", "address", icap);
+		}
+		value = value * BigInt(36) + BigInt(digit);
+	}
+
+	let hex = value.toString(16);
+	if (hex.length > 44) {
+		logger.throwArgumentError("invalid address", "address", icap);
+	}
+	while (hex.length < 44) {
+		hex = "0" + hex;
+	}
+
+	return "0x" + hex;
+}
+
 function getAddress(address: string): string {
 	if (typeof address !== "string") {
 		logger.throwArgumentError("invalid address", "address", address);
+	}
+
+	// The ICAP form is documented as accepted input, so convert it back to
+	// hex before the length and charset check below, which would reject it.
+	if (address.match(/^XE[0-9]{2}[0-9A-Za-z]+$/)) {
+		address = icapToAddress(address);
 	}
 
 	if (!address.match(/^(0x)?[0-9a-fA-F]{44}$/)) {
@@ -238,6 +277,20 @@ const networkPrefixes = ["cb", "ab", "ce"] as const;
  */
 function isNetworkPrefix(prefix: string): boolean {
 	return (networkPrefixes as readonly string[]).includes(prefix);
+}
+
+/**
+ *  Returns the zero address for %%prefix%%.
+ *
+ *  The checksum depends on the prefix, so each network has a different zero
+ *  address. The [[ZeroAddress]] constant is the main network's.
+ */
+function getZeroAddress(prefix: string): string {
+	if (!isNetworkPrefix(prefix)) {
+		logger.throwArgumentError("unknown prefix", "prefix", prefix);
+	}
+	const body = "00".repeat(20);
+	return "0x" + prefix + calculateCheckSum(body, prefix) + body;
 }
 
 /**
@@ -328,4 +381,5 @@ export {
 	isNetworkPrefix,
 	networkPrefixes,
 	getContractAddress,
+	getZeroAddress,
 };

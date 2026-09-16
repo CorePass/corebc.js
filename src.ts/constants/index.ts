@@ -4,7 +4,11 @@
  *  @_section: api/constants: Constants  [about-constants]
  */
 
-export { ZeroAddress } from "./addresses.js";
+export {
+	ZeroAddress,
+	ZeroAddressDevin,
+	ZeroAddressPrivate,
+} from "./addresses.js";
 export { ZeroHash } from "./hashes.js";
 export {
 	N,

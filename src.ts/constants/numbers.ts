@@ -1,11 +1,14 @@
 /**
- *  A constant for the order N for the secp256k1 curve.
+ *  A constant for the group order N of the Ed448-Goldilocks curve, the curve
+ *  Core signs with.
  *
- *  (**i.e.** ``0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141n``)
+ *  (**i.e.** ``2n ** 446n - 13818066809895115352007386748515426880336692474882178609894547503885n``)
  */
-export const N: bigint = BigInt(
-	"0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141",
-);
+export const N: bigint =
+	BigInt(2) ** BigInt(446) -
+	BigInt(
+		"13818066809895115352007386748515426880336692474882178609894547503885",
+	);
 
 /**
  *  A constant for the number of ore in a single xcb.

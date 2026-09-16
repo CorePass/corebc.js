@@ -7,7 +7,9 @@ import { randomBytes, ripemd160, SigningKey, sha256 } from "../crypto/index.js";
 import {
 	dataSlice,
 	defineProperties,
+	getBytes,
 	getNumber,
+	hexlify,
 	assertPrivate,
 	assertArgument,
 } from "../utils/index.js";
@@ -22,7 +24,7 @@ import {
 
 import type { ProgressCallback } from "../crypto/index.js";
 import type { Provider } from "../providers/index.js";
-import type { Numeric } from "../utils/index.js";
+import type { BytesLike, Numeric } from "../utils/index.js";
 import type { Wordlist } from "../wordlists/index.js";
 
 import type { KeystoreAccount } from "./json-keystore.js";
@@ -57,6 +59,45 @@ const CorePathPrefix = "m/44'/654'/0'/0";
  *  spelling is accepted on the way in.
  */
 const LegacyPathPrefix = "m/44'/60'/0'/0";
+
+/**
+ *  Returns %%seed%% as bare lower-case hex, the form the Ed448 key
+ *  derivation expects.
+ *
+ *  The derivation decodes the seed with `Buffer.from(seed, "hex")`, and
+ *  Node's hex decoder stops at the first character that is not a hex digit
+ *  rather than reporting an error. A "0x" prefix - the convention used for
+ *  every other hex value in this library - therefore decodes to an empty
+ *  buffer, and every such seed derives the same key. Validating here keeps
+ *  unrelated seeds from colliding on one wallet.
+ */
+function seedToHex(seed: string | BytesLike): string {
+	let hex: string;
+
+	if (typeof seed === "string") {
+		hex = /^0x/i.test(seed) ? seed.substring(2) : seed;
+		assertArgument(
+			/^[0-9a-f]*$/i.test(hex) && hex.length % 2 === 0,
+			"seed must be a hex string",
+			"seed",
+			seed,
+		);
+	} else {
+		// Byte input is accepted too; the derivation copied such a seed
+		// verbatim before this check existed.
+		hex = hexlify(getBytes(seed, "seed")).substring(2);
+	}
+
+	// BIP-32 permits a seed of 16 to 64 bytes.
+	assertArgument(
+		hex.length >= 32 && hex.length <= 128,
+		"seed must be between 16 and 64 bytes",
+		"seed",
+		seed,
+	);
+
+	return hex.toLowerCase();
+}
 
 // "Bitcoin seed"
 // const MasterSecret = new Uint8Array([66, 105, 116, 99, 111, 105, 110, 32, 115, 101, 101, 100]);
@@ -309,7 +350,16 @@ export class HDNodeWallet extends BaseWallet {
 	 */
 	deriveChild(_index: number): HDNodeWallet {
 		const index = getNumber(_index, "index");
-		assertArgument(index >= 0, "invalid account index", "index", _index);
+		// The hardened bit is the upper bound, not a flag: the hardened part
+		// of the path is fixed by CorePathPrefix, so only a plain account
+		// index is meaningful here. Anything at or above it was truncated to
+		// 32 bits by the derivation and aliased onto another account.
+		assertArgument(
+			index >= 0 && index < HardenedBit,
+			"invalid account index",
+			"index",
+			_index,
+		);
 
 		const newPrivateKey = Ed448Goldilock.HDWalletGenerateKeyFromSeed(
 			this.#seed,
@@ -317,8 +367,7 @@ export class HDNodeWallet extends BaseWallet {
 		);
 		const newSigningKey = new SigningKey(newPrivateKey);
 
-		const hardened = (index & HardenedBit) !== 0;
-		const path = `${CorePathPrefix}/${index & ~HardenedBit}${hardened ? "'" : ""}`;
+		const path = `${CorePathPrefix}/${index}`;
 
 		return new HDNodeWallet({
 			guard: _guard,
@@ -360,13 +409,14 @@ export class HDNodeWallet extends BaseWallet {
 		mnemonic: null | Mnemonic;
 		prefix: string;
 	}): HDNodeWallet {
+		const seed = seedToHex(_seed);
 		const extendetPrivateKey = Ed448Goldilock.HDWalletGenerateKeyFromSeed(
-			_seed,
+			seed,
 			0,
 		);
 		const signingKey = new SigningKey(extendetPrivateKey);
 		return new HDNodeWallet({
-			seed: _seed,
+			seed,
 			guard: _guard,
 			signingKey,
 			parentFingerprint: "0x00000000",

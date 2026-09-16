@@ -680,7 +680,7 @@ export function isError<K extends ErrorCode, T extends CodedCoreBCError<K>>(
 	error: any,
 	code: K,
 ): error is T {
-	return error && (<CoreBCError>error).code === code;
+	return error != null && (<CoreBCError>error).code === code;
 }
 
 /**

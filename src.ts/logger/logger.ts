@@ -193,9 +193,11 @@ export class Logger {
 	}
 
 	makeError(message: string, code?: ErrorCode, params?: any): Error {
-		// Errors are being censored
+		// Errors are being censored. Drop the message and the params, keeping
+		// only the code; recursing here instead would never terminate.
 		if (_censorErrors) {
-			return this.makeError("censored error", code, {});
+			message = "censored error";
+			params = {};
 		}
 
 		if (!code) {
@@ -303,7 +305,10 @@ export class Logger {
 			message = "value not safe";
 		}
 
-		if (value < 0 || value >= 0x1fffffffffffff) {
+		// Inclusive upper bound: 0x1fffffffffffff is Number.MAX_SAFE_INTEGER,
+		// which maths.ts also treats as in range. Excluding it here made the
+		// same number simultaneously safe and unsafe.
+		if (value < 0 || value > 0x1fffffffffffff) {
 			this.throwError(message, Logger.errors.NUMERIC_FAULT, {
 				operation: "checkSafeInteger",
 				fault: "out-of-safe-range",
