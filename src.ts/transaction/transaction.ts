@@ -73,6 +73,13 @@ export interface TransactionLike<A = string> {
 	 *  The signature provided by the sender.
 	 */
 	signature?: null | SignatureLike;
+
+	/**
+	 *  The signature under the name [[Transaction-toJSON]] historically
+	 *  emitted. Prefer %%signature%%; this is read only when %%signature%%
+	 *  is absent.
+	 */
+	sig?: null | SignatureLike;
 }
 
 function handleAddress(value: string): null | string {
@@ -464,6 +471,8 @@ export class Transaction implements TransactionLike<string> {
 			return v.toString();
 		};
 
+		const signature = this.signature ? this.signature : null;
+
 		return {
 			to: this.to,
 			data: this.data,
@@ -472,7 +481,11 @@ export class Transaction implements TransactionLike<string> {
 			energyPrice: s(this.energyPrice),
 			value: s(this.value),
 			networkId: s(this.networkId),
-			signature: this.signature ? this.signature : null,
+			// `signature` is the key Transaction.from reads, so without it the
+			// output could not be fed back in. `sig` is the name this method
+			// has always emitted and is kept so existing callers still find it.
+			signature,
+			sig: signature,
 		};
 	}
 
@@ -514,8 +527,12 @@ export class Transaction implements TransactionLike<string> {
 		if (tx.networkId != null) {
 			result.networkId = tx.networkId;
 		}
+		// Older JSON carries the signature under `sig`, which is what this
+		// class used to emit, so accept either spelling.
 		if (tx.signature != null) {
 			result.signature = tx.signature;
+		} else if (tx.sig != null) {
+			result.signature = tx.sig;
 		}
 
 		if (tx.hash != null) {

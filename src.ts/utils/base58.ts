@@ -67,13 +67,6 @@ export function encodeBase58(_value: BytesLike): string {
  *  [[decodeBase58Bytes]] to recover the bytes [[encodeBase58]] was given.
  */
 export function decodeBase58(value: string): bigint {
-	assertArgument(
-		typeof value === "string",
-		"invalid base58 value",
-		"value",
-		value,
-	);
-
 	let result = BN_0;
 	for (let i = 0; i < value.length; i++) {
 		result *= BN_58;

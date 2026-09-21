@@ -736,10 +736,35 @@ describe("transaction clone and JSON", () => {
 			"energyPrice",
 			"networkId",
 			"nonce",
+			"sig",
 			"signature",
 			"to",
 			"value",
 		]);
+	});
+
+	it("emits the signature under both sig and signature", () => {
+		// `sig` is the name this method has always emitted; `signature` is the
+		// name Transaction.from reads, so both have to be present for the
+		// output to be both familiar and re-readable.
+		const json = signed.toJSON();
+		assert.deepEqual(json.sig, json.signature);
+		assert.notEqual(json.sig, null);
+
+		const unsignedJson = Transaction.from({
+			to: signed.to,
+			nonce: 1,
+		}).toJSON();
+		assert.equal(unsignedJson.sig, null);
+		assert.equal(unsignedJson.signature, null);
+	});
+
+	it("accepts a legacy JSON blob that only carries sig", () => {
+		const json: any = signed.toJSON();
+		delete json.signature;
+		const revived = Transaction.from(JSON.parse(JSON.stringify(json)));
+		assert.equal(revived.serialized, signed.serialized);
+		assert.equal(revived.from, sender.address);
 	});
 
 	it("renders the bigint fields as decimal strings", () => {

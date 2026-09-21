@@ -1,30 +1,31 @@
 /**
  *  @_ignore
  */
-import { assertArgument } from "./errors.js";
 
 /**
- *  Throws unless %%value%% is a well-formed standard base-64 string.
+ *  Normalizes %%value%% to the standard base-64 alphabet.
  *
  *  Both base-64 implementations route through here so the node and browser
- *  builds accept exactly the same inputs. This is deliberately stricter than
- *  the platform primitives: ``Buffer.from`` drops unknown characters and
- *  aliases the URL-safe alphabet, while ``atob`` strips ASCII whitespace.
- *  Either way malformed input would decode to silently truncated data.
+ *  builds accept the same inputs. ``Buffer.from`` is lenient: it strips
+ *  characters outside the alphabet and treats the URL-safe ``"-"`` and
+ *  ``"_"`` as aliases of ``"+"`` and ``"/"``. ``atob`` only strips ASCII
+ *  whitespace and rejects the rest, so the browser build needs the input
+ *  cleaned up first to match.
  */
-export function assertBase64(value: string): void {
-	assertArgument(
-		typeof value === "string" && /^[A-Za-z0-9+/]*={0,2}$/.test(value),
-		"invalid base64 value",
-		"value",
-		value,
-	);
+export function normalizeBase64(value: string): string {
+	if (typeof value !== "string") {
+		return value;
+	}
 
-	// A single leftover character cannot encode a whole byte.
-	assertArgument(
-		value.replace(/=+$/, "").length % 4 !== 1,
-		"invalid base64 value",
-		"value",
-		value,
-	);
+	const standard = value.replace(/-/g, "+").replace(/_/g, "/");
+	const cleaned = standard.replace(/[^A-Za-z0-9+/=]/g, "");
+
+	// atob also rejects a length that leaves a single dangling character,
+	// which encodes no whole byte; Buffer ignores it. Drop it for parity.
+	const body = cleaned.replace(/=+$/, "");
+	if (body.length % 4 === 1) {
+		return body.substring(0, body.length - 1);
+	}
+
+	return body;
 }

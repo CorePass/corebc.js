@@ -329,10 +329,35 @@ function injectCommonNetworks(): void {
 		}
 	}
 
-	// Only networks that `networkIdToPrefix` can render an address for
-	// belong here: a resolvable network with no address prefix would be a
-	// contradiction between the registry and the address layer.
-	registerCore("mainnet", 1, { altNames: ["cb"] });
+	// Core's own networks; these are the ones `networkIdToPrefix` can render
+	// an address for, and they own the numeric ids they share with any legacy
+	// name below.
+	registerCore("mainnet", 1, { altNames: ["homestead", "cb"] });
 	registerCore("devin", 3, { altNames: ["testnet", "ab"] });
 	registerCore("private", 0, { altNames: ["ce"] });
+
+	// The names this registry shipped with. They have no Core address prefix
+	// so they cannot render an address, but resolving them by name used to
+	// work and code may still refer to them. Registered by name only: the
+	// numeric ids belong to the Core networks above, and Network.register
+	// refuses to overwrite an existing entry.
+	for (const [name, networkId] of [
+		["ropsten", 3],
+		["rinkeby", 4],
+		["goerli", 5],
+		["kovan", 42],
+		["sepolia", 11155111],
+		["classic", 61],
+		["classicKotti", 6],
+		["xdai", 100],
+	] as Array<[string, number]>) {
+		if (Networks.get(name)) {
+			continue;
+		}
+		Network.register(name, () => {
+			const network = new Network(name, networkId);
+			network.attachPlugin(new EnergyCostPlugin());
+			return network;
+		});
+	}
 }

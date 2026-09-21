@@ -2092,7 +2092,7 @@ describe("Interface built-in Error and Panic", () => {
 		assert.match(error.message, /invalid data length/);
 	});
 
-	it("keys the built-in errors on Core's selectors, not Ethereum's", () => {
+	it("resolves the built-in errors under Core's selectors", () => {
 		// Core hashes a signature with SHA-2, so these are not Ethereum's
 		// 0x08c379a0 / 0x4e487b71. Every contract deployed on the network
 		// embeds the Core values, so they are the ones that arrive on a revert.
@@ -2107,12 +2107,17 @@ describe("Interface built-in Error and Panic", () => {
 		assert.equal(iface.getError("0x4b1f2ce3")!.selector, "0x4b1f2ce3");
 	});
 
-	it("does not resolve Ethereum's selectors", () => {
-		assert.equal(iface.getError("0x08c379a0"), null);
-		assert.equal(iface.getError("0x4e487b71"), null);
+	it("still resolves the built-in errors under Ethereum's selectors", () => {
+		// This table has always answered to the Ethereum values, so they stay
+		// registered even though no Core contract emits them.
+		assert.equal(iface.getError("0x08c379a0")!.format(), "Error(string)");
+		assert.equal(iface.getError("0x4e487b71")!.format(), "Panic(uint256)");
 	});
 
 	it("round-trips the built-in revert data it produces", () => {
+		// encodeErrorResult uses fragment.selector, which is the Core value.
+		// parseError could not read it back while only Ethereum's selectors
+		// were registered.
 		const errorData = iface.encodeErrorResult("Error", ["boom"]);
 		const panicData = iface.encodeErrorResult("Panic", [0x11]);
 		assert.equal(errorData.substring(0, 10), "0x4e401cbe");
@@ -2122,36 +2127,34 @@ describe("Interface built-in Error and Panic", () => {
 		assert.equal(iface.parseError(panicData)!.name, "Panic");
 	});
 
-	it("recognizes Core-selector revert data as built-in", () => {
+	it("decodes revert data carrying either selector", () => {
 		const body = coder.encode(["string"], ["boom"]).substring(2);
 
-		const core = AbiCoder.getBuiltinCallException(
-			"call",
-			{ to: ADDRESS },
-			"0x4e401cbe" + body,
-		);
-		assert.equal(core.reason, "boom");
-		assert.equal(core.revert!.name, "Error");
-
-		// Ethereum's selector is now just an unrecognized custom error.
-		const ethereum = AbiCoder.getBuiltinCallException(
-			"call",
-			{ to: ADDRESS },
-			"0x08c379a0" + body,
-		);
-		assert.equal(ethereum.reason, null);
-		assert.match(ethereum.message, /unknown custom error/);
+		for (const selector of ["0x4e401cbe", "0x08c379a0"]) {
+			const error = AbiCoder.getBuiltinCallException(
+				"call",
+				{ to: ADDRESS },
+				selector + body,
+			);
+			assert.equal(error.reason, "boom", selector);
+			assert.equal(error.revert!.name, "Error", selector);
+		}
 	});
 
-	it("reports a selector that matches the data it parsed", () => {
-		const data = "0x4e401cbe" + coder.encode(["string"], ["boom"]).substring(2);
-		const parsed = iface.parseError(data)!;
-		assert.equal(parsed.name, "Error");
-		assert.equal(parsed.args[0], "boom");
-		assert.equal(parsed.selector, data.substring(0, 10));
+	it("decodes panic data carrying either selector", () => {
+		const body = coder.encode(["uint256"], [0x11]).substring(2);
+
+		for (const selector of ["0x4b1f2ce3", "0x4e487b71"]) {
+			const error = AbiCoder.getBuiltinCallException(
+				"call",
+				{ to: ADDRESS },
+				selector + body,
+			);
+			assert.match(error.reason!, /OVERFLOW/, selector);
+		}
 	});
 
-	it("built-in errors use Core selectors end to end", () => {
+	it("built-in errors round-trip end to end", () => {
 		const errorData = iface.encodeErrorResult("Error", ["boom"]);
 		const parsed = iface.parseError(errorData)!;
 		assert.equal(parsed.name, "Error");

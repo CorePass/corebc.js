@@ -263,27 +263,39 @@ const PanicReasons: Record<string, string> = {
 export const ErrorSelector = id("Error(string)").substring(0, 10);
 export const PanicSelector = id("Panic(uint256)").substring(0, 10);
 
+// Every contract on the network emits the Core selectors, so those are the
+// ones that arrive on a revert. Ethereum's are still recognized because this
+// table has always answered to them and callers may pass them in directly.
+export const EthereumErrorSelector = "0x08c379a0";
+export const EthereumPanicSelector = "0x4e487b71";
+
+const ErrorInfoString: ErrorInfo = {
+	signature: "Error(string)",
+	name: "Error",
+	inputs: ["string"],
+	reason: (message: string) => {
+		return `reverted with reason string ${JSON.stringify(message)}`;
+	},
+};
+
+const ErrorInfoPanic: ErrorInfo = {
+	signature: "Panic(uint256)",
+	name: "Panic",
+	inputs: ["uint256"],
+	reason: (code: bigint) => {
+		let reason = "unknown panic code";
+		if (code >= 0 && code <= 0xff && PanicReasons[code.toString()]) {
+			reason = PanicReasons[code.toString()];
+		}
+		return `reverted with panic code 0x${code.toString(16)} (${reason})`;
+	},
+};
+
 const BuiltinErrors: Record<string, ErrorInfo> = {
-	[ErrorSelector]: {
-		signature: "Error(string)",
-		name: "Error",
-		inputs: ["string"],
-		reason: (message: string) => {
-			return `reverted with reason string ${JSON.stringify(message)}`;
-		},
-	},
-	[PanicSelector]: {
-		signature: "Panic(uint256)",
-		name: "Panic",
-		inputs: ["uint256"],
-		reason: (code: bigint) => {
-			let reason = "unknown panic code";
-			if (code >= 0 && code <= 0xff && PanicReasons[code.toString()]) {
-				reason = PanicReasons[code.toString()];
-			}
-			return `reverted with panic code 0x${code.toString(16)} (${reason})`;
-		},
-	},
+	[ErrorSelector]: ErrorInfoString,
+	[EthereumErrorSelector]: ErrorInfoString,
+	[PanicSelector]: ErrorInfoPanic,
+	[EthereumPanicSelector]: ErrorInfoPanic,
 };
 
 /*

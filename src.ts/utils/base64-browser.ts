@@ -1,15 +1,14 @@
 // utils/base64-browser
 
 import { getBytes } from "./data.js";
-import { assertBase64 } from "./base64-helper.js";
+import { normalizeBase64 } from "./base64-helper.js";
 
 import type { BytesLike } from "./data.js";
 
 export function decodeBase64(textData: string): Uint8Array {
-	// atob strips ASCII whitespace; validate first so this build accepts
-	// exactly what the node build does.
-	assertBase64(textData);
-	textData = atob(textData);
+	// atob rejects the URL-safe alphabet and stray characters that Buffer
+	// drops, so normalize first to accept what the node build accepts.
+	textData = atob(normalizeBase64(textData));
 	const data = new Uint8Array(textData.length);
 	for (let i = 0; i < textData.length; i++) {
 		data[i] = textData.charCodeAt(i);

@@ -65,10 +65,11 @@ function getBuiltinCallException(
 ): CallExceptionError {
 	let message = "missing revert data";
 
-	// Core hashes signatures with SHA-2, so these are not Ethereum's
-	// 0x08c379a0 / 0x4e487b71.
-	const ErrorSelector = id("Error(string)").substring(0, 10);
-	const PanicSelector = id("Panic(uint256)").substring(0, 10);
+	// Core hashes signatures with SHA-2, so its selectors are not Ethereum's.
+	// Both are accepted: the Core ones are what a node actually returns, and
+	// the Ethereum ones are what this function has always decoded.
+	const errorSelectors = [id("Error(string)").substring(0, 10), "0x08c379a0"];
+	const panicSelectors = [id("Panic(uint256)").substring(0, 10), "0x4e487b71"];
 
 	let reason: null | string = null;
 	const invocation = null;
@@ -86,7 +87,7 @@ function getBuiltinCallException(
 			reason = "require(false)";
 		} else if (bytes.length % 32 !== 4) {
 			message += " (could not decode reason; invalid data length)";
-		} else if (hexlify(bytes.slice(0, 4)) === ErrorSelector) {
+		} else if (errorSelectors.includes(hexlify(bytes.slice(0, 4)))) {
 			// Error(string)
 			try {
 				reason = abiCoder.decode(["string"], bytes.slice(4))[0];
@@ -99,7 +100,7 @@ function getBuiltinCallException(
 			} catch (error) {
 				message += " (could not decode reason; invalid string data)";
 			}
-		} else if (hexlify(bytes.slice(0, 4)) === PanicSelector) {
+		} else if (panicSelectors.includes(hexlify(bytes.slice(0, 4)))) {
 			// Panic(uint256)
 			try {
 				const code = Number(abiCoder.decode(["uint256"], bytes.slice(4))[0]);

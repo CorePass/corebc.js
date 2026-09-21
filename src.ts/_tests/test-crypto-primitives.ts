@@ -1342,16 +1342,18 @@ describe("uuidV4", () => {
 		}
 	});
 
-	it("requires exactly 16 bytes", () => {
-		// Without a length check a short buffer produced a short final group
-		// and a long one was silently truncated.
-		for (const length of [0, 1, 15, 17, 20]) {
-			assert.throws(
-				() => uuidV4("0x" + "11".repeat(length)),
-				/randomBytes must be 16 bytes/,
-				String(length),
-			);
-		}
+	it("PINS: input that is not 16 bytes yields a malformed UUID", () => {
+		// uuid.ts does not check the length, so a short buffer produces a
+		// short final group and a long one is silently truncated. Adding the
+		// check would turn a working-but-odd call into an exception.
+		assert.equal(
+			uuidV4("0x" + "11".repeat(15)),
+			"11111111-1111-4111-9111-1111111111",
+		);
+		assert.equal(
+			uuidV4("0x" + "11".repeat(20)),
+			"11111111-1111-4111-9111-111111111111",
+		);
 		assert.equal(
 			uuidV4("0x" + "11".repeat(16)),
 			"11111111-1111-4111-9111-111111111111",

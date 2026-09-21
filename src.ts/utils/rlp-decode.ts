@@ -82,35 +82,12 @@ function _decode(
 		);
 	};
 
-	// RLP is canonical: a length must use the shortest form that can express
-	// it, and a single byte below 0x80 must be written bare. Without these
-	// checks distinct byte strings decode to the same value, so a hash taken
-	// over the raw bytes differs while the structure does not.
-	const checkCanonicalLength = (lengthLength: number, length: number) => {
-		assertArgument(
-			data[offset + 1] !== 0,
-			"non-canonical rlp length; leading zero",
-			"data",
-			hexlify(data),
-		);
-		assertArgument(
-			length > 55,
-			"non-canonical rlp length; short form applies",
-			"data",
-			hexlify(data),
-		);
-		return lengthLength;
-	};
-
 	// Array with extra length prefix
 	if (data[offset] >= 0xf8) {
 		const lengthLength = data[offset] - 0xf7;
 		checkOffset(offset + 1 + lengthLength);
 
 		const length = unarrayifyInteger(data, offset + 1, lengthLength);
-		// Minimality is a property of the header alone, so judge it before
-		// the payload length is used to bound-check the buffer.
-		checkCanonicalLength(lengthLength, length);
 		checkOffset(offset + 1 + lengthLength + length);
 
 		return _decodeChildren(
@@ -129,7 +106,6 @@ function _decode(
 		checkOffset(offset + 1 + lengthLength);
 
 		const length = unarrayifyInteger(data, offset + 1, lengthLength);
-		checkCanonicalLength(lengthLength, length);
 		checkOffset(offset + 1 + lengthLength + length);
 
 		const result = hexlify(
@@ -139,14 +115,6 @@ function _decode(
 	} else if (data[offset] >= 0x80) {
 		const length = data[offset] - 0x80;
 		checkOffset(offset + 1 + length);
-
-		// A lone byte below 0x80 is its own encoding.
-		assertArgument(
-			length !== 1 || data[offset + 1] >= 0x80,
-			"non-canonical rlp; single byte must be written bare",
-			"data",
-			hexlify(data),
-		);
 
 		const result = hexlify(data.slice(offset + 1, offset + 1 + length));
 		return { consumed: 1 + length, result: result };

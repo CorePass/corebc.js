@@ -139,10 +139,7 @@ const KwTypes = setify(_kwTypes.split(" "));
 const _kwModifiers = "calldata memory storage payable indexed";
 const KwModifiers = setify(_kwModifiers.split(" "));
 
-// "anonymous" has to be a keyword rather than an identifier, otherwise the
-// lexer types it as an ID, consumeKeywords never sees it and the trailing
-// token makes the whole event fragment unparseable.
-const _kwOther = "tuple returns anonymous";
+const _kwOther = "tuple returns";
 
 // All Keywords
 const _keywords = [_kwTypes, _kwModifiers, _kwOther, _kwVisib].join(" ");
@@ -1449,9 +1446,19 @@ export class EventFragment extends NamedFragment {
 		} else if (obj instanceof TokenString) {
 			const name = consumeName("event", obj);
 			const inputs = consumeParams(obj, true);
-			const anonymous = !!consumeKeywords(obj, setify(["anonymous"])).has(
+
+			// `anonymous` is not in the keyword sets, so the lexer types it as
+			// a plain ID and consumeKeywords cannot see it. Consume it here by
+			// position instead of promoting it to a keyword, which would stop
+			// an event or parameter legitimately named "anonymous" parsing.
+			let anonymous = !!consumeKeywords(obj, setify(["anonymous"])).has(
 				"anonymous",
 			);
+			if (!anonymous && obj.length > 0 && obj.peek().text === "anonymous") {
+				obj.pop();
+				anonymous = true;
+			}
+
 			consumeEoi(obj);
 
 			return new EventFragment(_guard, name, inputs, anonymous);
