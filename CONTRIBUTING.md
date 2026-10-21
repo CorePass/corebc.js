@@ -17,6 +17,13 @@ The live fee-data test is optional because it depends on an external node:
 COREBC_RPC_URL=https://your-node.example npm test
 ```
 
+The Devin network checks against the Swaptopia contracts are also opt-in. They are read-only unless a disposable wallet's mnemonic is supplied, in which case they send a few transactions of 0.0001 XAB; `CORE_TEST_PIN` is the mnemonic password and `CORE_DEVIN_RPC` overrides the endpoint:
+
+```sh
+CORE_LIVE_DEVIN=1 npm run test-esm
+CORE_LIVE_DEVIN=1 CORE_TEST_MNEMONIC="..." CORE_TEST_PIN="..." npm run test-esm
+```
+
 Use a node with the Core `xcb_*` RPC API. Ordinary tests need no live blockchain. The package smoke check downloads production dependencies into a temporary directory and therefore needs registry access. Run `npm audit` to inspect dependency advisories.
 
 For CIP changes, link the [proposal](https://cip.coreblockchain.net/), describe supported operations and interoperability vectors, and update the README. Current helpers follow the CIP-150/151/152 and custom-unit work introduced in core_web3dart commit `ec787c8`, with subsequent history reviewed through `e472746`. Custom units are a Core application convention and are not presented as a numbered CIP. Keep token amounts and Unix seconds as `bigint`; use an explicit block reference when related reads need a consistent snapshot.

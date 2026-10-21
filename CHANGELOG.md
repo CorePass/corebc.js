@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.2.0
+
+- Keep `energyPrice` and the node's `network_id` on transactions from `getTransaction` and prefetched blocks, so fetched transactions re-serialize to their on-chain hash.
+- Accept the raw all-zero address and the precompile addresses in `getAddress`, so `address(0)` results such as a factory's missing pool, and mint or burn `Transfer` logs, decode instead of failing the checksum.
+- Fix HD derivation paths: paths are parsed rather than walked, `defaultPath` and the account path helpers use Core's `m/44'/654'/0'/0/<index>`, `HDNodeWallet.fromSeed` honours its path, and keystores with older path labels still restore the right account.
+- Fix `getCreateAddress`, which returned the deployer's address, `signTypedData` for typed data containing addresses, and `parseUnits` silently truncating malformed amounts.
+- Register Core's networks (mainnet `1`/`cb`, devin `3`/`ab`, private `0`/`ce`) and add `prefixToNetworkId`, `isNetworkPrefix`, `networkPrefixes`, `getZeroAddress`, `ZeroAddressDevin` and `ZeroAddressPrivate`.
+- Sync upstream typing, robustness and ABI decoding fixes, including bounded decoding of compressed ABI data.
+- Behavior changes: unsupported derivation paths and unknown address prefixes now throw instead of returning an unrelated key or address, `getAddress` returns lower-case, `getAddress` accepts ICAP input, and the Ethereum networks are no longer registered.
+- Add regression tests from recorded Devin responses, and opt-in live Devin tests against the Swaptopia contracts.
+
 ## 1.1.1
 
 - Fix IPFS subdomain gateway resolution and percent-encoded URI paths, with traversal validation.
