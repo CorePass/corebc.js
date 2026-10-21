@@ -141,8 +141,13 @@ describe("ICAN address format", () => {
 		}
 	});
 
-	it("rejects the all-zero address, which has no valid checksum", () => {
-		assert.throws(() => getAddress("0x" + "0".repeat(44)), /checksum/);
+	it("accepts the raw all-zero address and precompiles without a checksum", () => {
+		for (const last of "0123456789") {
+			const address = "0x" + "0".repeat(43) + last;
+			assert.equal(getAddress(address), address);
+			assert.equal(isAddress(address), true);
+		}
+		assert.throws(() => getAddress("0x" + "0".repeat(42) + "10"), /checksum/);
 	});
 });
 

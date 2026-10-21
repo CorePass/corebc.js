@@ -261,6 +261,7 @@ export function formatTransactionResponse(
 			from: getAddress,
 
 			maxFeePerEnergy: allowNull(getBigInt),
+			energyPrice: allowNull(getBigInt),
 
 			energyLimit: getBigInt,
 			to: allowNull(getAddress, null),
@@ -275,6 +276,7 @@ export function formatTransactionResponse(
 		{
 			data: ["input"],
 			energyLimit: ["energy"],
+			networkId: ["network_id"],
 		},
 	)(value);
 
