@@ -27,8 +27,10 @@ Open a pull request explaining the problem, changed behavior, and validation. Bu
 
 1. Update `package.json` and `src.ts/_version.ts` to the intended version, install dependencies with `npm install`, and document changes in `CHANGELOG.md`.
 2. Run `npm run check` and commit source, configuration, and documentation changes.
-3. Create a GitHub release whose tag is the version, optionally prefixed with `v`.
+3. Create a GitHub release whose tag is the version, optionally prefixed with `v`. Select the branch containing that version as the release target; any branch is supported and must contain the release workflow.
 
-The release workflow checks the tag against the package version, reruns validation and the dependency audit, and publishes the validated npm archive with provenance. Both workflows use `npm install` with package-manager caching disabled; npm creates an ephemeral runner lockfile for the dependency audit. GitHub prereleases use the `next` dist-tag; normal releases use `latest`.
+The release workflow checks the tag against the package version, reruns validation and the dependency audit, and publishes the validated npm archive with provenance. Both workflows use `npm install` with package-manager caching disabled; npm creates an ephemeral runner lockfile for the dependency audit. GitHub pre-releases and versions with a pre-release suffix use the `rc` dist-tag; stable releases use `latest`.
+
+For example, to publish a release candidate from `any-branch`, set both version files to `1.1.2-rc.1` on that branch and commit the changes. Create a GitHub release with tag `1.1.2-rc.1` (or `v1.1.2-rc.1`), target `any-branch`, select **Pre-release**, and publish it. Publishing the release triggers npm publication, including when publishing a saved draft; merely creating a tag or saving a draft does not. Install the candidate with `npm install corebc@rc` or `npm install corebc@1.1.2-rc.1`. The npm `latest` tag stays unchanged.
 
 Before the first automated release, a package owner must configure an npm trusted publisher for `CorePass/corebc.js`, workflow `publish-npm.yml`. This is an npm account setting, not a repository secret. See [npm trusted publishing](https://docs.npmjs.com/trusted-publishers/). Publishing a GitHub release triggers publication; CI on pull requests does not publish.

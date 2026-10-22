@@ -105,8 +105,7 @@
 	"main": "./lib.commonjs/index.js",
 	"module": "./lib.esm/index.js",
 	"publishConfig": {
-		"access": "public",
-		"tag": "latest"
+		"access": "public"
 	},
 	"scripts": {
 		"_build-dist": "rollup -c && uglifyjs ./dist/corebc.js -o ./dist/corebc.min.js && uglifyjs ./dist/corebc.umd.js -o ./dist/corebc.umd.min.js && uglifyjs ./dist/wordlists-extra.js -o ./dist/wordlists-extra.min.js",

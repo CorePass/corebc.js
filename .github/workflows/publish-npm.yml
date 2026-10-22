@@ -39,8 +39,9 @@ jobs:
         env:
           PRERELEASE: ${{ github.event.release.prerelease }}
         run: |
-          if [ "$PRERELEASE" = "true" ]; then
-            npm publish corebc-*.tgz --access public --provenance --tag next
+          VERSION=$(node --print 'JSON.parse(require("node:fs").readFileSync("package.json", "utf8")).version')
+          if [ "$PRERELEASE" = "true" ] || [[ "$VERSION" == *-* ]]; then
+            npm publish corebc-*.tgz --access public --provenance --tag rc
           else
             npm publish corebc-*.tgz --access public --provenance --tag latest
           fi
