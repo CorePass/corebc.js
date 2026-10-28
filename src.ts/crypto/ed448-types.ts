@@ -1,5 +1,5 @@
 import type { Buffer } from "buffer";
-/** Buffer-based bcrypto Ed448 operations used by Core signing. */
+/** Buffer-based Ed448 operations used by Core signing, with bcrypto's interface. */
 export interface Ed448Backend {
 	privateKeyGenerate(): Buffer;
 	publicKeyCreate(key: Buffer): Buffer;

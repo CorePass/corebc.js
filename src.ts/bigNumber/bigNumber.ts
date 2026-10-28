@@ -3,12 +3,13 @@
 /**
  *  BigNumber
  *
- *  A wrapper around the BN.js object. We use the BN.js library
- *  because it is used by elliptic, so it is required regardless.
+ *  An immutable signed integer, stored as a hex string. Arithmetic runs on
+ *  native bigint; up to 1.1.x it ran on BN.js, and the results, including
+ *  BN.js's handling of out-of-range two's complement and its errors, are
+ *  kept the same.
  *
  */
 
-import _BN from "bn.js";
 import { Logger } from "../logger/logger.js";
 import {
 	Bytes,
@@ -17,13 +18,15 @@ import {
 	hexlify,
 	isHexString,
 } from "../utils/data.js";
-import BN = _BN.BN;
 
 const logger = new Logger("bigNumber/0.0.1");
 
 const _constructorGuard = {};
 
 const MAX_SAFE = 0x1fffffffffffff;
+const MAX_NUMBER = BigInt(2) ** BigInt(53);
+const ZERO = BigInt(0);
+const ONE = BigInt(1);
 
 export type BigNumberish = BigNumber | Bytes | bigint | string | number;
 
@@ -66,11 +69,24 @@ export class BigNumber implements Hexable {
 	}
 
 	fromTwos(value: number): BigNumber {
-		return toBigNumber(toBN(this).fromTwos(value));
+		const bit = value - 1;
+		assertBits(bit);
+		const v = toBI(this);
+		if (((v < 0 ? -v : v) >> BigInt(bit)) & ONE) {
+			assertBits(value);
+			const m = ~(v < 0 ? -v : v) & mask(value);
+			return toBigNumber(v < 0 ? m - ONE : -(m + ONE));
+		}
+		return this;
 	}
 
 	toTwos(value: number): BigNumber {
-		return toBigNumber(toBN(this).toTwos(value));
+		const v = toBI(this);
+		if (v < 0) {
+			assertBits(value);
+			return toBigNumber((~-v & mask(value)) + ONE);
+		}
+		return this;
 	}
 
 	abs(): BigNumber {
@@ -81,11 +97,11 @@ export class BigNumber implements Hexable {
 	}
 
 	add(other: BigNumberish): BigNumber {
-		return toBigNumber(toBN(this).add(toBN(other)));
+		return toBigNumber(toBI(this) + toBI(other));
 	}
 
 	sub(other: BigNumberish): BigNumber {
-		return toBigNumber(toBN(this).sub(toBN(other)));
+		return toBigNumber(toBI(this) - toBI(other));
 	}
 
 	div(other: BigNumberish): BigNumber {
@@ -93,92 +109,99 @@ export class BigNumber implements Hexable {
 		if (o.isZero()) {
 			throwFault("division by zero", "div");
 		}
-		return toBigNumber(toBN(this).div(toBN(other)));
+		return toBigNumber(toBI(this) / o.toBigInt());
 	}
 
 	mul(other: BigNumberish): BigNumber {
-		return toBigNumber(toBN(this).mul(toBN(other)));
+		return toBigNumber(toBI(this) * toBI(other));
 	}
 
 	mod(other: BigNumberish): BigNumber {
-		const value = toBN(other);
-		if (value.isNeg()) {
+		const value = toBI(other);
+		if (value < 0) {
 			throwFault("cannot modulo negative values", "mod");
 		}
-		return toBigNumber(toBN(this).umod(value));
+		// BN.js's error, kept for callers that match on it.
+		if (value === ZERO) throw new Error("Assertion failed");
+		const r = toBI(this) % value;
+		return toBigNumber(r < 0 ? r + value : r);
 	}
 
 	pow(other: BigNumberish): BigNumber {
-		const value = toBN(other);
-		if (value.isNeg()) {
+		const value = toBI(other);
+		if (value < 0) {
 			throwFault("cannot raise to negative values", "pow");
 		}
-		return toBigNumber(toBN(this).pow(value));
+		return toBigNumber(toBI(this) ** value);
 	}
 
 	and(other: BigNumberish): BigNumber {
-		const value = toBN(other);
-		if (this.isNegative() || value.isNeg()) {
+		const value = toBI(other);
+		if (this.isNegative() || value < 0) {
 			throwFault("cannot 'and' negative values", "and");
 		}
-		return toBigNumber(toBN(this).and(value));
+		return toBigNumber(toBI(this) & value);
 	}
 
 	or(other: BigNumberish): BigNumber {
-		const value = toBN(other);
-		if (this.isNegative() || value.isNeg()) {
+		const value = toBI(other);
+		if (this.isNegative() || value < 0) {
 			throwFault("cannot 'or' negative values", "or");
 		}
-		return toBigNumber(toBN(this).or(value));
+		return toBigNumber(toBI(this) | value);
 	}
 
 	xor(other: BigNumberish): BigNumber {
-		const value = toBN(other);
-		if (this.isNegative() || value.isNeg()) {
+		const value = toBI(other);
+		if (this.isNegative() || value < 0) {
 			throwFault("cannot 'xor' negative values", "xor");
 		}
-		return toBigNumber(toBN(this).xor(value));
+		return toBigNumber(toBI(this) ^ value);
 	}
 
 	mask(value: number): BigNumber {
 		if (this.isNegative() || value < 0) {
 			throwFault("cannot mask negative values", "mask");
 		}
-		return toBigNumber(toBN(this).maskn(value));
+		assertBits(value);
+		const v = toBI(this);
+		return v >> BigInt(value) === ZERO ? this : toBigNumber(v & mask(value));
 	}
 
 	shl(value: number): BigNumber {
 		if (this.isNegative() || value < 0) {
 			throwFault("cannot shift negative values", "shl");
 		}
-		return toBigNumber(toBN(this).shln(value));
+		assertBits(value);
+		return toBigNumber(toBI(this) << BigInt(value));
 	}
 
 	shr(value: number): BigNumber {
 		if (this.isNegative() || value < 0) {
 			throwFault("cannot shift negative values", "shr");
 		}
-		return toBigNumber(toBN(this).shrn(value));
+		assertBits(value);
+		return toBigNumber(toBI(this) >> BigInt(value));
 	}
 
 	eq(other: BigNumberish): boolean {
-		return toBN(this).eq(toBN(other));
+		return toBI(this) === toBI(other);
 	}
 
 	lt(other: BigNumberish): boolean {
-		return toBN(this).lt(toBN(other));
+		return toBI(this) < toBI(other);
 	}
 
 	lte(other: BigNumberish): boolean {
-		return toBN(this).lte(toBN(other));
+		return toBI(this) <= toBI(other);
 	}
 
 	gt(other: BigNumberish): boolean {
-		return toBN(this).gt(toBN(other));
+		return toBI(this) > toBI(other);
 	}
 
 	gte(other: BigNumberish): boolean {
-		return toBN(this).gte(toBN(other));
+		return toBI(this) >= toBI(other);
 	}
 
 	isNegative(): boolean {
@@ -186,31 +209,19 @@ export class BigNumber implements Hexable {
 	}
 
 	isZero(): boolean {
-		return toBN(this).isZero();
+		return this._hex === "0x00";
 	}
 
 	toNumber(): number {
-		try {
-			return toBN(this).toNumber();
-		} catch (error) {
+		const value = toBI(this);
+		if (value >= MAX_NUMBER || value <= -MAX_NUMBER) {
 			throwFault("overflow", "toNumber", this.toString());
 		}
-		// @ts-ignore
-		return null;
+		return Number(value);
 	}
 
 	toBigInt(): bigint {
-		try {
-			return BigInt(this.toString());
-		} catch (e) {}
-
-		return logger.throwError(
-			"this platform does not support BigInt",
-			Logger.errors.UNSUPPORTED_OPERATION,
-			{
-				value: this.toString(),
-			},
-		);
+		return toBI(this);
 	}
 
 	toString(): string {
@@ -237,7 +248,7 @@ export class BigNumber implements Hexable {
 				);
 			}
 		}
-		return toBN(this).toString(10);
+		return toBI(this).toString(10);
 	}
 
 	toHexString(): string {
@@ -259,7 +270,7 @@ export class BigNumber implements Hexable {
 			}
 
 			if (value.match(/^-?[0-9]+$/)) {
-				return new BigNumber(_constructorGuard, toHex(new BN(value)));
+				return new BigNumber(_constructorGuard, toHex(BigInt(value)));
 			}
 
 			return logger.throwArgumentError(
@@ -330,9 +341,7 @@ export class BigNumber implements Hexable {
 }
 
 // Normalize the hex string
-// @ts-ignore
-function toHex(value: string | BN): string {
-	// For BN, call on the hex string
+function toHex(value: string | bigint): string {
 	if (typeof value !== "string") {
 		return toHex(value.toString(16));
 	}
@@ -364,9 +373,7 @@ function toHex(value: string | BN): string {
 		value = "0x" + value;
 	}
 
-	// Normalize the prefix and the digits to lower case. Without this an
-	// upper-case "0X" prefix survives into BN.js, which rejects it with its
-	// own error rather than one of ours.
+	// Normalize the prefix and the digits to lower case.
 	value = "0x" + value.substring(2).toLowerCase();
 
 	// Normalize zero
@@ -386,17 +393,24 @@ function toHex(value: string | BN): string {
 
 	return value;
 }
-// @ts-ignore
-function toBigNumber(value: BN): BigNumber {
-	return BigNumber.from(toHex(value));
+function toBigNumber(value: bigint): BigNumber {
+	return new BigNumber(_constructorGuard, toHex(value));
 }
-// @ts-ignore
-function toBN(value: BigNumberish): BN {
+
+function toBI(value: BigNumberish): bigint {
 	const hex = BigNumber.from(value).toHexString();
-	if (hex[0] === "-") {
-		return new BN("-" + hex.substring(3), 16);
+	return hex[0] === "-" ? -BigInt(hex.substring(1)) : BigInt(hex);
+}
+
+function mask(bits: number): bigint {
+	return (ONE << BigInt(bits)) - ONE;
+}
+
+/** Bit counts BN.js accepted: non-negative integers; it threw on the rest. */
+function assertBits(bits: number): void {
+	if (typeof bits !== "number" || !Number.isInteger(bits) || bits < 0) {
+		throw new Error("Assertion failed");
 	}
-	return new BN(hex.substring(2), 16);
 }
 
 function throwFault(fault: string, operation: string, value?: any): never {
@@ -408,12 +422,45 @@ function throwFault(fault: string, operation: string, value?: any): never {
 	return logger.throwError(fault, Logger.errors.NUMERIC_FAULT, params);
 }
 
+/**
+ *  Parses %%value%% in %%base%% (16 or 36) the way BN.js did: whitespace is
+ *  ignored, a leading "-" negates, and base 36 also reads ":" to "@" as the
+ *  digits 10 to 16.
+ */
+function parseBase(value: string, base: 16 | 36): bigint {
+	const digits = value.replace(/\s+/g, "");
+	const negative = digits[0] === "-";
+	const big = BigInt(base);
+	let result = ZERO;
+	for (let i = negative ? 1 : 0; i < digits.length; i++) {
+		const c = digits.charCodeAt(i);
+		let d: number;
+		if (base === 16) {
+			d =
+				c >= 48 && c <= 57
+					? c - 48
+					: c >= 65 && c <= 70
+						? c - 55
+						: c >= 97 && c <= 102
+							? c - 87
+							: -1;
+			if (d < 0) throw new Error("Invalid character in " + digits);
+		} else {
+			const x = c - 48;
+			d = x >= 49 ? x - 39 : x >= 17 ? x - 7 : x;
+			if (x < 0 || d >= base) throw new Error("Invalid character");
+		}
+		result = result * big + BigInt(d);
+	}
+	return negative ? -result : result;
+}
+
 // value should have no prefix
 export function _base36To16(value: string): string {
-	return new BN(value, 36).toString(16);
+	return parseBase(value, 36).toString(16);
 }
 
 // value should have no prefix
 export function _base16To36(value: string): string {
-	return new BN(value, 16).toString(36);
+	return parseBase(value, 16).toString(36);
 }

@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+- Replace bcrypto with `@noble/curves` for Ed448 signing, verification, key derivation and X448 shared secrets. Keys, signatures, addresses and shared secrets are byte-identical, checked against bcrypto's native and JavaScript builds; the minified browser bundle shrinks from 768 kB to 570 kB, and installs no longer build bcrypto's native addon.
+- HD derivation uses Node's PBKDF2-HMAC-SHA3-512 in Node and noble's in browsers.
+- Behavior change: Ed448 operations in Node now run in JavaScript, 10 to 20 times slower than bcrypto's native addon (signing about 0.7 ms, verification and key agreement about 2 ms each). Browser builds are about as fast as before or faster. `SigningKey` now computes its public key once and reuses it, so signing no longer derives it a second time.
+- Behavior change: in browser builds, a shared secret with a small-order public key now fails with `Invalid public key.`, as Node builds already did, instead of `Invalid point.`.
+- Behavior change: `Ed448Goldilock._channel` now has only the Ed448 methods corebc uses (key creation and conversion, point checks and addition, signing, verification and derivation) rather than bcrypto's whole Ed448 object.
+- Replace bn.js with native `bigint` in `BigNumber`, `_base36To16` and `_base16To36`. Results and errors are unchanged, checked against bn.js for every method; together with the bcrypto change, the minified browser bundle is now 516 kB.
+- Behavior change: `BigNumber`'s `toTwos`, `fromTwos`, `mask`, `shl` and `shr` now throw `Assertion failed` for a bit count that isn't a finite, non-negative integer (such as 1.5 or `Infinity`), where bn.js returned truncated or wrong values. A bit count too large for a `bigint` in `shl`, or in `toTwos` of a negative number, now fails with a `RangeError` instead of hanging or running out of memory.
+
 ## 1.2.0
 
 - Keep `energyPrice` and the node's `network_id` on transactions from `getTransaction` and prefetched blocks, so fetched transactions re-serialize to their on-chain hash.

@@ -1,10 +1,7 @@
+import { pbkdf2 } from "@noble/hashes/pbkdf2.js";
+import { sha3_512 } from "@noble/hashes/sha3.js";
 import { Buffer } from "buffer";
-// @ts-ignore
 import ed448 from "./browser-ed448.js";
-// @ts-ignore
-import pbkdf2 from "./pbkdf2-browser.js";
-// @ts-ignore
-import SHA3_512 from "bcrypto/lib/sha3-512.js";
 
 export class Ed448Goldilock {
 	static _channel = ed448;
@@ -74,9 +71,9 @@ export class Ed448Goldilock {
 	static SHA512Hash(password: string, salt: string): string {
 		var p1 = Buffer.from(password, "hex");
 		var s1 = Buffer.from(salt, "hex");
-		return Buffer.from(pbkdf2.derive(SHA3_512, p1, s1, 2048, 57)).toString(
-			"hex",
-		);
+		return Buffer.from(
+			pbkdf2(sha3_512, p1, s1, { c: 2048, dkLen: 57 }),
+		).toString("hex");
 	}
 
 	static concatenateAndHex(

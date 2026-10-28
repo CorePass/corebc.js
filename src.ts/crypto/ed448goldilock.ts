@@ -1,10 +1,7 @@
+/// <reference types="node" preserve="true" />
 import { Buffer } from "buffer";
-// @ts-ignore
+import { pbkdf2Sync } from "crypto";
 import ed448 from "./ed448.js";
-// @ts-ignore
-import pbkdf2 from "bcrypto/lib/pbkdf2.js";
-// @ts-ignore
-import SHA3_512 from "bcrypto/lib/sha3-512.js";
 
 export class Ed448Goldilock {
 	static _channel = ed448;
@@ -74,7 +71,7 @@ export class Ed448Goldilock {
 	static SHA512Hash(password: string, salt: string): string {
 		var p1 = Buffer.from(password, "hex");
 		var s1 = Buffer.from(salt, "hex");
-		return Buffer.from(pbkdf2.derive(SHA3_512, p1, s1, 2048, 57)).toString(
+		return Buffer.from(pbkdf2Sync(p1, s1, 2048, 57, "sha3-512")).toString(
 			"hex",
 		);
 	}

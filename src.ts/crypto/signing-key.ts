@@ -27,6 +27,7 @@ const logger = new Logger("signing-key/0.0.1");
  */
 export class SigningKey {
 	#privateKey: string;
+	#publicKey: null | string = null;
 
 	/**
 	 *  Creates a new **SigningKey** for %%privateKey%%.
@@ -54,12 +55,15 @@ export class SigningKey {
 
 	/** The 57-byte Ed448 public key encoded as hex. */
 	get publicKey(): string {
-		return SigningKey.computePublicKey(this.#privateKey);
+		if (this.#publicKey == null) {
+			this.#publicKey = SigningKey.computePublicKey(this.#privateKey);
+		}
+		return this.#publicKey;
 	}
 
 	/** Compatibility alias: Ed448 has one 57-byte public-key encoding. */
 	get compressedPublicKey(): string {
-		return SigningKey.computePublicKey(this.#privateKey, true);
+		return this.publicKey;
 	}
 
 	/**
