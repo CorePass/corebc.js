@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.1.2-rc.2
 
 - Replace bcrypto with `@noble/curves` for Ed448 signing, verification, key derivation and X448 shared secrets. Keys, signatures, addresses and shared secrets are byte-identical, checked against bcrypto's native and JavaScript builds; the minified browser bundle shrinks from 768 kB to 570 kB, and installs no longer build bcrypto's native addon.
 - HD derivation uses Node's PBKDF2-HMAC-SHA3-512 in Node and noble's in browsers.
