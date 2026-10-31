@@ -1,6 +1,6 @@
 {
 	"name": "corebc",
-	"version": "1.1.2-rc.2",
+	"version": "1.1.2-rc.3",
 	"author": "CorePass",
 	"description": "A complete and compact CoreBC library, for Dapps, wallets and any other tools.",
 	"browser": {
@@ -16,15 +16,15 @@
 	"dependencies": {
 		"@noble/curves": "2.4.0",
 		"@noble/hashes": "2.4.0",
-		"@types/node": "26.4.1",
+		"@types/node": "26.6.6",
 		"aes-js": "3.1.2",
 		"buffer": "^6.0.3",
-		"tslib": "2.8.1",
+		"tslib": "2.9.1",
 		"utf8": "^3.0.0",
-		"ws": "8.21.3"
+		"ws": "8.22.1"
 	},
 	"devDependencies": {
-		"@rollup/plugin-commonjs": "^29.0.0",
+		"@rollup/plugin-commonjs": "^29.0.3",
 		"@rollup/plugin-inject": "^5.0.5",
 		"@rollup/plugin-node-resolve": "16.0.3",
 		"@types/bn.js": "^5.2.0",
@@ -34,9 +34,9 @@
 		"bcrypto": "^5.5.2",
 		"bn.js": "^5.2.5",
 		"c8": "12.0.0",
-		"mocha": "12.0.0",
-		"prettier": "^3.9.6",
-		"rollup": "4.63.1",
+		"mocha": "12.0.3",
+		"prettier": "^3.9.10",
+		"rollup": "4.67.2",
 		"semver": "7.8.5",
 		"typescript": "7.0.2",
 		"uglify-js": "3.19.3"

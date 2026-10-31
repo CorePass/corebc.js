@@ -45,7 +45,7 @@ import {
 const PREFIXES: Array<{ prefix: string; networkId: number; label: string }> = [
 	{ prefix: "cb", networkId: 1, label: "mainnet" },
 	{ prefix: "ab", networkId: 3, label: "testnet" },
-	{ prefix: "ce", networkId: 0, label: "private" },
+	{ prefix: "ce", networkId: 10, label: "private" },
 ];
 
 /** Deterministic 57-byte Ed448 private keys. Test material only. */
@@ -237,15 +237,15 @@ describe("network id to address prefix", () => {
 		assert.equal(networkIdToPrefix(1), "cb", "mainnet");
 		assert.equal(networkIdToPrefix(3), "ab", "testnet");
 		assert.equal(networkIdToPrefix(4), "ab", "testnet variant");
-		assert.equal(networkIdToPrefix(0), "ce", "private");
+		assert.equal(networkIdToPrefix(10), "ce", "private");
 		for (const id of [11, 12, 100, 1337, 65535]) {
 			assert.equal(networkIdToPrefix(id), "ce", `private id ${id}`);
 		}
 	});
 
 	it("rejects the reserved and unassigned ids", () => {
-		// 2 and 5..10 sit between the assigned ranges and have no prefix.
-		for (const id of [2, 5, 6, 7, 8, 9, 10]) {
+		// 0, 2 and 5..9 sit between the assigned ranges and have no prefix.
+		for (const id of [0, 2, 5, 6, 7, 8, 9]) {
 			assert.throws(() => networkIdToPrefix(id), /bad networkId/, `id ${id}`);
 		}
 	});
@@ -267,7 +267,7 @@ describe("network id to address prefix", () => {
 	it("maps a prefix back to its canonical network id", () => {
 		assert.equal(prefixToNetworkId("cb"), 1);
 		assert.equal(prefixToNetworkId("ab"), 3);
-		assert.equal(prefixToNetworkId("ce"), 0);
+		assert.equal(prefixToNetworkId("ce"), 10);
 	});
 
 	it("tolerates case and a 0x on the way back", () => {
@@ -305,7 +305,7 @@ describe("network id to address prefix", () => {
 	it("only ever produces lowercase two-character hex prefixes", () => {
 		// The prefix doubles as the first byte of the address, so it has to be
 		// valid hex as well as a readable network tag.
-		const ids = [0, 1, 3, 4, 11, 500];
+		const ids = [10, 1, 3, 4, 11, 500];
 		for (const id of ids) {
 			const prefix = networkIdToPrefix(id);
 			assert.match(prefix, /^[0-9a-f]{2}$/, `id ${id} -> ${prefix}`);

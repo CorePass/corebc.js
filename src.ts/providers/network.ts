@@ -334,7 +334,7 @@ function injectCommonNetworks(): void {
 	// name below.
 	registerCore("mainnet", 1, { altNames: ["homestead", "cb"] });
 	registerCore("devin", 3, { altNames: ["testnet", "ab"] });
-	registerCore("private", 0, { altNames: ["ce"] });
+	registerCore("private", 10, { altNames: ["ce"] });
 
 	// The names this registry shipped with. They have no Core address prefix
 	// so they cannot render an address, but resolving them by name used to

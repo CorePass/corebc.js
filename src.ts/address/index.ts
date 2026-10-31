@@ -300,7 +300,7 @@ function getZeroAddress(prefix: string): string {
  *  Returns the address prefix for %%networkId%%.
  *
  *  Core assigns ``1`` to mainnet (``cb``), ``3`` and ``4`` to test networks
- *  (``ab``), and ``0`` along with anything above ``10`` to private networks
+ *  (``ab``), and ids ``10`` and above to private networks
  *  (``ce``). The ids in between are unassigned and rejected.
  */
 function networkIdToPrefix(networkId: number): string {
@@ -318,7 +318,7 @@ function networkIdToPrefix(networkId: number): string {
 		return "cb";
 	} else if (networkId === 3 || networkId === 4) {
 		return "ab";
-	} else if (networkId > 10 || networkId === 0) {
+	} else if (networkId >= 10) {
 		return "ce";
 	} else {
 		logger.throwArgumentError("bad networkId", "networkId", networkId);
@@ -330,7 +330,7 @@ function networkIdToPrefix(networkId: number): string {
  *  Returns a representative network id for %%prefix%%.
  *
  *  A prefix covers a range of ids, so this returns the canonical one for
- *  that network: ``cb`` to ``1``, ``ab`` to ``3`` and ``ce`` to ``0``. Use
+ *  that network: ``cb`` to ``1``, ``ab`` to ``3`` and ``ce`` to ``10``. Use
  *  it to answer "which network is this address on", not to recover the
  *  exact id an address was produced with, which a prefix cannot encode.
  */
@@ -344,7 +344,7 @@ function prefixToNetworkId(prefix: string): number {
 		case "ab":
 			return 3;
 		case "ce":
-			return 0;
+			return 10;
 	}
 
 	logger.throwArgumentError("bad address prefix", "prefix", prefix);

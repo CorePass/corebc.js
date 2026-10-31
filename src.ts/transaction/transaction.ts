@@ -366,7 +366,7 @@ export class Transaction implements TransactionLike<string> {
 		this.#energyPrice = null;
 		this.#data = "0x";
 		this.#value = BigInt(0);
-		this.#networkId = BigInt(0);
+		this.#networkId = BigInt(10);
 		this.#sig = null;
 	}
 
