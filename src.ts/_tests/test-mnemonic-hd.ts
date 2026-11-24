@@ -64,7 +64,7 @@ const ADDRESS_0 = {
 const PREFIXES = [
 	{ prefix: "cb", networkId: 1, label: "mainnet" },
 	{ prefix: "ab", networkId: 3, label: "devin" },
-	{ prefix: "ce", networkId: 0, label: "private" },
+	{ prefix: "ce", networkId: 10, label: "private" },
 ] as const;
 
 const PREFIX = "cb";

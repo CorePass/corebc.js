@@ -54,7 +54,7 @@ function isArgumentError(code: string) {
 }
 
 describe("transaction defaults", () => {
-	it("starts every field at a zero value", () => {
+	it("starts with zero fields and the default private network ID", () => {
 		const tx = new Transaction();
 		assert.equal(tx.to, null);
 		assert.equal(tx.nonce, 0);
@@ -62,7 +62,7 @@ describe("transaction defaults", () => {
 		assert.equal(tx.energyPrice, 0n);
 		assert.equal(tx.data, "0x");
 		assert.equal(tx.value, 0n);
-		assert.equal(tx.networkId, 0n);
+		assert.equal(tx.networkId, 10n);
 		assert.equal(tx.signature, null);
 	});
 
@@ -74,9 +74,9 @@ describe("transaction defaults", () => {
 		assert.equal(tx.fromPublicKey, null);
 	});
 
-	it("still has a pre-image, encoded as seven empty RLP items", () => {
+	it("encodes the default private network ID in the unsigned pre-image", () => {
 		const tx = new Transaction();
-		assert.equal(tx.unsignedSerialized, "0xc780808080808080");
+		assert.equal(tx.unsignedSerialized, "0xc78080808080800a");
 		assert.deepEqual(decodeRlp(tx.unsignedSerialized), [
 			"0x",
 			"0x",
@@ -84,7 +84,7 @@ describe("transaction defaults", () => {
 			"0x",
 			"0x",
 			"0x",
-			"0x",
+			"0x0a",
 		]);
 	});
 
@@ -291,7 +291,7 @@ describe("transaction data field", () => {
 
 describe("transaction rejects Ethereum field names", () => {
 	// A developer porting code written against Ethereum would otherwise get a
-	// transaction with networkId 0 and no energy limit, and no indication why.
+	// transaction with the default networkId and no energy limit, and no indication why.
 	const renamed: Array<[string, any, string]> = [
 		["chainId", 1, "networkId"],
 		["gas", 21000, "energyLimit"],
@@ -626,10 +626,10 @@ describe("transaction parsing", () => {
 	});
 
 	it("returns an empty transaction for no argument", () => {
-		assert.equal(Transaction.from().unsignedSerialized, "0xc780808080808080");
+		assert.equal(Transaction.from().unsignedSerialized, "0xc78080808080800a");
 		assert.equal(
 			Transaction.from(undefined).unsignedSerialized,
-			"0xc780808080808080",
+			"0xc78080808080800a",
 		);
 	});
 });

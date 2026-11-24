@@ -6,7 +6,7 @@
  *  transaction signing, sender recovery, and the network registry.
  *
  *  These tests treat `networkIdToPrefix` in `address/index.ts` as the
- *  authority (1 -> cb, 3/4 -> ab, 0 and >10 -> ce) and check that every
+ *  authority (1 -> cb, 3/4 -> ab, >=10 -> ce) and check that every
  *  other layer lines up with it.
  */
 import assert from "node:assert/strict";
@@ -25,13 +25,13 @@ const VALID_IDS: Array<{ networkId: number; prefix: string }> = [
 	{ networkId: 1, prefix: "cb" },
 	{ networkId: 3, prefix: "ab" },
 	{ networkId: 4, prefix: "ab" },
-	{ networkId: 0, prefix: "ce" },
+	{ networkId: 10, prefix: "ce" },
 	{ networkId: 11, prefix: "ce" },
 	{ networkId: 1337, prefix: "ce" },
 ];
 
 /** Network ids that `networkIdToPrefix` refuses. */
-const UNASSIGNED_IDS = [2, 5, 6, 7, 8, 9, 10];
+const UNASSIGNED_IDS = [0, 2, 5, 6, 7, 8, 9];
 
 function signedTransaction(networkId: number, prefix: string) {
 	const wallet = new Wallet({ key: KEY, prefix });
@@ -82,9 +82,9 @@ describe("transaction field naming is Core, not Ethereum", () => {
 		}
 	});
 
-	it("defaults to network id 0, which is the private-network prefix", () => {
+	it("defaults to network id 10, which is the private-network prefix", () => {
 		const tx = new Transaction();
-		assert.equal(tx.networkId, BigInt(0));
+		assert.equal(tx.networkId, BigInt(10));
 		assert.equal(networkIdToPrefix(Number(tx.networkId)), "ce");
 		assert.equal(tx.energyLimit, BigInt(0));
 		assert.equal(tx.energyPrice, BigInt(0));
@@ -354,7 +354,7 @@ describe("network registry", () => {
 		for (const [name, networkId, prefix] of [
 			["mainnet", 1, "cb"],
 			["devin", 3, "ab"],
-			["private", 0, "ce"],
+			["private", 10, "ce"],
 		] as Array<[string, number, string]>) {
 			const network = Network.from(name);
 			assert.equal(network.name, name);
@@ -395,7 +395,7 @@ describe("network registry", () => {
 		// the Core network, since that is the one with an address prefix.
 		assert.equal(Network.from(3).name, "devin");
 		assert.equal(Network.from(1).name, "mainnet");
-		assert.equal(Network.from(0).name, "private");
+		assert.equal(Network.from(10).name, "private");
 	});
 
 	it("gives every Core network a valid address prefix", () => {

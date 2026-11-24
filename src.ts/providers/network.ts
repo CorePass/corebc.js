@@ -330,5 +330,5 @@ function injectCommonNetworks(): void {
 
 	registerCore("mainnet", 1, { altNames: ["cb"] });
 	registerCore("devin", 3, { altNames: ["testnet", "ab"] });
-	registerCore("private", 0, { altNames: ["ce"] });
+	registerCore("private", 10, { altNames: ["ce"] });
 }

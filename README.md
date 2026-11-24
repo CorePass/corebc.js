@@ -38,28 +38,32 @@ const signature = await wallet.signMessage("Hello Core");
 ```
 
 Wallets support mnemonics, seed derivation, and encrypted JSON keystores. Wallet
-KDF limits allow PBKDF2 up to 10 million iterations;
-scrypt permits `N <= 1048576`, `r * p <= 1048576`, `N * r * p <= 2097152`
-(twice the default wallet work), and `128 * r * (N + p + 1) <= 256 MiB`
-including parallel and scratch buffers. The built-in scrypt backend also enforces
-the 256 MiB temporary memory limit. Wallets exceeding these limits are rejected. Private keys stay
+KDF limits allow PBKDF2 up to 10 million iterations; scrypt permits
+`N <= 1048576`, `r * p <= 1048576`, `N * r * p <= 2097152` (twice the default
+wallet work), and `128 * r * (N + p + 1) <= 256 MiB` including parallel and
+scratch buffers. The built-in scrypt backend also enforces the 256 MiB temporary
+memory limit. Wallets exceeding these limits are rejected. Private keys stay
 with the caller. Core uses 57-byte Ed448 private and public keys and
 network-prefixed addresses; Ethereum secp256k1 keys are not interchangeable.
 Keep private keys and recovery phrases out of logs and source control.
 
-`SigningKey.computeSharedSecret` returns the 56-byte X448 shared secret used
-by go-core, accepting the peer's 57-byte Ed448 public key. This changes the
-57-byte Edwards-point result returned by version 1.1.0. Applications using
-the previous result as key material must account for that change.
+`SigningKey.computeSharedSecret` returns the 56-byte X448 shared secret used by
+go-core, accepting the peer's 57-byte Ed448 public key. This changes the 57-byte
+Edwards-point result returned by version 1.1.0. Applications using the previous
+result as key material must account for that change.
 
 PBKDF2 keystore imports recognize go-core's SHA3-256 interpretation of
 `hmac-sha256`, with MAC-checked fallback for historical CoreBC SHA2-256
-keystores. SHA2-512 keystores remain supported. This does not change the
-public `pbkdf2` API, mnemonic derivation, or scrypt keystore exports.
+keystores. SHA2-512 keystores remain supported. This does not change the public
+`pbkdf2` API, mnemonic derivation, or scrypt keystore exports.
 
 `Contract` accepts JSON or human-readable ABIs and a provider for reads or
 signer for writes. Transaction fields use `energyLimit`, `energyPrice`, and
 `networkId`.
+
+Private networks use IDs **10 and above**, with `10` as the default private ID.
+`Network.from("private")`, `Network.from("ce")` and `prefixToNetworkId("ce")`
+resolve to `10`; `networkIdToPrefix(0)` is invalid.
 
 For compatibility, the existing `sha256` and `sha512` exports compute **SHA3-256
 and SHA3-512** respectively. `keccak256` is a separate algorithm. Do not
@@ -102,13 +106,13 @@ structure, not issuer authenticity or gateway content integrity.
 and HTTP(S) URLs. Its default template is `https://ipf.sk/{cid}`; configure
 another gateway with
 `new IpfsGateway({ template: "https://gateway.example/ipfs/{cid}" })`. JSON
-reads default to a 1 MiB limit and 30-second timeout. Subdomain templates such as
-`https://{cid}.ipfs.dweb.link` are also supported. In `ipfs://` URIs, path
+reads default to a 1 MiB limit and 30-second timeout. Subdomain templates such
+as `https://{cid}.ipfs.dweb.link` are also supported. In `ipfs://` URIs, path
 segments are percent-decoded once and re-encoded; escaped separators stay within
 their segment and dot segments are rejected. Bare and `/ipfs/` paths are literal
-text (a literal `%` becomes `%25`). Treat metadata URLs as
-untrusted input; server applications should supply a `fetch` implementation that
-enforces their outbound network policy.
+text (a literal `%` becomes `%25`). Treat metadata URLs as untrusted input;
+server applications should supply a `fetch` implementation that enforces their
+outbound network policy.
 
 ```ts
 import { CustomUnitToken } from "corebc/cip";
