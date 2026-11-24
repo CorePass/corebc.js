@@ -75,12 +75,14 @@ const wxcbAbi = [
 		assert.ok(tx);
 		assert.equal(tx.from, SWAP_SENDER);
 		assert.equal(tx.networkId, 3n);
+		assert.equal(tx.index, 0);
 		assert.ok(tx.energyPrice > 0n);
 		assert.equal(Transaction.from(tx).hash, SWAP_HASH);
 
 		const block = await provider.getBlock(SWAP_BLOCK, true);
 		assert.equal(block?.prefetchedTransactions[0].hash, SWAP_HASH);
 		assert.equal(block?.prefetchedTransactions[0].networkId, 3n);
+		assert.equal(block?.prefetchedTransactions[0].index, tx.index);
 
 		const receipt = await provider.getTransactionReceipt(SWAP_HASH);
 		assert.equal(receipt?.status, 1);

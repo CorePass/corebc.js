@@ -243,8 +243,7 @@ export function formatTransactionResponse(
 		{
 			hash: formatHash,
 
-			// Some nodes do not return this, usually test nodes (like Ganache)
-			index: allowNull(getNumber, undefined),
+			index: allowNull(getNumber),
 
 			type: (value: any) => {
 				if (value === "0x" || value == null) {
@@ -256,7 +255,6 @@ export function formatTransactionResponse(
 
 			blockHash: allowNull(formatHash, null),
 			blockNumber: allowNull(getNumber, null),
-			transactionIndex: allowNull(getNumber, null),
 
 			from: getAddress,
 
@@ -274,6 +272,7 @@ export function formatTransactionResponse(
 			networkId: allowNull(getBigInt, null),
 		},
 		{
+			index: ["transactionIndex"],
 			data: ["input"],
 			energyLimit: ["energy"],
 			networkId: ["network_id"],

@@ -98,6 +98,22 @@ describe("Devin transaction responses", () => {
 		);
 		assert.equal(tx.energyPrice, 10_000_000_000n);
 		assert.equal(tx.networkId, 3n);
+		assert.equal(tx.index, 0);
+	});
+
+	it("reads nonzero RPC transaction indexes and preserves a normalized index", () => {
+		const raw = { ...swapResponse, transactionIndex: "0x10" };
+		assert.equal(formatTransactionResponse(raw).index, 16);
+		assert.equal(formatTransactionResponse({ ...raw, index: 0 }).index, 0);
+	});
+
+	it("leaves the index undefined when a pending transaction has no position", () => {
+		const { transactionIndex, ...fields } = swapResponse;
+		const pending = { ...fields, blockHash: null, blockNumber: null };
+		for (const raw of [pending, { ...pending, transactionIndex: null }]) {
+			const tx = formatTransactionResponse(raw);
+			assert.equal(tx.index, undefined);
+		}
 	});
 
 	it("re-serializes to the hash the network assigned", () => {

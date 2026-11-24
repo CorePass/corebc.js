@@ -809,9 +809,10 @@ export class TransactionResponse
 	readonly blockHash: null | string;
 
 	/**
-	 *  The index within the block that this transaction resides at.
+	 *  The zero-based position in the block. This is undefined for pending
+	 *  transactions or when the node omits the index.
 	 */
-	readonly index!: number;
+	readonly index: number | undefined;
 
 	/**
 	 *  The transaction hash.
