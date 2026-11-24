@@ -7,7 +7,6 @@ import { randomBytes, ripemd160, SigningKey, sha256 } from "../crypto/index.js";
 import {
 	dataSlice,
 	defineProperties,
-	getBytes,
 	getNumber,
 	hexlify,
 	assertPrivate,
@@ -71,32 +70,32 @@ const LegacyPathPrefix = "m/44'/60'/0'/0";
  *  buffer, and every such seed derives the same key. Validating here keeps
  *  unrelated seeds from colliding on one wallet.
  */
-function seedToHex(seed: string | BytesLike): string {
-	let hex: string;
-
-	if (typeof seed === "string") {
-		hex = /^0x/i.test(seed) ? seed.substring(2) : seed;
+function seedToHex(seed: BytesLike): string {
+	const value = typeof seed === "string" ? seed.replace(/^0x/i, "") : seed;
+	assertArgument(
+		typeof value === "string" || value instanceof Uint8Array,
+		"seed must be hex or bytes",
+		"seed",
+		"[ REDACTED ]",
+	);
+	if (typeof value === "string") {
 		assertArgument(
-			/^[0-9a-f]*$/i.test(hex) && hex.length % 2 === 0,
+			!/[^0-9a-f]/i.test(value) && value.length % 2 === 0,
 			"seed must be a hex string",
 			"seed",
-			seed,
+			"[ REDACTED ]",
 		);
-	} else {
-		// Byte input is accepted too; the derivation copied such a seed
-		// verbatim before this check existed.
-		hex = hexlify(getBytes(seed, "seed")).substring(2);
 	}
-
-	// BIP-32 permits a seed of 16 to 64 bytes.
+	const size = typeof value === "string" ? value.length / 2 : value.length;
 	assertArgument(
-		hex.length >= 32 && hex.length <= 128,
+		size >= 16 && size <= 64,
 		"seed must be between 16 and 64 bytes",
 		"seed",
-		seed,
+		"[ REDACTED ]",
 	);
-
-	return hex.toLowerCase();
+	return typeof value === "string"
+		? value.toLowerCase()
+		: hexlify(value).substring(2);
 }
 
 // "Bitcoin seed"
@@ -405,7 +404,7 @@ export class HDNodeWallet extends BaseWallet {
 		mnemonic,
 		prefix,
 	}: {
-		_seed: string;
+		_seed: BytesLike;
 		mnemonic: null | Mnemonic;
 		prefix: string;
 	}): HDNodeWallet {
@@ -519,7 +518,7 @@ export class HDNodeWallet extends BaseWallet {
 		prefix,
 		path,
 	}: {
-		seed: string;
+		seed: BytesLike;
 		prefix: string;
 		path?: string;
 	}): HDNodeWallet {

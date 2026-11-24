@@ -77,6 +77,11 @@ const precompiledAddresses = [
 	"00000000000000000000000000000000000000000009",
 ];
 
+/** The raw zero address and the precompiles are valid on every network. */
+function isSystemAddress(address: string): boolean {
+	return precompiledAddresses.includes(removeHexPrefix(address).toLowerCase());
+}
+
 function removeHexPrefix(val: string): string {
 	return val.substring(0, 2) === "0x" ? val.substring(2) : val;
 }
@@ -228,7 +233,7 @@ function getAddress(address: string): string {
 	// lower-case. Without normalizing, two spellings of one address compare
 	// unequal.
 	const raw = removeHexPrefix(address).toLowerCase();
-	if (precompiledAddresses.includes(raw)) {
+	if (isSystemAddress(raw)) {
 		return "0x" + raw;
 	}
 
@@ -379,6 +384,7 @@ export {
 	getAddress,
 	getIcapAddress,
 	calculateCheckSum,
+	isSystemAddress,
 	networkIdToPrefix,
 	prefixToNetworkId,
 	isNetworkPrefix,

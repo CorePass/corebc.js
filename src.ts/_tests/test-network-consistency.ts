@@ -126,47 +126,46 @@ describe("sender recovery honours the transaction's network id", () => {
 		}
 	});
 
-	it("recovers a differently-prefixed address when wallet and network disagree", async () => {
-		// The prefix comes from the transaction's networkId, not from the
-		// signer, so signing a testnet transaction with a mainnet wallet
-		// recovers the same key under the testnet prefix. Same identity,
-		// different rendering - callers must keep the two aligned.
-		const wallet = new Wallet({ key: KEY, prefix: "cb" });
-		const tx = Transaction.from({
-			networkId: 3,
-			nonce: 1,
-			energyLimit: 21000,
-			energyPrice: 1000,
-			value: 0,
-		});
-		const parsed = Transaction.from(await wallet.signTransaction(tx));
-
-		assert.notEqual(parsed.from, wallet.address, "prefix must differ");
-		assert.equal(extractPrefix(parsed.from!), "ab", "uses the tx network");
-		assert.equal(extractPrefix(wallet.address), "cb");
-		assert.equal(
-			parsed.from!.substring(6),
-			wallet.address.substring(6),
-			"same underlying key body",
-		);
+	it("rejects requests for a different wallet network before signing", async () => {
+		for (const [networkId, prefix] of [
+			[1, "ab"],
+			[3, "cb"],
+		] as const) {
+			const wallet = new Wallet({ key: KEY, prefix });
+			await assert.rejects(
+				wallet.signTransaction({ networkId, from: wallet.address }),
+				/network does not match wallet/,
+			);
+		}
 	});
 
-	it("refuses to recover a sender for an unassigned network id", async () => {
+	it("rejects an unassigned network id before signing", async () => {
 		const wallet = new Wallet({ key: KEY, prefix: "cb" });
 		for (const networkId of UNASSIGNED_IDS) {
-			const tx = Transaction.from({
-				networkId,
-				nonce: 1,
-				energyLimit: 21000,
-				energyPrice: 1000,
-				value: 0,
-			});
-			const serialized = await wallet.signTransaction(tx);
-			assert.throws(
-				() => Transaction.from(serialized).from,
+			await assert.rejects(
+				wallet.signTransaction({ networkId }),
 				/bad networkId/,
-				`networkId ${networkId}`,
 			);
+		}
+	});
+
+	it("checks the recipient network and permits network-independent destinations", async () => {
+		const { wallet } = signedTransaction(3, "ab");
+		const other = new Wallet({ key: OTHER_KEY, prefix: "cb" });
+		await assert.rejects(
+			wallet.signTransaction({ networkId: 3, to: other.address }),
+			/recipient address does not match/,
+		);
+		for (const to of [
+			null,
+			"0x" + "00".repeat(22),
+			"0x" + "00".repeat(21) + "01",
+		]) {
+			const parsed = Transaction.from(
+				await wallet.signTransaction({ networkId: 3, to }),
+			);
+			assert.equal(parsed.to, to);
+			assert.equal(parsed.from, wallet.address);
 		}
 	});
 
@@ -197,7 +196,8 @@ describe("sender recovery honours the transaction's network id", () => {
 		const one = await wallet.signTransaction(
 			Transaction.from({ ...base, networkId: 1 }),
 		);
-		const three = await wallet.signTransaction(
+		const devinWallet = new Wallet({ key: KEY, prefix: "ab" });
+		const three = await devinWallet.signTransaction(
 			Transaction.from({ ...base, networkId: 3 }),
 		);
 		assert.notEqual(one, three);
