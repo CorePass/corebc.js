@@ -468,6 +468,27 @@ describe("Mnemonic: seed derivation and password", () => {
 		assert.equal(mnemonic.computeSeed(), seed, "deterministic");
 	});
 
+	it("matches BIP-39 with a Unicode passphrase on every mnemonic entry point", () => {
+		const phrase = "abandon ".repeat(11) + "about";
+		// Independent PBKDF2-HMAC-SHA512 vector over NFKD UTF-8.
+		const expected =
+			"0d02d87e72ac4f3c2f2b782309d759672b1bfdc60263be08c188007731870434ef952d7061cf5bcef1301d75d45ae91d2986ff844829bd15607a26851f8f4ca6";
+		for (const password of ["Café 🔑", "Cafe\u0301 🔑"]) {
+			assert.equal(
+				Mnemonic.fromPhrase({ phrase, password }).computeSeed(),
+				expected,
+			);
+			assert.equal(
+				HDNodeWallet.mnemonicToSeed(phrase.split(" ").join("\u3000"), password),
+				expected,
+			);
+			assert.equal(
+				Wallet.fromPhrase({ phrase, password, prefix: PREFIX }).address,
+				Wallet.fromSeed({ seed: expected, prefix: PREFIX }).address,
+			);
+		}
+	});
+
 	it("gives every strength its own seed", () => {
 		const seeds = STRENGTHS.map(({ bytes }) =>
 			Mnemonic.fromEntropy("0x" + "0f".repeat(bytes)).computeSeed(),
@@ -1251,6 +1272,29 @@ describe("HDNodeWallet: network prefixes", () => {
 });
 
 describe("HDNodeWallet: seed input handling", () => {
+	it("redacts invalid seeds from error details on both public entry points", () => {
+		const marker = "abcdef012345";
+		for (const seed of [
+			marker,
+			marker.repeat(12),
+			marker + "z",
+			new Uint8Array([0xab]),
+			{ secret: marker },
+		]) {
+			for (const create of [Wallet.fromSeed, HDNodeWallet.fromSeed]) {
+				assert.throws(
+					() => create({ seed: seed as any, prefix: PREFIX }),
+					(err: any) =>
+						err.code === "INVALID_ARGUMENT" &&
+						err.argument === "seed" &&
+						err.value === "[ REDACTED ]" &&
+						!err.message.includes(marker) &&
+						!JSON.stringify(err).includes(marker),
+				);
+			}
+		}
+	});
+
 	it("derives the same wallet from a seed given as hex text or bytes", () => {
 		const expected = hd();
 		assert.equal(

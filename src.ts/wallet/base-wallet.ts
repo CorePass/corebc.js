@@ -1,4 +1,8 @@
-import { getAddress } from "../address/index.js";
+import {
+	getAddress,
+	isSystemAddress,
+	networkIdToPrefix,
+} from "../address/index.js";
 import { resolveAddress } from "../address/checks.js";
 import { hashMessage, TypedDataEncoder } from "../hash/index.js";
 import { AbstractSigner, copyRequest } from "../providers/index.js";
@@ -123,6 +127,21 @@ export class BaseWallet extends AbstractSigner {
 
 		// Build the transaction
 		const btx = Transaction.from(<TransactionLike<string>>tx);
+		const prefix = networkIdToPrefix(Number(btx.networkId));
+		assertArgument(
+			this.address.substring(2, 4) === prefix,
+			"transaction network does not match wallet address",
+			"tx.networkId",
+			btx.networkId,
+		);
+		if (btx.to != null && !isSystemAddress(btx.to)) {
+			assertArgument(
+				btx.to.substring(2, 4) === prefix,
+				"recipient address does not match transaction network",
+				"tx.to",
+				btx.to,
+			);
+		}
 		const unSignedSerialized = btx.unsignedSerialized;
 		const unsignedHash = sha256(unSignedSerialized);
 		// sha256(btx.unsignedSerialized)

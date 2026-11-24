@@ -19,6 +19,7 @@ import { Mnemonic } from "./mnemonic.js";
 
 import type { ProgressCallback } from "../crypto/index.js";
 import type { Provider } from "../providers/index.js";
+import type { BytesLike } from "../utils/index.js";
 
 import type { CrowdsaleAccount } from "./json-crowdsale.js";
 import type { KeystoreAccount } from "./json-keystore.js";
@@ -271,7 +272,7 @@ export class Wallet extends BaseWallet {
 		provider,
 		path,
 	}: {
-		seed: string;
+		seed: BytesLike;
 		prefix: string;
 		path?: string;
 		provider?: Provider;

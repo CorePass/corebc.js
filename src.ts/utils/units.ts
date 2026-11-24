@@ -19,7 +19,7 @@
  *
  *  @_subsection api/utils:Unit Conversion  [about-units]
  */
-import { assertArgument } from "./errors.js";
+import { assert, assertArgument } from "./errors.js";
 import { FixedNumber } from "./fixednumber.js";
 import { getNumber } from "./maths.js";
 
@@ -72,74 +72,43 @@ export function formatUnits(
 	}).toString();
 }
 
-/**
- *  Converts the //decimal string// %%value%% to a BigInt, assuming
- *  %%unit%% decimal places. The %%unit%% may the number of decimal places
- *  or the name of a unit.
- */
+// Shift the decimal point using only string digits. The exponent controls
+// a position, never the numeric value of the significand.
+export function scientificToDecimal(num: string | number): string {
+	const value = String(num);
+	if (!/[eE]/.test(value)) return value;
+	const match = /^([+-]?)([0-9]*)(?:\.([0-9]*))?[eE]([+-]?[0-9]+)$/.exec(value);
+	assertArgument(
+		match && (match[2] || match[3]),
+		"invalid FixedNumber string value",
+		"value",
+		value,
+	);
+	const [, inputSign, whole, fraction = "", exponent] = match;
+	const sign = inputSign === "-" ? "-" : "";
+	const digits = whole + fraction;
+	if (!/[1-9]/.test(digits)) return "0";
+	const point = whole.length + Number(exponent);
 
-export const scientificToDecimal = (num: string | number) => {
-	// @ts-ignore
-	var nsign = Math.sign(num);
-	//remove the sign
-	// @ts-ignore
-	num = Math.abs(num);
-	//if the number is in scientific notation remove it
-	// @ts-ignore
-	if (/\d+\.?\d*e[\+\-]*\d+/i.test(num)) {
-		var zero = "0",
-			// @ts-ignore
-			parts = String(num).toLowerCase().split("e"), //split into coeff and exponent
-			e = parts.pop(), //store the exponential part
-			// @ts-ignore
-			l = Math.abs(e), //get the number of zeros
-			// @ts-ignore
-			sign = e / l,
-			coeff_array = parts[0].split(".");
-		if (sign === -1) {
-			l = l - coeff_array[0].length;
-			if (l < 0) {
-				// @ts-ignore
-				num =
-					coeff_array[0].slice(0, l) +
-					"." +
-					coeff_array[0].slice(l) +
-					(coeff_array.length === 2 ? coeff_array[1] : "");
-			} else {
-				// @ts-ignore
-				num = zero + "." + new Array(l + 1).join(zero) + coeff_array.join("");
-			}
-		} else {
-			var dec = coeff_array[1];
-			if (dec) l = l - dec.length;
-			if (l < 0) {
-				// @ts-ignore
-				num = coeff_array[0] + dec.slice(0, l) + "." + dec.slice(l);
-			} else {
-				// @ts-ignore
-				num = coeff_array.join("") + new Array(l + 1).join(zero);
-			}
-		}
-	}
-	// @ts-ignore
-	return nsign < 0 ? "-" + num : num;
-};
-export const trimDecimals = (n: string, decimals = 18) => {
-	n += "";
+	// No supported FixedNumber has over 80 decimal places or more than
+	// 155 integer digits (512 bits). Bound padding before allocating it.
+	assert(point > -80, "too many decimals for format", "NUMERIC_FAULT", {
+		operation: "parseUnits",
+		fault: "underflow",
+		value,
+	});
+	assert(point <= digits.length + 155, "overflow", "NUMERIC_FAULT", {
+		operation: "parseUnits",
+		fault: "overflow",
+		value,
+	});
+	if (point <= 0) return sign + "0." + "0".repeat(-point) + digits;
+	if (point >= digits.length)
+		return sign + digits + "0".repeat(point - digits.length);
+	return sign + digits.slice(0, point) + "." + digits.slice(point);
+}
 
-	if (n.indexOf(".") === -1) return n;
-
-	const arr = n.split(".");
-	// Rebuilding from the first two parts alone would quietly turn a
-	// malformed amount like "1.2.3" into "1.2", so leave anything that is not
-	// a single decimal point untouched and let the parser reject it.
-	if (arr.length !== 2) {
-		return n;
-	}
-	const fraction = arr[1].substring(0, decimals);
-	return fraction.length ? arr[0] + "." + fraction : arr[0];
-};
-
+/** Parse decimal or scientific notation exactly in the requested unit. */
 export function parseUnits(value: string, unit?: string | Numeric): bigint {
 	assertArgument(
 		typeof value === "string",
@@ -147,21 +116,19 @@ export function parseUnits(value: string, unit?: string | Numeric): bigint {
 		"value",
 		value,
 	);
-	if (value.includes("e")) {
-		value = scientificToDecimal(value).toString();
-	}
 	let decimals = 18;
 	if (typeof unit === "string") {
 		const index = names.indexOf(unit);
 		assertArgument(index >= 0, "invalid unit", "unit", unit);
 		decimals = 3 * index;
-		value = trimDecimals(value, decimals);
 	} else if (unit != null) {
 		decimals = getNumber(unit, "unit");
-		value = trimDecimals(value, decimals);
 	}
 
-	return FixedNumber.fromString(value, { decimals, width: 512 }).value;
+	return FixedNumber.fromString(scientificToDecimal(value), {
+		decimals,
+		width: 512,
+	}).value;
 }
 
 /**

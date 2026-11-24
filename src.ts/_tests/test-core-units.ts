@@ -76,8 +76,8 @@ describe("Core denomination ladder", () => {
 
 	it("treats ore as the atomic unit with no fractional part", () => {
 		assert.equal(parseUnits("1", "ore"), BigInt(1));
-		// Sub-ore precision is truncated rather than rounded or rejected.
-		assert.equal(parseUnits("1.9", "ore"), BigInt(1));
+		// A fractional ore cannot be represented.
+		assert.throws(() => parseUnits("1.9", "ore"), /too many decimals/);
 		assert.equal(formatUnits(BigInt(1), "ore"), "1");
 	});
 
@@ -116,7 +116,7 @@ describe("Core denominations reject Ethereum names", () => {
 describe("unit conversion by explicit decimals", () => {
 	it("accepts a decimal count in place of a unit name", () => {
 		assert.equal(parseUnits("1.5", 6), BigInt(1500000));
-		assert.equal(parseUnits("1.5", 0), BigInt(1));
+		assert.throws(() => parseUnits("1.5", 0), /too many decimals/);
 		assert.equal(formatUnits(BigInt(1500000), 6), "1.5");
 	});
 
@@ -127,7 +127,8 @@ describe("unit conversion by explicit decimals", () => {
 
 	it("agrees with the named units", () => {
 		for (const [unit, decimals] of LADDER) {
-			assert.equal(parseUnits("2.5", unit), parseUnits("2.5", decimals), unit);
+			const exact = decimals === 0 ? "2" : "2.5";
+			assert.equal(parseUnits(exact, unit), parseUnits(exact, decimals), unit);
 			const value = BigInt(10) ** BigInt(18);
 			assert.equal(
 				formatUnits(value, unit),
@@ -176,14 +177,31 @@ describe("unit conversion input handling", () => {
 		assert.equal(parseUnits("1e-18", "core"), BigInt(1));
 	});
 
-	it("truncates precision beyond the unit's decimals", () => {
-		// 19 decimal places against an 18 decimal unit: the extra digit is
-		// dropped rather than rounding or throwing.
-		assert.equal(
-			parseUnits("1." + "1".repeat(19), "core"),
-			BigInt("1111111111111111111"),
-		);
-		assert.equal(parseUnits("1.9999", 2), BigInt(199));
+	it("rejects unrepresentable amounts and accepts extra trailing zeros", () => {
+		for (const value of [
+			"1." + "1".repeat(19),
+			"0.0000000000000000001",
+			"1e-19",
+			"-1e-19",
+		]) {
+			assert.throws(() => parseXCB(value), /too many decimals/);
+			assert.throws(() => parseUnits(value), /too many decimals/);
+		}
+		assert.throws(() => parseUnits("1.9999", 2), /too many decimals/);
+		assert.equal(parseUnits("1.2300", 2), 123n);
+		assert.equal(parseUnits("1.000", "ore"), 1n);
+	});
+
+	it("keeps scientific amounts exact and bounds exponent expansion", () => {
+		assert.equal(parseXCB("1.000000000000000001e0"), 1000000000000000001n);
+		assert.equal(parseUnits("9007199254740993e0", "ore"), 9007199254740993n);
+		assert.equal(parseUnits("-12345E-2", 2), -12345n);
+		assert.equal(parseUnits(".0012e+4", 0), 12n);
+		assert.equal(parseUnits("+1.234e+3", 0), 1234n);
+		assert.equal(parseXCB("10000000000000000000e-37"), 1n);
+		assert.throws(() => parseXCB("1e1000000"), /overflow/);
+		assert.throws(() => parseXCB("1e-1000000"), /too many decimals/);
+		assert.equal(parseXCB("0e1000000"), 0n);
 	});
 
 	it("requires the parse input to be a string", () => {
@@ -226,17 +244,6 @@ describe("unit conversion input handling", () => {
 			assert.throws(() => parseXCB(value), /FixedNumber/, value);
 			assert.throws(() => parseUnits(value), /FixedNumber/, value);
 		}
-	});
-
-	it("still truncates legitimate excess precision", () => {
-		// Rejecting malformed input must not break the truncation of a single
-		// over-long fraction.
-		assert.equal(
-			parseUnits("1." + "1".repeat(19), "core"),
-			BigInt("1111111111111111111"),
-		);
-		assert.equal(parseUnits("1.9", "ore"), BigInt(1));
-		assert.equal(parseUnits("1.9999", 2), BigInt(199));
 	});
 
 	it("accepts the full range of BigNumberish for formatting", () => {

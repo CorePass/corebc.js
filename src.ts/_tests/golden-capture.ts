@@ -536,7 +536,7 @@ async function transactions(): Promise<Bucket> {
 	});
 	await cap(o, "signed", async () => {
 		const w = new Wallet({ key: PRIV_A, prefix: PREFIX });
-		const signed = await w.signTransaction(base);
+		const signed = await w.signTransaction({ ...base, to: w.address });
 		const parsed = Transaction.from(signed);
 		return {
 			serialized: signed,

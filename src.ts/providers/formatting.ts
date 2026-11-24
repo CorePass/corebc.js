@@ -336,9 +336,9 @@ export interface TransactionResponseParams {
 	hash: string;
 
 	/**
-	 *  The transaction index.
+	 *  The zero-based position in the block, when the node reports it.
 	 */
-	index: number;
+	index?: number | undefined;
 
 	/**
 	 *  The [[link-eip-2718]] transaction type.
