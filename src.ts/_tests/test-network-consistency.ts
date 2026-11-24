@@ -374,24 +374,19 @@ describe("network registry", () => {
 		}
 	});
 
-	it("keeps the legacy network names resolvable", () => {
-		// These shipped in the registry before Core's own names were added.
-		// They stay registered so existing code that asks for them by name
-		// keeps working, even though they are not Core networks.
-		const legacy: Array<[string, number]> = [
-			["ropsten", 3],
-			["rinkeby", 4],
-			["goerli", 5],
-			["kovan", 42],
-			["sepolia", 11155111],
-			["classic", 61],
-			["classicKotti", 6],
-			["xdai", 100],
-		];
-		for (const [name, networkId] of legacy) {
-			const network = Network.from(name);
-			assert.equal(network.name, name, name);
-			assert.equal(network.networkId, BigInt(networkId), name);
+	it("rejects the former Ethereum network profiles", () => {
+		for (const name of [
+			"homestead",
+			"ropsten",
+			"rinkeby",
+			"goerli",
+			"kovan",
+			"sepolia",
+			"classic",
+			"classicKotti",
+			"xdai",
+		]) {
+			assert.throws(() => Network.from(name), /unknown network/, name);
 		}
 	});
 
@@ -401,7 +396,6 @@ describe("network registry", () => {
 		assert.equal(Network.from(3).name, "devin");
 		assert.equal(Network.from(1).name, "mainnet");
 		assert.equal(Network.from(0).name, "private");
-		assert.equal(Network.from("homestead").name, "mainnet");
 	});
 
 	it("gives every Core network a valid address prefix", () => {
